@@ -1,0 +1,22 @@
+
+BODY		{ margin: 0px 10px 0px 10px ; color: #ffffff ; }
+:link		{ color: #aaddff ; background: transparent }
+:visited	{ color: #aaddff ; background: transparent }
+:active		{ color: #aaddff ; background: transparent }
+
+/*.body1		{ background-color: #000044 }*/
+.body1		{ background-image: url("../.fslpres/fsl-bg-darkblue.jpg") }
+.body2		{ background-image: url("../.fslpres/fsl-bg-darkgreen.jpg") }
+
+.title		{ font-size: 44px ; font-family: 'Western' , sans-serif ;  color: #aaddff }
+
+HR		{ border: 1px inset ; margin: 5px }
+
+td		{ font-size: 36px ; font-family: 'Georgia' , Times , serif ; font-weight: normal ; padding: 0px }
+
+em		{ color: #55ff55 }
+
+em2		{ color: #aaddff ; font-style: italic }
+
+code		{ font-size: 24px ; color: #dddddd }
+

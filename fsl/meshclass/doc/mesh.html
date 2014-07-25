@@ -1,0 +1,114 @@
+<html>
+
+<head>
+</head>
+
+<body>
+
+<title> Mesh class </title>
+
+<h1 align="center">  Mesh class </h1>
+<br>
+<a href="index.html">back to menu</a>
+
+<br><br>
+<strong>This class describes meshes </strong>
+<br>
+<hr>
+<br><br>
+class Mesh {
+<br>
+ <strong>public:</strong>
+<br>
+  list&lt;<a href="mpoint.html">Mpoint</a> *&gt; _points; <font color="#FF0000">list of mesh points</font>
+<br>
+  list&lt;<a href="triangle.html">Triangle</a> *&gt; _triangles; <font color="#FF0000">list of triangles</font>
+<br>
+
+<br>
+  Mesh(); <font color="#FF0000">default constructor</font>
+<br>
+  ~Mesh(); <font color="#FF0000">delete all the components of the mesh</font>
+<br>
+  Mesh(<i>const</i> Mesh&m); <font color="#FF0000">copy constructor</font>
+<br>
+  Mesh operator=(<i>const</i> Mesh&m); <font color="#FF0000">affectation operateur</font>
+<br>
+
+<br>
+  void display() <i>const</i>; <font color="#FF0000">display information concernig the mesh </font>
+<br>
+  void clear(); <font color="#FF0000">clear the mesh and delete its components</font>
+<br>
+  <i>const</i> int nvertices() <i>const</i>; <font color="#FF0000">return the number of vertices</font>
+<br>
+  <a href="mpoint.html">Mpoint</a> * get_point(int n); <font color="#FF0000">return the nth point in the list</font>
+<br>
+  
+<br>
+  double distance(<i>const</i> <a href="pt.html">Pt</a>& p) <i>const</i>;  <font color="#FF0000">signed distance of the point to the mesh</font>
+<br>
+  void reorientate();    <font color="#FF0000">puts the triangles in a coherent orientation</font>
+<br>
+  void addvertex(<a href="triangle.html">Triangle</a> *<i>const</i> t,<i>const</i> <a href="pt.html">Pt</a> p); <font color="#FF0000">add a new mesh point in the centre of the triangle</font>
+<br>
+  void retessellate();  <font color="#FF0000">retessellate the whole mesh</font>
+<br>
+  void update();   <font color="#FF0000">update coordinates for all the points of the mesh</font>  
+<br>
+  void translation(<i>const</i> double x,<i>const</i> double y,<i>const</i> double z); <font color="#FF0000">translate the whole mesh</font>
+<br>
+  void translation(<i>const</i> <a href="vec.html">Vec</a> v);<font color="#FF0000">translate the whole mesh</font>
+<br>
+  void rescale(<i>const</i> double t, <i>const</i> double x=0,<i>const</i> double y=0,<i>const</i> double z=0); <font color="#FF0000">rescale the whole mesh with scale t and center (x, y, z)</font>
+<br>
+  void rescale(<i>const</i> double t , <i>const</i> <a href="pt.html">Pt</a> p); <font color="#FF0000">rescale the whole mesh with scale t and center Pt</font>
+<br>
+  void load(string s); <font color="#FF0000">load mesh from .off file s</font>
+<br>
+  void save(string s="manual_input") <i>const</i>; <font color="#FF0000">save a mesh into s in .off format</font>
+<br>
+  <i>const</i> double self_intersection(<i>const</i> Mesh& original) <i>const</i>; <font color="#FF0000">amount of self intersection(cf bet report)</font>
+<br>
+  <i>const</i> bool real_self_intersection(<i>const</i> Mesh& original) <i>const</i>; <font color="#FF0000">returns true if the mesh is self-intersecting</font>
+<br>
+
+
+<br>
+  <i>const</i> bool real_self_intersection(); <font color="#FF0000">check if the mesh self-intersects or not</font>
+<br>
+  
+<br>
+};
+<br>
+
+<br>
+void make_mesh_from_tetra(int n, Mesh& m); <font color="#FF0000">m becomes a tetrahedron rettesselated n times</font>
+<br>
+void make_mesh_from_icosa(int n, Mesh& m); <font color="#FF0000">m becomes a icosahedron rettesselated n times</font>
+<br>
+void make_mesh_from_octa(int n, Mesh& m); <font color="#FF0000">m becomes an octaahedron rettesselated n times</font>
+<br>
+ostream& operator <<(ostream& flot,<i>const</i> Mesh & m); <font color="#FF0000">return a stream in .off format</font>
+<br>
+<br>
+
+<strong>
+Scripts:
+</strong>
+<br>
+drawmesh is a script that draws a mesh on a volume, or the corresponding binary mask.
+<br>
+Usage : drawmesh [mesh.off] [volume.hdr] (-m for the mask)
+
+<br>
+<br>
+<hr>
+<a href="examples.html">see examples</a>
+<hr>
+<a href="index.html">back to menu</a>
+
+</body>
+</html>
+
+

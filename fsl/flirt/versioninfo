@@ -1,0 +1,19 @@
+FLIRT v1.0 - the first major, stable release (incorporated into MEDx)
+FLIRT v2.0 - revised the search to use median scale instead of interpolated
+		scale
+FLIRT v2.1 - replaced the optimisation routine, using separate 1D searches
+		without Powell's direction changing routine.
+		Also changed the details of the cost function calculation
+		to improve speed, and added a smoothing factor
+FLIRT v2.1.1 - Enabled the resulting image to be written out with the same
+		data format as the input image
+FLIRT v2.1.2 - SETOPTION added to the schedule language, and -smooth removed
+		from the command line options.  Changed defaultschedule so
+		that smoothing is set equal to the scale.
+FLIRT v2.1.3 - Small changes to options and stuff prior to first FSL release
+FLIRT v3.0   - ?
+FLIRT v3.1   - Added cost function weighting (also fixed bounds error bug)
+FLIRT v4.0   - Converted to use newimage rather than mjimage (now obsolete)
+FLIRT v4.1   - Recompiled on all platforms (4.0 was not consistent in results...)
+ 
+

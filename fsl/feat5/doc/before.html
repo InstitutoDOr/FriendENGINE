@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><meta http-equiv="Content-Type"
+content="text/html;charset=utf-8">
+<link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FSL</TITLE></HEAD><BODY><IFRAME width="100%" scrolling="no"
+frameborder="0" src="top.html">Broken</IFRAME>
+
+
+<H2>Before Running FEAT</H2>
+
+<p>Before calling the FEAT GUI, you need to prepare each session's
+data as a 4D NIFTI or Analyze format image; there are utilities in
+fsl/bin called <a href="../avwutils/index.html" target="_top">fslmerge
+and fslsplit</a> to convert between multiple 3D images and a single 4D
+(3D+time) image. If the data requires any scanner-specific corrections
+(for example, for artefacts such as slice dropouts), this should be
+applied to the data before running FEAT.
+
+<p>Structural images for use as "highres" images in registration
+should normally be brain-extracted using <a href="../bet2/index.html"
+target="_top">BET</a> before being used by FEAT.
+
+</BODY></HTML>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="fslexec">
+</Property><Property Name="Solution File" Value="E:\Desenv\0Rodrigo\Conquest\fsl\fslexec\fslexec.sln">
+</Property><Property Name="User Options File" Value="E:\Desenv\0Rodrigo\Conquest\fsl\fslexec\fslexec.suo">
+</Property><Property Name="Date" Value="Saturday, November 13, 2010">
+</Property><Property Name="Time" Value="10:13 AM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="fslexec.sln" Description="File successfully backed up as E:\Desenv\0Rodrigo\Conquest\fsl\fslexec\fslexec.sln.old">
+</Event><Event ErrorLevel="0" Project="" Source="fslexec.suo" Description="File successfully backed up as E:\Desenv\0Rodrigo\Conquest\fsl\fslexec\fslexec.suo.old">
+</Event><Event ErrorLevel="0" Project="fslexec" Source="fslexec\fslexec.vcproj" Description="Converting project file 'E:\Desenv\0Rodrigo\Conquest\fsl\fslexec\fslexec\fslexec.vcproj'.">
+</Event><Event ErrorLevel="1" Project="fslexec" Source="fslexec\fslexec.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="fslexec" Source="fslexec\fslexec.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="fslexec" Source="fslexec\fslexec.vcproj" Description="MSB8012: $(TargetName) ('fslexec') does not match the Linker's OutputFile property value 'C:\Instituto\x64\Debug\fslexec1.exe' ('fslexec1') in project configuration 'Release|x64'. This may cause your project to build incorrectly. To correct this, please make sure that $(TargetName) property value matches the value specified in %(Link.OutputFile).">
+</Event><Event ErrorLevel="1" Project="fslexec" Source="fslexec\fslexec.vcproj" Description="MSB8012: $(TargetPath) ('E:\Desenv\0Rodrigo\Conquest\fsl\fslexec\x64\Release\fslexec.exe') does not match the Linker's OutputFile property value 'C:\Instituto\x64\Debug\fslexec1.exe' ('C:\Instituto\x64\Debug\fslexec1.exe') in project configuration 'Release|x64'. This may cause your project to build incorrectly. To correct this, please make sure that $(TargetPath) property value matches the value specified in %(Link.OutputFile).">
+</Event><Event ErrorLevel="0" Project="fslexec" Source="fslexec\fslexec.vcproj" Description="Done converting to new project file 'E:\Desenv\0Rodrigo\Conquest\fsl\fslexec\fslexec\fslexec.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="fslexec" Source="fslexec\fslexec.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="fslexec.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="fslexec.sln" Description="Converted">
+</Event></UpgradeLog>

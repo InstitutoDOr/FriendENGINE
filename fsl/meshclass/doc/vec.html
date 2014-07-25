@@ -1,0 +1,75 @@
+<html>
+
+<head>
+</head>
+
+<body>
+
+<title> Vec class </title>
+
+<h1 align="center">  Vec class </h1>
+<br>
+<a href="index.html">back to menu</a>
+<hr>
+<br><br>
+<strong>This class describes vectors in 3D and allows basics operations on them.</strong>
+<br>
+<br>
+class Vec {
+<br>
+<strong> public:</strong>
+<br>
+  &nbsp;Vec() : X(0), Y(0), Z(0){};<font color="#FF0000">default constructor</font>
+<br>
+  &nbsp;Vec(double x, double y, double z) : X(x), Y(y), Z(z){};<font color="#FF0000">constructor</font>
+<br>
+  &nbsp;Vec(<i>const</i> Vec& v) : X(v.X), Y(v.Y), Z(v.Z){};<font color="#FF0000">copy constructor</font>
+<br>
+  &nbsp;Vec operator = (<i>const</i> Vec& v)<font color="#FF0000">affectation operator</font>
+<br>
+<br>
+<font color="#FF0000">coordinates</font>
+<br>
+ &nbsp; double X;
+<br>
+&nbsp;  double Y;
+<br>
+&nbsp;  double Z;
+<br>
+<br>
+
+&nbsp;  <i>const</i> inline double norm() <i>const</i>;<font color="#FF0000">gives the norm of the vector</font>
+<br>
+&nbsp;  inline void operator+=(<i>const</i> Vec v);<font color="#FF0000">add a vector</font>
+<br>
+&nbsp;  void normalize();<font color="#FF0000">normalize the vector (unchanged if 0)</font>
+<br>
+
+
+};
+<br>
+<br>
+
+<i>const</i> double operator|(<i>const</i> Vec &v1, <i>const</i> Vec &v2);<font color="#FF0000">scalar product (yes, this notation exists...)</font>
+<br>
+<i>const</i> Vec operator*(<i>const</i> double &d, <i>const</i> Vec &v);<font color="#FF0000">external product</font>
+<br>
+<i>const</i> Vec operator*(<i>const</i> Vec &v, <i>const</i> double &d);<font color="#FF0000">external product</font>
+<br>
+<i>const</i> Vec operator+(<i>const</i> Vec &v1, <i>const</i> Vec &v2);<font color="#FF0000">add two vectors</font>
+<br>
+<i>const</i> Vec operator-(<i>const</i> Vec &v1, <i>const</i> Vec &v2);<font color="#FF0000">substract v2 to v1</font>
+<br>
+<i>const</i> Vec operator*(<i>const</i> Vec &v1, <i>const</i> Vec &v2);<font color="#FF0000">cross product</font>
+<br>
+<i>const</i> Vec operator/(<i>const</i> Vec &v, <i>const</i> double &d);<font color="#FF0000">divide a vector by d - output an error is d = 0</font>
+<br>
+
+<hr>
+<br>
+<a href="index.html">back to menu</a>
+
+</body>
+</html>
+
+

@@ -1,0 +1,111 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+FLOBS - FMRIB's Linear Optimal Basis Sets
+</H1>
+FLOBS v1.1 - User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<IMG ALIGN=RIGHT SRC="hrfbasisfns.png"><H2>INTRODUCTION</H2>
+
+<p>FLOBS is a toolkit based around the idea of generating optimal
+basis sets for use in HRF convolution in FMRI linear modelling such as
+in FEAT. It allows the specification of sensible ranges for various
+HRF-controlling parameters (delays and heights for the different parts
+of the HRF "curve"), generates lots of example HRFs where each
+timing/height parameter is randomly sampled from the range specified,
+and then uses PCA to generate an optimal basis set that maximally
+"spans the space" of the generated samples.
+
+<P>It is easy to tell FEAT to use a FLOBS-generated basis set; either
+use the <b>Make_flobs</b> GUI or use the default FLOBS basis set
+supplied with FSL. Just select the <b>optimal/custom</b> HRF
+convolution option in the FEAT model setup.
+
+<p>It is also possible to use <b>filmbabe</b> instead of the normal
+FEAT timeseries analysis (which uses the FILM program). The difference
+is that filmbabe re-projects the optimal basis set onto the original
+complete set of samples so that it can learn priors on the expected
+means and covariances of the individual basis functions. This is so
+that these priors can then be used when fitting the model to the data,
+which means that the basis set is restricted from creating implausible
+HRF shapes. This means that the noise is less "randomly fit" by the
+model, giving better separation between the null part of the final
+statistics map and the activation part, i.e. better activation
+modelling power. Beware: note that the filmbabe program itself is a
+relatively untested (beta release) program!
+
+<P>For more detail on FLOBS see <i>M.W. Woolrich, T.E.J. Behrens, and
+S.M. Smith. Constrained linear basis sets for HRF modelling using
+Variational Bayes. NeuroImage, 21:4(1748-1761) 2004</i> and a related
+technical report <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/techrep/#TR04MW2">TR04MW2</A>.
+
+<HR><IMG ALIGN=RIGHT SRC="gui_small.png"><H2>Make_flobs</H2>
+
+<p>You can create your own optimal basis set using the
+<b>Make_flobs</b> GUI; either type <b>Make_flobs</b> from the command
+line, or find it under the <b>Utils</b> button in the FEAT GUI. The
+GUI is fairly self-explanatory; using the figure that appears, showing
+the HRF and its different controlling parameters (time widths set in
+seconds and the height parameter relative to the main peak height,
+which is set at 1), set the range you wish for each parameter. Press
+<b>Preview</b> and the basis set will be generated (with a reduced
+number of samples for speed), popping up a web browser window with the
+results, typically in a minute or less. The eigenvalues plot shows the 
+eigenvalues for the most important basis
+functions which explain 99.5% of the variance.
+This might help you to refine your choice of the number of basis
+functions to use.
+
+<p>Now select an output directory name for the basis function
+information to get saved into (e.g. /Users/karl/my_basis_set.flobs)
+and press <b>Go</b>. Now the full number of samples will be generated
+and all necessary data (primarily the basis functions and their means
+and covariances when re-projected back onto the samples) will get
+saved for use in FEAT or in filmbabe.
+
+<P>If you are using the basis set inside FEAT, just select the
+<b>optimal/custom</b> HRF convolution option in the FEAT model setup
+GUI (for <b>ALL</b> relevant EVs!) and use the adjacent file browser
+button to change the default FLOBS directory to the one you have just
+created (again, you must do this for <b>ALL</b> relevant EVs).
+
+<HR><H2>filmbabe</H2>
+
+<p>If you want to try the filmbabe program (don't forget it's a beta
+release which hasn't been heavily tested yet!) then you should do the
+following:<UL>
+
+  <LI>Read the paper or techrep linked to above.
+
+  <LI>Create your optimal basis set using <b>Make_flobs</b>.
+
+  <LI>Run FEAT as normal, using this new basis set.
+
+  <LI>Use <b>filmbabescript</b> as an easy way to run filmbabe, carry
+  out inference (thresholding) and generate a web-page report. The
+  usage is:
+  <pre>filmbabescript &lt;feat_directory&gt; &lt;flobs_directory&gt;</pre>
+
+</UL>
+
+<p>Note that the stats output from filmbabe does <b>not</b> follow a
+simple understood null-distribution (in the null case) so the standard
+methods for thresholding (like those currently used in FEAT) are not
+valid. Therefore filmbabescript makes use of the
+<a href="../mm/index.html">mm</a> spatial mixture modelling program,
+which explicitly models both the null and the activation parts of the
+final stats image, allowing valid inference.
+
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2004, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A> and <A
+HREF="http://www.fmrib.ox.ac.uk/~woolrich/index.html">M. Woolrich</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

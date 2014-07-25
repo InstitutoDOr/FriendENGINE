@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><meta http-equiv="Content-Type"
+content="text/html;charset=utf-8">
+<link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FSL</TITLE></HEAD><BODY><IFRAME width="100%" scrolling="no"
+frameborder="0" src="top.html">Broken</IFRAME>
+
+<H2>FEAT Programs</H2>
+
+<UL>
+
+<LI><b>Feat</b> - the FEAT GUI, as described above.
+
+<br><br><LI><b>feat</b> - the FEAT script which the GUI calls when the
+setup has been completed and <b>GO</b> is pressed. If you have saved a
+FEAT setup file (eg design.fsf) to file, then you can run FEAT without
+the GUI by typing <b>feat &lt;featsetupfile.fsf&gt;</b>.
+
+<br><br><LI><b>Glm</b> - a GUI for setting up just the design matrix
+and contrasts, in the same way as in FEAT, for use with other
+modelling/inference programs such as randomise.
+
+<br><br><LI><b>easythresh</b> - a simple script for carrying out cluster-based
+thresholding and colour activation overlaying.
+
+<br><br><LI><b>featregapply</b> - a program which applies the lowres
+to standard-space registration transforms to the lowres stats images
+in a FEAT directory to generate standard-space versions, for inputting
+to higher-level analysis.
+
+<br><br><LI><a href="featquery.html"
+target="_top"><b>Featquery</b></a> (GUI) and <b>featquery</b>
+(command-line script) - a program which allows you to interrogate FEAT
+results by defining a mask or set of co-ordinates (in standard-space,
+highres-space or loweres-space) and get mean stats values and
+time-series.
+
+<br><br><LI><b>feat_model</b> - a program which uses the FEAT setup
+file to create the required design matrix as a text file, as well as
+the related design matrix pictures.
+
+<br><br><LI><b>mccutup</b> - convert the estimates of motion saved in
+a FEAT directory to separate files which can then be fed into FEAT as
+<b>Custom (1 entry per volume)</b> EVs.
+
+<br><br><LI><b>Renderhighres</b> (GUI) and <b>renderhighres</b>
+(command-line script) - transforms all thresholded stats images in a
+FEAT directory into high resolution or standard space and overlays
+these onto the high resolution or standard space images. This then
+produces PNG format pictures of the overlays and, by default, deletes
+the 3D AVW colour overlay images.
+
+<br><br><LI><b>tsplot</b> - create time series plots for a FEAT directory.
+
+</UL>
+
+</BODY></HTML>

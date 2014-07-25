@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><meta http-equiv="Content-Type"
+content="text/html;charset=utf-8">
+<link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FSL</TITLE></HEAD><BODY><IFRAME width="100%" scrolling="no"
+frameborder="0" src="top.html">Broken</IFRAME>
+
+
+<H2>FEAT Output</H2>
+
+<p>FEAT finds the directory name and filename associated with the 4D
+input data. If the associated directory is writable by you then a
+related whatever.feat directory is created into which all FEAT output
+is saved. If not, the FEAT directory is created in your home
+directory. In either case, if the appropriately named FEAT directory
+already exists, a "+" is added before the .feat suffix to give a new
+FEAT directory name. (Of course, all the above gets ignored if you
+explicitly set the output directory name.)
+
+<p>If you rerun <b>Post-stats</b> or <b>Registration</b>, you can
+choose (under the <b>Misc</b> tab) whether to overwrite the relevant
+files in the chosen FEAT directory or whether to make a complete copy
+of the FEAT directory and write out new results in there.
+
+<p>All results get saved in the FEAT directory. 
+
+<p><img SRC="featdirs1.png">
+
+<UL>
+
+<LI><b>cluster_mask_zstat1</b> image of clusters found for
+contrast 1; the values in the clusters are the index numbers as used
+in the cluster list.
+
+<LI><b>cluster_zstat1.html / .txt</b> the list of significant clusters
+for contrast 1. Note that the co-ordinates are the original voxel
+co-ordinates. (MEDx users: MEDx inverts y, so to use the y values in
+MEDx, use y_medx = y_size - 1 - y_feat where y_size is the size of the
+image in the y direction.)
+
+<LI><b>cluster_zstat1_std.html / .txt</b> the same, but with
+co-ordinates given in standard space. This exists if registration to
+standard space has been carried out.
+
+<LI><b>design.con</b> list of contrasts requested.
+
+<LI><b>design.fsf</b> FEAT setup file, describing everything about the
+FEAT setup. This can be loaded into the FEAT GUI.
+
+<LI><b>design.fts</b> list of F-tests requested.
+
+<LI><b>design.gif</b> 2D image of the design matrix.
+
+<LI><b>design.mat</b> the actual values in the design matrix.
+
+<LI><b>design.trg</b> event onset times, created to be used in
+peri-stimulus timing plots.
+
+<LI><b>design_cov.gif</b> 2D image of the covariance matrix of the design matrix.
+
+<LI><b>example_func</b> the example functional image used for
+colour rendering, and also the one that was used as the target in
+motion correction. This is saved before any processing is carried
+out. This is also the image that is used in registration to structural
+and/or standard images.
+
+<LI><b>filtered_func_data</b> the 4D FMRI data after all filtering has
+been carried out. (prefiltered_func_data is the output from motion
+correction and the input to filtering, and will not normally be saved
+in the FEAT directory.) Although filtered_func_data will normally have
+been temporally high-pass filtered, it is not zero mean; the mean
+value for each voxel's timecourse has been added back in for various
+practical reasons. When FILM begins the linear modelling, it starts by
+removing this mean.
+
+<LI><b>lmax_zstat1.txt</b> and <b>_std.txt</b> are lists of local
+maxima within clusters found when thresholding.
+
+<LI><b>mask</b> the binary brain mask used at various stages in
+the analysis.
+
+<LI><b>rendered_thresh_zstat1.png</b> 2D colour rendered stats overlay
+picture for contrast 1.
+
+<LI><b>rendered_thresh_zstat1</b> 3D colour rendered stats overlay
+image for contrast 1. After reloading this image, use the
+<b>Statistics Colour Rendering</b> GUI to reload the colour
+look-up-table.
+
+<LI><b>report.log</b> a log of all the programs that the feat script
+ran (ie the same as <b>report.log</b> but without the log outputs).
+
+<LI><b>report.html</b> the web page FEAT report (see below).
+
+<LI><b>report.log</b> a log of the FEAT run, including all calls to
+FSL programs and their log outputs.
+
+<LI><b>thresh_zstat1</b> the thresholded Z statistic image for
+contrast 1.
+
+<LI><b>mc/prefiltered_func_data_mcf.par</b> a text file containing the
+rotation and translation motion parameters estimated by MCFLIRT, with
+one rwo per volume.
+
+<LI><b>mc/mc_rot.gif</b>, <b>mc/mc_trans.gif</b> plots showing these
+parameters as a function of volume number (i.e., time).
+
+<LI><b>reg/example_func2highres.*</b> files are related to the
+registration of the low res FMRI data to the high res image. The .mat
+file is the transformation in raw text format. The .gif image includes
+several slices showing overlays of the two images combined after
+registration. (Note that the inverse of each transform file is also
+saved (e.g. highres2example_func.mat) to make it easy for you later to
+take the highres image back into the lowres space.)
+
+<LI><b>reg/example_func2standard.*</b> files are related to the
+registration of the low res FMRI data to the standard image.
+
+<LI><b>reg/highres</b> is a symbolic link to the high res image.
+
+<LI><b>reg/highres2standard.*</b> files are related to the
+registration of the high res image to the standard image.
+
+<LI><b>reg/standard</b> is a symbolic link to the standard image.
+
+<LI><b>stats/contrastlogfile</b> a logfile showing how well the
+statistics fit a Gaussian distribution, on the assumption of no
+activation.
+
+<LI><b>stats/cope1</b> the contrast of parameter estimates image
+for contrast 1.
+
+<LI><b>stats/corrections</b> a list of statistical corrections used
+within FILM modelling.
+
+<LI><b>stats/dof</b> the mean estimated degrees-of-freedom over the
+whole data set.
+
+<LI><b>stats/neff1</b> a statistical correction image for contrast
+1.
+
+<LI><b>stats/glslogfile</b> a FILM run logfile.
+
+<LI><b>stats/pe1</b> the parameter estimate image for EV 1.
+
+<LI><b>stats/probs</b> a list of probabilities used for estimating
+Gaussian statistical fitting.
+
+<LI><b>stats/ratios</b> a list of estimates for Gaussian statistical
+fitting.
+
+<LI><b>stats/sigmasquareds</b> the 3D image summarising the
+residuals (errors) in the linear model fitting.
+
+<LI><b>stats/smoothness</b> the estimation of the smoothness of the 4D
+residuals field, used in inference.
+
+<LI><b>stats/stats.txt</b> another FILM logfile.
+
+<LI><b>stats/threshac1</b> The FILM autocorrelation parameters.
+
+<LI><b>stats/tstat1</b> the T statistic image for contrast 1
+(=cope/sqrt(varcope)).
+
+<LI><b>stats/varcope1</b> the variance (error) image for contrast 1.
+
+<LI><b>stats/zstat1</b> the Z statistic image for contrast 1
+
+<LI><b>tsplot/tsplot_zstat1.gif</b> the full model vs data plot for the
+maximum Z statistic voxel from contrast 1.
+
+<LI><b>tsplot/tsplot_zstat1p.gif</b> the plot of reduced data vs cope
+partial model fit - i.e. data-full_model+partial_model vs
+partial_model.
+
+<LI><b>tsplot/tsplot_zstat1.txt</b> text file of values used for the
+above plots, for the maximum Z statistic voxel from contrast 1. The
+first column is the data, the second column is the partial model fit
+for contrast 1, the third column is the full model fit and the fourth
+column is the reduced data for contrast 1.
+
+<LI><b>tsplot/tsplotc_zstat1.*</b> plots and text file as above, but
+instead of using the peak Z stat voxel, here the data is averaged over
+all voxels in all significant clusters for contrast 1.
+
+<LI><b>ps_tsplot_zstat1_ev1.gif</b> (etc); peristimulus text files
+and plots, showing model fits averaged over multiple stimulus repeats
+and "data scatter" over these repeats. The format for the text files
+is the same as above, except for the insertion of an extra first
+column which encodes the peristimulus timing (i.e., time relative to
+the start time within the peristimulus window). The <b>_ev1</b> part
+of the filename means that this file/plot relates to EV1; separate
+plots and text files are generated for each EV for every contrast.
+
+</UL>
+
+<p>If you have run F-tests as well as T-tests then there will also
+be many other files produced by FEAT, with filenames similar to those
+above, but with <b>zfstat</b> appearing in the filename.
+
+<p>The web page report includes the motion correction plots, the 2D
+colour rendered stats overlay picture for each contrast, the data vs
+model plots, registration overlay results and a description of the
+analysis carried out.
+
+<hr>
+
+<H2>Higher-Level FEAT Output</H2>
+
+A second-level .gfeat directory contains one 4D cope* for each of
+the first-level contrasts; these are simply the concatenation (across
+the first-level analyses) of those first-level cope images (in
+standard space) - ie the 4th dimension here is the number of
+first-level analyses. This is the input to the second-level analysis.
+
+<p>After the second-level analysis has completed each of those 4D
+cope* files in the .gfeat directory will have resulted in a .feat
+second-level output, containing all analysis steps (and of course,
+second-level output copes).
+
+<p><img SRC="featdirs2.png">
+
+</BODY></HTML>
+

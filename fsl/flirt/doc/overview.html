@@ -1,0 +1,166 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+<STYLE TYPE="text/css">BODY { background-image: url("../images/flirt-bg.jpg") }</STYLE>
+flirt Command-line Program and Utilities
+</H1>
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+  <!-- No Table of Contents -->
+
+<A NAME="section1"></A><H2>INTRODUCTION</H2>
+ 
+This document gives a brief description of flirt and the various command-line
+programs available in the FLIRT component of FSL.  A description of
+the available <a href="gui.html">GUI interfaces</a> is also available.
+
+<P>
+For each of the programs described here, a usage message which describes
+the full list of available options can be obtained by running the
+program with no options.
+
+<p>
+See also the list of common <a href="examples.html">example usages.</a>
+
+<br>
+
+ <!-- J-Back -->
+
+<A NAME="section2"></A><HR><H2>flirt</H2>
+ 
+<B>flirt</B> is the main program that performs affine registration.  The main options are:
+an input (<FONT COLOR=PURPLE>-in</FONT>) and a reference
+(<FONT COLOR=PURPLE>-ref</FONT>) volume; the calculated affine
+transformation that registers the input to the reference which is
+saved as a 4x4 affine matrix
+(<FONT COLOR=PURPLE>-omat</FONT>); and 
+output volume (<FONT COLOR=PURPLE>-out</FONT>)
+where the transform is applied to
+the input volume to 
+align it with the reference volume.
+
+<P>
+In addition, FLIRT can also be used to apply a saved transformation to
+a volume (<FONT COLOR=PURPLE>-applyxfm, -init</FONT> and <FONT COLOR=PURPLE>-out</FONT>).  For
+this usage the reference volume must still be specified as this sets
+the voxel and image dimensions of the resulting volume.
+<br>
+
+<P>
+Features:<br>
+<DL>
+<DT> <I>Cost Function Weighting</I></DT>
+<DD> Weighting volumes can be specified
+using <FONT COLOR=PURPLE>-refweight</FONT>, <FONT
+COLOR=PURPLE>-inweight</FONT> (or both).  This allows the cost
+function to have a different weighting at each voxel, which is useful
+for excluding areas (weight=0) of no interest, or increasing the
+weighting around important structures such as the ventricles.  Note
+that this is different from masking the original images, as masking introduces
+artificial boundaries whereas weighting does not.
+</DD>
+<DT> <I>Degrees of Freedom</I></DT>
+<DD> Choose from 6,7,9 or 12 Degrees of Freedom (DOF) for full 3D registrations.
+Also includes a 3DOF 2D-to-2D registration mode which is selected using the
+<FONT COLOR=PURPLE>-2D</FONT> option.  Note that
+it does not perform any search in 2D mode, and cannot deal with 2D to 3D
+registrations.  More flexible DOF options are provided by the specific
+schedule files provided in <tt>$FSLDIR/etc/flirtsch</tt>.
+</DD>
+<DT> <I>Interpolation Methods</I></DT>
+<DD> This includes Nearest Neighbour and
+a family of Sinc-based methods (three window types - rectangular, Hanning and
+Blackman) with configurable window width.  The interpolation is only used
+for the final transformation (and in applyxfm), not in the registration
+calculations.
+</DD>
+<DT> <I>Cost Functions</I></DT>
+<DD> This includes the within-modality functions Least Squares and Normalised Correlation, as well as the between-modality functions Correlation Ratio (the default), Mutual Information and Normalised Mutual Information.
+</DD>
+</UL>
+
+ <!-- J-Back -->
+
+<A NAME="misc"></A><HR><H2>convert_xfm</H2>
+ 
+<B>convert_xfm</B> is a utility that is used to convert between different
+transformation file formats.  It can read and write ascii 4x4 matrices.  In
+addition, it can be used to concatenate two transforms (using
+<FONT COLOR=PURPLE>-concat</FONT> with the second transform) or to find the
+inverse transformation (using <FONT COLOR=PURPLE>-inverse</FONT>).
+
+<br>
+
+ <!-- J-Back -->
+
+<A NAME="section7"></A><HR><H2>img2imgcoord</h2>
+ 
+<B>img2imgcoord</B> is a utility that calculates the corresponding
+coordinate positions (in voxels or mm) within a destination volume
+given the original coordinates in the source volume and the transformation
+from the source to the destination volume.  This is useful for finding
+corresponding anatomical/functional locations.  Note that the source
+coordinates need to be stored in a file as three numbers per line, space
+separated.
+
+ <!-- J-Back -->
+
+<A NAME="section8"></A><HR><H2>img2stdcoord</H2>
+ 
+<B>img2stdcoord</B> is a similar utility to <B>img2imgcoord</B>
+except that the destination volume coordinates are treated as standard
+space coordinates.  This requires the standard space image to have the
+origin coordinates and voxel dimensions entered in the correct analyse
+header fields.  This is more complicated for nifti - see the FSL FAQ.
+
+ <!-- J-Back -->
+
+<A NAME="section9"></A><HR><H2>std2imgcoord</H2>
+ 
+<B>std2imgcoord</B> is the complementary utility to <B>img2stdcoord</B>.
+It works the same way but transfers coordinates from standard space to
+the other image (IMG) space.
+
+ <!-- J-Back -->
+
+<A NAME="section6"></A><HR><H2>applyxfm4d</H2>
+ 
+<B>applyxfm4D</B> is a utility that transforms a 4D time series by
+applying known affine transformations to them.  It can be used with a
+single transformation applied to all, or using a directory of
+transformation files in the form MAT_XXXX (where XXXX stands for the
+volume number, starting with 0000).  Note that it always uses
+trilinear interpolation, while appropriate options (-applyxfm and
+-init) to FLIRT can be used to apply transformations to single volumes
+with other interpolation methods.  A reference volume is required in
+order to determine the matrix size and FOV for the final volume.
+If the required matrices do not start with MAT_ a different prefix
+can be specified with the <font color=purple>-userprefix</font> option.
+
+ <!-- J-Back -->
+
+<A NAME="section4"></A><HR><H2>rmsdiff</H2>
+ 
+<B>rmsdiff</B> is a utility that calculates the Root Mean Square deviation
+(in millimetres) between two transformations.  That is, it compares
+two transformations (normally two possible registrations of the same
+volume pair) to see how much they differ.  This is useful to compare
+alternative registrations.  It calculates the average using an analytic
+formula applied over an 80mm sphere with the origin at the centre of the
+image (for which it requires the input image to be specified).  
+
+ <!-- J-Back -->
+
+<A NAME="section5"></A><HR><H2>avscale</H2>
+ 
+<B>avscale</B> is a utility that displays the decomposed elements of an
+affine matrix.  It displays the rotation/translation matrix, the
+individual axis scalings, the individual skews, the average scaling,
+and the forward and backward halfway transformations.  In order to set
+the centre of rotation it requires the input volume (also called the
+reslice volume).
+
+ <!-- J-Back -->
+
+   <HR>
+  <!-- No Footnotes -->
+  <H4>Mark Jenkinson  <BR><BR>Copyright &copy; 2000-2003, University of Oxford</H4><BR>
+</BODY></HTML>

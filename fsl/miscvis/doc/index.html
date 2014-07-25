@@ -1,0 +1,114 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+MISCVIS - Visualisation-Related Utilities
+</H1>
+User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<H2>OVERLAY</H2>
+
+<H3>Introduction</H3>
+
+<p>This tool allows you to combine a background image (raw FMRI or
+high resolution MRI) image with one or two statistics images. The
+statistics image(s) must be in registration with the background
+image.
+
+<p>The different programs are:
+<UL>
+<LI><b>Renderstats</b> - GUI<br>
+<LI><b>overlay</b> - command-line program which does the
+actual combining of the input images and produces the colour rendered
+output image<br>
+<LI><b>create_lut</b> - command-line program which produces colour
+look-up-tables (these tell viewer programs such as slicer how to produce different
+colours given a colour-rendered image).
+</UL>
+
+<H3>Renderstats GUI</H3>
+
+<p>Select all of the images, and then enter a threshold (<b>Min</b>)
+for the stats image(s). Any stats values below this will not appear in
+the colour rendered output. Any stats above <b>Max</b> <i>will</i>
+appear, all with the same colour as the <b>Max</b> value gets (ie
+yellow or light blue). You don't need to change the "Min" and "Max"
+settings unless you want to vary the display range - for example if
+the background image looks very dark when scaled to its min and max.
+
+<p>The <b>colourmap type</b> option lets you choose <b>Solid
+colours</b> (you don't see any sign of the background images within
+the colour blobs) or <b>Transparent colours</b> (you will see through
+the colour blobs to the background intensity).
+
+<p>In general the intensity values within colour rendered images bear
+no simple relationship to the original stats values. However, in the
+case of rendering <b>Solid</b> colours with <b>Floating point</b>
+output type, the red-yellow blobs <i>will</i> contain the actual
+values of the stats input image (but the blue blobs will not).
+
+<p>If you want to do 3D rendering in MEDx with the results of stats
+colour rendering, you should use solid colours and choose
+<b>Integer</b> output type. Then in the 3D rendering GUI either select
+<b>Material Iso-Surface</b> for solid 3D rendering or <b>Transparent
+Summation</b> for transparent rendering - the latter option means that
+activations just under the cortical surface will be visible. The
+images may appear quite dark - in this case you can always brighten
+them (after "printing" them to tiff files) using the program "display".
+
+
+
+
+<HR><H2>SLICER</H2>
+
+<p>Standard 2D picture display programs cannot read 3D / 4D
+NIFTI/Analyze images. Thus FSL includes SLICER, a set of utilities
+which take 3D images and produce 2D pictures of slices from within
+these files. These slices can be of axial, coronal or sagittal
+orientation. If two input images are specified (instead of just one),
+the first image is used as normal, but overlaid in red on top of this
+are image edges derived from the second input image. This can be
+useful for checking the results of registration.
+
+<p>The NIFTI and Analyze formats do not allow for colour image
+information to be stored. However, an unused part of the image header
+is used by some FSL programs to store information about suitable
+colour maps for use with certain images. For example, the colour
+activation images produced by FEAT contain such information. The
+programs in SLICER use this to use the right colour map when producing
+slice pictures.
+
+<p>The different SLICER programs are:
+<UL>
+
+<LI><b>slicer</b> - the main program which takes in one or two input
+images and produces as many separate output pictures of slices as are
+requested. The basic output options (-x, -y and -z) produce single
+slice pictures. The more advanced options (-a, -A and -S) produce
+montages of various slices. <b>slicer</b> outputs PPM format pictures.
+
+<br><br><LI><b>slices</b> - a script which calls slicer with three
+default axial slices, three sagittal and three coronal, combines all 9
+pictures into a single GIF picture and automatically calls the
+<b>display</b> program to display this picture.
+
+<br><br><LI><b>slicesdir</b> - a script which takes in a list of
+images, and for each one, runs slicer to produce the same 9 default
+slicings as described above, combining them into a single GIF
+picture. A web page is then created which includes all of the GIF
+pictures - ie one for each input image.
+
+</UL>
+
+
+
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2000, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

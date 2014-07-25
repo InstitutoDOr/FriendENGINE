@@ -1,0 +1,9 @@
+#!/bin/csh -f
+
+foreach n ( 1 2 3 3b 4a 4b 5 6 7 7b 8 9 )
+
+	/usr/bin/convert -border 10x0 -bordercolor transparent +append -background transparent eg${n}_evs.png eg${n}_con.png eg${n}_dm.png eg${n}.png
+
+end
+
+

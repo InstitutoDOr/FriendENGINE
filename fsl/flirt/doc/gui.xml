@@ -1,0 +1,106 @@
+<usrguide name="FLIRT - FMRIB's Linear Image Registration Tool"
+          rootdir="../"
+          author="Mark Jenkinson"
+	  affiliation="FMRIB Image Analysis Group"
+	  year="1999-2000">
+
+<data id="name"><link url="flirt/index.html">FLIRT</link></data>
+<data id="description">FMRIB's Linear Image Registration Tool -
+automatic accurate robust linear (affine) inter- and intra-modal
+registration</data>
+<data id="hasgui"><image src="images/tick.gif" alt="Y"></image></data>
+<data id="hascli"><image src="images/tick.gif" alt="Y"></image></data>
+<data id="version">1.1</data>
+
+<section title="Introduction">
+<p>
+FLIRT is a fully automated robust and accurate tool for linear
+(affine) inter- and inter-modal brain image registration.
+</p>
+
+<p>
+For more detail on FLIRT and a journal reference, see the <link
+url="http://www.fmrib.ox.ac.uk/analysis/research/flirt/">FLIRT web
+page</link>. If you use FLIRT in your research, please quote the
+journal reference listed there.
+</p>
+</section>
+
+<section title="How it works">
+<p>
+<image src="xfmhelp.gif" align="CENTER"/>
+</p>
+
+<p>
+In single-level registration, the reslice image is registered to the standard, and the resulting transform applied to the secondary
+image(s). Thus the transformed reslice and secondary image(s) are in alignment with the standard image. 
+</p>
+
+<p>
+In two-level registration, the low-res image (e.g. functional EPI image) is registered to the hi-res image (e.g. structural image) and
+the hi-res is registered to the standard. The two resulting transforms are combined into one, and this is then applied to the low-res
+and the secondary image(s). Thus the transformed hi-res, low-res and secondary image(s) are all in alignment with the standard
+image. 
+</p>
+</section>
+
+<section title="Suggested Usage">
+
+<subsection title="Reslice Image/Group -&gt; Standard Image"> 
+<p>
+<itemize>
+<item>To register an image to a standard template, put the name of
+    template image (as found from the Page Manager) in the <guilabel>Standard
+    Image</guilabel> box and the other in the <guilabel>Reslice Image/Group</guilabel> box.</item>
+<item>To register two images to each other (where neither is the standard),
+    put the higher resolution image in the <guilabel>Standard Image</guilabel> box and the
+    other in the <guilabel>Reslice Image/Group</guilabel> box.</item>
+<item>To do a number of different registrations (like you would in a
+    script) to a single standard image, first make a group of all the
+    images to be registered and then enter the Group page in the
+    <guilabel>Reslice Image/Group</guilabel> box and the template image in the <guilabel>Standard Image</guilabel> box.</item>
+</itemize>
+</p>
+
+</subsection>
+
+<subsection title="Low Res Image/Group -&gt; High Res Image/Group -&gt; Standard Image"> 
+<p>
+<itemize>
+<item>To register both a functional image and its corresponding structural to the standard image, put the template image in the
+    <guilabel>Standard Image</guilabel> box, the structural image in the <guilabel>High Res Image/Group</guilabel> box and a single image from the functional series in
+    the <guilabel>Low Res Image/Group</guilabel> box. In addition, statistical images such as Z-scores can be entered in as <guilabel>Secondary Images</guilabel> which
+    will also be registered to the standard image, allowing them to be rendered on the structural image in the coordinate system of
+    the standard image.</item>
+<item>To do a number of registrations for different functional experiments (like you would in a script) requires that two groups of
+    images be made. The first group should contain all the structural images and the second group should be a group of single
+    functional images, one corresponding to each structural image. Note that the ordering of the images in these groups is critical
+    - the functional example images must be in the same order as the corresponding structural images. Once the groups are made,
+    enter the Group page of the structurals in the <guilabel>High Res Image/Group</guilabel> box and the Group page of the functionals in the <guilabel>Low
+    Res Image/Group</guilabel> box. Any statistical images can be entered in as a <guilabel>Secondary Group</guilabel> but these must also be in the
+    corresponding order. </item>
+</itemize>
+</p>
+
+</subsection>
+</section>
+
+<section title="General Advice">
+<itemize>
+
+<item>DO use the default settings (especially in advanced options) as they have been carefully chosen.</item> 
+<item>DO use it for registering to the MNI152 average as this is what it is designed to do well.</item> 
+<item>DO use the Group facility for running the registration on a collection of images (this should avoid the need for scripting). </item>
+
+</itemize>
+</section>
+
+<section title="Template Images">
+
+<p>MNI152 template images (whole head, extracted brain, brain
+mask and skull) are included in fsl/data/standard, courtesy of the
+<link url="http://www.mni.mcgill.ca/">MNI</link>.</p>
+
+</section>
+
+</usrguide>

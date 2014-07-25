@@ -1,0 +1,260 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+MELODIC v3.0
+</H1>
+Multivariate Exploratory Linear Optimized Decomposition into Independent Components
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<IMG ALIGN=RIGHT hspace=20 vspace=20 width=90% SRC="tica_diag.png"
+ALT="TICA diagram">
+
+<H2>INTRODUCTION</H2>
+ 
+<P>MELODIC 3.0 uses Independent Component Analysis to decompose a
+single or multiple 4D data sets into different spatial and temporal
+components. For ICA group analysis, MELODIC uses either Tensorial
+Independent Component Analysis (TICA, where data is decomposed into
+spatial maps, time courses and subject/session modes) or a simpler
+temporal concatenation approach. MELODIC can pick out different
+activation and artefactual components without any explicit time series
+model being specified.
+
+<P>For more detail on MELODIC and an updated journal reference, see
+the <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/research/melodic/">MELODIC
+research web page</A>. If you use MELODIC in your research, please
+quote the journal reference listed there.
+
+<p>The different MELODIC programs are:
+<UL>
+<LI><a href="#MelodicGUI">Melodic</a> - MELODIC GUI<br>
+<LI><a href="#melodic">melodic</a> - command-line MELODIC program<br>
+<LI><a href="#regfilt">fsl_regfilt</a> - command-line tool for removing regressors from data (melodic denoising)<br>
+</UL>
+
+
+<A NAME="MelodicGUI"></A><hr><H2>Melodic GUI</H2>
+
+<IMG ALIGN=RIGHT hspace=20 vspace=20 SRC="gui.png"
+ALT="Example GUI view">
+
+<p>To call the MELODIC GUI, either type <b>Melodic</b> in a terminal
+  (type <b>Melodic_gui</b> on Mac), or run <b>fsl</b> and press
+  the <b>MELODIC</b> button.
+
+<p>Before calling the GUI, you need to prepare each session's
+data as a 4D NIFTI or Analyze format image; there are utilities in
+fsl/bin called <a href="../avwutils/index.html" target="_top">fslmerge
+and fslsplit</a> to convert between multiple 3D images and a single 4D
+(3D+time) image. 
+
+<p>Structural images for use as "highres" images in registration
+should normally be brain-extracted using <a href="../bet2/index.html"
+target="_top">BET</a>.
+
+
+<H3>GUI details:</H3>
+<UL>
+<LI><a href="#misc">Misc</a><br>
+<LI><a href="#data">Data</a><br>
+<LI><a href="#prestats">Pre-Stats</a><br>
+<LI><a href="#reg">Registration</a><br>
+<LI><a href="#stats">Stats</a><br>
+<LI><a href="#poststats">Post-Stats</a><br>
+<LI><a href="#buttons">Bottom Row of Buttons</a><br>
+</UL>
+<UL>
+<LI><a href="#output">MELODIC report output</a><br>
+</UL>
+
+<a name="misc"></a>
+<hr><H3>Misc</H3>
+
+<p><b>Balloon help</b> (the popup help messages in the MELODIC GUI) can
+be turned off once you are familiar with the GUI.
+
+<p>The <b>Progress watcher</b> button allows you to tell Melodic not to
+start a web browser to watch the analysis progress. If you are
+running lots of analyses you probably want to turn this off; you can
+view the same logging information by looking at the report_log.html or log.txt
+files in any MELODIC directories instead.
+
+<a name="data"></a>
+<hr><H3>Data</H3>
+
+<p>First, set the filename of the 4D input image
+(e.g. <b>/users/sibelius/origfunc.nii.gz</b>) by pressing <b>Select 4D
+data</b>. You can select multiple files if you want MELODIC to perform
+a group analysis or if you want to run separate ICAs with the same
+setup.  Results for each input file will be saved in separate .ica
+directories, the name of which is based on the input data's filename
+(unless you enter an <b>Output directory</b> name).
+
+<p><b>Delete volumes</b> controls the number of initial FMRI volumes
+to delete before any further processing. 
+
+<p><b>TR</b> controls the time (in seconds) between scanning
+successive FMRI volumes. Changes here will not affect the analysis and only change the x-axis units of the final time series plots.
+
+<p>The <b>High pass filter cutoff</b> controls the longest temporal
+period that you will allow. 
+
+<a name="prestats"></a>
+<hr><H3>Pre-Stats</H3>
+
+<p>Low-frequency drifts and motion in the data can adversely affect
+the decomposition. In most cases, you would want to motion-correct the
+data, remove these drifts first or perform other types of typical data pre-processing before running the analysis. This can be done from within the
+Melodic GUI <code>Pre-stats</code> section.
+
+<a name="reg"></a>
+<hr><H3>Registration</H3>
+
+<p>Before any multi-session or multi-subject analyses can be carried
+out, the different sessions need to be registered to each other. This
+is made easy within MELODIC which performs registration on input data as part of an analysis using FEAT functionality. Unlike registration step in FEAT this here needs to be performed before the statistical analysis so that the filtered functional data is transformed into the standard space. For information on using multi-stage registration please consult the <a href="../feat5/detail.html#reg" target="_top">FEAT</a> manual.
+
+<p><b>Standard space</b> refers to the standard (reference) image; it
+should be an image already in standard space, ideally with the
+non-brain structures already removed.
+
+<p><b>Resampling resolution (mm)</b> refers to the desired isotropic voxel dimension of the resampled data. In order to save on disk space and on required memory during the analysis it is advisable to resample the filtered data into standard space but keeping the resampled resolution at the FMRI resolution (typically 4mm or 5mm).
+
+<a name="stats"></a>
+<hr><H3>Stats</H3>
+
+<p>The Stats section lets you control some of the options for the decomposition. The default setting will most probably already be set to what you would want most of the time.
+
+<p> By default, MELODIC will variance-normalise timecourses.
+
+<p> By default, Melodic will automatically estimate the number of
+ components from the data - you can switch this option off and then can specify the number of components explicitly.<p>
+
+<p> You can now select the type of analysis. MELODIC currently offers three options:
+<p>	
+<table border=0>
+	<TR><TD width=50%>
+		<UL>
+			<LI><b>Single-session ICA:</b> This will perform standard 2D ICA on each of the input files. The input data will each be represented as a 2D time x space matrix. MELODIC then de-composes each matrix separately into pairs of time courses and spatial maps. The original data is assumed to be the sum of outer products of time courses and spatial maps. All the different time courses (one per component) will be saved in the <i>mixing matrix</i> <code>melodic_mix</code> and all the spatial maps (one per component) will be saved in the 4D file <code>melodic_IC</code>. 
+				<p>When using separate analyses, MELODIC will attempt to find components which are relevant and non-Gaussian relative to the residual fixed-effects within session/subject variation. It is recommended to use this option in order to check for session-specific effects (such as MR artefacts). You will need to use this option if you want to perform MELODIC denoising using <a href="#regfilt">fsl_regfilt</a>. When using single-session ICA the component are ordered in order of decreasing amounts of uniquely explained variance.
+				
+		</UL></TD><TD valign=top>
+			<IMG ALIGN=RIGHT hspace=20 vspace=20 width=80% SRC="pica_diag.png" ALT="PICA diag">
+	</TD></TR><TR><TD width=50%>
+		<UL>	
+			<LI><b>Multi-session temporal concatenation:</b> This will perform a single 2D ICA run on the concatenated data matrix (obtained by stacking all 2D data matrices of every single data set on top of each other). 
+<p>
+	It is recommended to use this approach in cases where one is looking for common spatial patterns but can not assume that the associated temporal response is consistent between sessions/subjects. Examples include activation studies where the design was randomised between sessions or the analysis of data acquired without stimulation (<i>resting-state FMRI</i>).
+	<p>This approach does not assume that the temporal response pattern is the same across the population, though the final web report will contain the first Eigenvector of all different temporal responses as a summary time course. Access to all time courses is available: the time series plot is linked to a text file (<code>tXX.txt</code>) which contains the first Eigenvector, the best model fit in case a time series design was specified and all different subject/session-specific time courses as columns.
+	
+For each component the final mixing matrix <code>melodic_mix</code> contains the temporal response of all different data sets concatenated into a single column vector. The final reported time course will be the best rank-1 approximation to these different responses. <BR>
+			</UL>
+	</TD>		<TD valign=top>
+								<IMG ALIGN=RIGHT hspace=20 vspace=20 width =80% SRC="concat_diag.png" ALT="CONCAT diag">
+			</TD></TR><TR><TD width=50%>
+		<UL>
+			<LI><b>Multi-session Tensor-ICA:</b> This will perform a 3D Tensor-ICA decomposition of the data. All individual data sets will be represented as a single time x space x sessions/subjects block of data. Tensor-ICA will decompose this block of data into triplets of time courses, spatial maps and session/subject modes, which - for each component -  characterise the signal variation across the temporal, spatial and subject/session domain.
+<p>It is recommended to use this approach for data where the stimulus paradigm is consistent between session/subjects. Tensor-ICA assumes that the temporal response pattern is the same across the population and provides a single decomposition for all original data sets. MELODIC will attempt to find components which are highly non-Gaussian relative to the full mixed-effects variance of the residuals. 
+<p>Estimated components typically fall into 2 classes: components which describe effects common to all or most subjects/sessions, and components which describe effects only contained in a small number of subjects/sessions. The former will have a non-zero estimated effect size while the latter will have an effect size around 0 for most subjects/sessions and only few high non-zero values. These different types of components can be identified easily by looking at the boxplots provided. When using Tensor-ICA the components are ordered in order of decreasing amount of median response amplitude.  For details on the decomposition see the technical report <a href="http://www.fmrib.ox.ac.uk/analysis/techrep/"> TR04CB1 </a>.
+</UL>			</TD><TD valign=top>
+					<IMG ALIGN=RIGHT hspace=20 vspace=20 width =80% SRC="tica_diag.png" ALT="TICA diag">
+</TD></TR>
+</table>		
+
+	
+<a name="poststats"></a>
+<hr><H3>Post-Stats</H3>
+
+<p> Melodic will also by default carry out inference on the estimated maps
+          using a mixture model and an alternative hypothesis testing approach. A threshold level of 0.5
+          in the case of alternative hypothesis testing means that a
+          voxel 'survives' thresholding as soon as the probability
+          of being in the 'active' class (as modelled by the Gamma
+          densities) exceeds the probability of being in the
+          'background' noise class. This threshold level assumes that
+          you are placing an equal loss on false-positives and
+          false-negatives. If, however, you consider e.g. false-positives as
+          being twice as bad as false-negatives you should change this value
+          to 0.66...
+
+<p> You can select the background image used for the generation of the
+  spatial map overlay images.
+	
+<p> If you select the <b>Output full stats folder</b> option, MELODIC will save thresholded maps and probability maps in a <code>/stats</code> subdirectory within its output folder.
+	
+	<p>You can specify a temporal design matrix (and in the case
+	of a group analysis also, a session/subject design matrix) as well as corresponding contrast matrices. If these matrices are set in the GUI, MELODIC will perform a post-hoc regression analysis on estimated time courses and session/subject modes. This can be a helpful tool in order to identify whether or not a given component is task related. The matrices themselves can be created easily using the <a href=../feat5/programs.html><b>Glm</b></a> GUI.
+
+	<a name="buttons"></a>
+	<hr><H3>Bottom Row of Buttons</H3>
+
+	<p>When you have finished setting up MELODIC, press <b>Go</b> to run the
+	analysis. Once MELODIC is running, you can either <b>Exit</b> the GUI, or
+	setup further analyses.
+
+	<p>The <b>Save</b> and <b>Load</b> buttons enable you to save and load
+	the complete MELODIC setup to and from file. 
+
+<a name="output"></a>
+<hr><H3>MELODIC report output</H3>
+
+Melodic will then generate the results and 
+your terminal window will tell you where to find the web report. 
+
+Each IC_XX.html webpage shows one spatial map thresholded and rendered on top of a background image
+followed by the relevant time-course of the ICA decomposition and the power-spectrum of the time-course. 
+
+<p> If you click on the thresholded map, you can inspect the raw IC output together with probability maps and the Mixture Model fit. 
+
+
+<p>In the case of TICA or simple time series concatenation the time course plotted is the rank-1 approximation to all the different time courses that correspond to the given spatial map within the population. 
+
+<p>If a temporal design was specified in the <a href="#poststats" target="_top">Post-Stats</a> section then the time series plot will also contain a plot of the total model fit. In addition, a simple GLM table will describe the fit in detail, providing information of the regression parameter estimates (PEs). Furthermore, MELODIC will perform a simple F-test on the estimated time course and the total model fit. For task-related components the model fit will explain large amounts of the variation contained in the estimated time couse. In addition, if a contrast matrix was specified, the table will also contain Z-statistics and p-values for all the contrasts.
+
+If a group analysis was carried out then the report page will also include information on the distribution of the effect size across the population. A simple plot and a boxplot show the relative effect size across the different sessions/subjects. If a design matrix was specified in the GUI setup then MELODIC will also include a GLM regression fit table.
+
+<A NAME="melodic"></A><HR><H2>melodic command-line program</H2>
+
+<p>Type <b>melodic --help</b> to get usage.
+  
+<A name="regfilt"></A><HR><H2>fsl_regfilt command-line program</H2>
+
+<p>Running MELODIC can be a useful tool for gaining insight into unexpected artefacts or activation in your data.
+
+<p>As well as being a good way to find structured noise (or unexpected
+  activation) in your data, ICA can also be used to remove chosen
+  components (normally obvious scanner-related or physiological
+  artefacts) from your data in order, for example, in order to improve
+  the FEAT results. In order to do this:
+
+	<UL>
+
+	<LI> Run MELODIC single-session ICA on a 4D image file
+
+	<LI> Open the MELODIC report
+	  (<code>melodic_output_directory.ica/filtered_func_data.ica/report/00index.html</code>)
+	  in a web browser and look through the components to identify those
+	  that you wish to remove; record the list of component numbers to
+	  remove.
+
+	<LI> In a terminal, run the MELODIC denoising, using the
+	  commands:<pre>
+cd melodic_output_directory.ica
+fsl_regfilt -i filtered_func_data -o denoised_data -d filtered_func_data.ica/melodic_mix -f "2,5,9"</pre>
+	where you should replace the comma-separated list of component numbers with the list that you previously recorded when viewing the MELODIC report.<br>
+	</UL>
+	The output file <code> denoised_data.nii.gz</code> then contains the filtered and denoised data set which can be used e.g. within FEAT. When running FEAT on this data make sure that the analysis is set to <code>Stats + Post-stats </code> as you do not want to run the other filtering steps (smoothing etc.) again on this data.
+
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2001-2007, University of
+Oxford. Written by 	<A
+	HREF="http://www.fmrib.ox.ac.uk/~beckmann/">C.F. Beckmann </A> and <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+
+

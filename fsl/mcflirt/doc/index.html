@@ -1,0 +1,186 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+MCFLIRT FMRI Motion Correction
+</H1>
+User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<A NAME="section1"></A><H2>INTRODUCTION</H2>
+ 
+<P>
+MCFLIRT is an intra-modal motion correction tool designed for use on
+fMRI time series and based on optimization and registration techniques
+used in <a href="../flirt/index.html">FLIRT</a>, a fully automated
+robust and accurate tool for linear (affine) inter- and inter-modal
+brain image registration.
+
+<P>
+For more detail on MCFLIRT and a journal reference, see the <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/research/mcflirt/">MCFLIRT
+web page</A>. If you use MCFLIRT in your research, please quote the
+journal reference listed there.
+
+<A NAME="section2"></A><HR><H2>HOW IT WORKS</H2>
+ 
+<P>
+MCFLIRT loads the time-series in its entirity and will default to the
+middle volume as an initial template image. A coarse 8mm search for
+the motion parameters is then carried out using the cost function
+specified followed by two subsequent searches at 4mm using
+increasingly tighter tolerances. All optimizations use trilinear
+interpolation.
+
+<p>
+As part of the initial 8mm search, an identity transformation is
+assumed between the middle volume and the adjacent volume. The
+transformation found in this first search is then used as the estimate
+for the transformation between the middle volume and the volume beyond
+the adjacent one. This scheme should lead to much faster optimization
+and greater accuracy for the majority of studies where subject motion
+is minimal. In the pathalogical cases, this scheme does not penalise
+the quality of the final correction.
+
+<p>
+If mean registration is used, the curent motion correction parameters
+are applied to the time-series, the volumes are averaged to create a
+new template image and the same 3-stage correction is carried out
+using this new mean image as a template.
+
+<p>
+Finally, if a 4-stage correction has been specified, a further optimization pass is carried out using sinc interpolation for greater accuracy. This step is significantly more time-consuming than the previous part of the correction, which should take in the order of 10 minutes for a 100 volume timeseries.
+
+<p>
+The scheme has the added advantage of `sensible' handling of the end slices in a volume. In other schemes, voxels which move out of the Field of View (FOV) due to (often slight) movement of the head are either excluded from further calculations or treated as zero-value. In order to retain as much useful information in the data as possible, the volumes are padded by doubling the first and last slices in the z-plane so that we can interpolate from locations outside the FOV using appropriate values.
+
+ <!-- J-Back -->
+
+
+<A NAME="section3"></A><HR><H2>USAGE AND OPTIONS</H2>
+ 
+
+<code>mcflirt -in &lt;infile> [options]</code>
+
+<p>
+Available options are:<br>
+<table>
+  <tr>
+    <td><code>-out, -o </code></td>
+    <td><code>&lt;outfile></code></td>
+    <td>default is <code>infile_mcf</code></td>
+  </tr>
+  <tr>
+    <td><code>-cost </code></td>
+    <td><code>{mutualinfo,woods,corratio,normcorr,normmi,leastsquares}</code></td>
+    <td>default is <code>normcorr</code></td>
+  </tr>
+  <tr>
+    <td><code>-bins </code></td>
+    <td><code>&lt;number of histogram bins></code></td>
+    <td>default is <code>256</code></td>
+  </tr>
+  <tr>
+    <td><code>-dof </code></td>
+    <td><code>&lt;number of transform dofs></code></td>
+    <td>default is <code>6</code></td>
+  </tr>
+  <tr>
+    <td><code>-refvol</code></td>
+    <td><code>&lt;number of reference volume></code></td>
+    <td>default is middle volume</td>
+  </tr>
+  <tr>
+    <td><code>-scaling</code></td>
+    <td><code>&lt;num></code></td>
+    <td>default is <code>6.0</code></td>
+  </tr>
+  <tr>
+    <td><code>-smooth</code></td>
+    <td><code>&lt;num></code></td>
+    <td>default is <code>1.0</code> - controls smoothing in cost function</td>
+  </tr>
+  <tr>
+    <td><code>-rotation</code></td>
+    <td><code>&lt;num></code></td>
+    <td>specify scaling factor for rotation optimization tolerances</td>
+  </tr>
+  <tr>
+    <td><code>-verbose</code></td>
+    <td><code>&lt;num></code></td>
+    <td><code>0</code> is least and default</td>
+  </tr>
+  <tr>
+    <td><code>-stages</code></td>
+    <td><code>&lt;number of search stages></code></td>
+    <td>default is <code>3</code>. <code>4</code> specifies final sinc interpolation</td>
+  </tr>
+  <tr>
+    <td><code>-init</code></td>
+    <td><code>&lt;filename></code></td>
+    <td>initial transform matrix to apply to all vols</td>
+  </tr>
+  <tr>
+    <td><code>-gdt</code></td>
+    <td><code></code></td>
+    <td>run search on gradient images</td>
+  </tr>
+  <tr>
+    <td><code>-edge</code></td>
+    <td><code></code></td>
+    <td>run search on contour images</td>
+  </tr>
+  <tr>
+    <td><code>-meanvol</code></td>
+    <td><code></code></td>
+    <td>register timeseries to mean volume (overrides <code>-refvol</code> option)</td>
+  </tr>
+  <tr>
+    <td><code>-stats</code></td>
+    <td><code></code></td>
+    <td>produce variance and std. dev. images</td>
+  </tr>
+  <tr>
+    <td><code>-mats</code></td>
+    <td><code></code></td>
+    <td>save transformation matricies in subdirectory <code>outfilename.mat</code></td>
+  </tr>
+  <tr>
+    <td><code>-plots</code></td>
+    <td><code></code></td>
+    <td>save transformation parameters in file <code>outputfilename.par</code></td>
+  </tr>
+  <tr>
+    <td><code>-report</code></td>
+    <td><code></code></td>
+    <td>report progress to screen</td>
+  </tr>
+  <tr>
+    <td><code>-help</code></td>
+    <td><code></code></td>
+    <td>print this information</td>
+  </tr>
+
+</table>
+
+
+<!-- J-Back -->
+
+
+<A NAME="section4"></A><HR><H2>GENERAL ADVICE</H2>
+ 
+<UL>
+
+
+<LI>For rapid registration, high-quality corrections can be performed using only 3-stage optimization with the mean template
+
+</UL>
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2000, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~prb/index.html">P. Bannister</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

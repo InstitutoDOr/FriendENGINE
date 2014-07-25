@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<link rel="stylesheet" type="text/css" href="../fsl.css">
+<title>FSL</title>
+</head>
+
+<body background="../images/fsl-bg.jpg">
+
+<hr>
+<table border=0, width="100%">
+<tr>
+<td align=center>
+<h1>Some examples of composite warps</h1>
+</td>
+<td align=right>
+<a href="../index.html"><img border=0, src="../images/fsl-logo.jpg"></a>
+</td>
+</tr>
+</table>
+<hr>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#combining_introduction">Introduction</a></li>
+<li><a href="#combining_func2standard">Transforming a functional image into standard space</a></li>
+<li><a href="#combining_standard2func">Transforming an image (<i>e.g.</i> a mask) in standard space into functional space</a></li>
+</ul>
+<a name="combining_introduction"></a><h2>Introduction</h2>
+Here we show how to perform some common tasks that involve going back and forth between different spaces when the mapping from one space to the other consists of more than a single transform.
+
+<a name="combining_func2standard"></a><h2>Transforming a functional image into standard space</h2>
+<p>
+Let us say we have an image in "functional space" that we call <tt>example_func</tt> and an image in "structural space" that we call <tt>highres</tt>. For a given subject these images are simply a functional image (<tt>example_func</tt>) and a structural image (<tt>highres</tt>) aquired on that particular subject. The naming reflects the names given to them in a standard analysis with <tt>feat</tt>.
+</p>
+<p>
+Let us further say that there is a file named <tt>example_func2highres.mat</tt>with a rigid-body transformation mapping <tt>example_func</tt> onto <tt>highres</tt>. This file will have been produced by a call to <tt>flirt</tt>, possibly from within <tt>feat</tt>. Let us also assume that there is a non-linear mapping of <tt>highres</tt> onto standard space called <tt>highres2standard_warp.nii.gz</tt>.
+</p>
+<p>
+We can now transform <tt>example_func</tt> straight to standard space with the command
+</p>
+<tt>applywarp --ref=standard --in=example_func --warp=highres2standard_warp --premat=example_func2highres.mat --out=example_func_in_standard_space</tt>
+</p>
+<p>
+which will combine the transforms in <tt>highres2standard_warp</tt> and <tt>example_func2highres.mat</tt> into a single transform that is applied to <tt>example_func</tt>. Note that in the example above we specified <tt>standard</tt> as our reference image in standard space. This will work when in a <tt>feat</tt> directory where <tt>standard</tt> will point to the image that was used as <tt>--ref</tt> when running <tt>fnirt</tt>. If you are somehere else you will need to explicitly specify that image (<i>e.g.</i> <tt>--ref=$FSLDIR/data/standard/MNI152_T1_2mm</tt>).
+</p>
+
+<a name="combining_standard2func"></a><h2>Transforming an image (<i>e.g.</i> a mask) in standard space into functional space</h2>
+<p>
+Let us say we have a region of interest (ROI) for the putamen that has been defined in standard space, and let us also assume that we want to extract a time-series from the putamen in a number of different subjects. We would then want to transform the putamen ROI into the functional space of each of those subjects. The required transform is then the opposite (inverse) of the case above, <i>i.e.</i> we want the standard->functional transform. This will also be a composite transform, one that is a combination of the inverses of the individual transforms. If you are running <tt>feat</tt> there will already be an inverse of <tt>example_func2struct</tt> calculated for you with the name <tt>highres2example_func.mat</tt>. If not, it can easily be created using the command
+</p>
+<tt>convert_xfm -omat highres2example_func.mat -inverse example_func2highres.mat</tt>
+<p>
+  We also need the inverse of the non-linear transform <tt>highres2standard_warp</tt>. If you have run <tt>featquery</tt> it will already exist and be called <tt>highres2standard_warp_inv</tt>. If not it can be generated with the command
+</p>
+<tt>invwarp --ref==highres --warp=highres2standard_warp --out=highres2standard_warp_inv</tt> 
+<p>
+These two (<tt>highres2example_func.mat</tt> and <tt>highres2standard_warp_inv</tt>) can now be used to bring the mask into standard space with the command
+</p>
+<tt>applywarp --ref=example_func --in=mask_in_standard_space --warp=highres2standard_warp_inv --postmat=highres2example_func.mat --out=mask_in_functional_space</tt>
+<p>N.B. that we have now used the <tt>--postmat</tt> argument (rather than the <tt>--premat</tt> argument as we did for the forward transform). This is "equivalent" to
+</p>
+<img borde=0, src="combined_inverse.png">
+<p>
+where <b>A</b> and <b>B</b> are matrices (linear transforms). Note also that <tt>applywarp</tt> uses linear interpolation as default which means that the image <tt>mask_in_functional_space</tt> will have values between 0 and 1 (assuming <tt>mask_in_standard_space</tt> was binary). Direct use of <tt>mask_in_funcional_space</tt> will yield a weighted average, which may or may not be approppriate. It (<tt>mask_in_functional_space</tt>) can be converted to a binary mask using <i>e.g.</i>
+</p>
+<tt>fslmaths mask_in_functional_space -thr 0.5 -bin mask_in_functional_space</tt>
+<p>
+</p>
+
+<hr>
+<font SIZE=1>
+Copyright &copy; 2007, University of Oxford. <a href="http://www.fmrib.ox.ac.uk/~jesper">Jesper Andersson</a>.
+</font>
+
+</body>
+</html>

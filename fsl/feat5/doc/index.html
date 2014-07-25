@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><meta http-equiv="Content-Type"
+content="text/html;charset=utf-8">
+<link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FSL</TITLE></HEAD><BODY><IFRAME width="100%" scrolling="no"
+frameborder="0" src="top.html">Broken</IFRAME>
+
+
+<IMG ALIGN=RIGHT hspace=20 vspace=20 SRC="featgui1.gif"
+ALT="Example GUI view">
+
+<H2>Introduction</H2>
+
+<p>For other information on FEAT and updated journal references, see
+the <A HREF="http://www.fmrib.ox.ac.uk/analysis/research/feat/"
+target="_top">FEAT web page</A>. If you use FEAT in your research,
+please quote the journal references listed there.
+
+<p>FEAT is a software tool for high quality model-based FMRI data
+analysis, with an easy-to-use graphical user interface (GUI). FEAT is
+part of <a href="../index.html" target="_top">FSL</a> (FMRIB's
+Software Library). FEAT automates as many of the analysis decisions as
+possible, and allows easy (though still robust, efficient and valid)
+analysis of simple experiments whilst giving enough flexibility to
+also allow sophisticated analysis of the most complex experiments.
+
+<p>Analysis for a simple experiment can be set up in less than 1
+minute, whilst a highly complex experiment need take no longer than 5
+minutes to set up. The FEAT programs then typically take 5-20 minutes
+to run (per first-level session), producing a web page analysis
+report, including colour activation images and time-course plots of
+data vs model.
+
+<p>The data modelling which FEAT uses is based on general linear
+modelling (GLM), otherwise known as multiple regression. It allows you
+to describe the experimental design; then a model is created that
+should fit the data, telling you where the brain has activated in
+response to the stimuli. In FEAT, the GLM method used on first-level
+(time-series) data is known as FILM (FMRIB's Improved Linear
+Model). FILM uses a robust and accurate nonparametric estimation of
+time series autocorrelation to prewhiten each voxel's time series;
+this gives improved estimation efficiency compared with methods that
+do not pre-whiten. 
+
+<p>FEAT saves many images to file - various filtered data, statistical
+output and colour rendered output images - into a separate FEAT output
+directory for each session. If you want to re-run the final stages of
+analysis ("Post-stats"), you can do so without re-running any of the
+computationally intensive parts of FEAT, by telling FEAT to look in a
+FEAT directory for all of the raw statistical images which it needs to
+do this. The results of this re-run of the final stages either
+overwrite the old ones, or optionally are put in a new FEAT directory,
+named similarly to the original FEAT directory, but with an extra "+"
+included in the name.
+
+<p>FEAT can also carry out the registration of the low resolution
+functional images to a high resolution scan, and registration of the
+high resolution scan to a standard (e.g. MNI152)
+image. Registration is carried out using <a href="../flirt/index.html"
+target="_top">FLIRT</a>.
+
+<p>For higher-level analysis (e.g. analysis across sessions or across
+subjects) FEAT uses FLAME (FMRIB's Local Analysis of Mixed
+Effects). FLAME uses very sophisticated methods for modelling and
+estimating the random-effects component of the measured inter-session
+mixed-effects variance, using MCMC sampling to get an accurate
+estimation of the true random-effects variance and degrees of freedom
+at each voxel.
+
+
+<p>There is a brief overview of GLM analysis in <a
+href="glm.html">Appendix A</a> and an overview of how the design matrix is
+setup in FEAT in <a href="dm.html">Appendix B</a>.
+
+<p><CENTER>
+<IMG VALIGN=CENTER SRC="cr1.gif"     ALT="Example colour rendered output">
+&nbsp;&nbsp;&nbsp;
+<IMG VALIGN=CENTER SRC="tsplot1.gif" ALT="Example time series plot">
+</CENTER>
+
+<HR><FONT SIZE=1>Copyright &copy; 2000-2007, <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S.
+Smith</A>.</FONT>
+
+
+</BODY></HTML>

@@ -1,0 +1,226 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FEAT/FIELDMAPS</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+Making Fieldmap Images for FEAT
+</H1>
+
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<!-- No Table of Contents -->
+
+<A NAME="section1"></A><H2>Introduction</H2>
+ 
+This page outlines some of the most common ways to construct the required
+fieldmap images for B0 unwarping in FEAT.  Also see the documentation on
+<a href="index.html">FUGUE</a>
+and <a href="../feat5/detail.html#prestats">FEAT</a> for more
+information on fieldmapping and its use in FEAT pre-stats processing.
+<P>
+
+<h3>Fieldmap Data</h3>
+
+Each scanner/site/sequence can give you different data.  As the phase
+is of great importance in fieldmapping, but is normally not saved in
+other sequences, these images are often quite different from the
+standard images.
+
+<p>
+The first step in practice is to find out what kind of fieldmap
+acquisition data you can get from the scanner, operator or
+reconstruction software.  There are three main types:
+<ol>
+<li> Complex data containing images at two different echo times
+<li> Separate phase images for the two different echo times
+<li> A single, real fieldmap image (showing the field inhomogeneity in each voxel)
+</ol>
+
+<p>
+If the images from the scanner are in ANALYZE or NIFTI form then you
+can determine their type, use <code>fslinfo</code>.  If not,
+you <b>must</b> convert to either ANALYZE or NIFTI format before
+progressing.  See
+the <a href="http://www.fmrib.ox.ac.uk/fslfaq/index.html#general_format">FSL
+FAQ</a> for information about conversion.
+
+<p>When <code>fslinfo</code> is run it will display a datatype
+string or number (the value 32 represents a complex image).  You can
+convert a complex image into its phase and magnitude components by
+using <code>fslcomplex</code> or, alternatively, leave it in this
+format.  The number of images contained in each file is shown as the
+<code>dim4</code> value.
+
+<p>
+To further check what sort of images you have, use <code>slices</code>
+to display the image and then see which of the following images it
+most closely resembles.  Note that for complex images, slices will
+display two separate images - one phase and one magnitude.  If you
+only have a single image (dim4=1) then it is possible that it has
+already been reconstructed fully into a fieldmap.
+
+<p>
+Typical complex images
+<br><img src="complex_phase.png" alt="complex phase image">
+&nbsp; &nbsp; <img src="complex_abs.png" alt="complex magnitude image">
+
+<p>
+A phase image (wrapped)
+<br><img src="complex_phase.png" alt="wrapped phase image">
+
+<p>
+A phase image (unwrapped and masked)
+<br><img src="unwrapped_phase.png" alt="unwrapped phase image">
+
+<p>
+A magnitude image
+<br><img src="complex_abs.png" alt="a magnitude image">
+
+<p>
+A real fieldmap image (masked)
+<br><img src="fmap.png" alt="a fieldmap image">
+
+<p>
+Note that the fieldmap image contains structure and shows substantial
+inhomogeneities mainly in the inferior regions of the brain.
+
+<p>
+It is most common to have wrapped phase and magnitude images (case 2 below).
+If the images appear to have unwrapped phase then the the PRELUDE
+stage (step 3) should be skipped.  However, if the range of values
+within the image is within 2 pi radians (6.28) then it is likely that
+there are wraps present (even if they are hard to find by eye) and so,
+in this case, PRELUDE should still be run.
+
+<p>
+Once you have determined the type, you need to do some or all of the
+following steps.  As a guide (and this may vary in some cases) the
+steps that are required are:
+<ol>
+<li> For complex data you need to do steps 1a, 2a, 3, 4a and 5
+<li> For a pair of phase images you need to do steps 1b, 1c, 2b, 3, 4a and 5
+<li> For a single, real fieldmap you need to do steps 1b, 1c, 4b and 5
+</ol>
+
+<hr>
+
+<h2>Processing Steps</h2>
+
+<p><b>Step 1 - Getting the magnitude image</b>
+<br><b>(a)</b>
+If you start with a complex Analyze or Nifti volume that contains
+the scans at two echo times then you need to do:
+<br><pre>
+fslcomplex -realabs complex_acq fieldmap_mag
+</pre>
+
+<p><b>(b)</b>
+If you have separate phase images or a single, fieldmap image, then you
+need to also get a magnitude image that is (i) undistorted and (ii) registered
+with this phase/fieldmap image.  Usually the sequence used to acquire the
+phase or fieldmap image also contains data that can give you this magnitude
+image.  Check with your scanner operator, physicists and/or analysis people
+as to how to reconstruct this image - often it just requires extraction
+from the original DICOM or vendor-specific format.
+
+<p><b>(c)</b>
+Check that the magnitude image and the phase/fieldmap images have
+the same resolution.  You can do this by looking at the dim and pixdim
+entries (only the first three of each) as reported by <code>fslinfo</code>.
+<p>
+If they are not the same then they must be resampled to be equal.
+In this case choose the one with the best resolution and use this as
+a reference image in <code>flirt</code> with the <code>-applyxfm</code>
+option to resample the other images.
+<br>
+For example, if the magnitude image has a better resolution (smaller
+pixdims) then do the following:
+<pre>
+flirt -in original_phase0 -ref fieldmap_mag -applyxfm -out orig_phase0
+flirt -in original_phase1 -ref fieldmap_mag -applyxfm -out orig_phase1
+</pre>
+<p>
+Once this is done, check that the output images (e.g. orig_phase0) have
+the same dimensions and resolution as the reference (using <code>fslinfo</code>)
+and <b>also</b> check that they are aligned correctly by loading both
+the output and reference images into <code>fslview</code> and visually
+inspecting them.
+
+<hr>
+
+<p><b>Step 2 - Getting (wrapped) phase in radians</b>
+<br><b>(a)</b>
+If you have complex volumes then do:
+<br><pre>
+fslcomplex -realphase complex_acq phase0_rad 0 1
+fslcomplex -realphase complex_acq phase1_rad 1 1
+</pre>
+These phase volumes will now be in radians.
+
+<p><b>(b)</b>
+If you have seperate phase volumes that are in <u>integer</u> format then do:
+<br><pre>
+fslmaths orig_phase0 -mul 3.14159 -div 2048 phase0_rad -odt float
+fslmaths orig_phase1 -mul 3.14159 -div 2048 phase1_rad -odt float
+</pre>
+Note that the value of 2048 needs to be adjusted for each different
+site/scanner/sequence in order to be correct.  The final range of
+the phase0_rad image should be approximately 0 to 6.28.  If this is
+not the case then this scaling is wrong.
+
+<p>
+If you have separate phase volumes are not in integer format, you
+must still check that the units are in radians, and if not scale
+them appropriately using <code>fslmaths</code>.
+
+<hr>
+
+<p><b>Step 3 - Unwrapping the phase images</b>
+<br>Use PRELUDE to do the required phase unwrapping
+<br><pre>
+prelude -a fieldmap_mag -p phase0_rad -o phase0_unwrapped_rad
+prelude -a fieldmap_mag -p phase1_rad -o phase1_unwrapped_rad
+</pre>
+
+<hr>
+
+<p><b>Step 4 - Getting the fieldmap in rad/s</b>
+<br><b>(a)</b>
+For separate phase images do:
+<pre>
+fslmaths phase1_unwrapped_rad -sub phase0_unwrapped_rad -mul 1000 -div TE fieldmap_rads -odt float
+</pre>
+where <b>TE</b> must be replaced with the appropriate difference in echo times (in units of milliseconds).
+
+<p><b>(b)</b>
+If you have a single, real fieldmap then you must determine the units of this 
+fieldmap (ask an operator/physicist) and rescale to radians per second if
+it is not already in these units.  Common other units are (i) Hz (scale these 
+by 6.28 to get rad/s) and (ii) Telsa (scale these by 2.68e8 to get rad/s).
+
+<hr>
+
+<p><b>Step 5 - Regularising the fieldmap</b>
+<br>Fieldmaps can often be noisy or be contaminated around the edges of
+the brain.  To correct for this you can regularise the fieldmap using
+<code>fugue</code>.  Note that the "best" regularisation will depend
+on many factors in the acquisition and must be determined separately for
+each site/scanner/sequence.  Look at the fieldmap (e.g. using <code>fslview</code>) to decide what is the best regularisation to use - which could also be to do no regularisation.
+<p>
+Some regularisation options are - Gaussian smoothing, despiking and median filtering.
+Examples of these (in order) are:
+<br><pre>
+fugue --loadfmap=fieldmap_rads -s 1 --savefmap=fieldmap_rads
+fugue --loadfmap=fieldmap_rads --despike --savefmap=fieldmap_rads
+fugue --loadfmap=fieldmap_rads -m --savefmap=fieldmap_rads
+</pre>
+<br>
+Any combination of these regularisations can be performed.
+See the FUGUE help and documentation for more information aspects of
+regularisation.
+
+ <!-- J-Back -->
+
+   <HR>
+  <!-- No Footnotes -->
+  <H4>Mark Jenkinson  <BR><BR>Copyright &copy; 2006, University of Oxford</H4><BR>
+</BODY></HTML>
+
+<!--  LocalWords:  fieldmap Nifti fieldmap
+ -->

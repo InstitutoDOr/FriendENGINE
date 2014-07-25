@@ -1,0 +1,108 @@
+#!/bin/sh
+
+if [ $# -lt 1 ] ; then
+  echo "$0 <list of files>"
+  echo "  Fixes the orientation of all pre-3.2beta nifti1 files written in fmrib"
+  exit 1
+fi
+
+
+
+for fm in $@ ; do
+    stdspace=0;
+    if [ `$FSLDIR/bin/imtest $fm` = 1 ] ; then
+	fn=`$FSLDIR/bin/imglob $fm`
+	fb=`$FSLDIR/bin/remove_ext $fn`
+        if [ "`$FSLDIR/bin/fslval $fb descrip`" != "FSL3.2beta" ] ; then
+
+	    # make a backup copy and check to see if it copied OK (exit if not)
+	    ftmp=`echo ${fn} | sed 's/.nii/_niifix.nii/'`
+	    if [ X$ftmp = X$fn ] ; then
+		ftmp=${fn}_niifix
+	    fi
+	    /bin/cp -p $fn ${ftmp}
+	    if [ `$FSLDIR/bin/imtest ${ftmp}` != 1 ] ; then 
+		echo "FAIL 1"
+		echo ${fb} >> /tmp/NIIFIXFAILS ; exit 2 ; 
+	    fi
+            statsA=`$FSLDIR/bin/fslstats ${fb} -R -V`
+            statsB=`$FSLDIR/bin/fslstats ${ftmp} -R -V`
+	    min=`echo $statsA | awk '{ print $1 }'`
+	    mint=`echo $statsB | awk '{ print $1 }'`
+	    if [ $min != $mint ] ; then 
+		echo "FAIL 2: $min $mint"
+		echo ${fb} >> /tmp/NIIFIXFAILS ; exit 2 ; 
+	    fi
+	    max=`echo $statsA | awk '{ print $2 }'`
+	    maxt=`echo $statsB | awk '{ print $2 }'`
+	    if [ $max != $maxt ] ; then 
+		echo "FAIL 3: $max $maxt"
+		echo ${fb} >> /tmp/NIIFIXFAILS ; exit 2 ; 
+	    fi
+	    mvv=`echo $statsA | awk '{ print $3 }'`
+	    mvvt=`echo $statsB | awk '{ print $3 }'`
+	    if [ $mvv != $mvvt ] ; then 
+		echo "FAIL 4: $mvv $mvvt"
+		echo ${fb} >> /tmp/NIIFIXFAILS ; exit 2 ; 
+	    fi
+	    
+	    # OK, now remove orientation information
+	    $FSLDIR/bin/fslorient -deleteorient $fb
+
+	    # check if it should be in standard space
+            hdrinfo=`$FSLDIR/bin/fslhd $fn`;
+            nx=`echo $hdrinfo | sed 's/ \([a-z]\)/X\1/g' | tr 'X' '\n' | grep dim1 | head -n 1 | awk '{ print $2 }'`;
+            ny=`echo $hdrinfo | sed 's/ \([a-z]\)/X\1/g' | tr 'X' '\n' | grep dim2 | head -n 1 | awk '{ print $2 }'`;
+            nz=`echo $hdrinfo | sed 's/ \([a-z]\)/X\1/g' | tr 'X' '\n' | grep dim3 | head -n 1 | awk '{ print $2 }'`;
+            dx=`echo $hdrinfo | sed 's/ \([a-z]\)/X\1/g' | tr 'X' '\n' | grep pixdim1 | head -n 1 | awk '{ print $2 }'`;
+            dy=`echo $hdrinfo | sed 's/ \([a-z]\)/X\1/g' | tr 'X' '\n' | grep pixdim2 | head -n 1 | awk '{ print $2 }'`;
+            dz=`echo $hdrinfo | sed 's/ \([a-z]\)/X\1/g' | tr 'X' '\n' | grep pixdim3 | head -n 1 | awk '{ print $2 }'`;
+
+	    if [ $nx -eq 91 -a $ny -eq 109 -a $nz -eq 91 ] ; then
+		if [ `echo "( $dx * $dx - 4.0 ) * 1000" | bc -l` -eq 0 ] ; then
+		    if [ `echo "( $dy * $dy - 4.0 ) * 1000" | bc -l` -eq 0 ] ; then
+			if [ `echo "( $dz * $dz - 4.0 ) * 1000" | bc -l` -eq 0 ] ; then
+			  # treat it as a standard space image
+			    $FSLDIR/bin/fslcpgeom $FSLDIR/data/standard/MNI152_T1_2mm $fb -d
+			fi
+		    fi
+		fi
+	    fi
+
+	    # check if stats are still OK, if not then restore copy
+	    if [ `$FSLDIR/bin/imtest ${fb}` != 1 ] ; then 
+		/bin/cp -p ${ftmp} ${fn}
+		echo "FAIL 5: ${fb}"
+		echo ${fb} >> /tmp/NIIFIXFAILS ; exit 2 ; 
+	    fi
+	    statsA=`$FSLDIR/bin/fslstats ${fb} -R -V`;
+	    statsB=`$FSLDIR/bin/fslstats ${ftmp} -R -V`;
+	    min=`echo $statsA | awk '{ print $1 }'`
+	    mint=`echo $statsB | awk '{ print $1 }'`
+	    if [ $min != $mint ] ; then
+		/bin/cp -p ${ftmp} ${fn}
+		echo "FAIL 6: $min $mint"
+		echo ${fb} >> /tmp/NIIFIXFAILS ; exit 2 ; 
+	    fi
+	    max=`echo $statsA | awk '{ print $2 }'`
+	    maxt=`echo $statsB | awk '{ print $2 }'`
+	    if [ $max != $maxt ] ; then 
+		/bin/cp -p ${ftmp} ${fn}
+		echo "FAIL 7: $max $maxt"
+		echo ${fb} >> /tmp/NIIFIXFAILS ; exit 2 ; 
+	    fi
+	    mvv=`echo $statsA | awk '{ print $3 }'`
+	    mvvt=`echo $statsB | awk '{ print $3 }'`
+	    if [ $mvv != $mvvt ] ; then 
+		/bin/cp -p ${ftmp} ${fn}
+		echo "FAIL 8: $mvv $mvvt"
+		echo ${fb} >> /tmp/NIIFIXFAILS ; exit 2 ; 
+	    fi
+	    
+	    # if all checks are fine then remove the backup
+	    $FSLDIR/bin/imrm ${ftmp}
+	    
+	fi
+    fi
+done
+

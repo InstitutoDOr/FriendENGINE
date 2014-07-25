@@ -1,0 +1,74 @@
+<html>
+
+<head>
+</head>
+
+<body>
+
+<title> Triangle class </title>
+
+<h1 align="center"> Triangle class </h1>
+<br>
+<a href="index.html">back to menu</a>
+<br><br>
+<hr>
+<strong>This class describes mesh oriented triangles </strong>
+<br><br>
+class Triangle
+<br>
+{
+<br>
+ &nbsp;<strong>private:</strong>
+<br>
+  &nbsp;<a href="mpoint.html">Mpoint</a> * _vertice[3];<font color="#FF0000">vertices of the triangle - the triangle is oriented so the order is important</font>
+<br>
+  
+<br>
+&nbsp; <strong>public:</strong>
+<br>
+&nbsp;  Triangle(<a href="mpoint.html">Mpoint</a>* <i>const</i> p1,<a href="mpoint.html">Mpoint</a>* <i>const</i> p2,<a href="mpoint.html">Mpoint</a>* <i>const</i> p3);<font color="#FF0000">constructor - update the Mpoints p1, p2 and p3</font>
+<br>
+&nbsp;  ~Triangle(void);<font color="#FF0000">destructor - you must remove neighbourhood relation between</font>
+<br>
+&nbsp;  Triangle(Triangle & t);<font color="#FF0000"><strong>Declared but undefined :</strong> prevents from using it</font>
+<br>
+&nbsp;  Triangle operator=(Triangle &t); <font color="#FF0000"><strong>Declared but undefined :</strong> prevents from using it</font>
+<br>
+<br>
+&nbsp;  vector&lt;double&gt; data; <font color="#FF0000">used to store extra data attached to the triangle</font>
+<br>
+&nbsp;  <a href="mpoint.html">Mpoint</a> * <i>const</i> get_vertice(<i>const</i> int i) <i>const</i>;<font color="#FF0000">accessor for vertices</font>
+<br>
+&nbsp;  bool oriented;<font color="#FF0000">true if the triangle has been well oriented (will change this)</font>
+<br>
+
+<br>
+
+&nbsp;  <i>const</i> <a href="pt.html">Pt</a> centroid() <i>const</i>;<font color="#FF0000">centroid of the triangle</font>
+<br>
+&nbsp;  <i>const</i> Vec normal() <i>const</i>;<font color="#FF0000">normal of the oriented triangle</font>
+<br>
+&nbsp;  void swap();<font color="#FF0000">change the orientation of the triangle</font>
+<br>
+&nbsp;  <i>const</i> int operator &lt;(<i>const</i> Triangle *<i>const</i> t) <i>const</i>;<font color="#FF0000">check if two triangles are adjacent. <br><blockquote>0 if they are not<br>1 if they are and if they are well oriented respectively to each other<br>2 if they are and if they are bad oriented respectively to each other</blockquote></font>
+<br>
+&nbsp;  <i>const</i> bool operator ==(<i>const</i> Triangle & t) <i>const</i>;<font color="#FF0000">comparaison operator - compares the vertices</font>
+<br>
+&nbsp;  <i>const</i> bool intersect(<i>const</i> Triangle & t) <i>const</i>;<font color="#FF0000">check if two triangles are intersecting each other</font>
+<br>
+
+<br>
+  
+
+};
+
+<br>
+
+<hr>
+<a href="index.html">back to menu</a>
+
+</body>
+</html>
+
+
+

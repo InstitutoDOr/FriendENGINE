@@ -1,0 +1,1095 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="zlib\adler32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fugue\applywarp.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flirt\applyxfm4D.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\AutoCorrEstimator.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flirt\avscale.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\bandmat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\base2z.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="basisfield\basisfield.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\bdtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bet2\bet2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bet2\betsurf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\bfmatrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\btdtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\chdtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\check.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\cholesky.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster\cluster.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newimage\complexvolume.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster\connectedcomp.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\const.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\contrast_mgr.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\ContrastMgr.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\ContrastMgrOptions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flirt\convert_xfm.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fugue\convertwarp.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newimage\costfns.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\crc32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscvis\create_lut.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\cspline.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="feat5\cutoffcalc.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="basisfield\dctfield.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\deflate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dirf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\drand.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\evalue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\expx2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\f2z.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fast4\fast_two.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\fdtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="feat5\feat_model.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="feat5\featlib.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\fft.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\film_gls.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filmbabe\filmbabe.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filmbabe\filmbabe_manager.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filmbabe\filmbabe_vb_flobs.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filmbabe\filmbabeoptions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\FilmGlsOptions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\FilmOlsOptions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flirt\flirt.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fnirt\fnirt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fnirt\fnirt_costfunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="warpfns\fnirt_file_reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="warpfns\fnirt_file_writer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fugue\fnirtfileutils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fnirt\fnirtfns.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fsl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fsl2ascii.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscvis\fsl_boxplot.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\fsl_glm.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscvis\fsl_histogram.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\fsl_mvlm.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\fsl_regfilt.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\fsl_sbca.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscvis\fsl_tsplot.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslcc.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslchfiletype.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslcomplex.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslcorrecthd.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslcpgeom.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslcreatehd.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslfft.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslhd.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslinterleave.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fslio\fslio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslmaths.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslmeants.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslmerge.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslnvols.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslorient.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslpspec.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslroi.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslslice.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslsplit.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslstats.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avwutils\fslswapdim.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fugue\fugue.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\functions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="functionsa.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\gamma.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\gaussComparer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\gdtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newimage\generalio.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\ggmix.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\glimGls.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\glm.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flirt\globaloptions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mcflirt\Globaloptionsmc.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\gzclose.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\gzlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\gzread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\gzwrite.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filmbabe\halfcosbasis.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filmbabe\halfcosbasisoptions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\hholder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\histogram.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\igam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\igami.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newimage\imfft.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\incbet.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\incbi.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\infback.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster\infer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\inffast.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\inflate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\inftrees.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fnirt\intensity_mappers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fslexec\fslexec\intervalos.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fugue\invwarp.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\jacobi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\kernel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\kolmogorov.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newimage\lazy.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\log.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mcflirt\Loga.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flirt\makerot.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\matches.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fnirt\matching_points.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mcflirt\mcflirt.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\meldata.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\melgmix.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\melhlprfns.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\melica.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\melodic.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\meloptions.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\melpca.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="melodic\melreport.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meshclass\mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\minimize.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\miscmaths.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libvis\miscpic.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libvis\miscplot.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\miscprob.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meshclass\mpoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fast4\mriseg_two.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gd\mtables.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\mtherr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fast4\multi_mriseg_two.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\myexcept.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\nbdtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\ndtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\ndtri.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newfft.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newimage\newimage.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newimage\newimagefns.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat6.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat7.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat8.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmat9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmatex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmatnl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\newmatrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="niftiio\nifti1_io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\nonlin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\optimise.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscvis\overlay.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="film\paradigm.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\parse.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\pdtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fnirt\phase.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meshclass\point.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="warpfns\point_list.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="flirt\pointflirt.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\polevl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="feat5\prewhiten.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meshclass\profile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meshclass\pt_special.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\rungekutta.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sgfilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fugue\sigloss.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscvis\slicer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="slicetimer\slicetimer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster\smoothest.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\solution.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\sort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\sparse_matrix.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\sparsefn.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="basisfield\splinefield.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="basisfield\splines.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\stdtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\submat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="susan\susan.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="newmat\svd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\t2z.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\time_tracer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\trees.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="meshclass\triangle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="feat5\tsplot.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\unity.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fugue\unwarpfns.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\usage.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="warpfns\warpfns.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscvis\wpng.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscvis\writepng.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cprob\xmath.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="znzlib\znzlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\zutil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="warpfns\afnirt_file_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\AutoCorrEstimator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\base2z.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="basisfield\basisfield.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bet2\betsurf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\bfmatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\bicg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\bicgstab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\boolean.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\buildno.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\cg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\cgs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\cheby.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\complexvolume.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="znzlib\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mm\connected_offset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="filmbabe\connected_offset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\ContrastMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\ContrastMgrOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\controlw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\costfns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cprob\cprob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\crc32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\cspline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fslio\dbh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="basisfield\dctfield.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flirt\defaultschedule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\deflate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dirf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\f2z.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="feat5\featlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="filmbabe\filmbabe_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="filmbabe\filmbabe_vb_flobs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="filmbabe\filmbabeoptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\FilmGlsOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\FilmOlsOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\fmribmain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\fmribmain2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fnirt\fnirt_costfunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="warpfns\fnirt_file_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="warpfns\fnirt_file_writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fnirt\fnirtfns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\fsl_isfinite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="basisfield\fsl_splines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fslio\fslio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\gaussComparer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\ggmix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\glimGls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\glm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flirt\globaloptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mcflirt\Globaloptionsmc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\gzguts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="filmbabe\halfcosbasisoptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\histogram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\imfft.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\include.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster\infer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\inffast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\inffixed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\inflate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\inftrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fnirt\intensity_mappers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fslexec\fslexec\intervalos.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\ir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\kernel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\lazy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\lazyiterators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mcflirt\Log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fnirt\matching_points.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cprob\mconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\meldata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\melgmix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\melhlprfns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\melica.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\melodic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\meloptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\melpca.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="melodic\melreport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshclass\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshclass\meshclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\minimize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\miscmaths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libvis\miscpic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libvis\miscplot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\miscprob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mm\mixture_model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mm\mmoptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshclass\mpoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fast4\mriseg_two.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fast4\multi_mriseg_two.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\myexcept.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\newimage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\newimageall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\newimagefns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\newimageio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\newmat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\newmatap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\newmatio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\newmatnl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\newmatrc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\newmatrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="niftiio\nifti1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="niftiio\nifti1_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\nonlin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\optimise.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\options.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="film\paradigm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fnirt\phase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshclass\point.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="warpfns\point_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newimage\positerators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\precisio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshclass\profile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshclass\pt_special.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\qmr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscvis\readpng.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\rungekutta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sgfilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster\smoothest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\solution.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\sparse_matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\sparsefn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="basisfield\splinefield.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="basisfield\splines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\splinterpolator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\SpMat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscmaths\t2z.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\time_tracer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="newmat\tmt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\tracer_plus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\trees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="meshclass\triangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fugue\unwarpfns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="warpfns\warpfns.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gd\wbmp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="miscvis\writepng.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cprob\xmath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\zconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\zlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="znzlib\znzlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\zutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

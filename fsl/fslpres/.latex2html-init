@@ -1,0 +1,8 @@
+# This number will determine the size of the equations, special characters,
+# and anything which will be converted into an inlined image
+# *except* "image generating environments" such as "figure", "table"
+# or "minipage".
+# Effective values are those greater than 0.
+# Sensible values are between 0.1 - 4.
+#
+$MATH_SCALE_FACTOR = 

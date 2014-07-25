@@ -1,0 +1,3 @@
+in gimp, use Gradient Bevel logos script; Font Size=40 Font=Arial Bold
+delete non-primary layers and save.
+convert fsl_logo.gif -crop 0x0 grot.gif

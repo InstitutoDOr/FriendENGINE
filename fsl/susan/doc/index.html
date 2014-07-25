@@ -1,0 +1,61 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+SUSAN Nonlinear Noise Reduction
+</H1>
+SUSAN - User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<H2>INTRODUCTION</H2>
+
+<p>SUSAN noise reduction uses nonlinear filtering to reduce noise in
+an image (2D or 3D) whilst preserving the underlying structure. It
+does this by only averaging a voxel with local voxels which have
+similar intensity. 
+
+<P>For more detail on SUSAN and a journal reference, see the <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/research/susan/">SUSAN
+research web page</A>. If you use SUSAN in your research, please quote
+the journal reference listed there.
+
+<hr><H2>Susan GUI</H2>
+
+<H3>Main Options</H3>
+
+<p><b>Dimensionality</b>: by default a 3D image will be processed in
+full 3D mode. If you want to process each slice separately, select 2D.
+
+<p><b>Brightness threshold</b>: this allows SUSAN to discriminate
+between noise and the underlying image. Ideally, the value should be
+set greater than the noise level and less than the contrast of the
+underlying image. Edges of contrast smaller than this threshold will
+tend to be blurred by SUSAN whereas those of greater contrast will not
+be.
+
+<p><b>Mask SD</b>: this determines the spatial extent of the
+smoothing. The mask is basically Gaussian with standard deviation (in
+image units - e.g. mm) set by the user. However, for a small, fast,
+flat response 3x3 or 3x3x3 voxel mask, set SD to 0.
+
+<H3>Advanced Options</H3>
+
+<p><b>Use median when no neighbourhood is found</b>: by default, when
+the local neighbourhood of similar brightness voxels is empty, a local
+median filter is used. This allows the correction of impulse
+("salt-and-pepper") noise. This feature can be turned off if
+desired. In this case, when no neighbourhood is found, the original
+intensity of the voxel of interest remains unchanged.
+
+<p><b>Separate images to find USAN from</b>: if the local area to be
+smoothed over is to be found from an image (or images) other than the
+main input image, this can be input here.
+
+<hr><H2>susan COMMAND-LINE PROGRAM</H2>
+
+<p>This is the program called by the GUI. Type <b>susan</b> to
+get the usage help.
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2000, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A>.</FONT>
+
+</BODY></HTML>
+

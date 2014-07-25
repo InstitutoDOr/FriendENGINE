@@ -1,0 +1,51 @@
+#!/bin/sh
+
+Usage() {
+    echo "Usage: dof2warp <input> <reference> <dof> <warp> [in2ref]"
+    echo "  if [in2ref] is set then <warp> is applied to <input> to create [in2ref]"
+    exit 1
+}
+
+[ "$4" = "" ] && Usage
+
+i=`${FSLDIR}/bin/remove_ext $1`
+r=`${FSLDIR}/bin/remove_ext $2`
+dof=$3
+warp=$4
+
+D=${FSLDIR}/bin/DR
+
+idx=`${FSLDIR}/bin/fslval $i dim1`
+idy=`${FSLDIR}/bin/fslval $i dim2`
+idz=`${FSLDIR}/bin/fslval $i dim3`
+ivx=`${FSLDIR}/bin/fslval $i pixdim1 | sed "s/-//g"`
+ivy=`${FSLDIR}/bin/fslval $i pixdim2 | sed "s/-//g"`
+ivz=`${FSLDIR}/bin/fslval $i pixdim3 | sed "s/-//g"`
+
+rdx=`${FSLDIR}/bin/fslval $r dim1`
+rdy=`${FSLDIR}/bin/fslval $r dim2`
+rdz=`${FSLDIR}/bin/fslval $r dim3`
+rvx=`${FSLDIR}/bin/fslval $r pixdim1 | sed "s/-//g"`
+rvy=`${FSLDIR}/bin/fslval $r pixdim2 | sed "s/-//g"`
+rvz=`${FSLDIR}/bin/fslval $r pixdim3 | sed "s/-//g"`
+
+${D}/dof2gipl ${r}.hdr $dof ${warp}tmpX.hdr ${warp}tmpY.hdr ${warp}tmpZ.hdr
+
+shiftx=`echo "3 k $idx 1 - $ivx *  $rdx 1 - $rvx *  - 2 /    p" | dc -`
+shifty=`echo "3 k $idy 1 - $ivy *  $rdy 1 - $rvy *  - 2 /    p" | dc -`
+shiftz=`echo "3 k $idz 1 - $ivz *  $rdz 1 - $rvz *  - 2 /    p" | dc -`
+
+#echo $shiftx $shifty $shiftz
+
+${FSLDIR}/bin/fslmaths ${warp}tmpX         -add $shiftx ${warp}tmpXX
+${FSLDIR}/bin/fslmaths ${warp}tmpY -mul -1 -add $shifty ${warp}tmpYY
+${FSLDIR}/bin/fslmaths ${warp}tmpZ         -add $shiftz ${warp}tmpZZ
+
+fslmerge -t $warp ${warp}tmpXX ${warp}tmpYY ${warp}tmpZZ
+
+if [ _$5 != _ ] ; then
+    applywarp -i $i -o $5 -r $r -w $warp --rel
+fi
+
+/bin/rm ${warp}tmp*
+

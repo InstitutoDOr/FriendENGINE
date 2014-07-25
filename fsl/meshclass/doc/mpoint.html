@@ -1,0 +1,101 @@
+<html>
+
+<head>
+</head>
+
+<body>
+
+<title> Mpoint class </title>
+
+<h1 align="center">  Mpoint class </h1>
+<br>
+<a href="index.html">back to menu</a>
+
+<br><br>
+<strong>This class describes mesh points </strong>
+<br>
+<hr>
+<br>
+class Mpoint {
+<br>
+&nbsp; <strong>private:</strong>
+<br>
+&nbsp;  <a href="pt.html">Pt</a> _coord; <font color="#FF0000">current coordinates</font>
+<br>
+&nbsp;  <i>const</i> int _no; <font color="#FF0000">number of the point</font>
+<br>
+
+<br>
+ &nbsp;<strong>public:</strong>
+<br>
+ &nbsp; ~Mpoint(void);  <font color="#FF0000">destructor</font>
+<br>
+ &nbsp; Mpoint(double x, double y, double z, int counter); <font color="#FF0000">constructor. x, y, z are the cordinates, counter is the number of the point</font>
+<br>
+ &nbsp; Mpoint(<i>const</i> <a href="pt.html">Pt</a> p, int counter); <font color="#FF0000">constructor. Counter is the number of the point</font>
+<br>
+<br>
+&nbsp;  Mpoint (Mpoint & m);  <font color="#FF0000"><strong>Declared but undefined :</strong> prevents from using it</font>
+<br>
+&nbsp;  Mpoint operator=(Mpoint & m); <font color="#FF0000"><strong>Declared but undefined :</strong> prevents from using it</font>
+<br>
+<br>
+&nbsp;  <a href="pt.html">Pt</a> _update_coord; <font color="#FF0000">new coordinates</font>
+<br>
+&nbsp;  list&lt;<a href="triangle.html">Triangle</a>*&gt; _triangles; <font color="#FF0000">list of adjacent triangles</font>
+<br>
+
+&nbsp;  <i>const</i> <a href="pt.html">Pt</a> get_coord() <i>const</i> {return _coord;}; <font color="#FF0000">accessor for coordinates</font>
+<br>
+&nbsp;  <i>const</i> int get_no() <i>const</i> {return _no;}; <font color="#FF0000">accessor for numero</font>
+<br>
+&nbsp;  list&lt;Mpoint *&gt; _neighbours;  <font color="#FF0000">list of neighbour points</font>
+<br>
+
+&nbsp;  list&lt;double&gt; data;  <font color="#FF0000">structure to store extra data</font>
+<br>
+
+<br>
+&nbsp;  void translation(<i>const</i> double x,<i>const</i> double y,<i>const</i> double z); <font color="#FF0000">translates the coordinates of the point</font>
+<br>
+&nbsp;  void rescale(<i>const</i> double t, <i>const</i> double x, <i>const</i> double y, <i>const</i> double z); <font color="#FF0000">apply an homothety with scale t, and center (x, y, z)</font>
+<br>
+&nbsp;  void update(); <font color="#FF0000">set new coordinates as current coordinates</font>
+<br>
+  
+<br>
+&nbsp;  <i>const</i> <a href="vec.html">Vec</a> local_normal() <i>const</i>;   <font color="#FF0000">computes local normal to this point in the mesh</font>
+<br>
+&nbsp;  <i>const</i> <a href="pt.html">Pt</a> medium_neighbours() <i>const</i>; <font color="#FF0000">compute the medium of the neighbours of the point</font>
+<br>
+&nbsp;  <i>const</i> <a href="vec.html">Vec</a> difference_vector() <i>const</i>; <font color="#FF0000">this point minus the medium of the neighbours</font>
+<br>
+&nbsp;  <i>const</i> <a href="vec.html">Vec</a> orthogonal() <i>const</i>; <font color="#FF0000">normal component of orthogonal vector</font>
+<br>
+&nbsp;  <i>const</i> <a href="vec.html">Vec</a> tangential() <i>const</i>; <font color="#FF0000">tangential component of orthogonal vector</font>
+<br>
+&nbsp;  <i>const</i> double medium_distance_of_neighbours() <i>const</i>; <font color="#FF0000">gives the medium of the distances between this point and its neighbours</font>
+<br>
+<br>
+};
+<br>
+<br>
+
+<i>const</i> bool operator ==(<i>const</i> Mpoint &p2, <i>const</i> Mpoint &p1); <font color="#FF0000">comparaison operator (test on coordinates)</font>
+<br>
+<i>const</i> <a href="vec.html">Vec</a> operator -(<i>const</i> Mpoint&p1, <i>const</i> Mpoint &p2); <font color="#FF0000">return the vector from p2 to p1</font>
+<br>
+<i>const</i> bool operator &lt;(<i>const</i> Mpoint &p1, <i>const</i> Mpoint &p2);  <font color="#FF0000">test if two points are adjacent</font>
+<br>
+<i>const</i> <a href="vec.html">Vec</a> operator -(<i>const</i> <a href="pt.html">Pt</a>&p1, <i>const</i> Mpoint &p2); <font color="#FF0000">return the vector from p2 to p1</font>
+<br>
+<i>const</i> <a href="vec.html">Vec</a> operator -(<i>const</i> Mpoint&p1, <i>const</i> <a href="pt.html">Pt</a> &p2); <font color="#FF0000">return the vector from p2 to p1</font>
+<br>
+<hr>
+<a href="index.html">back to menu</a>
+
+</body>
+</html>
+
+
+

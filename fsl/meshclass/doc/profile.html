@@ -1,0 +1,96 @@
+<html>
+
+<head>
+</head>
+
+<body>
+
+<title> Profile class </title>
+
+<h1 align="center"> Profile class </h1>
+<br>
+<a href="index.html">back to menu</a>
+
+<br><br>
+<strong>This class is designed to analyse intensity profiles we extract in bet extension. Most of its features are lazy.<br>The new points MUST be added by monotonous abscisse<br>pro_pair is the structure for a basic point of a profile</strong>
+<br>
+<hr>
+<br><br>
+<strong>struct pro_pair</strong>
+<br>
+&nbsp;{
+<br>
+&nbsp;  double abs; <font color="#FF0000">abscisse of the point</font>
+<br>
+&nbsp;  double val; <font color="#FF0000">value of the point</font>
+<br>
+&nbsp;};
+<br>
+
+<br>
+<strong>class Profile</strong>
+<br>
+{
+<br>
+&nbsp; <strong>public:</strong>
+<br>
+
+<br>
+&nbsp;  vector&lt;pro_pair &gt; v; <font color="#FF0000">data of the profile</font>
+<br>
+
+<br>
+&nbsp;  Profile(); <font color="#FF0000">constructor - set lroi and rroi to default</font>
+<br>
+&nbsp;  ~Profile(); <font color="#FF0000">destructor</font>
+<br>
+  
+<br>
+&nbsp;  int size() <i>const</i>; <font color="#FF0000">number of point in the whole profile</font>
+<br>
+&nbsp;  void print() <i>const</i>; <font color="#FF0000">display the profile</font>
+<br>
+&nbsp;  void add (<i>const</i> double a, <i>const</i> double v&); <font color="#FF0000">add a new point with abscisse a and value v to the profile, and update rroi</font>
+<br>
+&nbsp;  void init_roi(); <font color="#FF0000">set the region of interest to the whole profile</font>
+<br>
+&nbsp;  void set_lroi(<i>const</i> double); <font color="#FF0000">set lroi to the indicated abscisse</font>
+<br>
+&nbsp;  void set_rroi(<i>const</i> double); <font color="#FF0000">set rroi to the indicated abscisse</font>
+<br>
+&nbsp;  <i>const</i> double value(<i>const</i> double) <i>const</i>; <font color="#FF0000">return the value corresponding to the designated abscisse (or to the closest point)</font>
+<br>
+&nbsp;  <i>const</i> double min(); <font color="#FF0000">return the minimum value within roi (lazy)</font>
+<br>
+&nbsp;  <i>const</i> double max(); <font color="#FF0000">return the minimum value within roi (lazy)</font>
+<br>
+&nbsp;  <i>const</i> double minabs(); <font color="#FF0000">return an abscisse where minimum value is reached (lazy)</font>
+<br>
+&nbsp;  <i>const</i> double maxabs(); <font color="#FF0000">return an abscisse where maximum value is reached (lazy)</font>
+<br>
+&nbsp;  <i>const</i> double threshold(<i>const</i> double d); <font color="#FF0000">return min() + d * (max() - min())</font>
+<br>
+&nbsp;  <i>const</i> double begin(); <font color="#FF0000">return abscisse of the first point</font>
+<br>
+&nbsp;  <i>const</i> double end(); <font color="#FF0000">return abscisse of the last point</font>
+<br>
+&nbsp;  <i>const</i> double next_point_over (<i>const</i> double abs, <i>const</i> double thr); <font color="#FF0000">return the abscisse of the next point over a thr threshold, starting from abscisse abs (-500 if it does not exist)</font>
+<br>
+&nbsp;  <i>const</i> double next_point_under (<i>const</i> double abs, <i>const</i> double thr); <font color="#FF0000">return the abscisse of the next point under a thr threshold, starting from abscisse abs (-500 if it does not exist)</font>
+<br>
+&nbsp;  <i>const</i> double last_point_over (<i>const</i> double abs, <i>const</i> double thr); <font color="#FF0000">return the abscisse of the last point over a thr threshold, starting from abscisse abs (-500 if it does not exist)</font>
+<br>
+&nbsp;  <i>const</i> double last_point_under (<i>const</i> double abs, <i>const</i> double thr); <font color="#FF0000">return the abscisse of the last point under a thr threshold, starting from abscisse abs (-500 if it does not exist)</font>
+<br>
+};
+<br>
+<hr>
+<a href="examplesprofile.html">see an example</a>
+<hr>
+<br>
+<a href="index.html">back to menu</a>
+<br>
+</body>
+</html>
+
+

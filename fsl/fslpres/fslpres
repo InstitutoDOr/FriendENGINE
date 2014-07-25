@@ -1,0 +1,316 @@
+#!/bin/csh -f
+
+#   fslpres - web presentation scripts
+# 
+#   Stephen Smith and Mark Jenkinson, FMRIB Image Analysis Group
+#
+#   Copyright (C) 1999-2003 University of Oxford
+#
+#   Part of FSL - FMRIB's Software Library
+#   http://www.fmrib.ox.ac.uk/fsl
+#   fsl@fmrib.ox.ac.uk
+#   
+#   Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+#   Imaging of the Brain), Department of Clinical Neurology, Oxford
+#   University, Oxford, UK
+#   
+#   
+#   LICENCE
+#   
+#   FMRIB Software Library, Release 4.0 (c) 2007, The University of
+#   Oxford (the "Software")
+#   
+#   The Software remains the property of the University of Oxford ("the
+#   University").
+#   
+#   The Software is distributed "AS IS" under this Licence solely for
+#   non-commercial use in the hope that it will be useful, but in order
+#   that the University as a charitable foundation protects its assets for
+#   the benefit of its educational and research purposes, the University
+#   makes clear that no condition is made or to be implied, nor is any
+#   warranty given or to be implied, as to the accuracy of the Software,
+#   or that it will be suitable for any particular purpose or for use
+#   under any specific conditions. Furthermore, the University disclaims
+#   all responsibility for the use which is made of the Software. It
+#   further disclaims any liability for the outcomes arising from using
+#   the Software.
+#   
+#   The Licensee agrees to indemnify the University and hold the
+#   University harmless from and against any and all claims, damages and
+#   liabilities asserted by third parties (including claims for
+#   negligence) which arise directly or indirectly from the use of the
+#   Software or the sale of any products based on the Software.
+#   
+#   No part of the Software may be reproduced, modified, transmitted or
+#   transferred in any form or by any means, electronic or mechanical,
+#   without the express permission of the University. The permission of
+#   the University is not required if the said reproduction, modification,
+#   transmission or transference is done without financial return, the
+#   conditions of this Licence are imposed upon the receiver of the
+#   product, and all original and amended source code is included in any
+#   transmitted product. You may be held legally responsible for any
+#   copyright infringement that is caused or encouraged by your failure to
+#   abide by these terms and conditions.
+#   
+#   You are not permitted under this Licence to use this Software
+#   commercially. Use for which any financial return is received shall be
+#   defined as commercial use, and includes (1) integration of all or part
+#   of the source code or the Software into a product for sale or license
+#   by or on behalf of Licensee to third parties or (2) use of the
+#   Software or any derivative of it for research with the final aim of
+#   developing software products for sale or license to a third party or
+#   (3) use of the Software or any derivative of it for research with the
+#   final aim of developing non-software products for sale or license to a
+#   third party, or (4) use of the Software to provide any service to an
+#   external organisation for which payment is received. If you are
+#   interested in using the Software commercially, please contact Isis
+#   Innovation Limited ("Isis"), the technology transfer company of the
+#   University, to negotiate a licence. Contact details are:
+#   innovation@isis.ox.ac.uk quoting reference DE/1112.
+
+if ( `ls _*.htm | head -1` == "" ) then
+    echo "No input files present."
+    exit 1
+endif
+
+echo ""
+echo "fslpres - FSL presentation production script"
+
+set mode = 1
+set OUTLINK = index.htm
+set LOGO = fsl_logo.gif
+set MATH = 1
+set FPDIR = ${FSLDIR}/etc/fslpres
+
+set cmdline = ($argv);
+while( $#argv != 0 )
+  set flag = $argv[1]; shift;
+  switch($flag)
+
+   case "-p":
+    set mode = 2;
+    set OUTLINK = '..\/'$argv[1]
+    shift;
+    breaksw
+
+    case "-l":
+     set LOGO = $argv[1]
+     shift;
+     breaksw
+
+    case "-f":
+     set FPDIR = $argv[1]
+     shift;
+     breaksw
+
+    case "-nomath":
+     set MATH = 0
+     breaksw
+
+  endsw
+
+end
+
+if ( $MATH == 1 ) then
+  set mj = `grep eqntex _*.htm | wc -l`
+  if ( $mj > 0 ) then
+     $FSLDIR/bin/makehtmeqns _*.htm 
+  endif
+endif
+
+if ( $mode == 1 ) then
+    /bin/rm -rf .fslpres
+    cp -r ${FPDIR} .fslpres
+    set FPD = .fslpres
+else
+    set FPD = ../.fslpres
+endif
+
+echo mode=$mode cwd=`pwd`
+
+/bin/rm -rf s_*.htm
+
+#setup variables
+set j = `ls _*.htm`
+
+set n = `echo $j | wc -w`
+echo -n "processing $n pages: make HTML "
+
+set HTML1 = '<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="'${FPD}'/fslpres.css"><TITLE>'
+
+set HTML2 = '</TITLE></HEAD><BODY class="body'${mode}'"><CENTER><TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0><TR><TD COLSPAN=2 ALIGN=CENTER HEIGHT=0><FONT class="title">'
+
+set HTML3 = '</FONT></TD></TR><TR><TD COLSPAN=2><HR></TD></TR><TR><TD COLSPAN=2 HEIGHT=645>'
+
+set HTML4 = '</TD></TR><TR><TD COLSPAN=2 HEIGHT=0>'
+
+set HTML5 = '<HR></TD></TR><TR><TD ALIGN=LEFT WIDTH=40% HEIGHT=0><A HREF="http://www.fmrib.ox.ac.uk"><IMG SRC="'${FPD}/${LOGO}'" BORDER=0 VALIGN=MIDDLE></A></TD><TD ALIGN=RIGHT WIDTH=40% HEIGHT=0>'
+
+set HTML6 = '</TD></TR></TABLE></CENTER></BODY></HTML>'
+
+# setup index page
+echo $HTML1 Index $HTML2 Index $HTML3 > index.htm
+
+# convert main source pages to temporary html
+@ i = 1
+while ( $i <= $n )
+
+    echo -n "."
+
+    setenv title "`head -1 $j[$i]`"
+
+    # test for too many pages to put one on its own line in the index
+    if ( $n < 25 ) then
+	echo "<br><FONT SIZE=2><A HREF="'"'"s$j[$i]"'"'">$title</A>" >> index.htm
+    else
+	echo "<FONT SIZE=2><A HREF="'"'"s$j[$i]"'"'">$title</A>" >> index.htm
+	if ( $i < $n ) then
+	    echo "  ---  " >> index.htm
+	endif
+    endif
+
+    echo $HTML1 "$title" $HTML2 "$title" $HTML3 '<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0>' > tmp$j[$i]
+
+    tail -n +2 $j[$i] >> tmp$j[$i]
+
+    echo '</TABLE>' $HTML4 >> tmp$j[$i]
+    echo -n $HTML5 >> tmp$j[$i]
+
+    set fpd = $j[$i]:r.fpd
+    if ( -d $fpd ) then
+      echo processing $fpd
+      cd $fpd
+      set outlink = s$j[$i]
+      $0 -p $outlink
+      cd ..
+      echo -n ' <A HREF="'$fpd/index.html'"><IMG SRC="'${FPD}'/grnprac.gif" BORDER=0 VALIGN=MIDDLE></A> &nbsp;&nbsp;&nbsp; ' >> tmp$j[$i]
+      echo ' <a href="'$fpd'/index.html"><font color=#00ff88>[ '`cat $fpd/_*.htm | head -1`' ]</font></a> --- ' >> index.htm
+    endif
+
+    echo -n ' <A HREF="AUTOUP"><IMG SRC="'${FPD}'/bluup.gif" BORDER=0 VALIGN=MIDDLE></A> ' >> tmp$j[$i]
+    if ( $n > 1 ) then
+	echo -n ' <A HREF="AUTOBACK"><IMG SRC="'${FPD}'/bluprev.gif" BORDER=0 VALIGN=MIDDLE></A> <A HREF="AUTOFORWARD"><IMG SRC="'${FPD}'/blunext.gif" BORDER=0 VALIGN=MIDDLE></A>' >> tmp$j[$i]
+    endif
+    echo $HTML6 >> tmp$j[$i]
+
+    @ i ++
+end
+
+# finish index page
+echo '<br><br><a href="all.htm">Everything on one page</a>' $HTML4 $HTML5 '<A HREF="'"s$j[1]"'"><IMG SRC="'${FPD}'/blunext.gif" BORDER=0 VALIGN=MIDDLE></A>' $HTML6 >> index.htm
+
+
+# substitute correct navigation links
+echo -n " make links "
+
+if ( $n > 1 ) then
+
+    sed "s/AUTOBACK/${OUTLINK}/g" tmp$j[1] | sed "s/AUTOUP/${OUTLINK}/g" | sed "s/AUTOFORWARD/s$j[2]/g" > s$j[1]
+
+    @ i = 2
+    while ( $i < $n )
+	echo -n "."
+	@ im = $i - 1
+	@ ip = $i + 1
+	sed "s/AUTOBACK/s$j[$im]/g" tmp$j[$i] | sed "s/AUTOUP/${OUTLINK}/g" | sed "s/AUTOFORWARD/s$j[$ip]/g" > s$j[$i]
+	@ i ++
+    end
+
+    @ im = $n - 1
+    sed "s/AUTOBACK/s$j[$im]/g" tmp$j[$n] | sed "s/AUTOUP/${OUTLINK}/g" | sed "s/AUTOFORWARD/${OUTLINK}/g" > s$j[$n]
+
+else
+
+    sed "s/AUTOBACK/${OUTLINK}/g" tmp$j[1] | sed "s/AUTOUP/${OUTLINK}/g" | sed "s/AUTOFORWARD/${OUTLINK}/g" > s$j[1]
+
+endif
+
+# clean up
+/bin/rm -rf tmp_*.htm index.html
+
+# make UNIX index.html page
+/bin/cp s$j[1] index.html
+
+# make concatenated page and book form of concatenated page
+/bin/rm -f all.htm pracbook.htm
+touch all.htm pracbook.htm
+set filelist = ""
+foreach fn ( s*.htm )
+  if ( ` echo $fn | grep _noprint.htm | wc -w ` == 0 ) then
+    set filelist = "$filelist $fn"
+  endif
+end
+
+set talkname = ` pwd `
+set talkname = ` basename $talkname `
+if ( ` filetest -f bookname.txt ` == 1 ) then
+  set talkname = ` cat bookname.txt `
+endif
+
+set pgno = 1
+set pgmax = ` echo $filelist | wc -w `
+foreach fn ( $filelist ) 
+  if ( $pgno == 1 ) then
+    sed 's|^.*/HTML.*$|\</TD\>\</TR\>\<TR\>\<TD colspan=3 align=right\>\<font size=3 align=right\>'"$talkname : $pgno of $pgmax"'\</font\>\</TD\>\</TR\>\</TABLE\>\</CENTER\>|g' $fn >> all.htm
+  else
+    sed 's|^.*/HTML.*$|\</TD\>\</TR\>\<TR\>\<TD colspan=3 align=right\>\<font size=3 align=right\>'"$talkname : $pgno of $pgmax"'\</font\>\</TD\>\</TR\>\</TABLE\>\</CENTER\>|g' $fn | sed 's|\<HTML\>\<HEAD\>.*\<CENTER\>|\<CENTER\>|' >> all.htm
+  endif
+  set pgno = ` echo $pgno + 1 | bc `
+end
+
+
+echo PRACBOOK
+# add practical slides in book form only
+set pgno = 1
+set filelist = ""
+if ( ` echo _*.fpd/s*htm | grep \.htm | wc -w ` > 0 ) then
+
+ foreach fn ( _*.fpd/s*.htm )
+  if ( ` echo $fn | grep _noprint.htm | wc -w ` == 0 ) then
+    set filelist = "$filelist $fn"
+  endif
+ end
+
+ set pgmax = ` echo $filelist | wc -w `
+ foreach fn ( $filelist ) 
+  if ( $pgno == 1 ) then
+    sed 's|^.*/HTML.*$|\</TD\>\</TR\>\<TR\>\<TD colspan=3 align=right\>\<HR\>\<font size=3 align=left\>'"$talkname practical : "'\</font\>\<font size=3 align=right\>'"$pgno of $pgmax"'\</font\>\<BR\>\<HR\>\<BR\>\<P\>\</TD\>\</TR\>\</TABLE\>\</CENTER\>|g' $fn >> pracbook.htm
+  else
+    sed 's|^.*/HTML.*$|\</TD\>\</TR\>\<TR\>\<TD colspan=3 align=right\>\<HR\>\<font size=3 align=left\>'"$talkname practical : "'\</font\>\<font size=3 align=right\>'"$pgno of $pgmax"'\</font\>\<BR\>\<HR\>\<BR\>\<P\>\</TD\>\</TR\>\</TABLE\>\</CENTER\>|g' $fn | sed '1,$s|\<HTML\>\<HEAD\>.*\<CENTER\>|\<CENTER\>|g' >> pracbook.htm
+  endif
+  set pgno = ` echo $pgno + 1 | bc `
+ end
+
+endif
+
+# finish the html and use different css for book form
+echo '</BODY></HTML>' >> all.htm
+echo '</BODY></HTML>' >> pracbook.htm
+sed 's|fslpres.css|fslpres_book.css|g' all.htm > book.htm
+sed 's|../.fslpres/fslpres.css|.fslpres/fslpres_book.css|g' pracbook.htm > pracbook_copy.htm
+/bin/mv -f pracbook_copy.htm pracbook.htm
+
+
+# check for print images and use them instead
+foreach bkt ( book pracbook )
+  set imlist = `grep -i 'src="[^ ]*"' ${bkt}.htm | sed 's|^.*[Ss][Rr][Cc]="\([^ ]*\)".*$|\1|g'`;
+
+  if ( ` echo $imlist | wc -w ` > 0 ) then
+   foreach fn ( $imlist )
+    set ifn = ` echo $fn | sed 's|.\([^\.]*\)$|_print.\1|'`
+    if ( ` filetest -f $ifn ` == 1 ) then
+      /bin/cp ${bkt}.htm ${bkt}copy.htm
+      echo replacing $fn witn $ifn
+      sed 's|[Ss][Rr][Cc]="'$fn'"|src="'$ifn'"|g' ${bkt}copy.htm > ${bkt}.htm
+    endif
+   end
+   /bin/rm -f ${bkt}copy.htm
+  endif
+end
+
+# make convenient links (top of directory listing hopefully)
+ln -fs index.html 0index.html
+
+echo "done"
+echo ""
+

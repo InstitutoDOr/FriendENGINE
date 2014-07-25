@@ -1,0 +1,86 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+FSL Slice Timing Correction
+</H1>
+User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE>
+
+<A NAME="section1"></A><HR><H2>INTRODUCTION</H2>
+ 
+<P>
+<code>slicetimer</code> is a pre-processing tool designed to correct for sampling offsets inherent in slice-wise EPI acquisition sequences.
+
+<P>
+Each voxel's timecourse is processed independently and intensities are
+shifted in time so that they reflect the interpolated value of the
+signal at a common reference timepoint for all voxels, providing an
+instantaneous `snapshot' of the data, rather than a staggered sample
+throughout each volume. Sinc interpolation with a Hanning windowing
+kernel is applied to each timecourse to calculate the interpolated
+values.
+
+<p> It is necessary to know in what order the slices were acquired and
+set the appropriate option. The default correction is appropriate if
+slices were acquired from the bottom of the brain.
+
+<p> If slices were acquired from the top of the brain to the bottom
+select the
+<b>--down</b> option.
+
+<p> If the slices were acquired with interleaved order (0, 2, 4 ... 1,
+3, 5 ...) then choose the
+<b>--odd</b> option.
+
+<p>If slices were not acquired in regular order you will need to use a
+slice order file or a slice timings file. If a slice order file is to
+be used, create a text file with a single number on each line, where
+the first line states which slice was acquired first, the second line
+states which slice was acquired second, etc. The first slice is
+numbered 1 not 0.
+
+<p>If a slice timings file is to be used, put one value (ie for each
+slice) on each line of a text file. The units are in TRs, with 0.5
+corresponding to no shift. Therefore a sensible range of values will
+be between 0 and 1.
+
+
+
+
+
+<A NAME="section3"></A><HR><H2>USAGE AND OPTIONS</H2>
+ 
+
+<pre>
+
+slicetimer -i <timeseries> [-o <corrected_timeseries>] [options]
+
+
+Compulsory arguments (You MUST set one or more of):
+        -i,--in filename of input timeseries
+
+Optional arguments (You may optionally specify one or more of):
+        -o,--out        filename of output timeseries
+        -h,--help       display this message
+        -v,--verbose    switch on diagnostic messages
+        --down  reverse slice indexing
+        -r,--repeat     Specify TR of data - default is 3s
+        -d,--direction  direction of slice acquisition (x=1,y=2,z=3) - default is z
+        --odd   use interleaved acquisition
+        --tcustom       filename of single-column custom interleave timing file
+        --ocustom       filename of single-column custom interleave order file (first slice is referred to as 1 not 0)
+
+</pre>
+
+
+<!-- J-Back -->
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2002, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~prb/index.html">P. Bannister</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

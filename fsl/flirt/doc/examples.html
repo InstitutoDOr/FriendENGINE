@@ -1,0 +1,87 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+<STYLE TYPE="text/css">BODY { background-image: url("../images/flirt-bg.jpg") }</STYLE>
+Common Command-line Program Example Usage
+</H1>
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+  <!-- No Table of Contents -->
+
+<A NAME="section1"></A><H2>FLIRT</H2>
+
+<ol>
+<li>
+The simplest usage of flirt is to register two images together as:
+<p>
+<code>
+flirt -in invol -ref refvol -out outvol -omat invol2refvol.mat -dof 6
+</code>
+<p>
+where <code>invol, refvol, outvol</code> are the input, reference and
+output volume filenames respectively, <code>invol2refvol.mat</code> is the
+filename for the saved ascii transformation matrix.
+Naturally, any filenames you wish to use can be chosen.
+
+<p> Note that <code>-dof</code> was used as the default would otherwise
+be 12.  The default cost function is Correlation Ratio, which normally
+works well for all images.
+
+<p> Also note that the <code>.mat</code> extension is not compulsory
+and any filename and extension can be used.  The transformation files
+are simply stored as ascii matrices, and so other conventions can be
+used (which might be better for MATLAB users to avoid confusion)
+although the <code>.mat</code> extension is the default within FEAT.
+
+<li>
+To apply a saved transformation to another image use:
+<p>
+<code>
+flirt -in newvol -ref refvol -out outvol -init invol2refvol.mat -applyxfm
+</code>
+<p>
+Note that the previous transformation matrix is used with the <code>-init</code> command and that the size of the otput volume is determined by <code>refvol</code> although its contents are <b>not</b> used.
+
+<li>
+To perform a 3 DOF 2D (single slice) registration:
+<p><code>
+flirt -in inslice -ref refslice -out outslice -omat i2r.mat -2D
+</code><p>
+
+<li>
+To perform a 6 DOF 2D registration:
+<p><code>
+flirt -in inslice -ref refslice -out outslice -omat i2r.mat -2D -schedule ${FSLDIR}/etc/flirtsch/sch2D_6dof
+</code><p>
+ 
+The schedule file specifies what transformations/DOF are allowed and how the
+optimisation is performed.
+Note that several other schedule files could be used - including 3D 
+translation only schedules etc.  These are all stored in 
+<code>${FSLDIR}/etc/flirtsch</code>
+
+</ol>
+
+
+<A NAME="section2"></A><HR><H2>CONVERT_XFM</H2>
+
+<ol>
+<li> To invert a saved transformation:
+<p><code>
+convert_xfm -omat refvol2invol.mat -inverse invol2refvol.mat
+</code><p>
+
+<li> To concatenate two transformations:
+<p><code>
+convert_xfm -omat AtoC.mat -concat BtoC.mat AtoB.mat
+</code><p>
+
+Note that the transform after the <code>-concat</code> is treated
+as the <b>second</b> transformation in the concatenation.
+
+
+</ol>
+
+
+<hr>
+  <!-- No Footnotes -->
+  <H4>Mark Jenkinson  <BR><BR>Copyright &copy; 2000-2003, University of Oxford</H4><BR>
+</BODY></HTML>

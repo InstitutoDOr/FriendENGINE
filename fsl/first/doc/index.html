@@ -1,0 +1,1060 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FIRST</TITLE></HEAD><BODY>
+<TABLE BORDER=0 WIDTH="100%"><TR>
+<TD ALIGN=LEFT><IMG SRC="egseg.png">
+<TD ALIGN=CENTER><H1>FIRST v1.2</H1>
+<h3>FMRIB's Integrated Registration and Segmentation Tool</h3>
+Subcortical brain segmentation using Bayesian shape &amp; appearance models.
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0
+SRC="../images/fsl-logo.jpg"></a>
+</TR></TABLE>
+
+<p><hr>
+<H2>Contents</H2>
+
+<a href="#intro">Introduction</a> - 
+<a href="#refs">References</a> - 
+<a href="#seg">Segmentation</a> - 
+<a href="#vertexana">Vertex Analysis</a> - 
+<!--- <a href="#volumeana">Volumetric Analysis</a> -  !--->
+<a href="#Models">Models</a> - 
+<a href="#advanced">Advanced Usage</a>
+
+<hr>
+<a name="intro"><H2>Introduction</H2></a>
+
+<p>
+FIRST is a model-based segmentation/registration tool. The
+shape/appearance models used in FIRST are constructed from manually
+segmented images provided by the Center for Morphometric Analysis
+(CMA), MGH, Boston. The manual labels are parameterized as surface
+meshes and modelled as a point distribution model.  Deformable
+surfaces are used to automatically parameterize the volumetric labels
+in terms of meshes; the deformable surfaces are constrained to
+preserve vertex correspondence across the training data.  Furthermore,
+normalized intensities along the surface normals are sampled and
+modelled. The shape and appearance model is based on multivariate
+Gaussian assumptions. Shape is then expressed as a mean with modes of
+variation (principal components). Based on our learned models, FIRST
+searches through linear combinations of shape modes of variation for
+the most probable shape instance given the observed intensities in
+your T1 image.
+
+<p>For more information on FIRST, see the
+D.Phil. <A
+HREF="http://users.fmrib.ox.ac.uk/~brian/brianp_thesis.pdf">thesis</a> or the FMRIB technical <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/techrep/tr07bp1/tr07bp1.pdf">report</a>. The thesis provides a more 
+thorough and complete description.
+
+<hr><a name="refs"><h3>References</h3></a>
+
+The following three references (thesis and two HBM abstracts) are the current best references for FIRST:
+<p>
+1. Brian Patenaude. Bayesian Statistical Models of Shape and Appearance for Subcortical Brain Segmentation. D.Phil. Thesis. University of Oxford. 2007.
+
+<p>
+2. Brian Patenaude, Stephen Smith, David Kennedy, and Mark Jenkinson. Improved Surface Models for FIRST. In Human 
+Brian Mapping Conference, 2008.
+
+<p>
+3. Brian Patenaude, Stephen Smith, David Kennedy, and Mark Jenkinson. FIRST - FMRIB's 
+integrated registration and segmentation tool. In Human Brain Mapping Conference, 
+2007. 
+
+<p><h4>FIRST Training Data Contributors</h4>
+
+<p>We are very grateful for the training data for FIRST, particularly
+to David Kennedy at the CMA, and also to: Christian Haselgrove, Centre
+for Morphometric Analysis, Harvard; Bruce Fischl, Martinos Center for
+Biomedical Imaging, MGH; Janis Breeze and Jean Frazier, Child and
+Adolescent Neuropsychiatric Research Program, Cambridge Health
+Alliance; Larry Seidman and Jill Goldstein, Department of Psychiatry
+of Harvard Medical School; Barry Kosofsky, Weill Cornell Medical Center.
+
+<a name="seg"></a><p><hr><H2>Segmentation using FIRST</H2>
+
+<p>The simplest way to perform segmentation using FIRST is to use
+the <b>run_first_all</b> script which segments all the subcortical
+structures, producing mesh and volumetric outputs (applying boundary
+correction).  It uses default settings for each structure which have
+been optimised empirically.
+
+<h3>run_first_all</h3>
+
+<UL>
+
+<p><LI>This script will run lower-level utilities
+(including <code>first_flirt</code>, <code>run_first</code>
+and <code>first</code>) on all the structures, with the settings
+(number of modes and boundary correction) tuned to be optimal for each
+structure. Both mesh (vtk) and volumetric (nifti) outputs are
+generated.  Corrected and uncorrected volumetric representations of
+the native mesh are generated.  The final stage of the script ensures
+that there is no overlap between structures in the 3D image, which can
+occur even when there is no overlap of the meshes, as can be seen in
+the individual, uncorrected segmentation images in the 4D image file.
+
+
+
+<P><LI><b>Example usage:</b>
+
+<p><code>run_first_all -i t1_image -o output_name</code>
+
+<p> The argument <b>-i</b> specifies the original T1-weighted structural image.
+
+<p> The argument <b>-o</b> specifies the filename for the output image basename. <b>
+run_first_all</b> will include the type of boundary correction into the final file name.  For example, the command above would
+produce <code>output_name_all_fast_firstseg.nii.gz</code> and <code>output_name_all_fast_origsegs.nii.gz</code>.
+
+<p><b>*Note that this usage is very different from previous versions*</b>
+
+<p>
+The script is written such that if you have FSL setup to use local
+cluster computing it will automatically parallelise the fitting of
+each structure.
+Either way, it will create a log directory that contains the error outputs of each command, and you should check these.  To do that simply do: <code>cat *.logs/*.e*</code>
+<br>and if there are no errors then you will see no output, otherwise you will see what errors have occured.
+
+<LI><b>Output</b>
+
+<ul>
+<p><LI><b>output_name_all_fast_firstseg.nii.gz</b> : This is a single image
+showing the segmented output for all structures. The image is produced
+by filling the estimated surface meshes and then running a step to
+ensure that there is no overlap between structures. The output uses
+the <a href="./cma_subcortical_label.html">CMA standard labels</a> (the colour table is built into
+FSLView).
+<p>
+If another boundary correction method is specified, the
+name <b>fast</b> in this filename will change to reflect the boundary
+correction that is used.  Note that if only one structure is specified
+then this file will be called <b>output_name-struct_corr.nii.gz</b>
+instead (e.g. <code>sub001-L_Caud_corr.nii.gz</code>).
+
+<p><LI><b>output_name_all_fast_origsegs.nii.gz</b> : This is a 4D image
+containing the individual structure segmentations, converted directly
+from the native mesh representation and without any boundary
+correction.  For each structure there is an individual 3D image where
+the interior is labeled according to
+the <a href="./cma_subcortical_label.html">CMA standard labels</a>
+while the boundary uses these label values plus
+100. Note that if only one structure is specified
+then this file will be called <b>output_name-struct_first.nii.gz</b>
+instead (e.g. <code>sub001-L_Caud_first.nii.gz</code>).
+
+<p><LI><b>output_name_first.vtk</b> : This is the mesh representation of the
+final segmentation.  It can be directly viewed in FSLView using 3D
+mode.
+
+<p><LI><b>output_name_first.bvars</b>: Do not delete this file. It contains the
+mode parameters and the model used. This file, along with the
+appropriate model files, can be used to reconstruct the other
+outputs. The mode parameters are what FIRST optimizes.  This output
+can be used be used later as to perform vertex analysis or as a shape
+prior to segment other shapes.
+
+
+</ul>
+
+<P><LI><b>Options</b>
+
+<ul>
+<p><li> <b>-m</b> specifies the boundary correction method.  The default
+is auto, which chooses different options for different structures
+using the settings that were found to be empirically optimal for each
+structure.  Other options are: fast (using FAST-based, mixture-model,
+tissue-type classification); thresh (thresholds a simple
+single-Gaussian intensity model); or none.
+
+<p><li> <b>-s</b> allows a restricted set of structures (one or more) to
+be selected.  For more than one structure the list must be comma
+separated with no spaces.  The list of possible structures is:
+<code>L_Accu L_Amyg L_Caud L_Hipp L_Late L_Pall L_Puta L_Thal R_Accu
+R_Amyg R_Caud R_Hipp R_Late R_Pall R_Puta R_Thal BrStem</code>.
+
+<p><li> <b>-b</b> specifies that the input image is brain extracted -
+important when calculating the registration.
+
+<p><li> <b>-a</b> specifies a pre-calculated registration matrix (from
+running <b>first_flirt</b>) to be used instead of calculating the
+registration again.
+</ul>
+
+</UL>
+
+<a name="roi_slicesdir"></a><p><H3>first_roi_slicesdir</H3>
+<UL>
+<b>first_roi_slicesdir</b> is a script to generate summary images, in
+a webpage format, for the segmentation outputs.  It is very useful for
+checking the quality of segmentations, especially when there are many
+subjects.
+
+<p>It runs the script slicesdir on a region of interest (ROI) defined by a
+set of label images (e.g. output of FIRST). A set of temporary ROI
+images are created and then slicesdir is then run on those.
+<br>
+<br>
+Usage:
+<b>first_roi_slicesdir</b> &lt;list of t1_images&gt; &lt;list of label_images&gt;
+<p>
+Example:
+<br>
+<code>first_roi_slicesdir *_t1.nii.gz *_all_fast_firstseg.nii.gz</code>
+</UL>
+
+<a name="first_advice"></a><p><H3>General Advice and Workflow</H3> 
+Below is a recommendation for running FIRST in a systematic way. While
+it is only a recommendation, you may find that organizing your data in
+a different way than suggested below leads to complications further
+down the road, especially when moving files.
+
+<UL>
+<p><LI>Create a main directory in which the FIRST analysis will be
+carried out. The first step in analysis will be to copy all of the
+structural images to be segmented into this directory. All FIRST
+commands should be run in this directory. Subdirectories may be
+created to contain certain outputs (more later) but all input images
+should be placed in this main directory. 
+
+<p>The pathnames for files used as input options for all of the steps
+of FIRST should start in this directory and may include subdirectories
+as needed. The reason for this is that the pathnames of the structural
+input images are written into the <i>bvars</i> output files. When
+these bvars files are used (i.e. for vertex analysis), the original
+image must be able to be located. Inputting full pathnames is
+possible, but if you move the directory containing the structural
+images, the pathnames within the bvars files will have to be
+changed. Therefore, we recommend keeping all FIRST inputs and outputs
+in one main directory and keeping all pathnames relative to this
+directory. This way, if the entire directory is moved then the
+relative position of all input and output files will remain the same.
+
+<p>For example, imagine you have a directory
+called <code>scratch</code>, and you create a sub-directory
+called <code>subcort</code>.  Start by copying all of your images into
+the <code>subcort</code> directory. Once this is done, all subsequent
+steps should be carried out from within the directory
+<code>subcort</code>.
+
+<p><LI>Use a standardized naming system for all of your structural
+images and subsequent output files. For example, we will consider an
+experiment where there are 10 controls and 10 diseased subjects.  In
+this case we name the structural images <code>con01.nii.gz,
+con02.nii.gz, ..., dis01.nii.gz, dis02.nii.gz, ...</code> and keep the
+base name part (i.e. <code>con01</code>) the same for all outputs of
+FIRST.
+
+<P><LI> To run <code>run_first_all</code> on a group of subjects a
+simple "for" loop may be used from the command line:
+
+<P> <code>for i in 01 02 03 04 05 06 07 08 09 10 ; do run_first_all -i con${i} -o con${i} ; done</code>
+
+<p>A similar loop can then be run for the diseased subjects
+(<code>dis01, ..., dis10</code>).  These commands could be put into
+one big <code>for</code> loop, but it is usually simpler to separate them,
+especially if you have a different number of subjects in each group.
+
+<P><LI> You then need to verify that the registrations and subsequent
+segmentations were successful.  To start with, check that there are no 
+errors in the log files by doing: 
+<br><code>cat *.logs/*.e*</code><br>
+which will show no output if there are no errors.  Once you've verified that 
+there are no errors, then you can most easily check the results from a group of subjects 
+using the relevant <code>slicesdir</code> tools.
+
+<p><LI>To check the registrations:
+
+<P> <code>${FSLDIR}/bin/slicesdir -p ${FSLDIR}/data/standard/MNI152_T1_1mm.nii.gz *_to_std_sub.nii.gz</code>
+
+<P> This command creates a directory called "slicesdir" which will
+contain a webpage output of the summary results for each subject's
+registration. Note that if the registration stage failed then the
+model fitting <i>will not</i> work, even
+though <code>run_first_all</code> will continue to run and generate
+output.  Therefore it is critical to check the registration results.
+
+<p>
+On the webpage, each subject's registered image
+(<code>*_to_std_sub.nii.gz</code>) will be displayed in sagittal,
+coronal, and axial views, with a red outline showing the edges
+from <code>MNI152_T1_1mm</code> standard brain. Open this webpage in
+any web browser.
+
+<P>When assessing the registrations, pay particular attention to the
+sub-cortical structures. It does not matter if the cortex does not
+always align well, particularly where there are large ventricles, as
+it is the alignment of the sub-cortical structures which is important
+for the segmentation.
+
+<P><LI>To check the segmentations:
+
+<p>Firstly, fix any registration errors (see below
+for <code>first_flirt</code> and various options available) and re-run
+the segmentation using the new registration.  After that the
+segmentation output can be inspected.  This can be done
+using <code>first_roi_slicesdir</code> which generates a similar
+webpage, but this time showing the segmentations.
+
+<P>If there are any problems, you can try different segmentation
+options (e.g. number of modes, boundary correction method, etc.) using
+the individual tools described in the <a href="#advanced">Advanced
+Usage</a> section.
+
+
+</UL>
+
+
+
+<p><hr><a name="vertexana"><H2>Vertex Analysis</H2></a>
+
+<UL>
+<LI>This section describes how to calculate vertex-wise statistics to investigate localised shape differences.
+<p>
+Vertex analysis is performed using <code>first_utils</code> in a mode
+of operation that aims to assess group differences on a per-vertex
+basis. It uses a multi-variate GLM to do the statistical analysis.
+The simplest, and very common, design matrix is a single EV
+(regressor) specifying group membership (zero for one group, ones for
+the other) which then tests for group differences.
+
+<p>The output is a series of meshes that are viewable in FSLView. The
+base mesh is the mean mesh for the first group and the vectors are the
+displacement vectors between group means.
+
+<p>
+The slider in the mesh controls panel in FSLVIEW will allow you to
+deform the mesh between the group means. The surface colouring is the
+multivariate F statistic (based on Pillai's Trace).  The length of the
+vectors and the statistics are not linearly related - the former is
+dependent only on the mean difference between groups while the latter
+is a statistic that takes the variances into account.
+
+<p><LI><b>Usage:</b>
+<p><code>first_utils --vertexAnalysis --usebvars -i concatenated_bvars -d design.mat -o output_basename [--useReconNative --useRigidAlign ] [--useReconMNI] [--usePCAfilter -n number_of_modes] </code>
+
+<p><LI><b>Options:</b>
+<UL>
+<p><LI><b>--vertexAnalysis</b> : Set mode of operation such that vertex-wise stats are calculated.
+
+<p><LI><b>--usebvars</b> : Set mode of operation such that it uses the
+combined mode parameters across the group (this is compulsory for vertex analysis).
+
+<p><LI><b>-i</b> : concatenated bvars file containing mode parameters from all subjects (created by <a href="#concat_bvars">concat_bvars</a>).
+
+<p><LI> <b>-o</b> : Base name of output meshes.
+
+<p><LI> <b>-d</b> : FSL design matrix (as created by the <code>Glm</code> GUI).
+
+<p><LI> <b>--useReconNative</b> : Reconstructs the meshes in the
+native space of the image. For vertex-wise
+stats need to also use <b>--useRigidAlign</b>.
+
+<p><LI> <b>--useReconMNI</b> : Reconstructs the meshes in MNI space
+(native space of the model). This does not require the flirt matrices.
+
+<p><LI> <b>--useRigidAlign</b> : Uses a 6 Degrees Of Freedom
+transformation to remove pose from the meshes (see <b>--useScale</b>
+if you wish to remove size as well).  All meshes are aligned to the
+mean shape from the shape Model.  Can be used with either ReconNative or ReconMNI.
+
+<p><LI> <b>--useScale</b> : Used in conjunction
+with <b>--useRigidAlign</b>, it will remove global scalings when aligning
+meshes.
+
+<p><LI> <b>--usePCAfilter</b> : Used in conjunction with <b>-n
+number_of_modes</b>. When used the number of modes used to reconstruct
+the mesh will be truncated at the integer "number_of_modes".
+</UL>
+
+
+
+<p><LI><b>Notes:</b>
+<p>For more complicated design matrices, with multiple EVs, each EV is
+tested in turn (with an implicit contrast that is one for that EV and
+zero for all others).  A separate test is run for each such contrast,
+so that N results are generated when there are N EVs.  Also, the
+constant EV is always implicitly added and user-specified EVs are
+demeaned.  The contrast never includes the constant EV.
+
+<p>When the groups are not obviously defined (e.g. the EV is not a
+group membership EV) they are implicitly generated such that first
+group consists of all subjects where the (demeaned) EV in question is
+less than or equal to zero, and the second group consists of the
+remaining subjects.  For a simple group membership EV (testing the
+difference between two groups) this is a simple relationship where the
+"first" group are the ones with the lower values in the EV.  For other
+regressors (e.g. an age covariate) this definition of "groups" will
+not be so intuitive, however it is useful to work out so that the
+direction of the mean difference vectors can be interpretted.
+
+</UL>
+<p><a name="concat_bvars"></a><p><H3>concat_bvars</H3>
+<UL>
+<code>concat_bvars</code> is used to concatenate the
+"<code>.bvars</code>" files across subjects. All subjects should be
+created using the same model and <code>concat_bvars</code> will keep
+track of the number of subjects that the final, concatenated file contains.
+
+<p>
+Usage:
+<p>
+<code>concat_bvars output_name.bvars [list of ".bvars" files]</code>
+
+<p>
+Example:
+<p>
+<code>concat_bvars L_Hipp_all.bvars con*_L_Hipp_first.bvars dis*_L_Hipp_first.bvars</code>
+
+</UL>
+
+<p><a name="fdr"><H3>Multiple Comparison Correction</H3></a>
+
+<UL>
+
+<p>Currently the only available method uses False Discovery Rate (FDR)
+correction via the utility <code>surface_fdr</code>.  In the future we
+plan to implement cluster-based corrections
+via <code>randomise</code>.
+
+<p><b>surface_fdr</b>
+
+<p><b>Usage:</b>
+<p><code>surface_fdr input.vtk</code>
+
+<p><b>Outputs:</b>
+<p>Will create files <code>input_Fthresh.vtk</code>
+and <code>input_pvals.vtk</code> and some small image files (which can
+be ignored).  The first mesh output, <code>input_Fthresh.vtk</code> is
+a mesh containing the thresholded F statistics; that is, those that
+survive the FDR thresholding.  The second mesh
+output, <code>input_pvals.vtk</code> is a mesh containing
+the <i>uncorrected</i> p-values.  The utility will also output the FDR
+threshold (as a p-value) when running.  This FDR threshold can be used
+to threshold this p-value mesh to create the same significant areas as
+in the thresholded F-statistic mesh output.
+
+</UL>
+
+<p><h3>Important Note</h3>
+<UL>
+<p>As of FSL4.1.3, all FIRST vtk outputs from vertex analysis contain
+the relevant Degrees Of Freedom and bvars files contain registration
+matrices (and are now in a binary format).  Also, as substantial
+improvements in the sensitivity of the statistics were made between
+FSL4.1.2 and FSL4.1.3, it is recommended and necessary to re-run
+previous vertex analyses with the newer version of FIRST and not
+attempt to combine with outputs generated by previous versions.  </UL>
+
+<p><h3>General Advice and Workflow</h3>
+
+<UL>
+<p>
+This section covers some general recommendations for running vertex
+analysis.  The following is not prescriptive but may be helpful,
+especially to new users or those less familiar with unix-style
+commands and environments.
+
+<p><b>Getting started:</b>
+<p>To begin with you need to generate segmentations of all the structure
+of interest in all subjects (see the <a href="#seg">segmentation</a>
+section).  Note that it is the bvars files, which correspond directly
+to the meshes, which will be needed and the volumetric representation
+is not used.  Hence it does not matter what boundary correction was
+used or whether one or more structures were segmented.
+
+<p>
+One the segmentations are done, concatenate all of the bvars files for
+the structure you are going to run vertex-wise stats on. For example
+if you are looking for differences in the left hippocampus, and
+assuming your output bvar files are
+named <code>con*_L_Hipp_first.bvars</code> and
+<code>dis*_L_Hipp_first.bvars</code>, do
+<br>
+<code>concat_bvars con_to_dis_L_Hipp.bvars con*_L_Hipp_first.bvars
+dis*_L_Hipp_first.bvars</code>
+
+<p>
+This command will create a bvars file
+called <code>con_to_dis_L_Hipp.bvars</code> that contains the bvars
+(mode paramters) of the segmentation of the left hippocampus from each
+subject in the order con01-con10, followed by dis01-dis10.
+
+
+<p><b>Create a design matrix:</b>
+<p>
+This is easiest done by using the "Higher-level" mode of
+the <code>Glm</code> gui (note that you can also make a text file of
+the design matrix directly). However, the design matrices are treated
+slightly differently by FIRST compared with FEAT.  One difference is
+that FIRST does not model separate group variances and so ignores the
+"Group" column in the <code>Glm</code> gui.  Another difference is
+that FIRST demeans the design matrices and performs its own contrasts,
+therefore it is not necessary to set up contrasts in
+the <code>Glm</code> gui (they will be ignored) and it is not
+necessary to demean your EVs (FIRST will do this automatically) or
+include a constant EV (FIRST will do this too).
+
+<p>For this example, imagine you are simply interested in finding a
+difference in shape between the two groups "con" and "dis". Your
+design matrix would simply be an EV with 10 ones followed by 10
+zeroes. That is:
+<code> <br> 0 <br> 0 <br> 0 <br> 0 <br> 0 <br> 0 <br> 0 <br> 0 <br> 0 <br> 0 
+<br> 1 <br> 1 <br> 1 <br> 1 <br> 1 <br> 1 <br> 1 <br> 1 <br> 1 <br> 1 </code>
+
+<p>
+Create this design and save it in a file
+called <code>con0_dis1.mat</code> (choose the
+name <code>con0_dis1</code> in the "Save" dialog of
+the <code>Glm</code> GUI). Note that because the concatenated bvars
+files was created in the order "con", then "dis", in your design
+matrix zeroes correspond to "con" and ones to "dis".
+
+<p>
+You are now ready to run vertex_analysis. Note that for this example,
+the <code>--useReconNative</code> option will be used. This carries
+out vertex analysis in native space, along with
+the <code>--useRigidAlign</code>
+option. The <code>--useReconMNI</code> option may also be used to
+carry out vertex analysis, it will do it in the MNI standard space
+instead. The <code>--useReconNative</code> is often more sensitive to
+changes in shape, however there may be exceptions and it is
+recommended to try both the <code>--useReconNative</code> and
+the <code>--useReconMNI</code> options.  Also note that
+the <code>--useScale</code> option will not be used. Without
+the <code>--useScale</code> option, changes in both local shape and
+size can be found in shape analysis. This type of finding can be
+interpreted, for example, as local atrophy. With
+the <code>--useScale</code> option, overall changes in size are lost.
+
+<p>
+Create a new directory (e.g. called <code>shape_analysis</code>)
+within the current main directory. This will be where the results of
+shape analysis are saved.  For example, <code>mkdir shape_analysis</code>
+
+<p><b>Running vertex analysis:</b>
+
+<p><code>first_utils --vertexAnalysis --usebvars -i con_to_dis_L_Hipp.bvars -d con0_dis1.mat -o shape_analysis/con0_dis1_L_Hipp --useReconNative --useRigidAlign -v &gt;&amp; shape_analysis/con0_dis1_L_Hipp_output.txt</code>
+
+<p>Note that the -v option displays the details of certain
+calculations to the command line and the <code>&gt;&amp;</code> option
+captures this output into a file (here called
+<code>con0_dis1_L_Hipp_output.txt</code>). This output may be useful
+to save.
+
+<p><b>Output of vertex analysis:</b>
+
+<p>In the <code>shape_analysis</code> directory there will be a file
+called <code>con0_dis1_L_Hipp1.vtk</code>. This is the 3D mesh
+displaying the results of vertex analysis (the number 1 represents the
+first EV tested - in this case the only one).  Open FSLView and add a
+standard brain. Start the 3D viewer and turn off the standard brain
+(this was simply added to get the 3D viewer started). Click the add
+mesh button and open the <code>con0_dis1_L_Hipp1.vtk</code> file. A 3D
+surface of the hippocampus will open with the uncorrected F stats for
+the difference between groups displayed at each vertex on the surface.
+Something like this (initially without the vectors, but see below):
+<br>
+<center>
+<img src="vertexana.png" alt="Example FSLView window showing vertex analysis output">
+</center>
+
+<p>
+The colour bar indicates the statistic values; an increase from red to
+blue is going from a lower to higher statistical significance. Note
+that the colours only indicate where any difference between groups was
+found, not the direction of this difference. The vectors (little
+arrows shown on the surface) indicate the direction of change. Open
+the mesh properties window. Scale the vectors by a value of 2 to 5 for
+better visualization. These vectors point from the mean surface of
+whatever subjects corresponded to a value of 0 or less in the design
+matrix (demeaned EV1) to the mean surface of others subjects.  In this
+case controls were given a value of 0 and diseased a value of
+1. Therefore FIRST would have demeaned this design matrix so that
+controls had a value of -0.5 and diseased had a valued of +0.5. These
+vectors therefore point from the mean surface of control group (viewed
+by sliding the mesh slider to position 0) to the mean surface of
+diseased group (viewed by sliding the mesh slider to position 1). In
+this case, if the vector points inward at a given vertex, then that
+means that that vertex on the mean control surface moves inward to
+reach the same vertex on the mean diseased surface. For example, on
+the side of the hippocampus in the image above you can see a large
+patch of blue with vectors pointing inward.  These vectors indicate
+that the direction of difference is such that the diseased hippocampus
+is smaller/thinner here than in the control group, consistent with
+local atrophy.  Note that the vectors give direction while the colours
+indicate the statistical strength of the difference in any direction.
+
+<p><b>Running Multiple Comparison Correction:</b>
+
+<p>Following this you should correct for multiple comparisons to get corrected statistics.  Do this with:
+<br><code>surface_fdr con0_dis1_L_Hipp1.vtk</code>
+
+<p>This generates an output
+called <code>con0_dis1_L_Hipp1_Fthresh.vtk</code> which you can then
+view in FSLView, in the same way as above, and only shows non-zero
+statistics where they survived the FDR multiple comparison correction.
+Note that an FDR threshold of zero means that no vertices have
+survived multiple comparison correction.
+
+<p><b>Other common design matrices:</b>
+
+<p><I>Correlation</i>
+
+<p>
+For correlation only (no group difference) you can create a design matrix 
+with one column (EV) where each row contains the value of the
+correlating measure for each subject in the same order as the
+subject's bvars (in the concatenated bvars file). For example, to
+correlate age with shape, the design matrix would contain one EV,
+which would be a single column where each row has the age of each
+subject in the same order as the concatenated bvars file. There is no
+need to demean the age values, as FIRST will demean them for you.
+
+<p>
+Interpretting the results of a correlation: the colours on the surface
+of the mesh will display the strength of the correlation at each
+vertex, while the vectors will display the direction of the
+correlation. Surface 0 on the slider is the mean surface for all of
+the subjects younger than the mean age, while surface 1 on the slider
+is the mean surface for all of the subjects older than the mean
+age. The vectors point from surface 0 to surface 1, which is from 
+the younger group to the older.
+
+<p>
+You can also do correlation with a covariate (see below).  This
+gives you statistics as explained above (but accounting for the
+other EVs) but the interpretation of the vectors will no longer be the
+same as that described above, but will instead depend only on
+the groupings defined by the first column of the design matrix (EV1).
+
+<p><i>Covariate</i>
+
+<p>
+To add a covariate to a group difference study, simple add a second
+column to the design matrix for the group difference. This second
+column should contain the raw scores (for each subject in the same
+order as the concatenated bavrs file) of the measure you wish to use
+as a covariate; for example, age. Vertex analysis will now produced
+two vtk files, with one file called <code>output_name1.vtk</code>,
+showing the areas of group difference <i>after</i> accounting for the
+covariate. The file called <code>output_name2.vtk</code>, on the other
+hand, will show the areas that correlate with the covariate
+(e.g. age) <i>after</i> accounting for group difference.  
+
+<p>
+Note that the mean surfaces and vectors will be the same in each case (although
+vectors only show at vertices where the statistics were significant, and
+these statistics will vary) since the mean surfaces and vectors are always
+defined by the grouping in the first column of the design matrix (EV1), 
+with the first group being all values below the mean and the second
+group being all values above the mean.
+
+</UL>
+
+<!---
+<hr>
+<p><a name="volumeana"><H2>Volumetric Analysis</H2></a>
+<UL>
+<LI><b>Usage:</b>
+<p>
+<code>first_utils --usebvars -i all.bvars -l fill_value -o output_name -d design.mat -p bcorr_thresh [--useReconNative -f flirt_matrices] [--useReconMNI] [--usePCAfilter -n number_of_modes] [--useRigidAlign] [--useNorm -g norm.txt]</code>
+
+<p><LI><b>Outputs:</b>
+<p>The output will be a file called <code>output_name.vols</code> which
+contains subject name and volumes. Also
+a <code>output_nameN.tstat</code> file will be generated for each EV
+where "<code>N</code>" corresponds to the EV number. Each file
+contains the t-statistic for the main effect of that EV.
+
+<p><LI><b>Options:</b>
+<UL>
+<P><LI><b>--usebvars</b> : Set mode of operation such that it uses the mode parameters to generate volumes (unless <a href="#vertexana"><code>--vertexAnalysis</code></a> is used) and to apply the GLM.
+<p><LI><b>-i</b> : a single bvars file that contains all modes parameters from the different subjects (as prepared with <a href="#concat_bvars"><code>concat_bvars</code></a>).
+<p><LI> <b>-o</b> : Name of the output volume.
+<p><LI> <b>-l</b> : Label with which to fill the mesh (boundary voxels
+will be assigned label+100).
+<p><LI> <b>-d design.mat </b> : FSL design matrix (as created by
+the <code>Glm</code> GUI).
+<p><LI> <b>-p</b> : Boundary correction threshold (for single Gaussian intensity threshold method only).
+<p><LI> <b>--useNorm</b> : Used in conjunction with <b>-g
+norm.txt</b>. It allows for the scaling of each volume measure (as
+specified by norm.txt) prior to running the GLM.  The output volumes
+will be the scaled volumes. The typical used for this option would be
+to normalize for head size.
+<p><LI> The reconstruction and alignment options are the same as for the above.
+</UL>
+
+<p>Currently, to perform volumetric analysis with other forms of
+boundary correction it is necessary to apply the boundary correction
+with <a href="#bcorr"><code>first_boundary_correction</code></a>, measure the volumes
+using <code>fslstats</code> and perform the statistics externally
+(e.g. SPSS or MATLAB).
+</UL>
+
+!--->
+
+<hr>
+<p><a name="volumeana"><H2>Volumetric Analysis</H2></a>
+
+<UL>
+<p>Currently, to perform volumetric analysis 
+it is necessary to determine the label number of the structure of interest and use <code>fslstats</code> to measure the volume.  Other software
+(e.g. SPSS or MATLAB) needs to be used to analyse the volume measurements.
+
+<p>To find the label number, load the <code>output_name_*_firstseg.nii.gz</code> image into FSLView, click on a voxel in the structure of interest and the label number will be the number in the Intensity box.  Alternatively, you can find the number from the 
+<a href="./cma_subcortical_label.html">CMA standard labels</a>.
+
+<p>Once you have the label number you can measure the volume using <code>fslstats</code> with the threshold options to select out just the single label number (by using <code>-l</code> and <code>-u</code> with -/+0.5 from the desired label number).  For example, if the label number is 17 (Left Hippocampus) then you can use the following command:
+<br><code>fslstats output_name_all_fast_firstseg -l 16.5 -u 17.5 -V</code>
+<br>where the first number of the output is the number of voxels and the second is the volume in mm<sup>3</sup>.
+</UL>
+
+<a name="Models"></a><p><hr><H2>Models</H2>
+
+<UL>
+
+<LI> The shape/appearance models used are stored
+in <code>${FSLDIR}/data/first/models_336_bin/</code>.  The models
+were constructed from 336 subjects, consisting of
+children and adults, normals and subjects with pathologies.
+
+<p><LI> The models in the <code>intref_thal/</code> subdirectories use
+the intensities from within the <i>thalamus</i> to normalize the structures'
+intensities.
+
+<p><LI>The models in the <code>05mm/</code> subdirectory 
+require no boundary correction (all boundary
+voxels are considered part of the structure).
+
+<p><LI> The posterior horns of the lateral ventricles are not yet fully
+modelled, so there may be areas of the ventricle horns not labelled as
+ventricle.
+
+<p><LI> The fourth ventricle is combined with the brainstem, and so the
+labels for the BrainStem also (intentionally) cover the fourth ventricle.
+
+</UL>
+
+
+
+<hr><hr>
+
+<a name="advanced"><H2>Advanced Usage</H2></a>
+
+<p>The following sections detail the more fundamental commands that
+the script <b>run_first_all</b> calls.  If problems are encountered
+when running <code>run_first_all</code>, it is recommended that each of the
+individual stages described below be run separately in order to
+identify and fix the problem.
+
+<h3>Registration</h3>
+
+<p>FIRST segmentation requires firstly that you run <code>first_flirt</code>
+  to find the affine transformation to standard space, and secondly
+  that you run <code>run_first</code> to segment a single structure
+  (re-running it for each further structure that you require). These
+  are both run by <code>run_first_all</code> which also produces
+  a summary segmentation image for all structures.
+  
+  <p><b>Please note</b>, if the registration stage fails then the models
+  fitting <i>will not</i> work, despite the fact that <code>run_first_all</code>
+  continues to run and may produce outputs.
+
+<UL>
+
+  <LI><b>first_flirt</b>
+
+<p>This script runs two-stage affine registration to MNI152 space at
+1mm resolution (we will assume for these instructions that the image
+is named <code>con01.nii.gz</code>). The first stage is a standard 12
+degrees of freedom registration to the template.  The second stage
+applies a 12 degrees of freedom registration using an MNI152
+sub-cortical mask to exclude voxels outside the sub-cortical regions.
+<br>
+<br>
+
+The <code>first_flirt</code> script now registers to the non-linear
+MNI152 template. The new models that are located
+in <code>${FSLDIR}/data/first/models_336_bin/</code> were all trained
+using that template for normalization.
+<br>
+<br>
+Included with FIRST, are models for the left and right
+cerebellum. Instead of using a subcortical mask in the second stage of
+the registration procedure, a mask of the brain was used. When fitting
+the cerebellum models, you will need to input a different
+transformation matrix than that used for the other
+structures. <b>first_flirt</b> will <b><i>not</i></b> perform the
+necessary registration by default, the <b>-cort</b> flag <b><i>must be
+specified.</i></b>  The cerebellum uses the putamen intensities to
+normalize its intensity samples (use the <code>-intref</code> option).
+
+<p><b>first_flirt</b> should be used on <b><i>whole-head</i></b>
+(non-betted) images. Although it is generally discouraged, the
+flag <b>-b</b> will allow <b><code>first_flirt</code></b> to also be
+used on brain extracted data.
+
+<p><li><b>Example usage:</b>
+
+<p><code>first_flirt con01 con01_to_std_sub</code>
+
+<p>This command uses the T1-weighted image <code>con01.nii.gz</code>
+as the input and will generate the registered
+(<code>con01_to_std_sub.nii.gz</code>) and the transformation matrix
+(<code>con01_to_std_sub.mat</code>).
+
+<p><li><b>Additional options:</b>
+
+<ul>
+<li>The <b>-d</b> option prevents the deletion of the images and
+transformation matrices produced in the intermediary registration
+steps. This is used for debugging purposes.
+
+<p><li>The <b>-b</b> option specifies that the input has been brain
+extracted (and so uses the brain extracted MNI template rather than
+the whole head template).
+
+<p><li>The <b>-inweight</b> specifies a weighting image for the input
+image in the first stage of the registration - useful to deweight
+pathologies or artefacts.
+
+<p><li>The <b>-cort</b> option indicates that <code>first_flirt</code>
+should perform the alternate "second stage" in addition to the
+standard procedure ("<code>_cort</code>" will be appended to the output
+name). Rather than using a subcortical mask, a brain mask is
+used. <b><i>This option should be used if intending to run the
+cerebellum models.</i></b>
+</ul>
+
+<p>You should verify that the registrations were successful prior to
+further processing (e.g. using <code>${FSLDIR}/bin/slicesdir -p
+${FSLDIR}/data/standard/MNI152_T1_1mm.nii.gz
+*_to_std_sub.nii.gz</code>).  When assessing the registration, pay
+attention to the sub-cortical structures. Note that the cortex may not
+always align well, particularly where there are large ventricles.
+</UL>
+
+<p><hr>
+<p>
+<h3>Segmentation</h3>
+<UL>
+<LI><b>run_first</b>
+
+<P>This script will run FIRST to extract a single
+structure. The main arguments that are required are: (-i) the input
+image, (-t) transformation matrix, (-o) name of output image, (-n) the
+number of modes of variation and (-m) the model.
+
+<p><LI><b>Main options:</b>
+
+<p><b>-i</b> : the T1-weighted image to be segmented.
+
+<p><b>-t</b> : the matrix that describes the transformation of
+T1-weighted image into standard space, concentrating on subcortical
+structures (as found by <code>first_flirt</code>).
+
+<p><b>-n</b> : the number of modes of variation to be used in the
+fitting. The more modes of variation used the finer details FIRST may
+capture, however you may decrease the robustness/reliability of the
+results.  The more modes that are included the longer FIRST will take
+to run. The current suggested number of modes is for each structure is
+given in <a href="./cma_subcortical_label.html">sub-cortical
+labels</a> and incorporated into the defaults
+for <code>run_first_all</code>. The suggested number of modes is based
+on leave-one-out cross-validation run on the training set. The maximum
+number of modes available is 336.
+
+<p><b>-o</b> : the basename to be used for FIRST output files. Three files are
+output: <code>output_name.vtk</code>, <code>output_name.nii.gz</code>
+and <code>output_name.bvars</code> if "<code>-o output_name</code>" was specified.
+
+<p><b>-m</b> : the model file
+(e.g. <code>${FSLDIR}/data/first/models_336_bin/L_Hipp_bin.bmv</code>). The
+full path name to the model must be used.
+
+<p><LI><b>Example usage:</b>
+
+<ul>
+<p><li><code>run_first -i con01 -t con01_to_std_sub.mat -n 40 -o con01_L_Hipp -m ${FSLDIR}/data/first/models_336_bin/L_Hipp_bin.bmv</code>
+
+<p>Note the recommended style for the output name: subjectID_structure
+</ul>
+
+<p><LI><b>Other options:</b>
+
+<p><b>-loadBvars </b> : Initializes FIRST with a previous estimate of
+the structure. If used with <code>-shcond</code> it initializes the
+structure to be conditioned on.
+
+<!---
+<p><b>-shcond</b> : This option will perform the FIRST segmentation of
+one structure conditioned on a previously segmented structure (shape
+conditional). The <code>-shcond</code> option precedes the mapping
+file that maps the mode parameters into the conditional mode
+parameters. The <code>-loadBvars</code> option must be used to
+indicate the segmentation result of the previous structure. The
+conditional models available are found
+in <code>${FSLDIR}/data/first/models_317_bin/condMaps/</code> (only
+currently for use with the 317 models<!--- ??? !--->). The direction of the
+conditional is important, for
+example, <code>L_CaudCondThal.bmap</code> is used for the left caudate
+conditioned on the left thalamus, i.e. the thalamus is segmented
+first, this result is fixed, and then the caudate segmentation is done
+using the thalamus result.
+!--->
+
+<p><b>-intref </b> : This option will make FIRST use a reference
+structure for the local intensity normalization instead of the
+interior of the structure itself.  The <code>intref</code> option
+precedes the model file that will be used for <i>reference</i>
+structure (i.e. the thalamus). The model file used
+(the <code>-m</code> option) must correspond to the intensity model of
+the reference structure (i.e. the thalamus). Currently the
+Caudate, Hippocampus, Lateral Ventricles and Amygdala can be segmented
+in this way using the Thalamus as reference, and the Cerebellum can be segmented using the Putamen as reference; the relevant models are located
+in <code>${FSLDIR}/data/first/models_336_bin/intref_thal/</code>, and
+in <code>${FSLDIR}/data/first/models_336_bin/intref_puta/</code>.  The
+<p>For example: 
+<br> <code>run_first -i con01 -t con01_to_std_sub.mat -n 30 -o con01_L_Hipp -m ${FSLDIR}/data/first/models_336_bin/intref_thal/L_Hipp.bmv -intref ${FSLDIR}/data/first/models_336_bin/05mm/L_Thal_05mm.bmv
+</code>
+
+<p><b>-multipleImages</b>: This options allows FIRST to run on
+multiple images by inputting a list of images, transformation matrices
+and output basenames. For a single structure, FIRST will be run on
+each image independently.  There are some computational savings due to
+the fact that the model does not need to be re-read from file for each
+image, although the savings are small and the option is primarily
+included for convenience. When using this option, you should not
+include the transformation matrix with the <code>-t</code> option. The
+output name specified by the <code>-o</code> option will be appended to
+the output name specified in the input list. The input list is a
+plain, 3 column text file. The first column specifies the images
+(advisable to include full paths), the second column is the
+transformation matrices output by <code>first_flirt</code>, the third column
+is the base output name.
+
+<p><LI><b>Example usage:</b>
+
+<ul>
+
+<p><li><code>run_first -i con01 -t con01_to_std_sub.mat -n 40 -o con01_seg -m ${FSLDIR}/data/first/models_336_bin/L_Hipp_bin.bmv -loadvars seg_first.bvars -shcond st1_given_st2.bmap -intref modelRef.bmv</code>
+
+<p><li><code>run_first -i image_xfm_output_list.txt -n 40 -o L_Thal_n40 -m ${FSLDIR}/data/first/models_336_bin/05mm/L_Thal_05mm.bmv</code>
+<br>
+<br>
+where  <code>image_xfm_output_list.txt</code> may look like,
+<br>
+<br>
+<code>
+subject_1_t1 &nbsp &nbsp subject_1_t1_to_mni.mat  &nbsp &nbsp  subject_1<br>
+subject_2_t1   &nbsp &nbsp  subject_2_t1_to_mni.mat   &nbsp &nbsp  subject_2<br>
+subject_3_t1   &nbsp &nbsp  subject_3_t1_to_mni.mat  &nbsp &nbsp   subject_3<br>
+</code><br> By using the above command, FIRST would
+fit <code>L_Thal_05mm.bmv</code>
+to <code>subject_1</code>, <code>subject_2</code>,
+and <code>subject_3</code>. The output would be a
+nifti <b>image</b>, <b>.bvars</b> and <b>.vtk</b> output files, with
+the base
+names <code>subject_1_L_Thal_n40</code>, <code>subject_2_L_Thal_n40</code>, and
+<code>subject_3_L_Thal_n40</code> respectively.
+</ul>
+
+</UL>
+
+
+<a name="bcorr"></a><p><hr><H2>Boundary Correction</H2>
+
+<UL>
+<P><LI><b>first_boundary_corr</b>
+
+<p>
+This program is used for the classification of the boundary voxels in
+the volumetric output for a single structure. It takes the
+segmentation image output by <code>run_first</code> and classifies the
+boundary voxels as belonging to the structure or not. The output
+volume will have only a single label.
+
+<p>Usage:
+<br><code>first_boundary_corr -s segmented_image -i intensity_image -b method -o output_name</code>
+
+<UL>
+<p><LI><b>-s</b> : This specifies the segmented image from FIRST (which is labelled with a value for interior voxels and value+100 for boundary voxels)
+
+<p><LI><b>-i</b> : This specifies the original T1-weighted image (either whole head or brain extracted)
+
+<p><LI><b>-b</b> : This specifies the boundary correction method to be used.  Current options are: <code>fast, thresh, none</code> where <code>fast</code> uses FSL's FAST-based tissue classification for correcting boundary voxels, <code>thresh</code> uses a simpler classification based on a single Gaussian intensity model (which requires a threshold to be specified with another option: <code>-t</code>), and <code>none</code> which simply converts all boundary voxels into valid interior voxels.
+
+<LI> <b>-o</b> : This specifies the name of the output.
+
+</UL>
+
+
+<p> For the models contained
+in <b>${FSLDIR}/data/first/models_336_bin/05mm/</b>, all boundary
+voxels are considered as belonging to the structure, and
+hence <code>none</code> is the appropriate correction method.  This is
+done automatically by <code>run_first_all</code>.
+
+<P><LI><b>first_mult_bcorr</b>
+
+<p>
+This program is used to correct overlapping segmentations <i>after</i>
+boundary correction has been run on each structure independently.  It
+requires the combined corrected and uncorrected segmentations (as
+separate 4D files) in addition to the original T1-weigthed image.
+This is called automatically by <code>run_first</code>.
+
+<p>Usage:
+<br><code>first_mult_bcorr -i t1_image -c 4D_corrected_labels -u 4D_uncorrected_labels -o output_name</code>
+
+<UL>
+<p><LI><b>-i</b> : This specifies the original T1-weighted image (either whole head or brain extracted)
+
+<p><LI><b>-c</b> : This specifies a 4D file containing the boundary corrected images of the segmented structures.
+ 
+<p><LI><b>-u</b> : This specifies a 4D file containing the individual structure segmented images prior to any boundary correction, where the boundary voxels are labeled as 100 plus the interior label vallue.  The order of the structure images must be the same as the file specified by the <code>-c</code> option.
+
+<LI> <b>-o</b> : This specifies the name of the output.
+
+</UL>
+
+<p>Any voxel labeled by two or more structures is re-classified as
+belonging to only one structure.  This is based on how similar the
+intensity is to the intensity distributions of the interior voxels for
+the competing structures.  However, if one structure labels the voxel
+as an interior voxel and the other labels it as a boundary voxel it
+will be classified as belonging to the interior of the former
+structure, regardless of its intensity.
+
+</UL>
+
+<a name="first_utils"></a><p><hr><H2>first_utils</H2>
+
+This command can be used to fill meshes, as well as for running vertex
+analysis.
+
+<br>
+<br>
+<UL>
+<LI><b>To fill a mesh </b>:
+<p>Usage:
+<br>
+<code>first_utils --meshToVol -m mesh.vtk -i t1_image.nii.gz -l fill_value -o output_name</code>
+<UL>
+<p><LI><b>--meshToVol</b> : Set to fill mesh mode of operation.
+<p><LI><b>-i</b> : Base image to which the mesh corresponds.
+<p><LI><b>-m</b> : An ASCII vtk mesh.
+<p><LI> <b>-o</b> : Name of output volume.
+<p><LI> <b>-l</b> : Label with which to fill the mesh (boundary voxels will be assigned label+100).
+</UL>
+
+</UL>
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2006-2009, University of
+Oxford. Documentation written by Brian Patenaude, Aaron Trachtenberg and Mark
+Jenkinson.</FONT>
+
+
+<hr>
+
+

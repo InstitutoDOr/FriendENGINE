@@ -1,0 +1,107 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+<STYLE TYPE="text/css">BODY { background-image: url("../images/flirt-bg.jpg") }</STYLE>
+Flirt GUIs
+</H1>
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+  <!-- No Table of Contents -->
+
+<h1>AVAILABLE GUIs</h1>
+
+FLIRT comes with a main GUI as well as three supporting guis:
+<ul>
+<li> ApplyXFM - for applying saved transformations and changing FOVs
+<li> InvertXFM - for inverting saved transformations
+<li> ConcatXFM - for concatenating saved transformations
+</ul>
+
+These support GUIs are self-explanatory and perform functions that
+are detailed in the command line versions.
+
+<p>
+Only the main FLIRT GUI is described in the rest of this page.
+
+
+<h1>MAIN FLIRT GUI</h1>
+
+<H2>MAIN OPTIONS</H2>
+ 
+<P>The simplest use of FLIRT is to register two single volumes together.
+This is done by choosing the <b>Input image -> Reference image</b> mode
+in the top box, then filling in the <b>Reference image</b> and 
+<b>Input image</b> boxes with the appropriate images.  The result is a
+registered image which will be saved to the location specified in the
+<b>Output image</b> box.  All other options/boxes can be left at
+their default values.
+
+<P>The second mode of operation is a two stage registration which
+takes an input <b>Low res image</b> and two target images.  It
+initially registers the low res image to a <b>High res image</b> and
+then registers this high res image to the final <b>Reference
+image</b>.  The two resulting transformations are concatenated and
+then applied to the original low res image to create an <b>Output
+image</b> that is a version of the low res image transformed
+(resliced) to the reference image space.
+
+<H4>Secondary Images</H4>
+
+Apply the estimated transform to other (secondary) images, which were
+originally aligned with the input/low-res image, in order to align them
+with the reference image.
+
+<H4>Model/DOF</H4>
+
+Restrict the transformation type.  For 3D to 3D mode the DOF can be
+set to 12 (affine), 9 (traditional), 7 (global rescale) or 6 (rigid
+body).  In 2D to 2D mode only 3 DOF (rigid body) transformations are
+allowed.
+
+<hr><H2>ADVANCED OPTIONS</H2>
+ 
+The four categories of options are:
+<UL>
+
+<LI> <B>Search</B> - select the angular range over which the initial
+optimisation search stage is performed.
+
+<LI> <B>Cost Functions</B> - select the desired cost function from a
+range of inter- and intra-modal functions.
+
+<LI> <B>Interpolation</B> - select the interpolation method to be used
+in the final (reslice) transformation (it is not used for the estimation
+stage - trilinear interpolation is always used for the
+estimation of the transformation).  The options for this final
+interpolation method are: Tri-Linear; Nearest Neighbour and Sinc.  If
+Sinc is chosen, further window parameters (type of windowing function
+and window width) can also be specified.
+
+<LI> <B>Weighting Volumes</B> - impose voxel-wise weighting to
+reference and/or input images, to affects the cost function.  The
+weighting images must be the same size as the image they are weighting
+(e.g. refweight and reference images) and the voxel values of the
+weighting image represent how much weighting that particular voxel is
+given in the cost function.  Therefore, by setting weights to zero,
+some areas of the image can be effectively ignored, which is useful in
+masking out pathologies so that they do not affect the registration.
+In this way very accurate registrations can be made between
+pathological and ``normal'' images.  This cannot be achieved by
+masking the images prior to registration, as that induces artificial
+boundaries which bias the registration.  Furthermore, some areas can
+be given extra weighting (such as the ventricles) so that the
+registration is most accurate near these structures, but still uses
+information from the rest of the image (e.g. the cortical surface) to
+improve the robustness of the registration.
+
+</UL>
+
+
+
+<P>
+<IMG SRC="xfmhelp.gif" ALIGN="CENTER" ALT="" BORDER=0>
+
+
+
+
+<HR><H4>Mark Jenkinson  <BR>FMRIB Image Analysis Group
+<BR><BR>Copyright &copy; 1999-2000, University of Oxford</H4><BR>
+</BODY></HTML>

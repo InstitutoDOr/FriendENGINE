@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<link rel="stylesheet" type="text/css" href="../fsl.css">
+<title>FSL</title>
+</head>
+
+<body background="../images/fsl-bg.jpg">
+
+<hr>
+<table border=0, width="100%">
+<tr>
+<td align=center>
+<h1>Tools for handling warps</h1>
+</td>
+<td align=right>
+<a href="../index.html"><img border=0, src="../images/fsl-logo.jpg"></a>
+</td>
+</tr>
+</table>
+<hr>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#fnirtfileutils">fnirtfileutils</a></li>
+<li><a href="#applywarp">applywarp</a></li>
+<li><a href="#invwarp">invwarp</a></li>
+<li><a href="#convertwarp">convertwarp</a></li>
+<li><a href="./combining_warps.html">Some examples of combining warps</a></li>
+</ul>
+
+<a name="introduction"></a><h2>Introduction</h2>
+<p>
+These are a set of command line utilities for handling, applying and transforming warp-fields created with fnirt, or any other application that produces warp-fields with a compatible format. Using these tools you can take the coefficient-field (the output for the <a href="./index.html#fnirt_cout"><tt>--cout</tt> argument of <tt>fnirt</tt></a>) and create any other <tt>fnirt</tt> output. Hence, it is often a good idea to just specify the <tt>--cout</tt> for <tt>fnirt</tt>, thereby saving space, and then create the oter files of/when they are needed.
+</p>
+<p>
+The output of the <tt>--cout</tt> parameter of <tt>fnirt</tt> is a 4D-file with three (for the x-, y- and z-directions) volumes of coefficients for quadratic/cubic splines. To go from a volume of coefficients to a displacement field each of the coefficients are multiplied with a 3D spline with a unique location within the displacement volume. Hence, the field is uniquely defined given the information in the coefficient-file. All (I think) the <tt>FSL</tt> applications that uses warp-fields have been written so that they accept either a coefficient-file or a field-file, which means that the average user does not really need to know exactly what format his/her warps are in.
+</p>
+
+<a name="fnirtfileutils"></a><h2>fnirtfileutils</h2>
+<p>
+This utility is used to convert field->coefficients, coefficients->field, coefficients->other_coefficients etc. Probably the easiest is to look at some examples.
+</p>
+<tt>fnirtfileutils --in=my_fnirtcoefs --ref=my_refvol --out=my_field</tt>
+<p>
+This command simply converts a coefficient-file into a field-file (with the affine transform NOT included). This can be used <i>e.g.</i> for visualization purposes.
+</p>
+<tt>fnirtfileutils --in=my_fnirtcoefs --ref=my_refvol --jac=my_jac</tt>
+<p>
+This command calculates a map of Jacobian determinants (reflecting expansions/contractions) given a coefficient/field-file. This can be used <i>e.g.</i> for "Jacobian modulation" in <a href="../fslvbm/index.html">FSL-VBM</a>, or for visualization. If combined with the <tt>--withaff</tt> flag the jacobian associated with the affine transform will also be included in the output.
+</p>
+<tt>fnirtfileutils --in=my_fnirtcoefs --ref=my_refvol --out=my_field --withaff</tt>
+<p>
+This command will create a warp-field with the affine transform included as part of the field. This can be useful when one wants to use software that cannot decode the <tt>FSL</tt> coefficient-file format.
+</p>
+<tt>fnirtfileutils --in=some_field --ref=some_refvol --out=my_splinecoeffs --outformat=spline --warpres=10</tt>
+<p>
+This command will take a displacement-field created <i>e.g.</i> by some non-<tt>FSL</tt> application and convert it to a <tt>fnirt/FSL</tt> coefficient file with a spline knot-spacing of 10mm. Note that it may not be possible to represent the field exactly as a combination of splines with a knot-spacing greater than one voxel, so it will be projected onto the closest (in a least-squares sense) field that is possible to represent.
+</p>
+
+<h3>List of parameters</h3>
+<dl>
+<dt><tt>--in=filname</tt></dt>
+<dd>Name of file containing coefficients/field that specifies a set of warps. <i>E.g.</i> the output of the <tt>--cout</tt> parameter of <tt>fnirt</tt>.</dd><br>
+<dt><tt>--ref=filname</tt></dt>
+<dd>Name of target file for the warps. This typically the same file that was specified as <tt>--ref</tt> in <tt>fnirt</tt>.</dd><br>
+<dt><tt>--out=filename</tt></dt>
+<dd>Name of output file. The format of the output depends on what other parameters are set. The default format is a (4D) field-file. If the <tt>--outformat</tt> is set to <tt>spline</tt> the format will be a (4D) file of spline coefficients.</dd><br>
+<dt><tt>--outformat=field/spline</tt></dt>
+<dd>Specifies the output format. If set to <tt>field</tt> (default) the output will be a (4D) field-file. If set to <tt>spline</tt> the format will be a (4D) file of spline coefficients.</dd><br>
+<dt><tt>--warpres=xres,yres,zres</tt></dt>
+<dd>Specifes the resolution/knot-spacing of the splines pertaining to the coefficients in the <tt>--out</tt> file. This parameter is only relevant if <tt>--outformat</tt> is set to <tt>spline</tt>. It should be noted that if the <tt>--in</tt> file has a higher resolution, the resulting coefficents will pertain to the closest (in a least-squares sense) file in the space of fields with the <tt>--warpres</tt> resolution. It should also be noted that the resolution will always be an integer multiple of the voxel size.</dd><br>
+<dt><tt>--knotspace=xksp,yksp,zksp</tt></dt>
+<dd>Alternative (to <tt>--warpres</tt>) specifikation of the resolution of the output spline-field.</dd><br>
+<dt><tt>--jac=filename</tt></dt>
+<dd>Specifies that a (3D) file of Jacobian determinants corresponding to <tt>--in</tt> should be produced and written to <tt>filename</tt>.</dd><br>
+<dt><tt>--withaff</tt></dt>
+<dd>Specifies that the affine transform (<i>i.e.</i> that which was specified for the <tt>--aff</tt> parameter in <tt>fnirt</tt>) should be included as displacements in the <tt>--out</tt> file. That can be useful for interfacing with software that cannot decode <tt>FSL/fnirt</tt> coefficient-files (where the affine transform is stored separately from the displacements).</dd><br>
+<dt><tt>--verbose</tt></dt>
+<dd>Prompts <tt>fnirtfileutils</tt> to write additional information to the screen while processing. If you want to report a problem it is a good idea to turn this on and include the output in your report/mail.</dd><br>
+</dl>
+
+<a name="applywarp"></a><h2>applywarp</h2>
+<p>
+<tt>applywarp</tt> is used to apply the warps estimated by <tt>fnirt</tt> (or some other software) to some image. Say <i>e.g.</i> that you have run <tt>fnirt</tt> with the command
+</p>
+<tt>fnirt --ref=my_standard_space --in=my_struct --aff=my_aff --config=my_config_file --cout=my_coefficients</tt>
+<p>
+and now you want to apply the warps to <tt>my_struct</tt>. You would then use the command
+</p>
+<tt>applywarp --ref=my_standard_space --in=my_struct --warp=my_coefficients --out=my_warped_struct</tt>
+<p>
+Let us now say that the whole point of running <tt>fnirt</tt> in the first place was so to warp your functional data into standard space. You will then have previously have run <tt>flirt</tt> with a command like
+</p>
+<tt>flirt -ref my_struct -in my_func -omat func2struct.mat -dof 6</tt>
+<p>
+to align your functional data (<tt>my_func</tt>) with the structural scan (<tt>my_struct</tt>) uing a rigid-body transform (<tt>dof 6</tt>). You can now resample your functional data straight to standard space with a single operation given by
+</p>
+<tt>applywarp --ref=my_standard_space --in=my_func --out=my_func_in_my_standard_space --warp=my_coefficients --premat=func2struct.mat</tt>
+<p>
+Let us further say that maybe you are not altogether happy with <tt>my_standard_space</tt>. It could <i>e.g.</i> be the MNI-space, which as we know is not identical to Talairach. Let us further say that you have (don't ask me how) an affine transform (<tt>MNI_2_Tal.mat</tt>) that maps the MNI space to something that is a better approximation of the Talairach space. You can then transform your data straight into "your Talairach space" with the command
+</p>
+<tt>applywarp --ref=my_Tal_space --in=my_func --out=my_func_in_Tal_Space --warp=my_coefficients --premat=func2struct.mat --postmat=MNI_2_Tal.mat</tt>
+<p>
+The final point to mention is interpolation. The default interpolation method is tri-linear, which is mostly sufficient and what we want to do. There are times though when it is better to use "nearest neighbour" interpolation, which means "set the intensity in the output voxel to the same value as the closest (after the mapping) voxel in the input volume". An advantage of nearest-neighbour interpolation is that it does't create any "new" intensity values. Let us say <i>e.g.</i> that we have a file of ROI's, where each ROI is characterized by a given intensity value. If we <i>e.g.</i> have three ROI's the voxels in the ROI-volume would take the values 0, 1, 2 or 3. Let us say that these ROI's have been defined in MNI-space, and that we now want to map them into a subjects native space. If we were then to use the command
+</p>
+<tt>applywarp --ref=my_native_space --in=ROIs_in_MNI_space --warp=native_2_MNI_coefficients --out=ROIs_in_native_space</tt>
+<p>
+the output would contain interpolated non-integer values along the edges of the ROI's. If one instead uses
+</p>
+<tt>applywarp --ref=my_native_space --in=ROIs_in_MNI_space --warp=native_2_MNI_coefficients --out=ROIs_in_native_space --interp=nn</tt>
+<p>
+the output will contain only the original values 0, 1, 2 or 3 and all the ROI's would contain only relevant values.
+</p>
+
+<h3>List of parameters</h3>
+<dl>
+<dt><tt>--in=filname</tt></dt>
+<dd>Name of file to which the warps should be applied.</dd><br>
+<dt><tt>--ref=filname</tt></dt>
+<dd>Name of a file in target space. This typically the same file that was specified as <tt>--ref</tt> in <tt>fnirt</tt>.</dd><br>
+<dt><tt>--warp=filname</tt></dt>
+<dd>Name of a file with warp coefficients/fields. This typically the output given by the <tt>--cout</tt> parameter of <tt>fnirt</tt>.</dd><br>
+<dt><tt>--out=filename</tt></dt>
+<dd>Name of output file, <i>i.e.</i> the <tt>--in</tt> file warped into the space of the <tt>--ref</tt> file.</dd><br>
+<dt><tt>--abs</tt></dt>
+<dd>If set it indicates that the warps in <tt>--warp</tt> should be interpreted as absolute. <i>I.e.</i> the values in <tt>--warp</tt> are the coordinates in the <tt>--ref</tt> space, rather than displacements. This flag is ignored if <tt>--warp</tt> was created by <tt>fnirt</tt>, which always creates relative displacements.</dd><br>
+<dt><tt>--rel</tt></dt>
+<dd>If set it indicates that the warps in <tt>--warp</tt> should be interpreted as relative. <i>I.e.</i> the values in <tt>--warp</tt> are displacements from the coordinates in the <tt>--ref</tt> space.</dd><br>
+<dt><tt>--datatype=char/short/int/float/double</tt></dt>
+<dd>Forces the data type in <tt>--out</tt> to be that given by the argument. If it is not set the data type in <tt>--out</tt> will be the same as in <tt>--in</tt>.</dd><br>
+<dt><tt>--super</tt></dt>
+<dd>Indicates that an intermediary sampling level should be used. This is relevant primarily when using nearest-neighbour interpolation from an <tt>--in</tt> with higher resolution than given by <tt>--ref</tt>. It is <i>e.g.</i> used in TBSS when projecting the skeleton from the (high resolution) template back to native space. If it was not used the back-projected skeleton may no longer be continous.</dd><br>
+<dt><tt>--superlevel=# or --superlevel=a</tt></dt>
+<dd>Specifies the level of super-sampling (relative the <tt>--ref</tt> volume) for the intermediary sampling step. If set to <tt>superlevel=a</tt> the supersampling will be adjusted so that the intermediary step has at least the resolution of the <tt>--in</tt> file in all directions. It will be ignored if <tt>--super</tt> isn't set.</dd><br>
+<dt><tt>--premat=filename</tt></dt>
+<dd>Specifies an affine transform that should be applied to the data prior to the non-linear warping.</dd><br>
+<dt><tt>--postmat=filename</tt></dt>
+<dd>Specifies an affine transform that should be applied to the data following to the non-linear warping.</dd><br>
+<dt><tt>--mask=filename</tt></dt>
+<dd>Specifies a volume (in the space of <tt>--ref</tt>) that should be multiplied with the <tt>--out</tt> file.</dd><br>
+<dt><tt>--interp=nn/trilinear/sinc</tt></dt>
+<dd>Specifies which interpolation model to use when resampling <tt>--in</tt>. The default is <tt>trilinear</tt>, which is mostly sufficient.</dd><br>
+<dt><tt>--verbose</tt></dt>
+<dd>Prompts <tt>applywarp</tt> to write additional information to the screen while processing. If you want to report a problem it is a good idea to turn this on and include the output in your report/mail.</dd><br>
+</dl>
+
+<a name="invwarp"></a><h2>invwarp</h2>
+<p>
+<tt>invwarp</tt> is used to "reverse" a non-linear mapping, much in the same way as one would use
+</p>
+<tt>convert_xfm -omat B2A.mat -inverse A2B.mat</tt>
+<p>
+to "reverse" a linear mapping. It can <tt>e.g.</tt> be useful if one wants to use a set of ROI's that have been specified once and for all in standard space by projecting them into the space of individual subjects. Let us <i>e.g.</i> say that we have run <tt>fnirt</tt> with
+</p>
+<tt>fnirt --ref=MNI152_T1_2mm --in=my_struct --aff=my_aff --cout=warps_into_MNI_space --config=T1_2_MNI152_2mm</tt>
+<p>
+and that we have a ROI in MNI-space, in the binary file <tt>ACC_left.nii.gz</tt>, that we would like to apply to <tt>my_struct</tt> in its native space. We can then use <tt>invwarp</tt> to reverse the my_struct->MNI mapping with the command
+</p>
+<tt>invwarp --ref=my_struct --warp=warps_into_MNI_space --out=warps_into_my_struct_space</tt>
+<p>
+and we can then use that mapping to warp the ROI into the subjects native space with
+</p>
+<tt>applywarp --ref=my_struct --in=ACC_left --warp=warps_into_my_struct_space --out=ACC_left_in_my_struct_space --interp=nn</tt>
+<p>
+It should be noted that <tt>invwarp</tt> is quite computationally intensive, and may take quite long to run. To reduce execution time it may <i>e.g.</i> be a good idea to crop <tt>my_struct</tt> (before any of the processing steps) so that the FOV is reasonably "tight". If you look at the MNI templates you can get an idea of what a suitable "tightness" is.
+</p>
+
+<h3>List of parameters</h3>
+<dl>
+<dt><tt>--warp=filname</tt></dt>
+<dd>Name of file containing warp-coefficients/fields. This would typically be the output from the <tt>--cout</tt> switch of <tt>fnirt</tt> (but can also use fields, like the output from <tt>--fout</tt>).</dd><br>
+<dt><tt>--ref=filname</tt></dt>
+<dd>Name of a file in target space. Note that the target space is now different from the target space that was used to create the <tt>--warp</tt> file. It would typically be the file that was specified with the <tt>--in</tt> argument when running <tt>fnirt</tt>.</dd><br>
+<dt><tt>--out=filename</tt></dt>
+<dd>Name of output file, containing warps that are the "reverse" of those in <tt>--warp</tt>. This will be a field-file (rather than a file of spline coefficients), and it will have any affine component included as part of the displacements.</dd><br>
+<dt><tt>--abs</tt></dt>
+<dd>If set it indicates that the warps in <tt>--warp</tt> should be interpreted as absolute, provided that it is not created by <tt>fnirt</tt> (which always uses relative warps). If set it also indicates that the output <tt>--out</tt> should be absolute.</dd><br>
+<dt><tt>--rel</tt></dt>
+<dd>If set it indicates that the warps in <tt>--warp</tt> should be interpreted as relative. <i>I.e.</i> the values in <tt>--warp</tt> are displacements from the coordinates in the <tt>--ref</tt> space. If set it also indicates that the output <tt>--out</tt> should be relative.</dd><br>
+<dt><tt>--niter=#</tt></dt>
+<dd>Determines how many iterations of the gradient-descent search that should be run.</dd><br>
+<dt><tt>--regularise</tt></dt>
+<dd>Regularisation strength (deafult=1.0).</dd><br>
+<dt><tt>--noconstraint</tt></dt>
+<dd>Do not apply Jacobian constraint</dd><br>
+<dt><tt>--jmin=val</tt></dt>
+<dd>Minimum acceptable Jacobian value for constraint (default 0.01)</dd><br>
+<dt><tt>--jmax=val</tt></dt>
+<dd>Maximum acceptable Jacobian value for constraint (default 100.0)</dd><br>
+<dt><tt>--verbose</tt></dt>
+<dd>Prompts <tt>invwarp</tt> to write additional information to the screen while processing. If you want to report a problem it is a good idea to turn this on and include the output in your report/mail.</dd><br>
+</dl>
+
+<a name="convertwarp"></a><h2>convertwarp</h2>
+<p>
+<tt>convertwarp</tt> is a general tool for combining multiple transforms into one. In its most general form it allows one to specify a transform of the form
+</p><br>
+<img border=0, src="convertwarp.png">
+<br><p>
+where <b>d</b><sup>(CD)</sup> and <b>d</b><sup>(BC)</sup> corresponds to the arguments to <tt>--warp1</tt> and <tt>--warp2</tt> respectively and where s corresponds to <tt>--shiftmap</tt> (which has been applied in the <i>y</i>-direction in this example). <b>M</b><sup>(DE)</sup> and <b>M</b><sup>(AB)</sup> correspond to the <i>inverses of the</i> arguments to <tt>--premat</tt> and <tt>--postmat</tt> respectively. In the equation above <b>x</b><sub>F</sub> corresponds to the output provided the <tt>--absout</tt> flag has been set. If not, or if the <tt>--relout</tt> flag has been set, the original coordinates ([<i>x</i><sub>A</sub> <i>y</i><sub>A</sub> <i>z</i><sub>A</sub>]<sup>T</sup> above) has been subtracted away.
+</p>
+<p>
+It is probably not for the faint of heart, but for others it might be useful. Say <i>e.g.</i> that we have some functional data <tt>func.nii.gz</tt> for which we have a fieldmap that has been pre-processed into a "shiftmap" (see <a href="../fugue/index.html">fugue</a> manual) that we have called <tt>shiftmap.nii.gz</tt>. Let us also assume that we have a structural scan called <tt>struct.nii.gz</tt> and that we have run
+</p>
+<tt>flirt -ref struct -in func -omat func2struct.mat</tt><br>
+<tt>fnirt --ref=MNI152_T1_2mm --in=struct --aff=Aff_MNI2struct --config=T1_2_MNI152_2mm --cout=Nonlin_MNI2struct</tt>
+<p>
+We can then create a single transform that maps the functional scan into the MNI-space with the command
+</p>
+<tt>convertwarp --ref=MNI152_T1_2mm --warp1=Nonlin_MNI2struct --shiftmap=shiftmap --shiftdir=y --premat=func2struct.mat --out=my_comprehensive_warps --relout</tt>
+<p>
+which we can then use to transform <tt>func.nii.gz</tt> into the MNI-space with the command
+</p>
+<tt>applywarp --ref=MNI152_T1_2mm --in=func --warp=my_comprehensive_warps --rel --out=func_in_MNI_space</tt>
+
+<h3>List of parameters</h3>
+<dl>
+<dt><tt>--ref=filname</tt></dt>
+<dd>Name of a file in target space of the full transform.</dd><br>
+<dt><tt>--out=filename</tt></dt>
+<dd>Name of output file, containing warps that are the combination of all those given as arguments. The format of this will be a field-file (rather than spline coefficients) with any affine components included.</dd><br>
+<dt><tt>--premat=filename</tt></dt>
+<dd>Name of file containing affine transform corresponding <i>e.g.</i> to a rigid-body transform of a subjects functional scan to his/her structural.</dd><br>
+<dt><tt>--warp1=filename</tt></dt>
+<dd>Name of file containing warp-fields/coefficients. This could <i>e.g.</i> be a <tt>fnirt</tt>-transform from a subjects structural scan to an average of a group of subjects.</dd><br>
+<dt><tt>--warp2=filename</tt></dt>
+<dd>Name of file containing warp-fields/coefficients. This could <i>e.g.</i> be a <tt>fnirt</tt>-transform from the average of a group of subjects to some standard space (<i>e.g.</i> MNI152).</dd><br>
+<dt><tt>--postmat=filename</tt></dt>
+<dd>Name of file containing an affine transform. It could <i>e.g.</i> be an affine transform that maps the MNI152-space into a better approximation to the Talairach-space (if indeed there is one).</dd><br>
+<dt><tt>--shiftmap=filename</tt></dt>
+<dd>Name of file containing a "shiftmap", a non-linear transform with displacements only in one direction. This would typically be a fieldmap that has been pre-processed using <a href="../fugue/index.html">fugue</a> that maps a subjects functional (EPI) data onto an undistorted space (<i>i.e.</i> a space that corresponds to his/her true anatomy).</dd><br>
+<dt><tt>--shiftdir=x/y/z/-x/-y/-z</tt></dt>
+<dd>Indicates the direction that the distortions from <tt>--shiftmap</tt> goes. It depends on the direction and polarity of the phase-encoding in the EPI sequence.</dd><br>
+<dt><tt>--jstats</tt></dt>
+<dd>Print out statistics of the Jacobian of the warpfield.</dd><br>
+<dt><tt>--constrainj</tt></dt>
+<dd>Constrain the Jacobian of the warpfield to lie within specified min/max limits.</dd><br>
+<dt><tt>--jmin=value</tt></dt>
+<dd>Minimum acceptable Jacobian value for constraint (default 0.01).</dd><br>
+<dt><tt>--jmax=value</tt></dt>
+<dd>Maximum acceptable Jacobian value for constraint (default 100.0).</dd><br>
+<dt><tt>--abs</tt></dt>
+<dd>If set it indicates that the warps in <tt>--warp1</tt> and <tt>--warp2</tt> should be interpreted as absolute. <i>I.e.</i> the values in <tt>--warp1/2</tt> are the coordinates in the next space, rather than displacements. This flag is ignored if <tt>--warp1/2</tt> was created by <tt>fnirt</tt>, which always creates relative displacements.</dd><br>
+<dt><tt>--rel</tt></dt>
+<dd>If set it indicates that the warps in <tt>--warp1/2</tt> should be interpreted as relative. <i>I.e.</i> the values in <tt>--warp1/2</tt> are displacements from the coordinates in the next space.</dd><br>
+<dt><tt>--absout</tt></dt>
+<dd>If set it indicates that the warps in <tt>--out</tt> should be absolute, <i>i.e.</i> the vaulues in <tt>--out</tt> are the coordinates in <tt>--ref</tt>, rather than displacements.</dd><br>
+<dt><tt>--relout</tt></dt>
+<dd>If set it indicates that the warps in <tt>--out</tt> should be relative, <i>i.e.</i> the vaulues in <tt>--out</tt> are displacements from the coordinates in <tt>--ref</tt>.</dd><br>
+<dt><tt>--verbose</tt></dt>
+<dd>Prompts <tt>convertwarp</tt> to write additional information to the screen while processing. If you want to report a problem it is a good idea to turn this on and include the output in your report/mail.</dd><br>
+</dl>
+
+<hr>
+<font SIZE=1>
+Copyright &copy; 2007, University of Oxford. <a href="http://www.fmrib.ox.ac.uk/~jesper">Jesper Andersson</a> and <a href="http://www.fmrib.ox.ac.uk/~mark">Mark Jenkinson</a>.
+</font>
+
+</body>
+</html>
+ 

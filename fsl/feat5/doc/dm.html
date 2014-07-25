@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><meta http-equiv="Content-Type"
+content="text/html;charset=utf-8">
+<link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FSL</TITLE></HEAD><BODY><IFRAME width="100%" scrolling="no"
+frameborder="0" src="top.html">Broken</IFRAME>
+
+
+<H2>Appendix B: Design Matrix Rules</H2>
+
+<p>This section describes the rules which are followed in order to
+take the FEAT setup and produce a design matrix, for use in the FILM
+GLM processing.
+
+<p>Here HTR model means "high temporal resolution" model - a time
+series of values that is used temporarily to create a model and apply
+the relevant HRF convolution before resampling down in time to match
+the temporal sampling of the FMRI data.
+
+<p>Note that it is assumed that every voxel was captured
+instantaneously in time, and at the same time, exactly halfway through
+a volume's time period, not at the beginning. This minimises timing
+errors, if slice-timing correction has not been applied.
+
+<p>No constant column is added to the model - instead, each EV is
+demeaned, and each voxel's time-course is demeaned before the GLM is
+applied.
+
+<p><pre>
+
+for each EV
+(
+  if ( square waveform )
+    fill HTR model with 0s or 1s
+  else if ( sinusoidal waveform )
+    fill HTR model with sinusoid scaled to lie in the range 0:1
+  else if ( custom waveform )
+    fill HTR model with custom information, with 0s outside of
+    specified periods
+
+  demean
+
+  create "triggers" i.e. record the start and end of event or block
+
+  create blurring+delaying HTR HRF convolution kernel, normalised so
+  that the sum of values is 1 (in the case of basis functions, several
+  related kernels are created)
+
+  convolve HTR model with HRF convolution kernel (values in HTR model
+  for t&lt;0 are set to 0 to allow simple convolution)
+     OR
+  in the case of sinusoidal original waveform; create harmonics (if
+  requested)
+
+  subsample HTR model to match the temporal resolution of the data;
+  take the value in the centre of each volume's time period
+
+  add motion parameters as confound EVs if requested on the command
+  line
+
+  do two passes
+  (
+    take model produced by subsampling step above
+   
+    if pass=2 then apply high-pass temporal filtering
+
+    re-demean
+
+    instead of all the above - if this EV is an "interaction"
+    (nonlinear interaction between other EVs);
+    model = PRODUCT(other EVs, after subtracting the min value from
+    each)
+
+    orthogonalise current EV wrt earlier EVs if requested (form
+    temporary matrix from selected EVs, carry out SVD, and subtract
+    projection of current EV onto each vector in SVD output)
+
+    orthogonalise main model wrt motion parameter EVs if requested
+
+    if requested, create a new EV, calculated as the temporal derivative
+    of the current EV
+
+    re-demean
+
+    if pass=1 then estimate peak-peak model heights
+    if pass=2 then estimate contrast estimability information
+  )
+)
+
+</pre>
+
+</BODY></HTML>

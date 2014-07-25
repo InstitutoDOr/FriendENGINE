@@ -1,0 +1,239 @@
+<usrguide name="NEWIMAGE Quick Reference Guide" section="l" rootdir="../" author="Mark Jenkinson" 
+year="2000">
+
+<section title="Volume">
+<pre>
+template &lt;class T&gt;
+class volume : public lazymanager {
+public:
+  // CONSTRUCTORS AND DESTRUCTORS (including copy, = and reinitialize)
+  volume();
+  volume(const volume&lt;T&gt;&amp; source);
+  volume(int xsize, int ysize, int zsize);
+  volume(int xsize, int ysize, int zsize, T *d, bool d_owner);
+  ~volume();
+  const volume&lt;T&gt;&amp; operator=(const volume&lt;T&gt;&amp; source); 
+  int reinitialize(const volume&lt;T&gt;&amp; source);
+  int reinitialize(int xsize, int ysize, int zsize);
+  int reinitialize(int xsize, int ysize, int zsize, T *d, bool d_owner);
+  int copyproperties(const volume&lt;T&gt;&amp; source);
+  int copydata(const volume&lt;T&gt;&amp; source);
+
+  // BASIC PROPERTIES
+  inline int xsize() const;
+  inline int ysize() const;
+  inline int zsize() const;
+  inline float xdim() const;
+  inline float ydim() const;
+  inline float zdim() const;
+  inline const int xsign(void) const;
+  inline const int ysign(void) const;
+  inline const int zsign(void) const;
+
+  void setxdim(float x);
+  void setydim(float y);
+  void setzdim(float z);
+  void setdims(float x, float y, float z);
+  int nvoxels() const;
+
+  // ROI FUNCTIONS
+  inline const std::vector&lt;int&gt;&amp; limits() const;
+  inline int limits(int n) const;
+  inline int minx() const;
+  inline int maxx() const;
+  inline int miny() const;
+  inline int maxy() const;
+  inline int minz() const;
+  inline int maxz() const;
+  inline const std::vector&lt;int&gt;&amp; ROIlimits() const;
+  inline int ROIlimits(int n) const;
+  inline bool usingROI() const;
+  void setROIlimits(int x0, int y0, int z0, int x1, int y1, int z1) const;
+  void setROIlimits(const std::vector&lt;int&gt;&amp; lims) const;
+  void activateROI() const; 
+  void deactivateROI() const;
+  int copyROIonly(const volume&lt;T&gt;&amp; source);
+
+  // SECONDARY PROPERTIES
+  Matrix sampling_mat() const;
+  const ColumnVector&amp; getorigin() const;
+  void setorigin(const ColumnVector&amp; orig) const;
+  void setorigin(float x, float y, float z) const;
+  T min() const;
+  T max() const;
+  float sum() const;
+  float sumsquares() const;
+  float mean() const;
+  float variance() const;
+  float stddev() const;
+//      T robustmin() const;
+//      T robustmax() const;
+  ColumnVector principleaxis(int n) const;
+//      T percentile(float pvalue) const;
+//      ColumnVector histogram(int nbins) const;
+//      ColumnVector histogram(int nbins, T minval, T maxval) const;
+
+  T backgroundval() const;
+  ColumnVector cog() const;
+
+
+  // DATA ACCESS FUNCTIONS (iterators)
+  typedef poslazyiterator&lt;T&gt; iterator;
+  typedef posconstiterator&lt;T&gt; const_iterator;
+  typedef rlazyiterator&lt;T*,T&gt; fast_iterator;
+  typedef const T* fast_const_iterator;
+  
+  inline iterator begin();
+  inline iterator end();
+  inline const_iterator begin() const; 
+  inline const_iterator end() const;
+  inline fast_iterator fbegin();
+  inline fast_iterator fend();
+  inline fast_const_iterator fbegin() const;
+  inline fast_const_iterator fend() const;
+
+
+  // BASIC DATA ACCESS FUNCTIONS
+  inline bool in_bounds(int x, int y, int z) const;
+  inline T&amp; operator()(int x, int y, int z);
+  inline const T&amp; operator()(int x, int y, int z) const;
+
+  inline T&amp; value(int x, int y, int z);
+  inline const T&amp; value(int x, int y, int z) const;
+
+
+  // SECONDARY FUNCTIONS
+  void setextrapolation(extrapolation extrapmethod) const;
+  extrapolation getextrapolationmethod() const;
+  void setpadvalue(T padval) const;
+  T getpadvalue() const;
+  inline void getneighbours(int x, int y, int z, 
+			      T &amp;v000, T &amp;v001, T &amp;v010,
+			      T &amp;v011, T &amp;v100, T &amp;v101,
+			      T &amp;v110, T &amp;v111) const;
+  inline void getneighbours(int x, int y, int z, 
+			      T &amp;v000, T &amp;v010,
+			      T &amp;v100, T &amp;v110) const;
+  
+  
+
+  // ARITHMETIC FUNCTIONS
+  T operator=(T val); 
+  const volume&lt;T&gt;&amp; operator+=(T val); 
+  const volume&lt;T&gt;&amp; operator-=(T val); 
+  const volume&lt;T&gt;&amp; operator*=(T val); 
+  const volume&lt;T&gt;&amp; operator/=(T val); 
+  const volume&lt;T&gt;&amp; operator+=(const volume&lt;T&gt;&amp; source); 
+  const volume&lt;T&gt;&amp; operator-=(const volume&lt;T&gt;&amp; source); 
+  const volume&lt;T&gt;&amp; operator*=(const volume&lt;T&gt;&amp; source); 
+  const volume&lt;T&gt;&amp; operator/=(const volume&lt;T&gt;&amp; source); 
+
+  volume&lt;T&gt; operator+(T num) const;
+  volume&lt;T&gt; operator-(T num) const;
+  volume&lt;T&gt; operator*(T num) const;
+  volume&lt;T&gt; operator/(T num) const;
+  volume&lt;T&gt; operator+(const volume&lt;T&gt;&amp; vol2) const;
+  volume&lt;T&gt; operator-(const volume&lt;T&gt;&amp; vol2) const;
+  volume&lt;T&gt; operator*(const volume&lt;T&gt;&amp; vol2) const;
+  volume&lt;T&gt; operator/(const volume&lt;T&gt;&amp; vol2) const;
+
+  template &lt;class S&gt;
+  friend volume&lt;S&gt; operator+(S num, const volume&lt;S&gt;&amp; vol);
+  template &lt;class S&gt;
+  friend volume&lt;S&gt; operator-(S num, const volume&lt;S&gt;&amp; vol);
+  template &lt;class S&gt;
+  friend volume&lt;S&gt; operator*(S num, const volume&lt;S&gt;&amp; vol);
+  template &lt;class S&gt;
+  friend volume&lt;S&gt; operator/(S num, const volume&lt;S&gt;&amp; vol);
+   
+  // CONVERSION FUNCTIONS
+  template &lt;class S, class D&gt; friend
+  void copyconvert(const volume&lt;S&gt;&amp; source, volume&lt;D&gt;&amp; dest);
+    
+};
+
+
+// HELPER FUNCTIONS
+
+template &lt;class S, class D&gt;
+void convertbuffer(const S* source, D* dest, int len);
+
+template &lt;class S1, class S2&gt;
+bool samesize(const volume&lt;S1&gt;&amp; vol1, const volume&lt;S2&gt;&amp; vol2);
+
+</pre>
+</section>
+
+
+<section title="Volume4D">
+<pre>
+template &lt;class T&gt;
+class volume4D : public lazymanager {
+public:
+  // CONSTRUCTORS AND DESTRUCTORS (including copy, = and reinitialize)
+  volume4D();
+  volume4D(const volume4D&lt;T&gt;&amp; source);
+  volume4D(int xsize, int ysize, int zsize, int tsize, T *d=0);
+  ~volume4D();
+  const volume4D&lt;T&gt;&amp; operator=(const volume4D&lt;T&gt;&amp; source); 
+  int reinitialize(const volume4D&lt;T&gt;&amp; source);
+  int reinitialize(int xsize, int ysize, int zsize, int tsize, T *d=0);
+  int copyproperties(const volume4D&lt;T&gt;&amp; source);
+  int copyvolumes(const volume4D&lt;T&gt;&amp; source);
+  
+  inline T&amp; operator()(int x, int y, int z, int t);
+  inline const T&amp; operator()(int x, int y, int z, int t) const;
+  inline volume&lt;T&gt;&amp; operator[](int t);
+  inline const volume&lt;T&gt;&amp; operator[](int t) const;
+  
+  void addvolume(const volume&lt;T&gt;&amp; source);
+  void insertvolume(const volume&lt;T&gt;&amp; source, int t);
+  void deletevolume(int t);
+
+  ColumnVector voxelts(int x, int y, int z) const;
+  void setvoxelts(const ColumnVector&amp; ts, int x, int y, int z);
+  
+  Matrix matrix(const volume&lt;T&gt;&amp; mask) const;
+  Matrix matrix() const;
+  void setmatrix(const Matrix&amp; newmatrix, const volume&lt;T&gt;&amp; mask, 
+		   const T pad=0);
+  void setmatrix(const Matrix&amp; newmatrix); 
+
+  // ROIset, blah blah
+  inline int xsize() const;
+  inline int ysize() const;
+  inline int zsize() const;
+  inline int tsize() const;
+  inline float xdim() const;
+  inline float ydim() const;
+  inline float zdim() const;
+  inline float tdim() const;
+  inline float TR() const;
+  inline const int xsign(void) const;
+  inline const int ysign(void) const;
+  inline const int zsign(void) const;
+
+  void setxdim(float x);
+  void setydim(float y);
+  void setzdim(float z);
+  void settdim(float tr);
+  void setTR(float tr);
+  void setdims(float x, float y, float z, float tr);
+  int nvoxels() const;
+  int ntimepoints() const;
+
+  T min() const;
+  T max() const;
+
+  // ARITHMETIC FUNCTIONS
+  T operator=(T val); 
+   
+  // CONVERSION FUNCTIONS
+//      template &lt;class S, class D&gt; friend
+//      void copyconvert(const volume4D&lt;S&gt;&amp; source, volume4D&lt;D&gt;&amp; dest);
+};
+
+</pre>
+</section>
+
+</usrguide>

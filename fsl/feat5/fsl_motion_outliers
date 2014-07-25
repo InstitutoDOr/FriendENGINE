@@ -1,0 +1,167 @@
+#!/bin/sh
+
+#   fsl_motion_outliers - detect motion outliers (timepoints) and create EVs to 
+#	eliminate these images from the GLM
+#
+#   Mark Jenkinson, FMRIB Image Analysis Group
+#
+#   Copyright (C) 2008 University of Oxford
+#
+#   Part of FSL - FMRIB's Software Library
+#   http://www.fmrib.ox.ac.uk/fsl
+#   fsl@fmrib.ox.ac.uk
+#   
+#   Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+#   Imaging of the Brain), Department of Clinical Neurology, Oxford
+#   University, Oxford, UK
+#   
+#   
+#   LICENCE
+#   
+#   FMRIB Software Library, Release 4.0 (c) 2007, The University of
+#   Oxford (the "Software")
+#   
+#   The Software remains the property of the University of Oxford ("the
+#   University").
+#   
+#   The Software is distributed "AS IS" under this Licence solely for
+#   non-commercial use in the hope that it will be useful, but in order
+#   that the University as a charitable foundation protects its assets for
+#   the benefit of its educational and research purposes, the University
+#   makes clear that no condition is made or to be implied, nor is any
+#   warranty given or to be implied, as to the accuracy of the Software,
+#   or that it will be suitable for any particular purpose or for use
+#   under any specific conditions. Furthermore, the University disclaims
+#   all responsibility for the use which is made of the Software. It
+#   further disclaims any liability for the outcomes arising from using
+#   the Software.
+#   
+#   The Licensee agrees to indemnify the University and hold the
+#   University harmless from and against any and all claims, damages and
+#   liabilities asserted by third parties (including claims for
+#   negligence) which arise directly or indirectly from the use of the
+#   Software or the sale of any products based on the Software.
+#   
+#   No part of the Software may be reproduced, modified, transmitted or
+#   transferred in any form or by any means, electronic or mechanical,
+#   without the express permission of the University. The permission of
+#   the University is not required if the said reproduction, modification,
+#   transmission or transference is done without financial return, the
+#   conditions of this Licence are imposed upon the receiver of the
+#   product, and all original and amended source code is included in any
+#   transmitted product. You may be held legally responsible for any
+#   copyright infringement that is caused or encouraged by your failure to
+#   abide by these terms and conditions.
+#   
+#   You are not permitted under this Licence to use this Software
+#   commercially. Use for which any financial return is received shall be
+#   defined as commercial use, and includes (1) integration of all or part
+#   of the source code or the Software into a product for sale or license
+#   by or on behalf of Licensee to third parties or (2) use of the
+#   Software or any derivative of it for research with the final aim of
+#   developing software products for sale or license to a third party or
+#   (3) use of the Software or any derivative of it for research with the
+#   final aim of developing non-software products for sale or license to a
+#   third party, or (4) use of the Software to provide any service to an
+#   external organisation for which payment is received. If you are
+#   interested in using the Software commercially, please contact Isis
+#   Innovation Limited ("Isis"), the technology transfer company of the
+#   University, to negotiate a licence. Contact details are:
+#   innovation@isis.ox.ac.uk quoting reference DE/1112.
+
+usage()
+{
+    echo "Usage: `basename $0` <unfiltered 4D image> <number of dummy scans> <output confound file>"
+}
+
+
+if [ $# -lt 2 ] ; then
+    usage
+    exit 1;
+fi
+
+mcf=$1
+ndel=$2
+outfile=`$FSLDIR/bin/remove_ext $3`;
+outdir=`$FSLDIR/bin/tmpnam`;
+if [ X${outdir} = X ] ; then
+  echo "Could not create tmp directory"
+  exit 2;
+fi
+mkdir ${outdir}_mc
+
+# delete dummy scans
+nvol=`$FSLDIR/bin/fslval $mcf dim4`;
+nvol=`echo $nvol - $ndel | bc`;
+$FSLDIR/bin/fslroi $mcf ${outdir}_mc/invol $ndel $nvol
+mcf=${outdir}_mc/invol
+
+# run mcflirt
+refnum=`$FSLDIR/bin/fslval $mcf dim4`;
+refnum=`echo $refnum / 2 | bc`;
+$FSLDIR/bin/mcflirt -in $mcf -out ${outdir}_mc/fmri_mcf -mats -plots -refvol $refnum -rmsrel -rmsabs
+mcf=${outdir}_mc/fmri_mcf
+# generate example functional image
+$FSLDIR/bin/fslroi $mcf ${outdir}_mc/exf $refnum 1
+exf=${outdir}_mc/exf
+
+# generate residual mean square error (average across each 3D volume)
+echo "Generating residual mean square error"
+$FSLDIR/bin/fslmaths $mcf -sub $exf -sqr -Xmean -Ymean -Zmean ${outdir}_mc/res_mse
+
+# now form difference (to remove slow trends - still obvious in mse)
+echo "Calculating outliers"
+tmax=`$FSLDIR/bin/fslval ${outdir}_mc/res_mse dim4`;
+tmax1=`echo $tmax - 1 | bc`;
+$FSLDIR/bin/fslroi ${outdir}_mc/res_mse ${outdir}_mc/res_mse0 0 1 0 1 0 1 0 $tmax1
+$FSLDIR/bin/fslroi ${outdir}_mc/res_mse ${outdir}_mc/res_mse1 0 1 0 1 0 1 1 $tmax
+$FSLDIR/bin/fslmaths ${outdir}_mc/res_mse1 -sub ${outdir}_mc/res_mse0 -abs ${outdir}_mc/res_mse_diff
+# calculate box-plot outlier limits
+pv=`$FSLDIR/bin/fslstats ${outdir}_mc/res_mse_diff -p 25 -p 75`;
+p25=`echo $pv | awk '{ print $1 }'`;
+p75=`echo $pv | awk '{ print $2 }'`;
+maxv=`echo $p75 + 1.5 \* \( $p75 - $p25 \) | bc -l`
+
+$FSLDIR/bin/fslmaths ${outdir}_mc/res_mse_diff -thr $maxv -bin ${outdir}_mc/outliers
+# put a point at the start to fix timing
+#  NB: timing is currently st spike occurs 1 time point *AFTER* it's detected
+#      e.g.  3 1 2 696 1  =>  0 0 1 1 for res_mse 
+#              => 0 0 0 1 0  and   0 0 0 0 1  as EVs 
+# the following lines put a zero at the start of outliers
+$FSLDIR/bin/fslroi ${outdir}_mc/outliers ${outdir}_mc/one 0 1 0 1 0 1 0 1
+$FSLDIR/bin/fslmaths ${outdir}_mc/one -mul 0 ${outdir}_mc/one
+$FSLDIR/bin/fslmerge -t ${outdir}_mc/outliers ${outdir}_mc/one ${outdir}_mc/outliers
+nmax=`$FSLDIR/bin/fslstats ${outdir}_mc/outliers -V | awk '{ print $1 '}`
+echo "Found $nmax outliers over $maxv"
+
+# now generate the EVs (one spike per EV)
+echo "Generating EVs"
+# get index values of all non-zero events in res_mse
+if [ -f $outfile ] ; then rm -f $outfile ; fi
+nvals="";
+n=0;
+while [ $n -lt $tmax ] ; do
+  $FSLDIR/bin/fslmaths ${outdir}_mc/outliers -roi 0 1 0 1 0 1 $n 1 ${outdir}_mc/stp
+  val=`$FSLDIR/bin/fslstats ${outdir}_mc/stp -V | awk '{ print $1 }'`;
+  if [ $val -gt 0 ] ; then
+      nvals="$nvals $n";
+      $FSLDIR/bin/fslmeants -i ${outdir}_mc/stp -o ${outdir}_mc/singleev;
+      if [ -f $outfile ] ; then	  
+	  paste -d ' ' $outfile ${outdir}_mc/singleev > ${outfile}2
+	  cp ${outfile}2 $outfile
+	  rm -f ${outfile}2
+      else
+	  cp ${outdir}_mc/singleev $outfile
+      fi
+  fi
+  n=`echo "$n + 1" | bc`;
+done
+
+echo "Found spikes at $nvals"
+
+if [ X${outdir}_mc != X ] ; then
+  if [ -d ${outdir}_mc ] ; then
+    rm -rf ${outdir}_mc
+  fi
+fi
+

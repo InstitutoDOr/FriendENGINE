@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="fsl">
+</Property><Property Name="Solution File" Value="E:\Desenv\0Rodrigo\Conquest\fsl\fsl.sln">
+</Property><Property Name="User Options File" Value="E:\Desenv\0Rodrigo\Conquest\fsl\fsl.suo">
+</Property><Property Name="Date" Value="Wednesday, November 17, 2010">
+</Property><Property Name="Time" Value="14:52 PM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="fsl.sln" Description="File successfully backed up as E:\Desenv\0Rodrigo\Conquest\fsl\fsl.sln.old">
+</Event><Event ErrorLevel="0" Project="" Source="fsl.suo" Description="File successfully backed up as E:\Desenv\0Rodrigo\Conquest\fsl\fsl.suo.old">
+</Event><Event ErrorLevel="0" Project="fsl" Source="fsl.vcproj" Description="Converting project file 'E:\Desenv\0Rodrigo\Conquest\fsl\fsl.vcproj'.">
+</Event><Event ErrorLevel="1" Project="fsl" Source="fsl.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="1" Project="fsl" Source="fsl.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="fsl" Source="fsl.vcproj" Description="Attribute 'Detect64BitPortabilityProblems' of 'VCCLCompilerTool' is not supported in this version and has been removed during conversion.">
+</Event><Event ErrorLevel="1" Project="fsl" Source="fsl.vcproj" Description="MSB8012: $(TargetPath) ('E:\Desenv\0Rodrigo\Conquest\fsl\Debug\fsl.dll') does not match the Linker's OutputFile property value 'E:\desenv\0rodrigo\Barra\Dream Machine\GExplorer\Barrinha\Resample\fsl.dll' ('E:\desenv\0rodrigo\Barra\Dream Machine\GExplorer\Barrinha\Resample\fsl.dll') in project configuration 'Debug|Win32'. This may cause your project to build incorrectly. To correct this, please make sure that $(TargetPath) property value matches the value specified in %(Link.OutputFile).">
+</Event><Event ErrorLevel="1" Project="fsl" Source="fsl.vcproj" Description="MSB8012: $(TargetPath) ('E:\Desenv\0Rodrigo\Conquest\fsl\x64\Debug\fsl.dll') does not match the Linker's OutputFile property value 'C:\Instituto\x64\Debug\fsl.dll' ('C:\Instituto\x64\Debug\fsl.dll') in project configuration 'Debug|x64'. This may cause your project to build incorrectly. To correct this, please make sure that $(TargetPath) property value matches the value specified in %(Link.OutputFile).">
+</Event><Event ErrorLevel="0" Project="fsl" Source="fsl.vcproj" Description="Done converting to new project file 'E:\Desenv\0Rodrigo\Conquest\fsl\fsl.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="fsl" Source="fsl.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="fsl.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="fsl.sln" Description="Converted">
+</Event></UpgradeLog>

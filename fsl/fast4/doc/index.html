@@ -1,0 +1,230 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FAST DOCS</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+FAST - FMRIB's Automated Segmentation Tool
+</H1>
+FAST v4.1 - User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<i>This version now replaces both FAST v4.0 and FAST v3; it is the
+  only version of FAST in FSL. Hence, for example, SIENA has now been
+  changed from using FAST3 to FAST4. The v3 multi-channel segmentation
+  program mfast has also been removed; this functionality is now an
+  option within the main <b>fast</b> program. See the <a
+  href="#convtable">conversion table</a> below to see how fast4 and
+  fast3 options are related.</i>
+
+<H2>INTRODUCTION</H2>
+ 
+<P>FAST (FMRIB's Automated Segmentation Tool) segments a 3D image of
+the brain into different tissue types (Grey Matter, White Matter, CSF,
+etc.), whilst also correcting for spatial intensity variations (also
+known as bias field or RF inhomogeneities). The underlying method is
+based on a hidden Markov random field model and an associated
+Expectation-Maximization algorithm. The whole process is fully
+automated and can also produce a bias field-corrected input image and
+a probabilistic and/or partial volume tissue segmentation. It is
+robust and reliable, compared to most finite mixture model-based
+methods, which are sensitive to noise.
+
+
+<P>For more detail on FAST and an updated journal reference, see the <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/research/fast/">FAST research
+web page</A>. If you use FAST in your research, please quote the
+journal reference listed there.
+
+<p>The different FAST programs are:
+<UL>
+<LI><a href="#FastGui">Fast</a> - FAST GUI<br>
+<LI><a href="#fastcomm">fast</a> - command-line program<br>
+</UL>
+
+<A NAME="FastPreproc"></A><hr><H2>PREPROCESSING</H2>
+
+<p>Before running FAST an image of a head should first be
+brain-extracted, using <a href="../bet2/index.html">BET</a>. The
+resulting brain-only image can then be fed into FAST.
+ 
+<A NAME="FastGui"></A><hr><H2>Fast GUI</H2>
+
+<H3>MAIN OPTIONS</H3>
+ 
+<P>If there is only one input image (i.e., you are not carrying out
+multi-channel segmentation) then leave the <b>Number of input
+channels</b> at 1. Otherwise, set appropriately.
+
+<p>Now select the <b>Input image(s)</b>.
+
+<p>Now set the <b>Image type</b>. This aids the segmentation in
+identifying which classes are which tissue type. Note that this option
+is not used for multi-channel segmentation.
+
+<p>Now select the <b>Output image(s) basename</b>. Output images will
+have filenames derived from this basename. For example, the main
+ouput, the <b>Binary segmentation: All classes in one image</b> will
+have filename &lt;basename&gt;_seg.hdr . If multi-channel
+segmentation is carried out, some of the optional outputs will have
+basenames derived instead from the input names (but into the directory
+of the outputbasename). For example, the main segmentation output will
+be as described above, but the restored images (one for each input
+image) will be named according to the input images.
+
+<p>Now choose the <b>Number of classes</b> to be segmented. Normally
+you will want 3 (Grey Matter, White Matter and CSF). However, if there
+is very poor grey/white contrast you may want to reduce this to 2;
+alternatively, if there are strong lesions showing up as a fourth
+class, you may want to increase this. Also, if you are segmenting
+T2-weighted images, you may need to select 4 classes so that dark
+non-brain matter is processed correctly (this is not a problem with
+T1-weighted as CSF and dark non-brain matter look similar).
+
+<p>The various output images are:
+<UL>
+
+<LI><b>Partial volume maps</b>: A (non-binary) partial volume image
+for each class, where each voxel contains a value in the range 0-1
+that represents the proportion of that class's tissue present in that
+voxel.  This is the default output.
+
+<LI><b>Binary segmentation: single image</b>: This is the "hard"
+(binary) segmentation, where each voxel is classified into only one
+class. A single image contains all the necessary information, with the
+first class taking intensity value 1 in the image, etc.
+
+<LI><b>Binary segmentation: One image per class</b>: This is also a
+hard segmentation output; the difference is that there is one output
+image per class, and values are only either 0 or 1.
+
+<!-- <LI><b>Probability maps</b>: This produces a (non-hard) posterior -->
+<!-- probability image for each class, with each voxel in the range 0-1. -->
+
+<LI><b>Restored input</b>: This is the estimated restored input image
+after correction for bias field.
+
+<LI><b>Bias field</b>: This is the estimated bias field.
+
+</UL>
+
+<H3>ADVANCED OPTIONS</H3>
+ 
+<p><b>Bias field iterations</b> determines the number of passes made
+during the initial bias field estimation stage.  A greater number of
+iterations can help esitmate particularly strong bias fields.
+
+<p><b>Bias field smoothing</b> controls the amount of smoothness
+expected in the estimated bias field.  The value entered is the
+Full-Width Half-Maximum (FWHM) in mm.  A larger value here will impose more
+smoothness on the estimated bias field.
+
+<P><b>Use a-priori probability maps</b> tells FAST to start by
+registering the input image to standard space and then use standard
+tissue-type probability maps (from the MNI152 dataset) instead of the
+initial K-means segmentation, in order to estimate the initial
+parameters of the classes. This can help in cases where there is very
+bad bias field. By default the a-priori probability maps are only used
+to initialise the segmentation; however, you can also optionally tell
+FAST to use these priors in the final segmentation - this can help,
+for example, with the segmentation of deep grey structures.
+
+<p><b>Use file of initial tissue-type means</b> tells FAST to use a
+text file with mean intensity values (separated by newlines) for the
+starting mean values of the different classes to be segmented. This is
+then used instead of the automated K-means starting parameter
+estimation.
+
+<!---
+<p><b>Do 2D (slice-by-slice) segmentation instead of 3D</b> tells FAST
+to work in 2D and not 3D. This can help when there is very strong bias
+field variation in Z.
+!--->
+
+<A NAME="fastcomm"></A><HR><H2>fast COMMAND-LINE PROGRAM</H2>
+
+<p>Type <b>fast</b> to get usage. This is used for both single-channel
+  and multi-channel segmentation program.
+<br><kbd>fast [options] file(s)</kbd>
+
+<p>Main inputs/options:
+<table>
+<tr><td>&nbsp;</td><td><kbd>file(s)</kbd></td><td>&nbsp;</td><td>image, or multi-channel set of images, to be segmented</td></tr>
+<tr><td></td><td><kbd>-S &lt;n&gt; <i>or</i> --channels=&lt;n&gt;</kbd></td><td></td><td>number of image channels</td></tr>
+<tr><td></td><td><kbd>-t &lt;n&gt; <i>or</i> --type=&lt;n&gt</kbd></td><td></td><td>type of image (n=1 for T1, n=2 for T2, n=3 for PD)</td></tr>
+<tr><td></td><td><kbd> -o &lt;base&gt; <i>or</i> --out=&lt;base&gt;</kbd></td><td></td><td>basename for outputs</td></tr>
+<tr><td></td><td><kbd> -n &lt;n&gt; <i>or</i> --class=&lt;n&gt; </kbd></td><td></td><td>number of tissue-type classes</td></tr>
+<tr><td></td><td><kbd> -B</kbd></td><td></td><td>output estimated bias field</td></tr>
+<tr><td></td><td><kbd> -b</kbd></td><td></td><td>output restored image (bias-corrected image)</td></tr>
+<tr><td colspan=4>Advanced options:</td></tr>
+<tr><td></td><td><kbd>   -H &lt;v&gt; <i>or</i> --Hyper=&lt;v&gt; </kbd></td><td></td><td>MRF beta value for main segmentation phase (increasing this gives spatially smoother segmentations)</td></tr>
+<tr><td></td><td><kbd>   -R &lt;v&gt; <i>or</i> --mixel=&lt;v&gt; </kbd></td><td></td><td>MRF beta value for mixeltype (increasing this gives spatially smoother mixeltypes and hence PVEs - NB: mixeltype is the classification of what tissue-types are non-zero in a voxel)</td></tr>
+<tr><td></td><td><kbd>  -a &lt;standard2input.mat&gt; </kbd></td><td></td><td>use prior probability maps for initialisation (must specify FLIRT transform to standard space)</td></tr>
+<tr><td></td><td><kbd> -P &lt;file&gt; <i>or</i> --Prior</kbd></td><td></td><td>use prior probability maps at all segmentation stages</td></tr>
+<tr><td></td><td><kbd> -s &lt;file&gt; <i>or</i> --manualseg=&lt;file&gt;</kbd></td><td></td><td>file specifying initial tissue-type means</td></tr>
+</table>
+
+
+
+<A NAME="VolQuant"></A><hr><H2>TISSUE VOLUME QUANTIFICATION</H2>
+<p>Estimating the tissue volume for a given class can be done using FAST and we
+recommend using the partial volume estimates for the most accurate
+quantification.  The actual volume of tissue can be calculated easily
+from the corresponding partial volume map by summing up all the values.
+This can be done using <kbd>fslstats</kbd> and then multiplying
+the mean value by the volume (in voxels).  
+
+<p>For example, for an image called <kbd>structural_bet</kbd> that <kbd>fast</kbd> was run on, the tissue volume of tissue class 1 can be found by running the following:
+<br>&nbsp;&nbsp;&nbsp;<kbd>vol=`$FSLDIR/bin/fslstats structural_bet_pve_1 -V | awk '{print $1}'`</kbd>
+<br>&nbsp;&nbsp;&nbsp;<kbd>mean=`$FSLDIR/bin/fslstats structural_bet_pve_1 -M`</kbd>
+<br>&nbsp;&nbsp;&nbsp;<kbd>tissuevol=`echo "$mean * $vol" | bc -l`</kbd>
+<br>&nbsp;&nbsp;&nbsp;<kbd>echo $tissuevol</kbd>
+<br>This prints the total tissue volume in voxels (which is also stored in the variable <kbd>tissuevol</kbd>).  Note that to get the volume in mm<sup>3</sup> just replace the <kbd>{print $1}</kbd> with <kbd>{print $2}</kbd> in the first line above.
+<hr>
+
+<A NAME="convtable"></A><h3>Conversion table for fast3 and fast4 options</h3>
+The following table gives equivalent options for fast3 (and mfast) and fast4:
+
+<table border=1>
+<tr><th> Fast3 </th><th> Fast4 </th><th> Description </th></tr>
+<tr><td> -t&lt;n&gt;  </td><td> -t &lt;n&gt; <i>or</i> --type=&lt;n&gt; </td><td> Type of image (e.g. T1, T2, PD) - Note space in fast4 version e.g. <kbd>t 2</kbd>&nbsp; not &nbsp;<kbd>t2</kbd></td></tr>
+<tr><td> -c &lt;n&gt;  </td><td> -n &lt;n&gt; <i>or</i> --class=&lt;n&gt; </td><td> Number of tissue-type classes to estimate</td></tr>
+<tr><td> -od &lt;base&gt; </td><td> -o &lt;base&gt; <i>or</i> --out=&lt;base&gt; </td><td> Basename for all output files</td></tr>
+<tr><td> -os </td><td> -g <i>or</i> --segments </td><td> Output separate image for each (hard) segmentation class</td></tr>
+<tr><td> -op </td><td> -p </td><td> Output one probability map (of hard seg) per class</td></tr>
+<tr><td> -or </td><td> -B </td><td> Output bias corrected (restored) image</td></tr>
+<tr><td> <i>no equivalent</i> </td><td> -b </td><td> Output estimated bias field</td></tr>
+<tr><td> -ob </td><td> <i>no equivalent</i> </td><td> Output bias field correction image (reciprocal of the estimated bias field)</td></tr>
+<tr><td> -n </td><td> <i>no equivalent</i> </td><td> Suppress segmentation outputs</td></tr>
+<tr><td> -m &lt;file&gt; </td><td> -s &lt;file&gt; <i>or</i> --manualseg=&lt;file&gt;</td><td> Input file with manual starting values for class intensities</td></tr>
+<tr><td> -2 </td><td> <i>no equivalent</i> </td><td> 2D segmentation mode (for 3D images)</td></tr>
+<tr><td> -i &lt;n&gt; </td><td> -O &lt;n&gt; <i>or</i> --fixed=&lt;n&gt; </td><td> Number of main-loop iterations</td></tr>
+<tr><td> -l &lt;n&gt; </td><td> -l &lt;m&gt; <i>or</i> --lowpass=&lt;m&gt; </td><td> Bias field smoothing : n is iterations, m is FWHM in mm - rough guide is m &cong; 2 &radic;n</td></tr>
+<tr><td> -p </td><td> <i>no equivalent</i> </td><td> Disable automatic parameter updating</td></tr>
+<tr><td> -b &lt;v&gt; </td><td> -H &lt;v&gt; <i>or</i> --Hyper=&lt;v&gt;   </td><td> Main MRF beta value (initial segmentation calculation)</td></tr>
+<tr><td> -oba &lt;n&gt; </td><td> <i>no equivalent</i> </td><td> Output dialted bias correction field (extra n iterations of smoothing)</td></tr>
+<tr><td> -e </td><td> <i>default</i> </td><td> Enable partial volume classification</td></tr>
+<tr><td> <i>default</i> </td><td> --nopve </td><td> Do not do partial volume classification</td></tr>
+<tr><td> -ov </td><td> <i>default</i> </td><td> Output partial volume (PVE) images (one per class)</td></tr>
+<tr><td> --b &lt;v&gt; </td><td>  -R &lt;v&gt; <i>or</i> --mixel=&lt;v&gt; </td><td> MRF beta value for PVE classification (fast3) or mixeltype in PVE classification (fast4) <br> &nbsp; - these are related but not exactly equivalent</td></tr>
+<tr><td> --p </td><td> <i>no equivalent</i> </td><td> Disable parameter updating during PVE classification</td></tr>
+<tr><td> -v&lt;n&gt; </td><td> -v <i>or</i> --verbose </td><td> Turn on verbose/diagnostic output (fast3 has 6 levels, fast4 is binary)</td></tr>
+<tr><td> -a </td><td> -a &lt;standard2input.mat&gt; </td><td> Use prior probability maps for initialisation <br> &nbsp; (fast4 requires a FLIRT matrix whereas fast3 requires extra argument -ap)</td></tr>
+<tr><td> -ap &lt;prefix&gt;</td><td> <i>no equivalent</i> </td><td> path and filename prefix for where to find pre-registered prior probability maps <br> &nbsp; (fast4 requires transformation matrix with -a instead)</td></tr>
+<tr><td> -A </td><td> -P <i>or</i> --Prior </td><td> Use prior probability maps throughout calculations <br> &nbsp; (must be used with -Ap for fast3 or -a for fast4)</td></tr>
+<tr><td> -Ap &lt;prefix&gt;</td><td> <i>no equivalent</i> </td><td> Path and filename prefix for where to find pre-registered prior probability maps</td></tr>
+<tr><td> <i>nearly equivalent to <br> &nbsp; -ap or -Ap</i> </td><td> -A &lt;prior1&gt; &lt;prior2&gt; &lt;prior3&gt;  </td><td> Path/filenames for alternative prior images</td></tr>
+<tr><td> <i>no equivalent</i> </td><td> -I &lt;n&gt; <i>or</i> --iter=&lt;n&gt;</td><td> Loop iterations during initial bias-field removal phase</td></tr>
+<tr><td> <i>no equivalent</i> </td><td> -f &lt;v&gt; <i>or</i> --fHard=&lt;v&gt;</td><td> MRF beta value during initial bias-field removal phase</td></tr>
+<tr><td> <i>no equivalent</i> </td><td> -W &lt;n&gt; <i>or</i> --init=&lt;n&gt;</td><td> Number of segmentation-initialisation iterations</td></tr>
+<tr><td> <i>no equivalent</i> </td><td> -N <i>or</i> --nobias</td><td> Do not remove bias field</td></tr>
+<tr><td> &nbsp; </td><td> &nbsp; </td><td> &nbsp; </td></tr>
+<tr><th> Mfast </th><th> Fast4 </th><th> &nbsp; </th></tr>
+<tr><td> -s &lt;n&gt;</i> </td><td> -S &lt;n&gt; <i>or</i> --channels=&lt;n&gt; </td><td> Number of input channels (images)</td></tr>
+</table>
+
+
+<hr>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

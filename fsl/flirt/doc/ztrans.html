@@ -1,0 +1,96 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+<STYLE TYPE="text/css">BODY { background-image: url("../images/flirt-bg.jpg") }</STYLE>
+Using FLIRT to Register a Few FMRI Slices
+</H1>
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+  <!-- No Table of Contents -->
+
+<A NAME="section1"></A><H2>INTRODUCTION</H2>
+ 
+<p>If you need to take an FMRI data set where you only have a few slices (ie
+the field-of-view - FOV - is small in Z) then it is very hard to get a
+good registration with either the subject's structural or directly to
+a standard space image. This page describes our recommendations in
+such cases.
+
+<UL>
+
+<LI>Take your FMRI data, with only a few slices. We will refer to an
+example volume from this time series as <b>example_func</b>.
+
+<LI>Take a single whole-brain "functional" image (let's call this
+<b>whole_func</b>). This will normally be the same kind of image as
+<b>example_func</b> (eg EPI), but will cover the whole brain. It
+should contain, as a subset of its slices, the same slices as in
+<b>example_func</b>. In general there should be no rotation between
+<b>func</b> and <b>whole_func</b>.
+
+<LI>Now (optionally) take a high-resolution structural image,
+e.g. T1-weighted (let's call this <b>highres</b>).
+
+<LI>Finally, identify your standard space image (let's call this
+<b>standard</b>).
+
+</UL>
+
+Now you are ready to register these all together.
+
+<A NAME="section2"></A><HR><H2>REGISTRATION</H2>
+
+<UL>
+
+<LI>First, register <b>example_func</b> to <b>whole_func</b>:<br>
+flirt -ref whole_func -in example_func -schedule
+${FSLDIR}/etc/flirtsch/ztransonly.sch \<br>
+&nbsp; &nbsp; &nbsp;  -out example_func2whole_func -omat example_func2whole_func.mat<br>
+The custom FLIRT schedule file ztransonly.sch allows only translations
+in Z (in order for the registration to be robust), so there must be no
+rotation or within-slice translation between these images.
+
+<LI>Now register <b>whole_func</b> to <b>highres</b>:<br>
+flirt -ref highres -in whole_func -out whole_func2highres -omat
+whole_func2highres.mat
+
+<LI>Now register <b>highres</b> to <b>standard</b>:<br>
+flirt -ref standard -in highres -out highres2standard -omat highres2standard.mat
+
+<LI>Now combine the transforms:<br>
+convert_xfm -concat whole_func2highres.mat -omat example_func2highres.mat example_func2whole_func.mat<br>
+convert_xfm -concat highres2standard.mat -omat example_func2standard.mat example_func2highres.mat
+
+<LI>Now you could use these to transform stats images (eg produced by
+FEAT) in the space of the original <b>func</b> data into standard
+space:<br>
+flirt -ref standard -in thresh_zstat1 -applyxfm -init example_func2standard.mat -out thresh_zstat12standard
+
+</UL>
+
+<A NAME="section2"></A><HR><H2>USING WITH FEAT</H2>
+
+If you want to put these transforms into a FEAT directory so that
+running group stats with FEAT will work well, then do the following
+(instead of using the simple default registration carried out by
+FEAT):<UL>
+
+<LI>Run a first level FEAT analysis without registration - this
+creates an output FEAT directory.
+
+<LI>Place in your FEAT directory appropriate images called
+<b>whole_func.hdr/.img</b>, <b>highres.hdr/.img</b> and
+<b>standard.hdr/.img</b>. (<b>highres</b> should probably have been
+brain-extracted already using BET, and <b>standard</b> should probably
+be ${FSLDIR}/data/standard/MNI152_T1_2mm_brain)
+
+<LI>Carry out the above <b>flirt</b> and <b>convert_xfm</b> commands
+exactly as written.
+
+<LI>This should leave you with correctly named transform files which
+FEAT will automatically use when carrying out group statistics.
+
+</UL>
+
+   <HR>
+  <!-- No Footnotes -->
+  <H4>Stephen Smith and Mark Jenkinson  <BR><BR>Copyright &copy; 2000-2001, University of Oxford</H4><BR>
+</BODY></HTML>

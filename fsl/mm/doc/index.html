@@ -1,0 +1,60 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+MM - Spatial Mixture Modelling
+</H1>
+MM v1.1 - User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<IMG ALIGN=RIGHT SRC="mmfit.png"><H2>INTRODUCTION</H2>
+
+<p>Mixture modelling is an alternative method of carrying out
+inference on (i.e., thresholding) statistical maps such as t, f or z
+stat images output by FEAT. Instead of just making assumptions about
+the null part of the statistical distribution and making all inference
+with respect to that, mixture modelling explicitly models the null
+part <i>and</i> the activation part. We can thus carry out "alternate
+hypothesis testing" and ask a richer set of questions of the
+data. Here we also implement a <i>spatial</i> enhancement to the
+mixture modelling; we use a spatial Markov random field to regularise
+(smooth) the labelling of voxels into null, activated or
+"de"-activated.
+
+<P>For more detail on the spatial mixture modelling see <i>Mixture
+Models with Adaptive Spatial Regularisation for Segmentation with an
+Application to FMRI Data; Woolrich, M., Behrens, T., Beckmann, C., and
+Smith, S.; IEEE Trans. Medical Imaging, 24(1):1-11, 2005</i> and a
+related technical report <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/techrep/#TR04MW1">TR04MW1</A>.
+
+<HR><H2>mm</H2>
+
+<p>Warning: this implementation of spatial mixture modelling is a beta
+release and has not been extensively tested! To run spatial mixture
+modelling on a statistic image (such as grot.feat/stats/zstat1) use
+the <b>mm</b> command-line
+program. The minimum syntax is:
+<pre>mm --mask=&lt;mask_image&gt; --sdf=&lt;stats_image&gt;</pre>
+and the other main option that you might want to use is
+<b>--zfstatmode</b> which tells mm not to fit a deactivation
+class. Just type <b>mm</b> to get the full help output.
+
+<p>The output from mm is summarised in a web-page named
+&lt;outputdir&gt;/MM.html and the probability of lying in each of the
+two or three segmentation classes (null, activation and de-activation)
+are found in &lt;outputdir&gt;/w1_mean, w2_mean and w3_mean. Note that
+the histogram plot in the web-page report will look less "nice" a fit
+than a non-spatial mixture model. This is because the final fitting is
+a balance between optimal histogram fitting of the class mixtures and
+the spatial processes which attempt to smooth voxel classification.
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2004, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A> and <A
+HREF="http://www.fmrib.ox.ac.uk/~woolrich/index.html">M. Woolrich</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

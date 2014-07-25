@@ -1,0 +1,54 @@
+#!/bin/sh
+
+if [ $# -lt 1 ] ; then
+  echo "Usage: $0 <list of html files>"
+  exit -1;
+fi
+
+tmpf=eqnproc$$
+
+for fn in $@ ; do
+
+grep eqntex $fn > $tmpf.txt
+
+nl=1;
+nmax=`wc -l $tmpf.txt | awk '{ print $1 }'`;
+
+while [ $nl -le $nmax ] ; do
+
+ echo "line $nl in file $fn";
+
+ sed -n "${nl}p" $tmpf.txt | sed 's/^.*eqntex=.\([^"]*\)".*$/\1/g' > $tmpf.eqn
+ destgif=`sed -n "${nl}p" $tmpf.txt | sed 's/^.*src=.\([^"]*\)".*$/\1/g'`;
+ scale=`sed -n "${nl}p" $tmpf.txt | grep eqnscale | sed 's/^.*eqnscale=.\([^"]*\)".*$/\1/g'`;
+ convargs=`sed -n "${nl}p" $tmpf.txt | grep eqnargs | sed 's/^.*eqnargs=.\([^"]*\)".*$/\1/g'`;
+
+ echo " " ; echo " " ; echo " "
+ echo " *** HTML LINE *** "
+ sed -n "${nl}p" $tmpf.txt
+ echo " *** TEX EQN *** "
+ cat $tmpf.eqn
+ echo "destgif=$destgif"
+ echo "scale=$scale"
+ echo "convargs=$convargs"
+
+ if [ X$scale = X ] ; then
+  scale=4.0;
+ fi
+
+ if [ X$destgif != X ] ; then
+   # echo eqn2gif $tmpf.eqn $destgif $scale $convargs
+   eqn2gif $tmpf.eqn $destgif $scale $convargs > /dev/null
+ else
+   echo "Error: could not determine src name for `sed -n ${nl}p $tmpf.txt`";
+ fi
+
+ rm -f $tmpf.eqn
+
+ nl=`echo $nl + 1 | bc`;
+
+done
+
+rm -f $tmpf.txt
+
+done

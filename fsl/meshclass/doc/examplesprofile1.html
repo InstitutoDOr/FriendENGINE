@@ -1,0 +1,132 @@
+<html>
+<head>
+</head>
+<body>
+<title>
+Example for profile class
+</title>
+<h1 align="center">How to handle the profile class</h1>
+<br>
+<a href="index.html" target="_parent">back to menu</a>
+<br><br>
+<a href="profile.html" target="_parent">back to Profile class</a>
+<br><br>
+
+<pre>
+int main(){
+  Profile p;
+  p.add(0, 0);
+  p.add(.5, .5);
+  p.add(1, 1);
+  p.add(1.5, 1.5);
+  p.add(2, 2);
+  p.add(2.5, 2.5);
+  p.add(3, 3);
+  p.add(3.5, 2.5);
+  p.add(4, 2);
+  p.add(4.5, 1.5);
+  p.add(5, 1);
+  p.add(5.5, 2);
+  p.add(6, 3);
+  p.add(6.5, 4);
+  p.add(7, 5);
+  p.add(7.5, 4);
+  p.add(8, 3);
+  p.add(8.5, 2);
+  p.add(9, 1);
+  p.add(9.5, 0);
+  p.add(10, 2);
+  p.add(10.5, 4);
+  p.add(11, 5);
+  p.add(11.5, 5);
+  p.add(12, 5);
+  p.add(12.5, 4.5);
+  p.add(13, 4);
+  p.add(13.5, 3.5);
+  p.add(14, 3);
+  p.add(14.5, 3.5);
+  p.add(15, 4);
+  p.add(15.5, 4.5);
+  p.add(16, 5);
+  p.add(16.5, 4);
+  p.add(17, 3);
+  p.add(17.5, 2);
+  p.add(18, 1);
+  p.add(18.5, 3);
+  p.add(19, 2);
+  p.add(19.5, 1.5);
+  p.add(20, 1);
+  p.add(20.5, .5);
+  p.add(21, 0);
+</pre>
+ <font color="#FF0000">(see on other frame)</font>
+<pre>
+  p.set_lroi(7.5); 
+  p.set_rroi(11);
+
+  p.maxabs();      --> 11
+  p.max();         --> 5
+  p.minabs();      --> 9.5
+  p.min();         --> 0
+  p.begin();       --> 7.5
+  p.end();         --> 11
+
+  p.init_roi();    --> set roi to [0, 21]
+
+  p.maxabs();      --> 7
+  p.max();         --> 5
+  p.minabs();      --> 0
+  p.min();         --> 0
+  p.begin();       --> 0
+  p.end();         --> 21
+
+  p.threshold(.5); --> 2.5
+
+  p.next_point_under(0, .6);   --> 0
+  p.next_point_under(3.5, .6); --> 3.5
+  p.next_point_under(12, -.6); --> -500
+
+  p.last_point_under(7, .6);   --> 6
+  p.last_point_under(0, .6);   --> -500
+  p.last_point_under(16, .6);  --> 14
+
+  p.next_point_over(0, .6);    --> 3
+  p.next_point_over(3.5, .6);  --> 6
+  p.next_point_over(12, -.6);  --> 12
+
+  p.last_point_over(7, .6);    --> 7
+  p.last_point_over(0, .6);    --> -500
+  p.last_point_over(9.5, .6);  --> 8
+
+  p.set_lroi(4);
+  p.set_rroi(17);
+
+  p.next_point_under(4, .6);   --> 4
+  p.next_point_under(7.5, .6); --> 8
+  p.next_point_under(12, .5);  --> -500
+
+  p.last_point_under(7, .6);   --> 6 
+  p.last_point_under(4, .6);   --> 4
+  p.last_point_under(16, .6);  --> 14
+
+  p.next_point_over(4, .6);    --> 6
+  p.next_point_over(7.5, .6);  --> 7.5
+  p.next_point_over(12, -.6);  --> 12
+
+  p.last_point_over(7, .6);    --> 7
+  p.last_point_over(4, .6);    --> -500
+  p.last_point_over(9.5, .6);  --> 8
+
+  return 0;
+
+  }
+</pre>
+
+
+<br><br>
+<a href="index.html" target="_parent">back to menu</a>
+</body>
+</html>
+
+
+

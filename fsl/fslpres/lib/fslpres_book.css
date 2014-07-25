@@ -1,0 +1,18 @@
+
+BODY		{ margin: 0px 10px 0px 10px ; color: #000000 ; }
+:link		{ color: #333388 ; background: transparent }
+:visited	{ color: #333388 ; background: transparent }
+:active		{ color: #333388 ; background: transparent }
+
+.body1		{ background-color: #ffffff }
+.body2		{ background-color: #ffffff }
+
+.title		{ font-size: 40px ; font-family: 'Western' , sans-serif ;  color: #000000 }
+
+HR		{ border: 1px inset ; margin: 5px }
+
+td		{ font-size: 36px ; font-family: 'Georgia' , Times , serif ; font-weight: normal ; padding: 0px }
+
+em		{ font-weight: bold ; font-style: italic }
+
+em2             { font-weight: bold ; font-style: italic }

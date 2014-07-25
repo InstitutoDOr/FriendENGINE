@@ -1,0 +1,13 @@
+
+siena_diff - cannot compile with optimisation turned on (gcc bug)
+
+37744 nonzero voxels in avg152T1_edges
+say 20000 real edge voxels (ignoring corner points)
+
+smooth with sigma=10mm=5voxels
+thus 1 resel = approx 100 voxels
+but intrinsic smoothness factor = 2
+-> 200 voxels
+
+thus bonf correct by factor of 100
+thus uncorrected 0.05 -> 0.0002 -> z=3.7

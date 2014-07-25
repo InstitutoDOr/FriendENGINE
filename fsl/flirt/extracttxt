@@ -1,0 +1,27 @@
+#!/bin/sh
+if [ $# -le 1 ]; then
+	echo "Usage: $0 search_word file [num_trailing_lines [relative_start]]"
+	exit -1
+fi
+num=`grep -n $1 $2 | head -n 1 | cut -d':' -f1 ` ; export num
+if [ X${num}X != XX ] ; then
+  if [ $# -ge 4 ]; then
+    if [ $4 -ge 0 ] ; then
+      num1=` echo "$num $4 + p" | dc -` ; export num1
+    else
+      num1=` echo "0 0 $4 - $num + p" | dc -` ; export num1
+    fi
+  else
+    num1=$num ; export num1
+  fi
+  if [ $# -ge 3 ]; then
+   num2=` echo "$num1 $3 + 1 - p" | dc -` ; export num2
+   if [ $num2 -lt $num1 ]; then
+	num1=$num2 ; export num1
+    fi
+  else
+   num2="\$" ; export num2
+  fi
+  com="$num1,$num2"p ; export com
+  sed -n $com $2
+fi

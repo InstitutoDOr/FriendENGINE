@@ -1,0 +1,236 @@
+# A Pound as a first character is used for declaring comments.
+! A Exclamation as a first character is used for declaring comments.
+
+# To use the definitions in this file, remove the # sign and
+# provide your definition assignment.
+
+# The following line informs ObjectManual that the 
+# C++ files are following the file extension of ".C". 
+# Usually this definition is not necessary. 
+
+#ObjectManualDefCPlusExt = .C
+
+# The following line informs ObjectManual about the directory
+# where the documentation i.e., html files will be generated. No
+# relative paths or environmental variables are allowed. The
+# last character of this provided directory should not be '/'.
+# Also create the directory as ObjectManual will not create 
+# this directory for you. Please make sure that the permissions
+# for this created directory are open for writing.
+
+ObjectManualDefWriteHtmlDir = /usr/local/fsl/src/utils/refdoc/html
+
+# The following line informs ObjectManual about the directory
+# where the documentation i.e., "man" pages (files) will be 
+# generated. No relative paths or environmental variables are
+# allowed. The last character of this provided directory should
+# not be '/'. Also create the directory before its use. Please
+# make sure that the permissions for this created directory are
+# are open for writing.
+
+#ObjectManualDefWriteManDir = /usr/local/fsl/src/utils/refdoc/man3
+
+# The following line informs ObjectManual about the directory
+# where the documentation i.e., "rtf" (Rich Text Format) files 
+# will be generated. No relative paths or environmental 
+# variables are allowed. The last character of this provided 
+# directory should not be '/'. Also create the directory 
+# before its use. Please make sure that the permissions for 
+# this created directory are are open for writing.
+
+#ObjectManualDefWriteRTFDir = /usr/local/fsl/src/utils/refdoc/rtf
+
+# The following line(s) can be defined to generate post
+# documentation. The information assigned will be generated in 
+# each HTML file that is generated. Multiple definitions of
+# ObjectManualGenerateAtEnd can be provided. Each definition
+# can handle data up to 512 characters.
+
+ObjectManualGenerateAtEnd = Copyright (C) 2000 University of Oxford, FMRIB Centre. 
+
+# The following line is used for generating a pre-processed file.
+# Avoid using this definition if the option used by your compiler
+# is a default or "-E"
+
+#ObjectManualDefGenerator = -E
+
+# The following line informs ObjectManual to suppress documentation 
+# generation for the class name provided. Regular
+# expressions can be used in assignment. Multiple definitions
+# of ObjectManualDefSuppressClass can be provided.
+
+#ObjectManualDefSuppressClass = *
+#ObjectManualDefSuppressClass = *str*
+#ObjectManualDefSuppressClass = *ios*
+
+# The following line informs ObjectManual to suppress documentation 
+# generation for classes contained in the mentioned directory.
+# Regular expressions can be used in assignment. Multiple definitions
+# of ObjectManualDefSuppressDirectoryClasses can be provided.
+
+#ObjectManualDefSuppressDirectoryClasses = /tmp
+
+# The following line informs ObjectManual to generate only those
+# classes that correspond to the assigned regular expression.
+# Classes that are suppressed are ignored, once this definition is
+# assigned with a regular expression. Multiple definitions of
+# ObjectManualDefGenerateOnly can be provied.
+
+ObjectManualDefGenerateOnly = BaseOption
+ObjectManualDefGenerateOnly = Option
+ObjectManualDefGenerateOnly = OptionParser
+ObjectManualDefGenerateOnly = X_OptionError
+ObjectManualDefGenerateOnly = X_UnknownOptions
+ObjectManualDefGenerateOnly = X_MissingArguments
+
+# The following definition allows ObjectManual to generate HTML
+# file names with the assigned prefix name. The default prefix
+# name in ObjectManual is ObjMan_. To generate file names with
+# no prefix, declare the definition with the assignment operator
+# and do not assign any value. i.e., ObjectManualDefFileNamePrefix =
+
+#ObjectManualDefFileNamePrefix = 
+
+# The following definition are applicable for special comments rule:
+# The following option defines that the class names are identified
+# in the source file via the following assignment.
+
+#ObjectManualDefClassName = ClassName 
+
+# The following definition are applicable for special comments rule:
+# The following option defines that the method names are identified
+# in the source file via the following assignment. However, a class
+# name should always precede a method name in special comments.
+
+#ObjectManualDefMethodName = MethodName
+
+# The following definition allows ObjectManual to generate 
+# text mixed with images. To generate text that has no images
+# assign value N to ObjectManualDefImages. The default behavior 
+# is to allow text with images.
+
+ObjectManualDefImages = N
+
+# To replace existing HTML documentation files or not. Possible 
+# values allowed are 'N' or 'Y'. If the value to this definition
+# is set to 'N', then ObjectManual will not overwrite the existing
+# HTML files.
+
+#ObjectManualDefScriptFileReplace = Y
+
+# To generate HTML files with a specific extension. By default the
+# generated documentation files are named with a suffix of ".html"
+# extension. If users would like to have a specific extension on 
+# their generated HTML files then assign this definition with the
+# specific extension name. e.g., ObjectManualDefHtmlExt = .htm
+
+#ObjectManualDefHtmlExt = .html
+
+# To generate Hypertext links for Super or Base classes set the
+# following definition. The default behaviour is to generate
+# links for Super or Base classes. Sometimes, directory structure
+# may tend to generate links which are not valid. In such cases
+# the link generation may be avoided. To generate a link assign
+# the value Y. To suppress link generation assign the value N.
+
+#ObjectManualDefSuperClassLink = Y
+
+# To generate Hypertext links for C++ Source files where the 
+# C++ class declaration was found. The default behaviour is to
+# generate link for source files.
+
+#ObjectManualDefSourceLink = Y
+
+# To generate graphical method tree. The default behaviour is to
+# generate APPLET tags that can be interpreted by the HTML browser.
+# For some reason, if this behaviour is not required then set
+# ObjectManualDefMethodTree with a value 'N'
+
+ObjectManualDefMethodTree = Y
+
+# The following definition allows the control to generate
+# dependency data of each class in an HTML file. The default
+# value is to generate dependency data, i.e., Y. If you don't
+# want dependency data generated in class's HTML file, then set
+# the following definition to N
+
+#ObjectManualDefGenerateDependencyData = Y
+
+# The following definition allows the customization of organization 
+# name. The organization name is generated as part of "man" pages. 
+# The length of the organization name should not be more than 512
+# characters.
+
+ObjectManualDefOrganizationName = Copyright (C) 2000 University of Oxford, FMRIB Centre. 
+
+# The following definition allows whether "man" pages should be
+# generated by ObjectManual or not. To suppress generation of "man"
+# pages altogether, assign the value 'N' to this definition. The
+# default behaviour is to generate "man" pages.
+
+ObjectManualDefGenerateManPages = N
+
+# The following definition allows the file extension number of
+# "man" pages. Only numeric values are allowed. Man pages generated
+# by ObjectManual have the file extension number of "3". If this
+# number needs to be changed then assign a numeric value to this
+# definition.
+
+#ObjectManualDefPageExtension = 3
+
+# The following definition allows method details to be generated
+# or not. By defaults, the method details information is generated.
+
+#ObjectManualDefGenerateMethodDetails = N
+
+# The following definition informs ObjectManual whether the
+# C++ files provided as an argument need to be compiled or not. By
+# default the C++ files are compiled. 
+
+ObjectManualDefCompile = N
+
+# The following definition informs ObjectManual whether the
+# class comments are to be pre-formatted or not. By default,
+# ObjectManual generates class comments using the paragraph HTML
+# tag. To use the "pre" HTML tag, use this definition.
+
+#ObjectManualDefPreFormatAllowed = N
+
+# The following definition informs ObjectManual that the C++
+# classes that belong to the directory need to be suppressed from
+# documentation generation. Multiple such assignments are allowed 
+# and also regular expressions are allowed. So to suppress 
+# C++ classes from /usr/include  and /opt, the following two
+# defintions will be provided.
+
+#ObjectManualDefSuppressDirectoryClasses = */usr/include/*
+#ObjectManualDefSuppressDirectoryClasses = */opt/*
+
+# The following definition informs ObjectManual that the RTF
+# files need to be generated or not as part of the documentation.
+
+ObjectManualDefRTF = N
+
+# The following definition allows you to choose between frames
+# and non-frames generated output. The default is to generated
+# framed output. By setting its value to N, non-framed output
+# will be generated.
+
+ObjectManualDefAllowFrames = Y
+
+# The following definition allows XML documents to be generated.
+# The option allows Y or N values. To turn off XML documents from
+# getting generated, assign the defintion an N value. The default
+# is to generate XML documents, i.e., a Y value.
+
+ObjectManualDefGenerateXMLPages = N
+
+# The following line informs ObjectManual about the directory
+# where the XML documentation files will be generated. No
+# relative paths or environmental variables are allowed. The
+# last character of this provided directory should not be '/'.
+# Also create the directory as ObjectManual will not create 
+# this directory for you. Please make sure that the permissions
+# for this created directory are open for writing.
+
+#ObjectManualDefWriteXMLDir = /tmp/Generated

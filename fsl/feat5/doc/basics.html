@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><meta http-equiv="Content-Type"
+content="text/html;charset=utf-8">
+<link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FSL</TITLE></HEAD><BODY><IFRAME width="100%" scrolling="no"
+frameborder="0" src="top.html">Broken</IFRAME>
+
+
+<H2>FEAT Basics</H2>
+
+<p>To call the FEAT GUI, either type <b>Feat</b> in a terminal
+  (type <b>Feat_gui</b> on Mac or Windows), or
+  run <b>fsl</b> and press the <b>FEAT</b> button.
+
+<p>Now set the filename of the 4D input image
+(e.g. <b>/users/sibelius/origfunc.nii.gz</b>) by pressing <b>Select 4D
+data</b>. You can setup FEAT to process many input images, one after
+another, as long as they all require exactly the same analysis. Each
+one will generate its own FEAT directory, the name of which is based
+on the input data's filename (unless you enter an <b>Output
+directory</b> name). 
+
+<p>Note that if you later run <b>Post-stats</b> or
+<b>Registration</b>, or if you are running
+<b>Higher-level Analysis</b>, then instead of selecting 4D data as the
+input, you select FEAT directories. In this case first set the top two
+drop-down menus in the GUI and then select the FEAT directory or
+directories; it is important to select the FEAT directories before
+setting up anything else in FEAT. This is because quite a lot of FEAT
+settings are loaded from the first selected FEAT directory, possibly
+over-writing any settings which you might wish to change!
+
+<p><b>Total volumes</b> (including volumes to be deleted) is
+automatically set from the input files chosen.
+
+<p>Now set <b>Delete volumes</b>. These should be the volumes that are
+not wanted because steady-state imaging is not reached for
+typically two or three volumes. These volumes are deleted as soon as
+FEAT is started, so any 4D data output by FEAT will not contain the
+deleted volumes. Note that <b>Delete volumes</b> should not be used to
+correct for the time lag between stimulation and the measured response
+- this is corrected for in the design matrix by convolving the input
+stimulation waveform with a blurring-and-delaying haemodynamic
+response function. Most importantly, remember when setting up the
+design matrix that the timings in the design matrix start at t=0
+seconds, and this corresponds to the start of the first image taken
+after the deleted scans. In other words, the design matrix starts
+<b>after</b> the deleted scans have been deleted.
+
+<p>Set the <b>TR</b> (time from the start of one volume to the start
+of the next).
+
+<p>Now set the <b>High pass filter cutoff</b> point (seconds), that
+is, the longest temporal period that you will allow. A sensible
+setting in the case of an rArA or rArBrArB type block design is the
+(r+A) or (r+A+r+B) total cycle time. For event-related designs the
+rule is not so simple, but in general the cutoff can typically be
+reduced at least to 50s.
+
+<p>Note that most of the timing inputs in FEAT are set in seconds, not
+volumes. <b>Total volumes</b> and <b>Delete volumes</b> are
+exceptions.
+
+<p>Now click on the <b>Stats</b> tab and setup the model and required
+contrasts (for more detail see below).
+
+<p>When FEAT setup is complete and the <b>Go</b> button is pressed,
+the setup gets saved in a temporary FEAT setup file. Then a script
+(called <b>feat</b> - note the lower case) is run which uses the setup
+file and carries out all the FMRI analysis steps asked for, starting
+by creating a FEAT results directory, and copying the setup file into
+here, named <b>design.fsf</b> (this setup file can be later loaded
+back into FEAT using the <b>Load</b> button).
+
+<p>Once the script has started running you can <b>Exit</b> the FEAT
+GUI. The analysis will continue until completion, by default showing
+information about its progress in a web browser.
+
+</BODY></HTML>

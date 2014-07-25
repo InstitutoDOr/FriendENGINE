@@ -1,0 +1,75 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+FDR - False Discovery Rate
+</H1>
+FDR User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<H2>INTRODUCTION</H2>
+
+<p><b>fdr</b> is a simple program which takes in a p-value image and uses
+FDR theory to carry out multiple comparison correction. For detail on
+FDR theory see <a href="http://www.sph.umich.edu/~nichols/FDR/">Tom
+Nichols' FDR page</a>.
+
+<p>The p image fed into fdr can be produced in a
+number of ways, for example:
+
+<UL>
+
+
+<LI> Output from <b>FEAT</b>: change directory into the stats
+subdirectory. It is then necessary to convert a give cope and varcope
+image into a p-value image. For example:
+<pre>
+ttologp -logpout logp1 varcope1 cope1 `cat dof`
+  (this outputs the log(p) image)
+
+fslmaths logp1 -exp p1
+  (this creates the p-value image)
+
+fdr -i p1 -m ../mask -q 0.05
+ Probability Threshold is: 
+ 0.00339819
+  (this tells you the FDR threshold - p-values below 0.00339819 are significant)
+
+fslmaths p1 -mul -1 -add 1 -thr .99660181 -mas ../mask thresh_1_minus_p1
+  (this creates a 1-p image for ease of display, thresholds that at
+   1-thresh and then remasks)
+</pre>
+
+
+<LI> Output from <b>randomise</b> can be fed directly into fdr; use
+the voxel-based thresholding, uncorrected for multiple comparisons,
+i.e. a <code>*_vox_p_tstat*</code> image. This is a p-value image from
+0:1 where 1 is most significant (arranged this way to make display and
+thresholding simple). Therefore this needs to be inverted before
+feeding into fdr. Thus an example would be:
+
+<pre>
+fslmaths grot_vox_p_tstat1 -mul -1 -add 1 1_minus_grot_vox_p_tstat1
+fdr -i 1_minus_grot_vox_p_tstat1 -m mask -q 0.05
+</pre>
+This gives you the threshold that should be applied to the
+p-values. To view this, the easiest thing to do is take 1-threshold
+and threshold the original _vox_p_tstat1 image:
+<pre>
+fslmaths grot_vox_p_tstat1 -thr <1 - FDR threshold> thresh_grot_vox_p_tstat1
+</pre>
+
+
+
+
+</UL>
+
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2005, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

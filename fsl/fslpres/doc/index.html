@@ -1,0 +1,115 @@
+<HTML><HEAD>
+<TITLE>FSLPRES</TITLE>
+</HEAD><BODY BACKGROUND="../images/fsl-bg.jpg">
+<hr><TABLE BORDER=0 WIDTH="100%"><TR>
+<TD ALIGN=CENTER><H1>FSLPRES - Web Presentation Preparation Script</H1>FSLPRES Version 1.1
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a>
+</TR></TABLE>
+
+<HR><H2>INTRODUCTION</H2>
+
+fslpres is a little script to take a numerically ordered series of raw
+html pages and turns it into a linked, indexed, nice-looking web page
+presentation.
+
+<HR><H2>BASIC USAGE</H2>
+
+<p>fslpres expects the browser to run with a display size of 1024x768;
+the best way of displaying is with Internet Explorer in Windows - set
+the Windows screen size to 1024x768 and make IE go full-screen and
+auto-hide the remaining toolbar. Whilst preparing in UNIX, display
+$FSLDIR/etc/fslpres/1024x768.gif and set the display panel of Mozilla
+to this size. Note that Netscape doesn't work with fslpres.
+
+<p>Prepare all input web pages with filename starting with "_",
+then a zero-padded number (to enforce the page ordering you want) then
+any descriptive name followed by ".htm" - for example
+_1020_fast_intro.htm (I suggest that you use numbering increments of
+10 like the good old days of BASIC programming to make it easy to
+insert other pages later).
+
+<p>Inside each the first line should be the title of the page - used
+for the actual title and the indexing. The rest forms the inside of a
+&lt;table&gt; - an example:
+
+<pre>
+Histograms - Tissue Intensity Distributions
+
+&lt;TR&gt;
+
+&lt;td width=35% ALIGN=LEFT VALIGN=CENTER&gt;&lt;UL&gt;
+&lt;LI&gt; Histogram = "voxel count vs intensity"
+&lt;LI&gt; Mixture of Gaussians
+&lt;LI&gt; Model class means and widths
+&lt;LI&gt; If well separated, clear peaks, i.e. segmentation easy
+&lt;LI&gt; In general not so easy; overlap made worse by bias,
+blurring, low resolution, head motion
+&lt;/UL&gt;
+
+&lt;TD ALIGN=CENTER VALIGN=CENTER&gt;&lt;IMG SRC="hist.gif"&gt;
+
+&lt;/TR&gt;
+</pre>
+
+<p>When you have prepared your pages just run fslpres in the
+presentation directory and it will create an s_whatever.htm version of
+all the _whatever.htm pages, along with a copy of the first page as
+index.html and an index of all pages as index.htm
+
+<HR><H2>ADVANCED USAGE - EXAMPLE SUBDIRECTORIES</H2>
+
+If you want to add break-out slides (for example to contain practical
+examples to go along with a theory lecture) then just create a
+_whatever.fpd directory with the same &lt;whatever&gt; filename as the
+toplevel page it is to be accessed from. This creates a new link on
+the bottom panel in the toplevel page (marked "e") which
+points down into the subdirectory; there place the same kind of raw
+fslpres pages as before. You don't have to run fslpres in the
+subdirectory - when you run it in the original directory it will
+process all subdirectories as well.
+
+<HR><H2>ADVANCED USAGE - HTML EQUATIONS</H2>
+
+You can create LaTeX equations and include them directly from the
+			*.htm files using extra options for the &lt;img ... &gt; tag in
+html, then process these with a script to create the required image
+			files.<BR>
+An equation can be specified as:
+<pre>
+&lt;img src="images/img4.gif" align=middle eqntex="B = \mu H" eqnargs="-crop x64+0"&gt;
+</pre>
+
+The extra options are:
+<UL>
+</LI><b>eqntex</b> specifies the latex for the equation<BR>
+</LI><b>eqnscale</b> specifies the scaling (4.0 is default and about right for fslpres)<BR>
+</LI><b>eqnargs</b> specify extra options to the "convert" call which is often necessary
+to centre the equation in the image.<BR>
+</UL>
+All need to have quotes around them.<p>
+
+To create the images, you need <b>latex</b> and <b>latex2html</b> set
+				  up correctly and simply run <pre>
+makehtmeqns s*.htm
+</pre>
+after <b>fslpres.</b>
+
+
+<HR><H2>PRINTING</H2>
+
+<p>To print all pages use Mozilla, go to the index page and the link
+that says "Everything on one page". Then do <b>File-&gt;Page
+Setup</b>, set <b>Portrait</b>, clear the <b>Right</b> settings in
+<b>Header</b> and <b>Footer</b>, and set <b>Percent</b> to 65.
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2002, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

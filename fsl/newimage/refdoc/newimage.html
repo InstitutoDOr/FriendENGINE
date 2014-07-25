@@ -1,0 +1,426 @@
+<!DOCTYPE HTMLPUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN""http://www.w3.org/TR/REC-html40/losse.dtd">
+<HTML><HEAD>
+  <TITLE>FSL User Guide - NEWIMAGE Reference Guide</TITLE>
+</HEAD>
+ <BODY BACKGROUND="../images/fsl-bg" BGCOLOR="white">
+  <TABLE BORDER=0 WIDTH="100%"><TR>
+  <TD ALIGN=LEFT>  <a href="http://www.fmrib.ox.ac.uk/fsl"><IMG BORDER=0 SRC="../images/fsl-logo"></a>
+   <TD ALIGN=CENTER><H1>FSL User Guide - NEWIMAGE Reference Guide</H1>
+  <TD ALIGN=RIGHT> <a href="http://www.fmrib.ox.ac.uk/"><IMG BORDER=0 SRC="../images/fmrib_crest_86.gif"></a>
+   </TR></TABLE>
+  <!-- No Table of Contents -->
+
+<P>
+This document describes the two templated container classes
+(<B><I></I> volume</B> and <B><I></I> volume4D</B>) in
+NEWIMAGE.  In addition, it describes the general functions supporting them, 
+including file I/O operations, in AVW format.
+<br>
+
+
+<P>
+Both classes are templated by a single basic type <FONT COLOR=BLUE>&lt;T&gt;</FONT>.
+As the classes are precompiled into the library, only certain
+types are available.  Currently, these are: <I>char,
+short, int, float, double</I>.
+<br>
+
+
+
+<A NAME="section1"></A><HR><H2>HEADER FILES</H2>
+ 
+Both classes can be used by using the following line:
+<BR>
+
+<PRE>
+#include "newimage.h"
+</PRE>
+and all classes are contained in the namespace: NEWIMAGE
+
+
+ <!-- J-Back -->
+
+
+
+<A NAME="section2"></A><HR><H2>VOLUME</H2>
+ 
+
+This is the basic 3D container class.
+
+<H3>Constructors</H3>
+ 
+
+<UL>
+
+<LI><B><I></I> volume<FONT COLOR=BLUE>&lt;T&gt;</FONT></B>( )
+<BR>
+Creates an empty volume, which allocates <B>no</B> data 
+storage.
+<LI><B><I></I> volume<FONT COLOR=BLUE>&lt;T&gt;</FONT></B>(<I>int</I> <FONT COLOR=GREEN>xsize</FONT>, <I>int</I> <FONT COLOR=GREEN>ysize</FONT>, <I>int</I> <FONT COLOR=GREEN>zsize</FONT>)
+<BR>
+Creates a volume of specified size (number of voxels in each dimension), allocating the required amount of data storage.
+<LI><B><I></I> volume<FONT COLOR=BLUE>&lt;T&gt;</FONT></B>(<I>int</I> <FONT COLOR=GREEN>xsize</FONT>, <I>int</I> <FONT COLOR=GREEN>ysize</FONT>, <I>int</I> <FONT COLOR=GREEN>zsize</FONT>, <I>T*</I> <FONT COLOR=GREEN>d</FONT>, <I>bool</I> <FONT COLOR=GREEN>d_owner</FONT>)
+<BR>
+Creates a volume of specified size, but using the data block
+pointed to by <I></I> <FONT COLOR=GREEN>d</FONT>.  The final argument <I></I> <FONT COLOR=GREEN>d_owner</FONT> specifies whether the volume should take over ownership of this data block.  That is, whether the volume will free up the memory allocation (using delete[]) when the destructor is called.
+<LI><B><I></I> volume<FONT COLOR=BLUE>&lt;T&gt;</FONT></B>(<I>volume T and </I> <FONT COLOR=GREEN>source</FONT>)
+<BR>
+Basic copy constructor.
+
+</UL>
+
+
+Note that none of the constructors described above initialize the data values.
+To do this the assignment operator should be used.
+
+
+
+
+<H3>Data Access</H3>
+ 
+
+<UL>
+
+<LI><B><I>T&</I> operator()</B>(<I>int</I> <FONT COLOR=GREEN>x</FONT>, <I>int</I> <FONT COLOR=GREEN>y</FONT>, <I>int</I> <FONT COLOR=GREEN>z</FONT>)
+<BR>
+Returns a reference to data value at position (x,y,z), with bounds checking/extrapolation.
+<LI><B><I>T&</I> value</B>(<I>int</I> <FONT COLOR=GREEN>x</FONT>, <I>int</I> <FONT COLOR=GREEN>y</FONT>, <I>int</I> <FONT COLOR=GREEN>z</FONT>)
+<BR>
+Returns a reference to data value at position (x,y,z) without any bounds checking or extrapolation.
+
+</UL>
+
+
+Note that both <I></I> <FONT COLOR=GREEN>const</FONT> and non-<I></I> <FONT COLOR=GREEN>const</FONT> 
+versions of the above access operators exist.
+
+The first form <B><I></I> operator()</B> is the most general form, and
+should be used initially when coding.  The second form <B><I></I> value</B> is the fastest, most basic access routine and should be used when speed is
+a priority.
+
+<P>
+Related functions:
+<br>
+
+<UL>
+
+<LI><B><I>bool</I> in_bounds</B>(<I>int</I> <FONT COLOR=GREEN>x</FONT>, <I>int</I> <FONT COLOR=GREEN>y</FONT>, <I>int</I> <FONT COLOR=GREEN>z</FONT>) const
+<BR>
+Determines whether the specified position is within the current
+image bounds.  Note that it uses the ROI if it is active.
+
+<LI><B><I>void</I> setextrapolation</B>(<I>extrapolation</I> <FONT COLOR=GREEN>extrapmethod</FONT>) const
+<BR>
+Sets the type of extrapolation to be performed.  Can taken any of the following values (from the enumerated type <I>extrapolation</I>):
+<BR>
+<I>zeropad, constpad, extraslice, mirror, periodic, boundsassert, boundsexception</I>
+
+<LI><B><I>extrapolation</I> getextrapolationmethod</B>() const
+<BR>
+Returns the extrapolation method that is currently set.
+
+<LI>
+<B><I>void</I> setpadvalue</B>(<I>T</I> <FONT COLOR=GREEN>padval</FONT>) const
+<BR>
+Sets the pad value to be used in the <I>constpad</I> and <I>extraslice</I> extrapolation methods.
+
+<LI>
+<B><I>T</I> getpadvalue</B>() const
+<BR>
+Returns the pad value that is currently set.
+
+
+</UL>
+
+
+
+
+
+<H3>Basic Properties</H3>
+ 
+
+<UL>
+
+<LI>
+<B><I>int</I> xsize</B>() const
+<BR>
+Returns the number of voxels in the x dimension.
+
+<LI>
+<B><I>int</I> ysize</B>() const
+<BR>
+Returns the number of voxels in the y dimension.
+
+<LI>
+<B><I>int</I> zsize</B>() const
+<BR>
+Returns the number of voxels in the z dimension.
+
+<LI>
+<B><I>float</I> xdim</B>() const
+<BR>
+Returns the length of a voxel in the x dimension (in mm).
+
+<LI>
+<B><I>float</I> ydim</B>() const
+<BR>
+Returns the length of a voxel in the y dimension (in mm).
+
+<LI>
+<B><I>float</I> zdim</B>() const
+<BR>
+Returns the length of a voxel in the z dimension (in mm).
+
+<LI>
+<B><I>int</I> xsign</B>() const
+<BR>
+Returns the sign of the length of a voxel in the x dimension (+1 or -1) - here to support negative voxel lengths.
+
+<LI>
+<B><I>int</I> ysign</B>() const
+<BR>
+Returns the sign of the length of a voxel in the y dimension (+1 or -1) - here to support negative voxel lengths.
+
+<LI>
+<B><I>int</I> zsign</B>() const
+<BR>
+Returns the sign of the length of a voxel in the z dimension (+1 or -1) - here to support negative voxel lengths.
+
+<LI>
+<B><I>void</I> setxdim</B>(<I>float</I> <FONT COLOR=GREEN>x</FONT>)
+<BR>
+Sets the length of a voxel in the x dimension.
+
+<LI>
+<B><I>void</I> setydim</B>(<I>float</I> <FONT COLOR=GREEN>y</FONT>)
+<BR>
+Sets the length of a voxel in the y dimension.
+
+<LI>
+<B><I>void</I> setzdim</B>(<I>float</I> <FONT COLOR=GREEN>z</FONT>)
+<BR>
+Sets the length of a voxel in the z dimension.
+
+<LI>
+<B><I>void</I> setdims</B>(<I>float</I> <FONT COLOR=GREEN>x</FONT>, <I>float</I> <FONT COLOR=GREEN>y</FONT>, <I>float</I> <FONT COLOR=GREEN>z</FONT>)
+<BR>
+Sets all voxel length dimensions at once.
+
+<LI>
+<B><I>int</I> nvoxels</B>() const
+<BR>
+Returns the number of voxels in the current ROI.
+
+
+</UL>
+
+
+
+
+
+<H3>Lazily Evaluated Properties</H3>
+ 
+
+<UL>
+
+<LI>
+<B><I>T</I> min</B>() const
+<BR>
+Returns the minimum voxel value in the current ROI.
+
+<LI>
+<B><I>T</I> max</B>() const
+<BR>
+Returns the maximum voxel value in the current ROI.
+
+<LI>
+<B><I>float</I> sum</B>() const
+<BR>
+Returns the sum of all voxel values in the current ROI.
+
+<LI>
+<B><I>float</I> sumsquares</B>() const
+<BR>
+Returns the sum of all squared voxel values in the current ROI.
+
+<LI>
+<B><I>float</I> mean</B>() const
+<BR>
+Returns the mean of all the voxel values in the current ROI.
+
+<LI>
+<B><I>float</I> variance</B>() const
+<BR>
+Returns the variance of all the voxel values in the current ROI.
+
+<LI>
+<B><I>float</I> stddev</B>() const
+<BR>
+Returns the square root of the variance.
+
+<LI>
+<B><I>ColumnVector</I> cog</B>() const
+<BR>
+Returns the Centre of Gravity of the volume (using current ROI).  Note that the result is in <B>world</B> coordinates.
+
+<LI>
+<B><I>ColumnVector</I> principleaxis</B>(<I>int</I> <FONT COLOR=GREEN>n</FONT>) const
+<BR>
+Returns the nth principle axis (using current ROI).  Note that
+the result is in <B>world</B> coordinates.
+
+<LI>
+<B><I>T</I> backgroundval</B>() const
+<BR>
+Returns a robust estimate of the background value,
+using the 10th percentile of the voxel values in a thin strip around
+the edge of the total volume (ignores the ROI).
+
+
+
+</UL>
+
+
+
+
+
+<H3>Secondary Properties</H3>
+ 
+
+<UL>
+
+<LI>
+<B><I>Matrix</I> sampling_mat</B>() const
+<BR>
+Returns the sampling matrix required to convert voxel
+coordinates to world coordinates (in mm) - note that this ignores origin settins.
+
+<LI>
+<B><I>ColumnVector&</I> getorigin</B>() const
+<BR>
+Returns the origin as previously set by the user.
+
+<LI>
+<B><I>void</I> setorigin</B>(<I>const ColumnVector&</I> <FONT COLOR=GREEN>orig</FONT>) const
+<BR>
+Allows the user to set an origin that is carried with the volume, but not used in any internal calculations.
+
+<LI>
+<B><I>void</I> setorigin</B>(<I>float</I> <FONT COLOR=GREEN>x</FONT>, <I>float</I> <FONT COLOR=GREEN>y</FONT>, <I>float</I> <FONT COLOR=GREEN>z</FONT>) const
+<BR>
+Allows the user to set an origin that is carried with the volume, but not used in any internal calculations.
+
+
+</UL>
+
+
+
+
+
+<H3>Iterators</H3>
+ 
+
+
+
+
+<H3>ROI Functions</H3>
+ 
+
+
+
+
+<H3>Arithmetic Functions</H3>
+ 
+
+
+
+
+<H3>Other Functionality</H3>
+ 
+
+
+
+
+
+ <!-- J-Back -->
+
+
+
+<A NAME="section3"></A><HR><H2>VOLUME4D</H2>
+ 
+
+This is the basic 4D container class, which is built as an array of
+3D volumes.  Therefore, each individual volume has all the attributes
+described above.
+
+<H3>Constructors</H3>
+ 
+
+<UL>
+
+<LI><B><I></I> volume4D<FONT COLOR=BLUE>&lt;T&gt;</FONT></B>( )
+<BR>
+Creates an empty 4D volume, which allocates <B>no</B> data 
+storage.
+
+</UL>
+
+
+
+
+
+<H3>Data Access</H3>
+ 
+
+
+
+
+<H3>Basic Properties</H3>
+ 
+
+
+
+
+<H3>Lazily Evaluated Properties</H3>
+ 
+
+
+
+
+<H3>Iterators</H3>
+ 
+
+
+
+
+<H3>Other Functionality</H3>
+ 
+
+
+
+
+
+ <!-- J-Back -->
+
+
+
+<A NAME="section4"></A><HR><H2>FILE I/O</H2>
+ 
+
+
+ <!-- J-Back -->
+
+
+
+<A NAME="section5"></A><HR><H2>FUNCTIONS</H2>
+ 
+
+
+ <!-- J-Back -->
+
+
+
+   <HR>
+  <!-- No Footnotes -->
+  <H4>Mark Jenkinson  <BR><BR>Copyright &copy; 2000, University of Oxford</H4><BR>
+</BODY></HTML>

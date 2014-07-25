@@ -1,0 +1,88 @@
+#!/bin/sh
+
+QueueName=long.q
+UserName=`whoami`
+
+usage  ()
+{
+if [ x$1 = xShowVersion ] ; then
+  echo "V1.0beta parallel qsub wrapper for Sun Grid Engine\n"
+fi
+
+  cat <<EOF
+Usage: pbatch [-v] [-h] [-q <queuename>] [-N <jobname>] <control-file>
+
+pbatch -q short.q tasklist.txt 
+
+  -q <queuename>        Possible values for <queuename> are "long.q" and "short.q"
+                        for jobs under 2 hours duration. Default is "long.q".
+  -a <arch-name>        Architecture [darwin only at present]
+  -N <jobname>          The string <jobname> will be used for the output files
+                        and the job name in qstat output.
+  -j <jid>		Job hold. Run this job after <jid> has completed.
+  -h			Display this help text.
+  -v                    Verbose mode.
+  <control-file>        The list of commands, one per line, to be run in parallel
+EOF
+}
+
+JobName=pbatch
+
+nargs=$#
+if [ $nargs -eq 0 ] ; then
+  echo "What? Not even a control file!"
+fi
+
+set -- `getopt a:q:N:j:hv $*`
+result=$?
+if [ $result != 0 ] ; then
+  echo "What? Your arguments make no sense!"
+fi
+
+if [ $nargs -eq 0 ] || [ $result != 0 ] ; then
+  usage
+  exit 1
+fi
+while [ $1 != -- ] ; do
+  case $1 in
+    -q)
+      QueueName=$2
+      shift;;
+    -a)
+      Arch="-l arch=$2"
+      shift;;
+    -N)
+      JobName=$2
+      shift;;
+    -j)
+      JobHold="-hold_jid $2"
+      shift;;
+    -v)
+      Verbose=1
+      ;;
+    -h)
+      usage ShowVersion
+      exit 1
+  esac
+  shift  # next flag
+done
+
+shift
+ControlFile=$1
+
+NJobs=`cat $ControlFile | wc -l | awk '{print $1}'`
+
+BaseCommand="qsub -t 1-${NJobs} -M $UserName@fmrib.ox.ac.uk"
+
+$BaseCommand -q $QueueName -N $JobName $JobHold $Arch <<EOF | awk '{print $3}' | awk -F. '{print $1}'
+#!/bin/sh
+
+#$ -cwd -q $QueueName
+#$ -S /bin/sh
+#$ -V -N $JobName
+#$ -m a
+
+command=\`sed -n -e "\${SGE_TASK_ID}p" $ControlFile\`
+
+exec /bin/sh -c "\$command"
+EOF

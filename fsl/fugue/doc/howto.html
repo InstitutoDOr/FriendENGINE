@@ -1,0 +1,308 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+Registration &amp; Unwarping
+</H1>
+Registration of EPI and Structural Images (with undistortion)
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<!-- No Table of Contents -->
+
+<A NAME="section1"></A><H2>INTRODUCTION</H2>
+ 
+This page aims to explain how to get a good registration between
+EPI and structural images using FLIRT, PRELUDE and FUGUE.  It
+covers both the acquisitions and the analysis steps required and
+also includes details on how to deal with partial brain 
+(partial field of view) acquisitions.
+
+<P>
+
+It is important to understand that EPI registration is difficult
+because of signal loss and geometric distortion in the images.
+In addition, partial brain registration is difficult
+not only for EPI but for <i>any</i> images, and so is particularly
+difficult in the case of EPI.
+
+ <!-- J-Back -->
+
+
+
+<A NAME="section2"></A><HR><H2>ACQUISITION</H2>
+ 
+<b>Case 1:</b> Whole brain imaging
+
+<p>
+In this kind of experiment the following should be collected:
+<ul>
+<li> Structural image (T1-weighted, MP-RAGE, T2-weighted, etc)
+<li> Functional series (EPI)
+<li> One single fieldmap image - with same slices as the EPI images 
+(easiest to have
+the same field of view and voxel sizes as the EPI)
+</ul>
+
+Note that at FMRIB we normally acquire spin-echo fieldmaps, although
+a good gradient-echo sequence can produce good fieldmaps as well.
+However, EPI-based fieldmaps are quite poor and should not be used.
+
+<p>
+
+<b>Case 2:</b> Partial brain imaging
+
+<p>
+In this kind of experiment the following should be collected:
+<ul>
+<li> Structural image (T1-weighted, MP-RAGE, T2-weighted, etc)
+<li> Functional series (EPI - partial brain)
+<li> One single whole brain EPI image (<b>must</b> include the same
+slices as the partial brain EPIs, in addition to extra slices that
+enlarge the coverage to the whole brain)
+<li> One single whole brain fieldmap - with same slices as the whole brain
+EPI image (easiest to have the same field of view and voxel sizes as the EPI)
+<li> <i>Optional:</i> one single partial brain fieldmap (same imaging
+slices and dimensions as the partial brain EPIs)
+</ul>
+
+ <!-- J-Back -->
+
+
+<A NAME="section3"></A><HR><H2>Analysis Sequence</H2>
+
+There are several analysis stages required to get the best
+registration results with linear registration plus undistortion.
+The key stages undistort the EPI and then register the undistorted
+EPI with the structural image.  However, before this can be done
+the fieldmap and EPI must also be registered.
+
+<p>
+
+<b>Case 1:</b> Whole brain imaging
+
+<p>
+Initial processing of the fieldmap acquisition
+<br>1 - generate the magnitude (absolute) fieldmap image - which is undistorted 
+(using FSLCOMPLEX).
+<br>2 - remove non-brain structures from the magnitude fieldmap image (using BET)
+	and save the mask used
+<br>3 - run PRELUDE on the initial fieldmap acquisition
+<br>4 - save a (true) fieldmap using FUGUE
+
+<p>
+Register the fieldmap to the EPI (i.e. <tt>example_func</tt>)
+<br>5 - distort the magnitude fieldmap image to match the EPI (using FUGUE).
+<br>6 - register the distorted magnitude fieldmap image to the EPI (using FLIRT with 6 dof).
+<br>7 - resample the fieldmap to the EPI (using ApplyXFM or FLIRT)
+
+<p>
+Undistort the EPI
+<br>8 - use the registered fieldmap to undistort the EPI (using FUGUE)
+
+<p>
+Register the EPI and structural
+<br>9 - register the undistorted EPI to the structural image (using FLIRT with 
+6 or 7 dof)
+<br> &nbsp; &nbsp; &nbsp; NB: make sure the transformation matrix is saved
+
+<p>
+Apply the registration and undistortion to any stats images
+<br>10 - undistort each statistical image as was done for the EPI (using FUGUE)
+<br>11 - apply the transformation from above to the undistorted statistical
+	images to get them in structural space (using FLIRT or ApplyXFM)
+
+
+<p> &nbsp; <p>
+<b>Case 2:</b> Partial brain imaging
+
+<p>
+Most of the steps above still need to be done, where the EPI refers
+to the whole brain EPI.  However, some modifications are necessary.
+
+<p>
+<i>Additional steps required:</i>
+<p>
+Register the partial brain EPI to the whole brain EPI
+<br>7a - register the distorted partial brain EPI to the distorted whole brain
+	EPI using a translation-only registration (via a FLIRT schedule file)
+<br>7b - combine the registration with the whole brain EPI to fieldmap
+	registration to get the partial brain EPI registered with the fieldmap
+	(via ConcatXFM or convert_xfm)
+<br>7c - resample the fieldmap to generate an appropriate partial brain fieldmap
+	(FLIRT)
+<br>7d - undistort the partial brain EPI using the fieldmap from 7c (FUGUE)
+
+<p>
+<i> And in replacement of the above:</i>
+<p>
+Apply registration and undistortion to any stats images
+<br>10 - combine the registration from the partial EPI to the whole EPI with
+	that from the whole EPI to the structural (ConcatXFM or convert_xfm)
+<br>11 - apply the transformation to the partial EPI, producing a resulting
+image of it in structural space (and check this visually)
+<br>12 - undistort each statistical image using the partial brain fieldmap (generated in step 7c) with FUGUE
+<br>13 - apply the combined transformation to the undistorted statistical
+	images to get them in structural space (using FLIRT or ApplyXFM)
+
+
+<p> &nbsp; <p>
+<b>Notes for using FEAT</b>
+
+<p>
+It is suggested that the following procedure be used when modifying FEAT
+directories to take account of undistortion:
+<br>A - in your .feat/stats directory, make a new subdirectory called "distorted"
+	and copy all the files into that subdirectory.
+<br>B - undistort all the files in the <tt>.feat/stats</tt> directory (do not touch
+	the ones in <tt>.feat/stats/distorted</tt> as these are your originals).
+<br>C - in the <tt>.feat/reg</tt> directory, replace the <tt>example_func2highres.mat</tt>
+	and <tt>example_func2initial_highres.mat</tt> (if it exists).
+<br>D - Also replace the <tt>example_func</tt> and 
+	<tt>initial_highres</tt> images with the undistorted EPIs.
+<br>E - Then regenerate all the appropriate matrices and images for the
+	FEAT report page.  This can be done using the script <tt>updatefeatreg</tt>
+
+
+<p>
+Note that the coordinates in the first level FEAT report are
+<i>not</i> corrected using this method.  However, all images will be
+corrected, as will subsequent higher level analyses.
+
+ <!-- J-Back -->
+
+<A NAME="section4"></A><HR><H2>Checking the Results</H2>
+
+It is very important to check that the individual analysis stages
+are working well.  Since undistortion is most important in cases
+where images are significantly distorted then it is easy for
+some of the registration stages to have problems and so careful
+monitoring is essential.
+
+<p>
+Here is a checklist of some things to examine (in fslview):
+<ul>
+<li> <b> undistorted EPI (fugue output) vs magnitude (absolute) fieldmap image </b>
+  <br> these images should be well registered (although some signal loss
+	will be present in the EPI)
+<li> <b> undistorted EPI vs distorted (original) EPI </b>
+  <br> check that the undistorted EPI really does look less distorted and
+        that there are not large amounts of artifactual non-brain structures
+<li> <b> undistorted EPI vs structural image </b>
+  <br> these images should be well registered (although some signal loss
+	and possible extra-brain structures will appear in the EPI)
+<li> <b> undistorted partial brain EPI vs undistorted whole brain EPI</b>
+  <br> although these images are not registered it should be possible to
+	find corresponding slices in separate FSLView windows and visually
+	compare that the undistortion is equivalent
+</ul>
+
+ <!-- J-Back -->
+
+<A NAME="section5"></A><HR><H2>Troubleshooting</H2>
+
+Some common problems that occur are:
+
+<ul>
+<li> Extraneous non-brain material generated
+<p> <b>Solution:</b> try using a different mask in the PRELUDE
+stages (a default one is always used but it can be poor sometimes, and
+the BET mask used in the examples below might also be suboptimal).
+<li> "Undistorted" image is worse than original
+<p> <b>Solution:</b> try changing the unwarping direction in FUGUE
+as the default is sometimes wrong.  Firstly, try 
+<tt>--unwarpdir=y-</tt> which uses the same axis 
+but applies the correction in the opposite sense.  If this is still
+wrong, or the axis of the distortion is clearly different then
+try the <tt>--unwarpdir=</tt> option with either <tt>x, x-, z, z-</tt>.
+
+</ul>
+
+ <!-- J-Back -->
+
+<A NAME="section6"></A><HR><H2>Examples</H2>
+
+<b>Case 1:</b> Whole brain imaging
+
+<p>
+Let the acquired images be: <tt>b0map, epi_series, t1struct</tt>
+<br>The required steps are as follows:
+
+<p> Preliminary Steps
+<ul>
+<li> <tt>extractfidparams epi_series.fid > dwell_time.txt</tt>
+<br> to see the dwell time do <tt> cat dwell_time.txt</tt>
+<br> from here on I will use the value of 0.000737 but you should
+use the value stored here instead
+<li> <tt>extractfidparams b0map.fid > asym_time.txt</tt>
+<br> to see the asym time do <tt> cat dwell_time.txt</tt>
+<br> from here on I will use the value of 0.0025 but you should
+use the value stored here instead
+<li> Run LoadVarian on all images
+<li> <tt>fslroi epi_series example_func 90 1</tt>
+<br> NB: the 90 here is only an example, it should be half the number of timepoints in the epi_series
+</ul>
+
+<p>Main Steps
+<br>
+<br> 1. &nbsp; <tt>fslcomplex -realabs b0map b0map_abs</tt>
+<br> 2. &nbsp; <tt>bet b0map_abs b0map_abs -m</tt>
+<br> 3. &nbsp; <tt>prelude -c b0map -u phase_unw -m b0map_abs_mask</tt>
+<br> 4. &nbsp; <tt>fugue -s 0.5 -p phase_unw --dwell=0.000737 --asym=0.0025 --savefmap=fmap</tt>
+<br> 5. &nbsp; <tt>fugue --loadfmap=fmap --dwell=0.000737 --asym=0.0025 -i b0map_abs -w b0map_abs_distorted</tt>
+<br> 6. &nbsp; <tt>flirt -in b0map_abs_distorted -ref example_func -dof 6 -omat b0map2epi.mat -out b0map2epi</tt>
+<br> 7. &nbsp; <tt>flirt -in fmap -ref example_func -init b0map2epi.mat -applyxfm -out fmap2epi</tt>
+<br> 8. &nbsp; <tt>fugue --loadfmap=fmap2epi --dwell=0.000737 --asym=0.0025 -i example_func -u example_func_undist</tt>
+<br> 9. &nbsp; <tt>flirt -in example_func_undist -ref t1struct -dof 7 -omat epi2struct.mat -out epi2struct</tt>
+<br> 10. &nbsp; <tt>fugue --loadfmap=fmap2epi --dwell=0.000737 --asym=0.0025 -i thresh_zstat1 -u thresh_zstat1_undist</tt>
+<br> 11. &nbsp; <tt>flirt -in thresh_zstat1 -ref t1struct -init epi2struct.mat -applyxfm -out thresh_zstat12struct</tt>
+
+
+<p> <center><hr width="80%"></center> <p>
+<b>Case 2:</b> Partial brain imaging
+
+<p>
+Let the acquired images be: <tt>b0map, epi_series, t1struct, whole_brain_epi</tt>
+<br>The required steps are as follows:
+
+<p> Preliminary Steps
+<ul>
+<li> <tt>extractfidparams epi_series.fid > dwell_time.txt</tt>
+<li> to see the dwell time do <tt> cat dwell_time.txt</tt>
+<li> from here on I will use the value of 0.000737 but you should
+use the value stored here instead
+<li> <tt>extractfidparams b0map.fid > asym_time.txt</tt>
+<li> to see the asym time do <tt> cat dwell_time.txt</tt>
+<li> from here on I will use the value of 0.0025 but you should
+use the value stored here instead
+<li> Run LoadVarian on all images
+<li> <tt>fslroi epi_series example_func 90 1</tt>
+<li> NB: the 90 here is only an example, it should be half the number of timepoints in the epi_series
+</ul>
+
+<p>Main Steps
+<br>
+<br> 1. &nbsp; <tt>fslcomplex -realabs b0map b0map_abs</tt>
+<br> 2. &nbsp; <tt>bet b0map_abs b0map_abs -m</tt>
+<br> 3. &nbsp; <tt>prelude -c b0map -u phase_unw -m b0map_abs_mask</tt>
+<br> 4. &nbsp; <tt>fugue -s 0.5 -p phase_unw --dwell=0.000737 --asym=0.0025 --savefmap=fmap</tt>
+<br> 5. &nbsp; <tt>fugue --loadfmap=fmap --dwell=0.000737 --asym=0.0025 -i b0map_abs -w b0map_abs_distorted</tt>
+<br> 6. &nbsp; <tt>flirt -in b0map_abs_distorted -ref whole_brain_epi -dof 6 -omat b0map2epi.mat -out b0map2epi</tt>
+<br> 7. &nbsp; <tt>flirt -in fmap -ref whole_brain_epi -init b0map2epi.mat -applyxfm -out fmap2epi</tt>
+<br> 7a. &nbsp; <tt>flirt -in example_func -ref whole_brain_epi -schedule $FSLDIR/etc/flirtsch/sch3Dtrans_3dof -omat example_func2whole_brain_epi.mat -out example_func2whole_brain_epi</tt>
+<br> 7b. &nbsp; <tt>convert_xfm -omat example_func2b0map.mat -concat b0map2epi.mat example_func2whole_brain_epi.mat</tt>
+<br> 7b. &nbsp; <tt>convert_xfm -omat b0map2example_func.mat -inverse example_func2b0map.mat</tt>
+<br> 7c. &nbsp; <tt>flirt -in fmap -ref example_func -init b0map2example_func.mat -applyxfm -out fmap2example_func</tt>
+<br> 7d. &nbsp; <tt>fugue --loadfmap=fmap2example_func --dwell=0.000737 --asym=0.0025 -i example_func -u example_func_undist</tt>
+<br> 8. &nbsp; <tt>fugue --loadfmap=fmap2epi --dwell=0.000737 --asym=0.0025 -i whole_brain_epi -u whole_brain_epi_undist</tt>
+<br> 9. &nbsp; <tt>flirt -in whole_brain_epi_undist -ref t1struct -dof 7 -omat epi2struct.mat -out epi2struct</tt>
+<br> 10. &nbsp; <tt>convert_xfm -omat example_func2struct.mat -concat epi2struct.mat example_func2whole_brain_epi.mat</tt>
+<br> 11. &nbsp; <tt>flirt -in example_func -ref t1struct -init example_func2struct.mat -applyxfm -out example_func2struct</tt>
+<br> 12. &nbsp; <tt>fugue --loadfmap=fmap2example_func --dwell=0.000737 --asym=0.0025 -i thresh_zstat1 -u thresh_zstat1_undist</tt>
+<br> 13. &nbsp; <tt>flirt -in thresh_zstat1 -ref t1struct -init example_func2struct.mat -applyxfm -out thresh_zstat12struct</tt>
+
+
+
+
+ <!-- J-Back -->
+
+   <HR>
+  <!-- No Footnotes -->
+  <H4>Mark Jenkinson  <BR><BR>Copyright &copy; 2001-2004, University of Oxford</H4><BR>
+</BODY></HTML>

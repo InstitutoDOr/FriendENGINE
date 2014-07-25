@@ -1,0 +1,303 @@
+<usrguide name="NEWIMAGE Reference Guide" section="l" rootdir="../" author="Mark Jenkinson" 
+year="2000">
+
+<p>
+This document describes the two templated container classes
+(<function>volume</function> and <function>volume4D</function>) in
+NEWIMAGE.  In addition, it describes the general functions supporting them, 
+including file I/O operations, in AVW format.
+</p>
+
+<p>
+Both classes are templated by a single basic type <tag>T</tag>.
+As the classes are precompiled into the library, only certain
+types are available.  Currently, these are: <type>char,
+short, int, float, double</type>.
+</p>
+
+
+<section title="Header Files">
+Both classes can be used by using the following line:
+<break></break>
+<pre>
+#include "newimage.h"
+</pre>
+and all classes are contained in the namespace: NEWIMAGE
+
+</section>
+
+
+<section title="Volume">
+
+This is the basic 3D container class.
+
+<subsection title="Constructors">
+
+<itemize>
+<item><function>volume<tag>T</tag></function>( )
+<break></break>Creates an empty volume, which allocates <em>no</em> data 
+storage.</item>
+<item><function>volume<tag>T</tag></function>(<param-in type="int">xsize</param-in>, <param-in type="int">ysize</param-in>, <param-in type="int">zsize</param-in>)
+<break></break>Creates a volume of specified size (number of voxels in each dimension), allocating the required amount of data storage.</item>
+<item><function>volume<tag>T</tag></function>(<param-in type="int">xsize</param-in>, <param-in type="int">ysize</param-in>, <param-in type="int">zsize</param-in>, <param-in type="T*">d</param-in>, <param-in type="bool">d_owner</param-in>)
+<break></break>Creates a volume of specified size, but using the data block
+pointed to by <param-in>d</param-in>.  The final argument <param-in>d_owner</param-in> specifies whether the volume should take over ownership of this data block.  That is, whether the volume will free up the memory allocation (using delete[]) when the destructor is called.</item>
+<item><function>volume<tag>T</tag></function>(<param-in type="volume T and ">source</param-in>)
+<break></break>Basic copy constructor.</item>
+</itemize>
+
+Note that none of the constructors described above initialize the data values.
+To do this the assignment operator should be used.
+
+</subsection>
+
+<subsection title="Data Access">
+
+<itemize>
+<item><function type="T&amp;">operator()</function>(<param-in type="int">x</param-in>, <param-in type="int">y</param-in>, <param-in type="int">z</param-in>)
+<break></break>Returns a reference to data value at position (x,y,z), with bounds checking/extrapolation.</item>
+<item><function type="T&amp;">value</function>(<param-in type="int">x</param-in>, <param-in type="int">y</param-in>, <param-in type="int">z</param-in>)
+<break></break>Returns a reference to data value at position (x,y,z) without any bounds checking or extrapolation.</item>
+</itemize>
+
+Note that both <param-in>const</param-in> and non-<param-in>const</param-in> 
+versions of the above access operators exist.
+
+The first form <function>operator()</function> is the most general form, and
+should be used initially when coding.  The second form <function>value</function> is the fastest, most basic access routine and should be used when speed is
+a priority.
+
+<p>
+Related functions:
+</p>
+<itemize>
+<item><function type="bool">in_bounds</function>(<param-in type="int">x</param-in>, <param-in type="int">y</param-in>, <param-in type="int">z</param-in>) const
+<break></break>Determines whether the specified position is within the current
+image bounds.  Note that it uses the ROI if it is active.
+</item>
+<item><function type="void">setextrapolation</function>(<param-in type="extrapolation">extrapmethod</param-in>) const
+<break></break>Sets the type of extrapolation to be performed.  Can taken any of the following values (from the enumerated type <type>extrapolation</type>):
+<break></break><type>zeropad, constpad, extraslice, mirror, periodic, boundsassert, boundsexception</type>
+</item>
+<item><function type="extrapolation">getextrapolationmethod</function>() const
+<break></break>Returns the extrapolation method that is currently set.
+</item>
+<item>
+<function type="void">setpadvalue</function>(<param-in type="T">padval</param-in>) const
+<break></break>Sets the pad value to be used in the <type>constpad</type> and <type>extraslice</type> extrapolation methods.
+</item>
+<item>
+<function type="T">getpadvalue</function>() const
+<break></break>Returns the pad value that is currently set.
+</item>
+</itemize>
+
+</subsection>
+
+<subsection title="Basic Properties">
+
+<itemize>
+<item>
+<function type="int">xsize</function>() const
+<break></break>Returns the number of voxels in the x dimension.
+</item>
+<item>
+<function type="int">ysize</function>() const
+<break></break>Returns the number of voxels in the y dimension.
+</item>
+<item>
+<function type="int">zsize</function>() const
+<break></break>Returns the number of voxels in the z dimension.
+</item>
+<item>
+<function type="float">xdim</function>() const
+<break></break>Returns the length of a voxel in the x dimension (in mm).
+</item>
+<item>
+<function type="float">ydim</function>() const
+<break></break>Returns the length of a voxel in the y dimension (in mm).
+</item>
+<item>
+<function type="float">zdim</function>() const
+<break></break>Returns the length of a voxel in the z dimension (in mm).
+</item>
+<item>
+<function type="int">xsign</function>() const
+<break></break>Returns the sign of the length of a voxel in the x dimension (+1 or -1) - here to support negative voxel lengths.
+</item>
+<item>
+<function type="int">ysign</function>() const
+<break></break>Returns the sign of the length of a voxel in the y dimension (+1 or -1) - here to support negative voxel lengths.
+</item>
+<item>
+<function type="int">zsign</function>() const
+<break></break>Returns the sign of the length of a voxel in the z dimension (+1 or -1) - here to support negative voxel lengths.
+</item>
+<item>
+<function type="void">setxdim</function>(<param-in type="float">x</param-in>)
+<break></break>Sets the length of a voxel in the x dimension.
+</item>
+<item>
+<function type="void">setydim</function>(<param-in type="float">y</param-in>)
+<break></break>Sets the length of a voxel in the y dimension.
+</item>
+<item>
+<function type="void">setzdim</function>(<param-in type="float">z</param-in>)
+<break></break>Sets the length of a voxel in the z dimension.
+</item>
+<item>
+<function type="void">setdims</function>(<param-in type="float">x</param-in>, <param-in type="float">y</param-in>, <param-in type="float">z</param-in>)
+<break></break>Sets all voxel length dimensions at once.
+</item>
+<item>
+<function type="int">nvoxels</function>() const
+<break></break>Returns the number of voxels in the current ROI.
+</item>
+</itemize>
+
+</subsection>
+
+<subsection title="Lazily Evaluated Properties">
+
+<itemize>
+<item>
+<function type="T">min</function>() const
+<break></break>Returns the minimum voxel value in the current ROI.
+</item>
+<item>
+<function type="T">max</function>() const
+<break></break>Returns the maximum voxel value in the current ROI.
+</item>
+<item>
+<function type="float">sum</function>() const
+<break></break>Returns the sum of all voxel values in the current ROI.
+</item>
+<item>
+<function type="float">sumsquares</function>() const
+<break></break>Returns the sum of all squared voxel values in the current ROI.
+</item>
+<item>
+<function type="float">mean</function>() const
+<break></break>Returns the mean of all the voxel values in the current ROI.
+</item>
+<item>
+<function type="float">variance</function>() const
+<break></break>Returns the variance of all the voxel values in the current ROI.
+</item>
+<item>
+<function type="float">stddev</function>() const
+<break></break>Returns the square root of the variance.
+</item>
+<item>
+<function type="ColumnVector">cog</function>() const
+<break></break>Returns the Centre of Gravity of the volume (using current ROI).  Note that the result is in <em>world</em> coordinates.
+</item>
+<item>
+<function type="ColumnVector">principleaxis</function>(<param-in type="int">n</param-in>) const
+<break></break>Returns the nth principle axis (using current ROI).  Note that
+the result is in <em>world</em> coordinates.
+</item>
+<item>
+<function type="T">backgroundval</function>() const
+<break></break>Returns a robust estimate of the background value,
+using the 10th percentile of the voxel values in a thin strip around
+the edge of the total volume (ignores the ROI).
+</item>
+
+</itemize>
+
+</subsection>
+
+<subsection title="Secondary Properties">
+
+<itemize>
+<item>
+<function type="Matrix">sampling_mat</function>() const
+<break></break>Returns the sampling matrix required to convert voxel
+coordinates to world coordinates (in mm) - note that this ignores origin settins.
+</item>
+<item>
+<function type="ColumnVector&amp;">getorigin</function>() const
+<break></break>Returns the origin as previously set by the user.
+</item>
+<item>
+<function type="void">setorigin</function>(<param-in type="const ColumnVector&amp;">orig</param-in>) const
+<break></break>Allows the user to set an origin that is carried with the volume, but not used in any internal calculations.
+</item>
+<item>
+<function type="void">setorigin</function>(<param-in type="float">x</param-in>, <param-in type="float">y</param-in>, <param-in type="float">z</param-in>) const
+<break></break>Allows the user to set an origin that is carried with the volume, but not used in any internal calculations.
+</item>
+</itemize>
+
+</subsection>
+
+<subsection title="Iterators">
+
+</subsection>
+
+<subsection title="ROI Functions">
+
+</subsection>
+
+<subsection title="Arithmetic Functions">
+
+</subsection>
+
+<subsection title="Other Functionality">
+
+</subsection>
+
+</section>
+
+
+<section title="Volume4D">
+
+This is the basic 4D container class, which is built as an array of
+3D volumes.  Therefore, each individual volume has all the attributes
+described above.
+
+<subsection title="Constructors">
+
+<itemize>
+<item><function>volume4D<tag>T</tag></function>( )
+<break></break>Creates an empty 4D volume, which allocates <em>no</em> data 
+storage.</item>
+</itemize>
+
+</subsection>
+
+<subsection title="Data Access">
+
+</subsection>
+
+<subsection title="Basic Properties">
+
+</subsection>
+
+<subsection title="Lazily Evaluated Properties">
+
+</subsection>
+
+<subsection title="Iterators">
+
+</subsection>
+
+<subsection title="Other Functionality">
+
+</subsection>
+
+</section>
+
+
+<section title="File I/O">
+
+</section>
+
+
+<section title="Functions">
+
+</section>
+
+
+</usrguide>

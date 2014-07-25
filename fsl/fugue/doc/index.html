@@ -1,0 +1,241 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FUGUE DOCS</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+<STYLE TYPE="text/css">BODY { background-image: url("../images/fugue-bg.jpg") }</STYLE>
+FUGUE EPI Unwarping
+</H1>
+FMRIB's Utility for Geometrically Unwarping EPIs - v2.5 (in d minor)
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<!-- No Table of Contents -->
+
+<A NAME="section1"></A><H2>INTRODUCTION</H2>
+
+Standard functional images, using the EPI sequence, are distorted
+due to magnetic field inhomogeneities.  These inhomogeneities are
+caused by magnetic susceptibility differences in neighbouring tissues
+within the head - particularly for air/bone or air/tissue interfaces
+in the sinuses.  Consequently, the functional (EPI) images suffer
+from geometrical distortion and signal loss, particularly in the
+inferior frontal and temporal regions.
+
+<p>
+It is possible to measure the field inhomogeneities with a fieldmap
+sequence, use the measured field values to calculate the geometric
+distortion and signal loss, and then use the calculated information to
+compensate for these artefacts. Compensating for these artefacts is
+done by geometrically unwarping the EPI images and by applying
+cost-function masking in registrations to ignore areas of signal loss.
+<i>Note that areas where signal loss has occurred <b>cannot</b> be restored
+with <b>any</b> form of post-processing, as the signal has been lost - only
+different acquisition techniques can restore signal in these areas.</i>
+
+<p>
+Furthermore, there are two situations where dealing with these
+distortions: (1) for correcting motion-dependent changes; and (2) for
+registration with non-distorted images (e.g. structurals).  With
+FUGUE, <i>only</i> the second case is dealt with.  The issue of
+motion-dependent signal changes (due to motion-dependent changes in
+field inhomogeneity and distortion directions) is <i>not</i> dealt
+with in the current version.
+
+<H3>Fieldmap Acquisition</H3>
+
+<br>
+Unfortunately, there is no standard sequence for fieldmap acquisitions
+and different scanners return different images.  Normally these
+images require processing before they represent images with field values 
+in the desired units (of radians/second) in each voxel.
+
+<p>
+The most common sequence acquires two images with different echo
+times.  The change in MR phase from one image to the other is
+proportional to both the field inhomogeneity in that voxel and the
+echo time difference.  The field value is therefore given by the
+difference in phase between these two images divided by the echo time
+difference.  This is true for Spin Echo, Gradient Echo or EPI
+sequences.  However, EPI-based fieldmaps suffer from the same
+distortions (more or less) as the functional images, while Spin Echo
+or Gradient Echo based fieldmap images do not.  Within FSL
+you <b>cannot use EPI-based fieldmaps</b> with the standard
+processing, and their use in general is very problematic.  We strongly
+recommend that Spin Echo or Gradient Echo fieldmap sequences are used
+to acquire the images.
+
+<p>
+MR phase is the most important quantity in a fieldmap sequence,
+whereas in normal imaging this phase is not of interest and is
+normally not saved when reconstructing the images.  As a consequence,
+raw fieldmap scans are somewhat different from most scans, and may
+contain images of complex values, or separate phase and magnitude
+images.  Furthermore, some scanners/sites may do the full
+reconstruction of acquired scans to yield a real-valued map of field
+inhomogeneities (in units of Hz, radians per second, Tesla or ppm).
+Alternatively no reconstruction may be done, and the raw phase and
+magnitude (or complex) images may be saved instead.  It is important
+for each different scanner/site/sequence to know what form your data
+is in.  If they have been converted to NIFTI or ANALYZE format, then
+you can use the FSL tools (particularly <code>fslinfo</code>) to
+determine the types of images present.  To obtain fieldmaps that can
+be used within FSL using the FSL tools (in particular, PRELUDE and
+FUGUE), please refer to the page on
+<a href="feat_fieldmap.html">preparing fieldmaps for FEAT</a>.
+
+<H3>GUI and command line software</H3>
+
+<br>  A GUI
+interface exists for applying FUGUE to unwarp images as part of the
+FEAT preprocessing options.  We strongly recommend using the pre-stats
+part of FEAT to do all such processing (note that it is not necessary to
+have fMRI data for this - even single volumes can be processed in FEAT
+by selecting pre-stats only).  See the detailed documentation on <a
+href="../feat5/detail.html">FEAT</a> and documentation on using
+PRELUDE/FUGUE for <a href="feat_fieldmap.html">preparing fieldmaps for
+FEAT</a>. 
+
+<P>
+The rest of this document gives a brief description of the
+individual command line programs available in the FUGUE component of
+FSL - used for unwarping geometric distortion in EPI images. 
+For each of the programs described here, a full list of available options
+can be obtained by running the command with the <FONT COLOR=PURPLE>-h</FONT> 
+option.
+
+<P>
+Note that for all programs the options follow the normal convention that
+"single minus" options are separated by a space from their arguments (if any)
+whilst "double minus" options are separated by an equals sign and no space.
+For example, <br>
+<FONT COLOR=PURPLE>prelude -c data --unwrap=result</FONT>
+<br> or <br>
+<FONT COLOR=PURPLE>prelude --complex=data -u result</FONT>
+<br>
+
+ <!-- J-Back -->
+
+
+
+<A NAME="section2"></A><HR><H2>PRELUDE</H2>
+ 
+<I>prelude</I> (Phase Region Expanding Labeller for Unwrapping
+Discrete Estimates) performs 3D phase unwrapping of images.  The input
+can either be a single complex image (Analyze or Nifti), or a pair of
+real images giving the phase and absolute values separately.  Also
+see <a href="../../avwutils/doc/index.html#fslcomplex">fslcomplex</a>
+for ways to manipulate complex image formats.
+
+<p>
+If the images are 4D images, then each 3D volume is unwrapped
+separately, and the result saved as a 4D image of unwrapped phase
+images.  The output in either case is a real, unwrapped phase image
+(in radians).
+
+<p>
+For higher resolution images (e.g. for SWI) a mask should be used in
+order to reduce run-times since any areas that include noisy voxels
+will significantly increase the required run-time.  The best way to
+generate a mask is by running BET to perform brain extraction on the
+absolute image.
+
+<P>
+The three main forms of usage are:
+<dl>
+<dt> <FONT COLOR=PURPLE>prelude -c data -u result</FONT>  </dt>
+<dd> uses a single complex input file </dd>
+<dt> <FONT COLOR=PURPLE>prelude -a data_abs -p data_phase -u result</FONT> </dt>
+<dd> uses separate phase and absolute input files </dd>
+<dt> <FONT COLOR=PURPLE>prelude -a data_abs -p data_phase -u result -m mask</FONT> </dt>
+<dd> uses separate phase and absolute input files with a mask </dd>
+</dl>
+
+<P>
+Additional options that are useful are:
+<dl>
+<dt> <FONT COLOR=PURPLE>-m mask</FONT> </dt> 
+<dd>uses the user defined mask </dd>
+<dt> <FONT COLOR=PURPLE>-n num</FONT> </dt> 
+<dd>specifies the number of phase partitions 
+the algorithm uses for labelling - a larger value is likely to be more
+robust but slower </dd>
+<dt> <FONT COLOR=PURPLE>-s</FONT> </dt> 
+<dd>unwrap in 2D, then stick slices together
+with appropriate offsets - this is less robust but fast - mainly used for
+very high-resolution images where speed is an issue </dd>
+<dt> <FONT COLOR=PURPLE>--labelslices</FONT> </dt> 
+<dd>does labelling in 2D, but
+unwrapping in 3D - the default for high-res images </dd>
+</dl>
+
+
+ <!-- J-Back -->
+
+
+
+<A NAME="section3"></A><HR><H2>FUGUE</H2>
+ 
+<I>fugue</I> (FMRIB's Utility for Geometrically Unwarping EPIs)
+performs unwarping of an EPI image based on fieldmap data.  The input
+required consists of the EPI image, the fieldmap (as an unwrapped
+phase map or a scaled fieldmap in rad/s) and appropriate image
+sequence parameters for the EPI and fieldmap acquisitions: the dwell time for EPI (also known as the echo spacing); and the echo time difference (called asym time herein). 
+
+<P>
+The main forms of usage are:
+<dl>
+<dt> <FONT COLOR=PURPLE>fugue -i epi -p unwrappedphase --dwell=dwelltime --asym=asymtime -s 0.5 -u result</FONT> </dt>  
+<dd>fieldmap specified by a 4D file unwrappedphase containing two unwrapped
+phase images - from different echo times - plus the 
+dwell time and echo time difference (asym time) </dd>
+<dt> <FONT COLOR=PURPLE>fugue -i epi --dwell=dwelltime --loadfmap=fieldmap -u result</FONT> </dt> 
+<dd>uses a previously calculated fieldmap </dd>
+</dl>
+
+<P>
+Note the option <FONT COLOR=PURPLE>-s 0.5</FONT> is an example of how
+to specify the regularisation to apply to the fieldmap (2D Gaussian
+smoothing of sigma=0.5 in this case which is a reasonable default).
+There are many different forms of regularisation available which can
+be applied separately or together.  These are:
+<dl>
+<dt> <FONT COLOR=PURPLE>-s sigma</FONT> </dt> 
+<dd>2D Gaussian smoothing </dd>
+<dt> <FONT COLOR=PURPLE>--smooth3=sigma</FONT> </dt> 
+<dd>3D Gaussian smoothing </dd>
+<dt> <FONT COLOR=PURPLE>-m</FONT> </dt> 
+<dd>2D median filtering </dd>
+<dt> <FONT COLOR=PURPLE>--poly=n</FONT> </dt> 
+<dd>3D Polynomial fitting of degree n </dd>
+<dt> <FONT COLOR=PURPLE>--fourier=n</FONT> </dt> 
+<dd>3D Sinusoidal fitting of degree n </dd>
+</dl>
+
+<P>
+Some other uses are:
+<dl>
+<dt> <FONT COLOR=PURPLE>fugue -i undistortedimage -p unwrappedphase  --dwell=dwelltime --asym=asymtime --nokspace -s 0.5 -w warpedimage</FONT> </dt> 
+<dd>applies the fieldmap as a forward warp, turning an undistorted image into a distorted one - useful for creating a registration target for the EPI from the undistorted absolute fieldmap image </dd>
+</dl>
+
+<P>
+Additional options that are useful are:
+<dl>
+<dt> <FONT COLOR=PURPLE>--mask=maskname</FONT> </dt> 
+<dd>uses a user-defined mask (called maskname) instead of deriving it from the phasemaps or fieldmaps</dd>
+<dt> <FONT COLOR=PURPLE>--unwarpdir=dir</FONT> </dt> 
+<dd>specifies the direction of
+the unwarping/warping - i.e. phase-encode direction - with<FONT COLOR=PURPLE> dir</FONT> being one of
+<FONT COLOR=PURPLE>x,y,z,x-,y-,z-</FONT> (default is y) </dd>
+<dt> <FONT COLOR=PURPLE>--phaseconj</FONT> </dt> 
+<dd>uses the phase conjugate correction method, rather than pixel shifts </dd>
+<dt> <FONT COLOR=PURPLE>--nokspace</FONT> </dt> 
+<dd>for forward warping (only) - uses an image-space method for forward warping
+</dd>
+<dt> <FONT COLOR=PURPLE>--icorr</FONT> </dt> 
+<dd>applies an intensity correction term
+when using the pixel shift method - often poorly conditioned for standard
+fieldmap acquisitions </dd>
+</dl>
+
+
+   <HR>
+  <!-- No Footnotes -->
+  <H4>Mark Jenkinson  <BR><BR>Copyright &copy; 2001-2008, University of Oxford</H4><BR>
+</BODY></HTML>

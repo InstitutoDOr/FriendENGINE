@@ -1,0 +1,14 @@
+#!/bin/sh
+
+Usage() {
+    echo "Usage: mccutup <feat_directory>"
+    exit 1
+}
+
+[ "$1" = "" ] && Usage
+
+cd $1/mc
+
+for i in 1 2 3 4 5 6 ; do
+	cat prefiltered_func_data_mcf.par | sed 's/  / /g' | cut -f $i -d " " > mc${i}.par
+done

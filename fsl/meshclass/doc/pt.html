@@ -1,0 +1,58 @@
+<html>
+
+<head>
+</head>
+
+<body>
+
+<title> Pt class </title>
+
+<h1 align="center">  Pt class </h1>
+<br>
+<a href="index.html">back to menu</a>
+<hr>
+<br><br>
+<strong>This class describes points in 3D and allows basics operations on them.</strong>
+<br>
+<br>
+class Pt {
+<br>
+<strong> public:</strong>
+<br>
+  &nbsp;Pt() : X(0), Y(0), Z(0){}; <font color="#FF0000"> default constructor</font>
+<br>
+  &nbsp;Pt(double x, double y, double z) : X(x), Y(y), Z(z){};<font color="#FF0000">constructor</font>
+<br>
+  &nbsp;Pt (<i>const</i> Pt& p) : X(p.X), Y(p.Y), Z(p.Z){};<font color="#FF0000">copy constructor</font>
+<br>
+  &nbsp;Pt operator =(<i>const</i> Pt& p);<font color="#FF0000">affectation operator</font>
+<br><br>
+<font color="#FF0000">coordinates</font>
+<br>
+  &nbsp;double X;
+<br>
+  &nbsp;double Y; 
+<br>
+  &nbsp;double Z;
+<br><br>  
+  &nbsp;inline void operator+=(<i>const</i> Pt p);<font color="#FF0000">add the coordinates of two points</font>
+<br>
+  &nbsp;inline void operator*=(<i>const</i> double d);<font color="#FF0000">multiply coordinates by d</font>
+<br>
+  &nbsp;inline void operator/=(<i>const</i> double d);<font color="#FF0000">divide coordinates by d - output an error if d = 0</font>
+<br>
+  &nbsp;inline bool operator==(<i>const</i> Pt &p) <i>const</i>;<font color="#FF0000">comparaison operator</font>
+<br>
+};
+<br>
+<i>const</i> Pt operator + (<i>const</i> Pt &p, <i>const</i> <a href="vec.html">Vec</a> &v);<font color="#FF0000">add a vector to a point</font>
+<br>
+<i>const</i> <a href="vec.html">Vec</a> operator-(<i>const</i> Pt &p1, <i>const</i> Pt &p2);<font color="#FF0000">gives the vector from p2 to p1</font>
+<br>
+<hr>
+<br>
+<a href="index.html">back to menu</a>
+</body>
+</html>
+
+

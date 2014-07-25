@@ -1,0 +1,580 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0B44B9BB-F9FB-45F3-99A0-2D21B0312231}</ProjectGuid>
+    <RootNamespace>fsl</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.21005.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <AdditionalIncludeDirectories>.\fslexec\fslexec;.;.\newmat;.\libprob;.\boost;.\niftiio;.\gd;.\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>.\gdlib\Release\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>g:\friend\fsl.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <LargeAddressAware />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>e:\desenv\0rodrigo\conquest\fsl;e:\desenv\0rodrigo\conquest\fsl\newmat;e:\desenv\0rodrigo\conquest\fsl\libprob;e:\desenv\0rodrigo\conquest\fsl\boost;e:\desenv\0rodrigo\conquest\fsl\niftiio;E:\desenv\0rodrigo\conquest\fsl\gd;E:\desenv\0rodrigo\conquest\fsl\zlib;e:\desenv\0rodrigo\conquest\fsl\fslexec\fslexec;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>E:\desenv\0rodrigo\conquest\fsl\gdlib\x64\debug\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>C:\Instituto\x64\Debug\fsl.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>.\fslexec\fslexec;.;.\newmat;.\libprob;.\boost;.\niftiio;.\gd;.\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <AdditionalOptions> /J</AdditionalOptions>
+      <OpenMPSupport>false</OpenMPSupport>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>.\gdlib\Release\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>e:\FRIEND\fsl.dll</OutputFile>
+      <Version>1.4</Version>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <OptimizeReferences />
+      <EnableCOMDATFolding />
+      <SupportUnloadOfDelayLoadedDLL>false</SupportUnloadOfDelayLoadedDLL>
+      <TargetMachine>NotSet</TargetMachine>
+      <CLRThreadAttribute>DefaultThreadingAttribute</CLRThreadAttribute>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>.\fslexec\fslexec;.;.\newmat;.\libprob;.\boost;.\niftiio;.\gd;.\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <OpenMPSupport>true</OpenMPSupport>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>.\gdlib\x64\Release\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>g:\friend\fsl64.dll</OutputFile>
+      <Version>1.0</Version>
+      <ManifestFile>$(IntDir)fsl.intermediate.manifest</ManifestFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <SupportUnloadOfDelayLoadedDLL>false</SupportUnloadOfDelayLoadedDLL>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="zlib\adler32.c" />
+    <ClCompile Include="fugue\applywarp.cc" />
+    <ClCompile Include="flirt\applyxfm4D.cc" />
+    <ClCompile Include="film\AutoCorrEstimator.cc" />
+    <ClCompile Include="flirt\avscale.cc" />
+    <ClCompile Include="newmat\bandmat.cpp" />
+    <ClCompile Include="miscmaths\base2z.cc" />
+    <ClCompile Include="basisfield\basisfield.cpp" />
+    <ClCompile Include="cprob\bdtr.c" />
+    <ClCompile Include="bet2\bet2.cc" />
+    <ClCompile Include="bet2\betsurf.cpp" />
+    <ClCompile Include="miscmaths\bfmatrix.cpp" />
+    <ClCompile Include="cprob\btdtr.c" />
+    <ClCompile Include="cprob\chdtr.c" />
+    <ClCompile Include="utils\check.cc" />
+    <ClCompile Include="newmat\cholesky.cpp" />
+    <ClCompile Include="cluster\cluster.cc" />
+    <ClCompile Include="newimage\complexvolume.cc" />
+    <ClCompile Include="cluster\connectedcomp.cc" />
+    <ClCompile Include="cprob\const.c" />
+    <ClCompile Include="film\contrast_mgr.cc" />
+    <ClCompile Include="film\ContrastMgr.cc" />
+    <ClCompile Include="film\ContrastMgrOptions.cc" />
+    <ClCompile Include="flirt\convert_xfm.cc" />
+    <ClCompile Include="fugue\convertwarp.cc" />
+    <ClCompile Include="newimage\costfns.cc" />
+    <ClCompile Include="zlib\crc32.c" />
+    <ClCompile Include="miscvis\create_lut.cc" />
+    <ClCompile Include="miscmaths\cspline.cc" />
+    <ClCompile Include="feat5\cutoffcalc.cc" />
+    <ClCompile Include="basisfield\dctfield.cpp" />
+    <ClCompile Include="zlib\deflate.c" />
+    <ClCompile Include="dirf.cpp" />
+    <ClCompile Include="dllmain.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
+    </ClCompile>
+    <ClCompile Include="cprob\drand.c" />
+    <ClCompile Include="newmat\evalue.cpp" />
+    <ClCompile Include="cprob\expx2.c" />
+    <ClCompile Include="miscmaths\f2z.cc" />
+    <ClCompile Include="fast4\fast_two.cc" />
+    <ClCompile Include="cprob\fdtr.c" />
+    <ClCompile Include="feat5\feat_model.cc" />
+    <ClCompile Include="feat5\featlib.cc" />
+    <ClCompile Include="newmat\fft.cpp" />
+    <ClCompile Include="film\film_gls.cc" />
+    <ClCompile Include="filmbabe\filmbabe.cc" />
+    <ClCompile Include="filmbabe\filmbabe_manager.cc" />
+    <ClCompile Include="filmbabe\filmbabe_vb_flobs.cc" />
+    <ClCompile Include="filmbabe\filmbabeoptions.cc" />
+    <ClCompile Include="film\FilmGlsOptions.cc" />
+    <ClCompile Include="film\FilmOlsOptions.cc" />
+    <ClCompile Include="flirt\flirt.cc" />
+    <ClCompile Include="fnirt\fnirt.cpp" />
+    <ClCompile Include="fnirt\fnirt_costfunctions.cpp" />
+    <ClCompile Include="warpfns\fnirt_file_reader.cpp" />
+    <ClCompile Include="warpfns\fnirt_file_writer.cpp" />
+    <ClCompile Include="fugue\fnirtfileutils.cpp" />
+    <ClCompile Include="fnirt\fnirtfns.cpp" />
+    <ClCompile Include="fsl.cpp" />
+    <ClCompile Include="avwutils\fsl2ascii.cc" />
+    <ClCompile Include="miscvis\fsl_boxplot.cc" />
+    <ClCompile Include="melodic\fsl_glm.cc" />
+    <ClCompile Include="miscvis\fsl_histogram.cc" />
+    <ClCompile Include="melodic\fsl_mvlm.cc" />
+    <ClCompile Include="melodic\fsl_regfilt.cc" />
+    <ClCompile Include="melodic\fsl_sbca.cc" />
+    <ClCompile Include="miscvis\fsl_tsplot.cc" />
+    <ClCompile Include="avwutils\fslcc.cc" />
+    <ClCompile Include="avwutils\fslchfiletype.cc" />
+    <ClCompile Include="avwutils\fslcomplex.cc" />
+    <ClCompile Include="avwutils\fslcorrecthd.cc" />
+    <ClCompile Include="avwutils\fslcpgeom.cc" />
+    <ClCompile Include="avwutils\fslcreatehd.cc" />
+    <ClCompile Include="avwutils\fslfft.cc" />
+    <ClCompile Include="avwutils\fslhd.cc" />
+    <ClCompile Include="avwutils\fslinterleave.cc" />
+    <ClCompile Include="fslio\fslio.c" />
+    <ClCompile Include="avwutils\fslmaths.cc" />
+    <ClCompile Include="avwutils\fslmeants.cc" />
+    <ClCompile Include="avwutils\fslmerge.cc" />
+    <ClCompile Include="avwutils\fslnvols.cc" />
+    <ClCompile Include="avwutils\fslorient.cc" />
+    <ClCompile Include="avwutils\fslpspec.cc" />
+    <ClCompile Include="avwutils\fslroi.cc" />
+    <ClCompile Include="avwutils\fslslice.cc" />
+    <ClCompile Include="avwutils\fslsplit.cc" />
+    <ClCompile Include="avwutils\fslstats.cc" />
+    <ClCompile Include="avwutils\fslswapdim.cc" />
+    <ClCompile Include="fugue\fugue.cc" />
+    <ClCompile Include="utils\functions.cc" />
+    <ClCompile Include="functionsa.cc" />
+    <ClCompile Include="cprob\gamma.c" />
+    <ClCompile Include="film\gaussComparer.cc" />
+    <ClCompile Include="cprob\gdtr.c" />
+    <ClCompile Include="newimage\generalio.cc" />
+    <ClCompile Include="melodic\ggmix.cc" />
+    <ClCompile Include="film\glimGls.cc" />
+    <ClCompile Include="film\glm.cc" />
+    <ClCompile Include="flirt\globaloptions.cc" />
+    <ClCompile Include="mcflirt\Globaloptionsmc.cc" />
+    <ClCompile Include="zlib\gzclose.c" />
+    <ClCompile Include="zlib\gzlib.c" />
+    <ClCompile Include="zlib\gzread.c" />
+    <ClCompile Include="zlib\gzwrite.c" />
+    <ClCompile Include="filmbabe\halfcosbasis.cc" />
+    <ClCompile Include="filmbabe\halfcosbasisoptions.cc" />
+    <ClCompile Include="newmat\hholder.cpp" />
+    <ClCompile Include="miscmaths\histogram.cc" />
+    <ClCompile Include="cprob\igam.c" />
+    <ClCompile Include="cprob\igami.c" />
+    <ClCompile Include="newimage\imfft.cc" />
+    <ClCompile Include="cprob\incbet.c" />
+    <ClCompile Include="cprob\incbi.c" />
+    <ClCompile Include="zlib\infback.c" />
+    <ClCompile Include="cluster\infer.cc" />
+    <ClCompile Include="zlib\inffast.c" />
+    <ClCompile Include="zlib\inflate.c" />
+    <ClCompile Include="zlib\inftrees.c" />
+    <ClCompile Include="fnirt\intensity_mappers.cpp" />
+    <ClCompile Include="fslexec\fslexec\intervalos.cpp" />
+    <ClCompile Include="fugue\invwarp.cc" />
+    <ClCompile Include="newmat\jacobi.cpp" />
+    <ClCompile Include="miscmaths\kernel.cc" />
+    <ClCompile Include="cprob\kolmogorov.c" />
+    <ClCompile Include="newimage\lazy.cc" />
+    <ClCompile Include="utils\log.cc" />
+    <ClCompile Include="mcflirt\Loga.cc" />
+    <ClCompile Include="flirt\makerot.cc" />
+    <ClCompile Include="utils\matches.cc" />
+    <ClCompile Include="fnirt\matching_points.cpp" />
+    <ClCompile Include="mcflirt\mcflirt.cc" />
+    <ClCompile Include="melodic\meldata.cc" />
+    <ClCompile Include="melodic\melgmix.cc" />
+    <ClCompile Include="melodic\melhlprfns.cc" />
+    <ClCompile Include="melodic\melica.cc" />
+    <ClCompile Include="melodic\melodic.cc" />
+    <ClCompile Include="melodic\meloptions.cc" />
+    <ClCompile Include="melodic\melpca.cc" />
+    <ClCompile Include="melodic\melreport.cc" />
+    <ClCompile Include="meshclass\mesh.cpp" />
+    <ClCompile Include="miscmaths\minimize.cc" />
+    <ClCompile Include="miscmaths\miscmaths.cc" />
+    <ClCompile Include="libvis\miscpic.cc" />
+    <ClCompile Include="libvis\miscplot.cc" />
+    <ClCompile Include="miscmaths\miscprob.cc" />
+    <ClCompile Include="meshclass\mpoint.cpp" />
+    <ClCompile Include="fast4\mriseg_two.cc" />
+    <ClCompile Include="gd\mtables.c" />
+    <ClCompile Include="cprob\mtherr.c" />
+    <ClCompile Include="fast4\multi_mriseg_two.cc" />
+    <ClCompile Include="newmat\myexcept.cpp" />
+    <ClCompile Include="cprob\nbdtr.c" />
+    <ClCompile Include="cprob\ndtr.c" />
+    <ClCompile Include="cprob\ndtri.c" />
+    <ClCompile Include="newmat\newfft.cpp" />
+    <ClCompile Include="newimage\newimage.cc" />
+    <ClCompile Include="newimage\newimagefns.cc" />
+    <ClCompile Include="newmat\newmat1.cpp" />
+    <ClCompile Include="newmat\newmat2.cpp" />
+    <ClCompile Include="newmat\newmat3.cpp" />
+    <ClCompile Include="newmat\newmat4.cpp" />
+    <ClCompile Include="newmat\newmat5.cpp" />
+    <ClCompile Include="newmat\newmat6.cpp" />
+    <ClCompile Include="newmat\newmat7.cpp" />
+    <ClCompile Include="newmat\newmat8.cpp" />
+    <ClCompile Include="newmat\newmat9.cpp" />
+    <ClCompile Include="newmat\newmatex.cpp" />
+    <ClCompile Include="newmat\newmatnl.cpp" />
+    <ClCompile Include="newmat\newmatrm.cpp" />
+    <ClCompile Include="niftiio\nifti1_io.c" />
+    <ClCompile Include="miscmaths\nonlin.cpp" />
+    <ClCompile Include="miscmaths\optimise.cc" />
+    <ClCompile Include="miscvis\overlay.cc" />
+    <ClCompile Include="film\paradigm.cc" />
+    <ClCompile Include="utils\parse.cc" />
+    <ClCompile Include="parser.cpp" />
+    <ClCompile Include="cprob\pdtr.c" />
+    <ClCompile Include="fnirt\phase.cc" />
+    <ClCompile Include="meshclass\point.cpp" />
+    <ClCompile Include="warpfns\point_list.cpp" />
+    <ClCompile Include="flirt\pointflirt.cc" />
+    <ClCompile Include="cprob\polevl.c" />
+    <ClCompile Include="feat5\prewhiten.cc" />
+    <ClCompile Include="meshclass\profile.cpp" />
+    <ClCompile Include="meshclass\pt_special.cpp" />
+    <ClCompile Include="miscmaths\rungekutta.cc" />
+    <ClCompile Include="sgfilter.cpp" />
+    <ClCompile Include="fugue\sigloss.cc" />
+    <ClCompile Include="miscvis\slicer.cc" />
+    <ClCompile Include="slicetimer\slicetimer.cc" />
+    <ClCompile Include="cluster\smoothest.cc" />
+    <ClCompile Include="newmat\solution.cpp" />
+    <ClCompile Include="newmat\sort.cpp" />
+    <ClCompile Include="miscmaths\sparse_matrix.cc" />
+    <ClCompile Include="miscmaths\sparsefn.cc" />
+    <ClCompile Include="basisfield\splinefield.cpp" />
+    <ClCompile Include="basisfield\splines.c" />
+    <ClCompile Include="cprob\stdtr.c" />
+    <ClCompile Include="newmat\submat.cpp" />
+    <ClCompile Include="susan\susan.cc" />
+    <ClCompile Include="newmat\svd.cpp" />
+    <ClCompile Include="miscmaths\t2z.cc" />
+    <ClCompile Include="utils\time_tracer.cc" />
+    <ClCompile Include="zlib\trees.c" />
+    <ClCompile Include="meshclass\triangle.cpp" />
+    <ClCompile Include="feat5\tsplot.cc" />
+    <ClCompile Include="cprob\unity.c" />
+    <ClCompile Include="fugue\unwarpfns.cc" />
+    <ClCompile Include="utils\usage.cc" />
+    <ClCompile Include="warpfns\warpfns.cc" />
+    <ClCompile Include="miscvis\wpng.cc" />
+    <ClCompile Include="miscvis\writepng.cc" />
+    <ClCompile Include="cprob\xmath.c" />
+    <ClCompile Include="znzlib\znzlib.c" />
+    <ClCompile Include="zlib\zutil.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="warpfns\afnirt_file_reader.h" />
+    <ClInclude Include="film\AutoCorrEstimator.h" />
+    <ClInclude Include="miscmaths\base2z.h" />
+    <ClInclude Include="basisfield\basisfield.h" />
+    <ClInclude Include="bet2\betsurf.h" />
+    <ClInclude Include="miscmaths\bfmatrix.h" />
+    <ClInclude Include="miscmaths\bicg.h" />
+    <ClInclude Include="miscmaths\bicgstab.h" />
+    <ClInclude Include="newmat\boolean.h" />
+    <ClInclude Include="utils\buildno.h" />
+    <ClInclude Include="miscmaths\cg.h" />
+    <ClInclude Include="miscmaths\cgs.h" />
+    <ClInclude Include="miscmaths\cheby.h" />
+    <ClInclude Include="newimage\complexvolume.h" />
+    <ClInclude Include="znzlib\config.h" />
+    <ClInclude Include="mm\connected_offset.h" />
+    <ClInclude Include="filmbabe\connected_offset.h" />
+    <ClInclude Include="film\ContrastMgr.h" />
+    <ClInclude Include="film\ContrastMgrOptions.h" />
+    <ClInclude Include="newmat\controlw.h" />
+    <ClInclude Include="newimage\costfns.h" />
+    <ClInclude Include="cprob\cprob.h" />
+    <ClInclude Include="zlib\crc32.h" />
+    <ClInclude Include="miscmaths\cspline.h" />
+    <ClInclude Include="fslio\dbh.h" />
+    <ClInclude Include="basisfield\dctfield.h" />
+    <ClInclude Include="flirt\defaultschedule.h" />
+    <ClInclude Include="zlib\deflate.h" />
+    <ClInclude Include="dirf.h" />
+    <ClInclude Include="miscmaths\f2z.h" />
+    <ClInclude Include="feat5\featlib.h" />
+    <ClInclude Include="filmbabe\filmbabe_manager.h" />
+    <ClInclude Include="filmbabe\filmbabe_vb_flobs.h" />
+    <ClInclude Include="filmbabe\filmbabeoptions.h" />
+    <ClInclude Include="film\FilmGlsOptions.h" />
+    <ClInclude Include="film\FilmOlsOptions.h" />
+    <ClInclude Include="newimage\fmribmain.h" />
+    <ClInclude Include="newimage\fmribmain2.h" />
+    <ClInclude Include="fnirt\fnirt_costfunctions.h" />
+    <ClInclude Include="warpfns\fnirt_file_reader.h" />
+    <ClInclude Include="warpfns\fnirt_file_writer.h" />
+    <ClInclude Include="fnirt\fnirtfns.h" />
+    <ClInclude Include="utils\fsl_isfinite.h" />
+    <ClInclude Include="basisfield\fsl_splines.h" />
+    <ClInclude Include="fslio\fslio.h" />
+    <ClInclude Include="film\gaussComparer.h" />
+    <ClInclude Include="melodic\ggmix.h" />
+    <ClInclude Include="film\glimGls.h" />
+    <ClInclude Include="film\glm.h" />
+    <ClInclude Include="flirt\globaloptions.h" />
+    <ClInclude Include="mcflirt\Globaloptionsmc.h" />
+    <ClInclude Include="zlib\gzguts.h" />
+    <ClInclude Include="filmbabe\halfcosbasisoptions.h" />
+    <ClInclude Include="miscmaths\histogram.h" />
+    <ClInclude Include="newimage\imfft.h" />
+    <ClInclude Include="newmat\include.h" />
+    <ClInclude Include="cluster\infer.h" />
+    <ClInclude Include="zlib\inffast.h" />
+    <ClInclude Include="zlib\inffixed.h" />
+    <ClInclude Include="zlib\inflate.h" />
+    <ClInclude Include="zlib\inftrees.h" />
+    <ClInclude Include="fnirt\intensity_mappers.h" />
+    <ClInclude Include="fslexec\fslexec\intervalos.h" />
+    <ClInclude Include="miscmaths\ir.h" />
+    <ClInclude Include="miscmaths\kernel.h" />
+    <ClInclude Include="newimage\lazy.h" />
+    <ClInclude Include="newimage\lazyiterators.h" />
+    <ClInclude Include="mcflirt\Log.h" />
+    <ClInclude Include="utils\log.h" />
+    <ClInclude Include="fnirt\matching_points.h" />
+    <ClInclude Include="cprob\mconf.h" />
+    <ClInclude Include="melodic\meldata.h" />
+    <ClInclude Include="melodic\melgmix.h" />
+    <ClInclude Include="melodic\melhlprfns.h" />
+    <ClInclude Include="melodic\melica.h" />
+    <ClInclude Include="melodic\melodic.h" />
+    <ClInclude Include="melodic\meloptions.h" />
+    <ClInclude Include="melodic\melpca.h" />
+    <ClInclude Include="melodic\melreport.h" />
+    <ClInclude Include="meshclass\mesh.h" />
+    <ClInclude Include="meshclass\meshclass.h" />
+    <ClInclude Include="miscmaths\minimize.h" />
+    <ClInclude Include="miscmaths\miscmaths.h" />
+    <ClInclude Include="libvis\miscpic.h" />
+    <ClInclude Include="libvis\miscplot.h" />
+    <ClInclude Include="miscmaths\miscprob.h" />
+    <ClInclude Include="mm\mixture_model.h" />
+    <ClInclude Include="mm\mmoptions.h" />
+    <ClInclude Include="meshclass\mpoint.h" />
+    <ClInclude Include="fast4\mriseg_two.h" />
+    <ClInclude Include="fast4\multi_mriseg_two.h" />
+    <ClInclude Include="newmat\myexcept.h" />
+    <ClInclude Include="newimage\newimage.h" />
+    <ClInclude Include="newimage\newimageall.h" />
+    <ClInclude Include="newimage\newimagefns.h" />
+    <ClInclude Include="newimage\newimageio.h" />
+    <ClInclude Include="newmat\newmat.h" />
+    <ClInclude Include="newmat\newmatap.h" />
+    <ClInclude Include="newmat\newmatio.h" />
+    <ClInclude Include="newmat\newmatnl.h" />
+    <ClInclude Include="newmat\newmatrc.h" />
+    <ClInclude Include="newmat\newmatrm.h" />
+    <ClInclude Include="niftiio\nifti1.h" />
+    <ClInclude Include="niftiio\nifti1_io.h" />
+    <ClInclude Include="miscmaths\nonlin.h" />
+    <ClInclude Include="miscmaths\optimise.h" />
+    <ClInclude Include="utils\options.h" />
+    <ClInclude Include="film\paradigm.h" />
+    <ClInclude Include="parser.h" />
+    <ClInclude Include="fnirt\phase.h" />
+    <ClInclude Include="meshclass\point.h" />
+    <ClInclude Include="warpfns\point_list.h" />
+    <ClInclude Include="newimage\positerators.h" />
+    <ClInclude Include="newmat\precisio.h" />
+    <ClInclude Include="meshclass\profile.h" />
+    <ClInclude Include="meshclass\pt_special.h" />
+    <ClInclude Include="miscmaths\qmr.h" />
+    <ClInclude Include="miscvis\readpng.h" />
+    <ClInclude Include="miscmaths\rungekutta.h" />
+    <ClInclude Include="sgfilter.h" />
+    <ClInclude Include="cluster\smoothest.h" />
+    <ClInclude Include="newmat\solution.h" />
+    <ClInclude Include="miscmaths\sparse_matrix.h" />
+    <ClInclude Include="miscmaths\sparsefn.h" />
+    <ClInclude Include="basisfield\splinefield.h" />
+    <ClInclude Include="basisfield\splines.h" />
+    <ClInclude Include="miscmaths\splinterpolator.h" />
+    <ClInclude Include="miscmaths\SpMat.h" />
+    <ClInclude Include="miscmaths\t2z.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="utils\time_tracer.h" />
+    <ClInclude Include="newmat\tmt.h" />
+    <ClInclude Include="utils\tracer_plus.h" />
+    <ClInclude Include="zlib\trees.h" />
+    <ClInclude Include="meshclass\triangle.h" />
+    <ClInclude Include="fugue\unwarpfns.h" />
+    <ClInclude Include="warpfns\warpfns.h" />
+    <ClInclude Include="gd\wbmp.h" />
+    <ClInclude Include="miscvis\writepng.h" />
+    <ClInclude Include="cprob\xmath.h" />
+    <ClInclude Include="zlib\zconf.h" />
+    <ClInclude Include="zlib\zlib.h" />
+    <ClInclude Include="znzlib\znzlib.h" />
+    <ClInclude Include="zlib\zutil.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

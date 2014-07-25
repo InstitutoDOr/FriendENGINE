@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Special machine specific makefile options
+#  Remove suffix _${FSLMACHTYPE} from within Makefile to turn specific
+#  variables on
+
+cp Makefile Makefile.orig
+sed "s/_${FSLMACHTYPE}//g" Makefile.orig > Makefile
+

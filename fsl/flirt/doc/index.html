@@ -1,0 +1,72 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FLIRT DOCS</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+<STYLE TYPE="text/css">BODY { background-image: url("../images/flirt-bg.jpg") }</STYLE>
+FLIRT - FMRIB's Linear Image Registration Tool
+</H1>
+FLIRT v5.5 - User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<H2>INTRODUCTION</H2>
+ 
+<P>FLIRT (FMRIB's Linear Image Registration Tool) is a fully automated
+robust and accurate tool for linear (affine) intra- and inter-modal
+brain image registration.
+
+<P>
+<P>For more detail on FLIRT and an updated journal reference, see the <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/research/flirt/">FLIRT research
+web page</A>. If you use FLIRT in your research, please quote the
+journal reference listed there.
+
+<p>The different FLIRT programs are:
+<UL>
+<LI><a href="gui.html">Flirt</a> - FLIRT GUI + InvertXFM, ApplyXFM, ConcatXFM<br>
+<LI><a href="overview.html">flirt</a> - command-line FLIRT program<br>
+<LI><a href="overview.html#misc">misc flirt utilities</a> - associated command-line programs<br>
+</UL>
+
+If you want to register FMRI data with only a few slices, then see <a
+href="ztrans.html">here</a>.
+
+<A NAME="section4"></A><HR><H2>GENERAL ADVICE</H2>
+ 
+<UL>
+
+<LI>Use the image with the best quality (tissue contrast and resolution)
+as the Reference image, otherwise poor registrations may occur (the inverse
+transformation can be found afterwards using the <b>InvertXFM</b> gui or the <b>convert_xfm</b> command-line utility).
+<LI>Do use the default settings (especially in the GUI advanced
+options) as they have been carefully chosen.  
+<LI>Do use it for registering to the MNI standard brains as it has been
+extensively tested with these images.
+<LI>For images showing pathology, consider using binary cost function weighting
+images - a zero for areas of a pathological nature and one elsewhere (do not put zero outside the brain).
+<LI>Consider using the Group facility (GUI only)
+for running the registration on a collection of images (this is also easily
+achieved with the command-line version by scripting).
+
+</UL>
+
+ <!-- J-Back -->
+
+<A NAME="section5"></A><HR><H2>TEMPLATE IMAGES</H2>
+ 
+<P>Both linearly and non-linearly generated MNI152 template images
+(whole head, extracted brain, brain mask and skull) are included in
+fsl/data/standard, courtesy of the <A
+HREF="http://www.mni.mcgill.ca/">MNI</A>.<br>
+
+ <!-- J-Back -->
+
+<A NAME="section6"></A><HR><H2>NON-LINEAR REGISTRATION</H2>
+ 
+<P>Also see the FSL non-linear registration tool, <a href="../fnirt/index.html">FNIRT</a>.  Note that this requires an initial affine registration to be performed first using FLIRT.<br>
+
+ <!-- J-Back -->
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2001-2008, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~mark/index.html">Mark Jenkinson</A>.</FONT>
+
+
+</BODY></HTML>
+

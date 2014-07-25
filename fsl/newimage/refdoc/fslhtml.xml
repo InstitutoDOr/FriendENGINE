@@ -1,0 +1,448 @@
+<!DOCTYPE HTMLPUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN""http://www.w3.org/TR/REC-html40/losse.dtd">
+<HTML><HEAD>
+  <TITLE>FSL Reference Guide - fslxml</TITLE>
+</HEAD>
+ <BODY BACKGROUND="images/fsl-bg" BGCOLOR="white">
+  <TABLE BORDER=0 WIDTH="100%"><TR>
+  <TD ALIGN=LEFT>  <a href="http://www.fmrib.ox.ac.uk/fsl"><IMG BORDER=0 SRC="images/fsl-logo"></a>
+   <TD ALIGN=CENTER><H1>FSL Reference Guide - fslxml</H1>
+  <TD ALIGN=RIGHT> <a href="http://www.fmrib.ox.ac.uk/"><IMG BORDER=0 SRC="images/fmrib_crest_86.gif"></a>
+   </TR></TABLE>
+  <HR>
+<H2>CONTENTS</H2>
+<UL>
+<LI><A HREF="#section1">INTRODUCTION</A>
+<LI><A HREF="#section2">DOCUMENTING FSL PROJECTS</A>
+<LI><A HREF="#section3">DOCUMENTING C SOURCES</A>
+<LI><A HREF="#section4">DOCUMENTING GUIS</A>
+<LI><A HREF="#section5">DOCUMENTING XML</A>
+<LI><A HREF="#section6">GENERAL PURPOSE TAGS</A>
+<LI><A HREF="#section7">GENERATING TABLES</A>
+<LI><A HREF="#section8">LARGER EXAMPLE</A>
+<LI><A HREF="#section9">DOCUMENT TRANSLATORS</A>
+<LI><A HREF="#section10">BUGS</A>
+</UL>
+
+
+<A NAME="section1"></A><HR><H2>INTRODUCTION</H2>
+ 
+(paragraph:
+To try and improve our FSL documentation I have written some XML
+translators for web, man and latex. It is hoped that authors will write XML
+documents and then use the translators to convert it into appropriate
+output forms. It is quite easy to prepare other document translators
+should the need arise.
+)
+
+(paragraph:In this document you will find a reference for each
+<FONT COLOR=BLUE>&lt;tag&gt;</FONT> and a list of it's associated
+<FONT COLOR=PURPLE>attributes</FONT> if any. Usage is almost identical to HTML
+except that all end-tags, ie. <FONT COLOR=BLUE>&lt;/tag&gt;</FONT>, are compulsory.
+)
+
+(paragraph:
+The FSL Mark-up Language (FSLML) described in this document is
+extensible. If you feel that some important mark-up is missing or that
+some additional document translator is required then feel free to
+contact the <A HREF="mailto:fsl-help@fmrib.ox.ac.uk">FSL Help
+Desk</A> to discuss how to improve FSLML to suit your needs.
+)
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+<A NAME="section2"></A><HR><H2>DOCUMENTING FSL PROJECTS</H2>
+ 
+<P><B><FONT COLOR=BLUE>&lt;manentry|refguide|usrguide&gt;</FONT></B>
+These tags select the different style of document. There is very
+little difference between each bar a bit of wording in the title
+sections and the addition of an extra attribute for use in <FONT COLOR=BLUE>&lt;manentry&gt;</FONT>.
+<UL>
+
+<LI><FONT COLOR=PURPLE>name</FONT> - The text to go in as the name of the
+document. This is suplemental to some global text announcing the
+documents membership of the FSL sources.
+<LI><FONT COLOR=PURPLE>author</FONT> - This is you. Probably.
+<LI><FONT COLOR=PURPLE>year</FONT> - For the copyright details.
+<LI><FONT COLOR=PURPLE>section</FONT> - Indicates the section of the Unix manual (see
+<I>man(1)</I>) to which this page belongs. This is
+applicable to <FONT COLOR=BLUE>&lt;manentry&gt;</FONT> only.
+<LI><FONT COLOR=PURPLE>toc</FONT> - If set to "true" then a Table of Contents
+will be generated.
+
+</UL>
+
+
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+<A NAME="section3"></A><HR><H2>DOCUMENTING C SOURCES</H2>
+ 
+<P><B><FONT COLOR=BLUE>&lt;directive|include&gt;</FONT></B>
+The <FONT COLOR=BLUE>&lt;directive&gt;</FONT> tag allows you to format C pre-processor
+directives. Example: <FONT COLOR=BLUE>&lt;directive text="if"&gt;</FONT>defined(FSLDIR)<FONT COLOR=BLUE>&lt;/directive&gt;</FONT> becomes #if defined(FSLDIR).
+<UL>
+
+<LI><FONT COLOR=PURPLE>text</FONT> - The directive's command text
+
+</UL>
+
+The <FONT COLOR=BLUE>&lt;include&gt;</FONT> tag is a special case of
+<FONT COLOR=BLUE>&lt;directive&gt;</FONT>. Example:
+<FONT COLOR=BLUE>&lt;include&gt;</FONT>stdio.h<FONT COLOR=BLUE>&lt;/include&gt;</FONT> becomes
+#include &lt;stdio.h&gt;.
+
+
+
+<P><B><FONT COLOR=BLUE>&lt;function&gt;</FONT></B>
+This tag is provided to simplify the documentation of C/C++ functions
+when writing manual style pages.
+<UL>
+
+<LI><FONT COLOR=PURPLE>type</FONT> - The C return type of this function.
+
+</UL>
+
+
+
+<P><B><FONT COLOR=BLUE>&lt;param-in|param-out&gt;</FONT></B>
+Used to introduce parameters to a function call. <FONT COLOR=BLUE>&lt;param-in&gt;</FONT>
+is for arguments whose value is only needed as input to the function
+and <FONT COLOR=BLUE>&lt;param-out&gt;</FONT> is for arguments whose value will be set by
+the function.
+<UL>
+
+<LI><FONT COLOR=PURPLE>type</FONT> - The C type of this parameter.
+
+</UL>
+
+
+
+<H3>Example</H3>
+ 
+
+(paragraph:
+The following XML might be used to document a C function:
+)
+
+<BR>
+
+<FONT COLOR=BLUE>&lt;list&gt;</FONT><BR>
+
+<FONT COLOR=BLUE>&lt;item&gt;</FONT><BR>
+
+<FONT COLOR=BLUE>&lt;function type="double"&gt;</FONT>MyFunction<BR>
+
+(<BR>
+
+<FONT COLOR=BLUE>&lt;param-in type="double"&gt;</FONT>arg1<FONT COLOR=BLUE>&lt;/param-in&gt;</FONT>,<BR>
+
+<FONT COLOR=BLUE>&lt;param-out type="int *"&gt;</FONT>arg2<FONT COLOR=BLUE>&lt;/param-out&gt;</FONT><BR>
+
+);<BR>
+
+<FONT COLOR=BLUE>&lt;/function&gt;</FONT><BR>
+
+<FONT COLOR=BLUE>&lt;paragraph&gt;</FONT><BR>
+
+Your descriptive text goes here.<BR>
+
+<FONT COLOR=BLUE>&lt;/paragraph&gt;</FONT><BR>
+
+<FONT COLOR=BLUE>&lt;/item&gt;</FONT><BR>
+
+<FONT COLOR=BLUE>&lt;/list&gt;</FONT><BR>
+
+
+<UL>
+
+<LI>
+<B><I>double</I> MyFunction
+(
+<I>double</I> <FONT COLOR=GREEN>arg1</FONT>,
+<I>int *</I> <FONT COLOR=RED>arg2</FONT>
+);
+</B>
+(paragraph:
+Your descriptive text goes here.
+)
+
+
+</UL>
+
+
+
+
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+<A NAME="section4"></A><HR><H2>DOCUMENTING GUIS</H2>
+ 
+<P><B><FONT COLOR=BLUE>&lt;guilabel&gt;</FONT></B>
+Use this tag to introduce a GUI element into the text. NB Indicate the
+hierarchical nature of menu item with arrows,
+eg. <FONT COLOR=BLUE>&lt;guilabel&gt;</FONT>File->Exit<FONT COLOR=BLUE>&lt;/guilabel&gt;</FONT> which will be
+rendered as: <B><FONT COLOR=BROWN>File->Exit</FONT></B>.
+
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+<A NAME="section5"></A><HR><H2>DOCUMENTING XML</H2>
+ 
+<P><B><FONT COLOR=BLUE>&lt;tagdesc&gt;</FONT></B>
+For documenting XML tags.
+<UL>
+
+<LI><FONT COLOR=PURPLE>name</FONT> - The name of the tag being documented.
+
+</UL>
+
+
+
+<P><B><FONT COLOR=BLUE>&lt;attrib&gt;</FONT></B>
+Introduces an attribute, eg. the ones listed in the above tag
+descriptions.
+
+
+<P><B><FONT COLOR=BLUE>&lt;tag&gt;</FONT></B>
+To mark up an XML tag, ie. <FONT COLOR=BLUE>&lt;tag&gt;</FONT>tag-name<FONT COLOR=BLUE>&lt;tag&gt;</FONT>
+generates <FONT COLOR=BLUE>&lt;tag-name&gt;</FONT>.
+
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+<A NAME="section6"></A><HR><H2>GENERAL PURPOSE TAGS</H2>
+ 
+<P><B><FONT COLOR=BLUE>&lt;section|subsection&gt;</FONT></B>
+<UL>
+
+<LI><FONT COLOR=PURPLE>title</FONT> - The text to be used as the title for
+the section/subsection. NB. with <FONT COLOR=BLUE>&lt;section&gt;</FONT> this title text is
+always capitalised.
+
+</UL>
+
+
+
+<P><B><FONT COLOR=BLUE>&lt;paragraph&gt;</FONT></B>
+Delimits a paragraph of text.
+
+
+<P><B><FONT COLOR=BLUE>&lt;enumerate|itemize|item&gt;</FONT></B>
+For making (non-nestable) lists. Usage is similar to the latex
+elements of the same name.
+(paragraph:
+<PRE>
+&lt;enumerate&gt;
+&lt;item&gt; An item&lt;/item&gt;
+&lt;item&gt; Another item&lt;/item&gt;
+&lt;item&gt; And another&lt;/item&gt;
+&lt;/enumerate&gt;
+</PRE>
+
+generates:
+
+<OL>
+
+<LI> An item
+<LI> Another item
+<LI> And another
+
+</OL>
+
+
+and using <FONT COLOR=BLUE>&lt;itemize&gt;</FONT> instead of <FONT COLOR=BLUE>&lt;enumerate&gt;</FONT> gives:
+
+<UL>
+
+<LI> An item
+<LI> Another item
+<LI> And another
+
+</UL>
+
+)
+
+
+<P><B><FONT COLOR=BLUE>&lt;mail&gt;</FONT></B> is for indicating an e-mail address.
+<UL>
+
+<LI><FONT COLOR=PURPLE>address</FONT> - The required address.
+
+</UL>
+
+
+
+<P><B><FONT COLOR=BLUE>&lt;link&gt;</FONT></B> for a URL style document/web-page address.
+<UL>
+
+<LI><FONT COLOR=PURPLE>url</FONT> - The name of the URL to be linked to.
+
+</UL>
+
+
+<P><B><FONT COLOR=BLUE>&lt;man&gt;</FONT></B> can be used to mark up a man entry <FONT COLOR=BLUE>&lt;man section="l"&gt;</FONT>fslxml<FONT COLOR=BLUE>&lt;/man&gt;</FONT> generates <I>fslxml(l)</I>.
+<UL>
+
+<LI><FONT COLOR=PURPLE>section</FONT> - The <I>man(1)</I> section
+to which this entry belongs.
+
+</UL>
+
+
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+<A NAME="section7"></A><HR><H2>GENERATING TABLES</H2>
+ 
+<P><B><FONT COLOR=BLUE>&lt;table&gt;</FONT></B>Introduces a new table
+Use the <FONT COLOR=BLUE>&lt;col&gt;</FONT> tag to introduce columns into the table and
+<FONT COLOR=BLUE>&lt;row&gt;</FONT> elements to delimit the <FONT COLOR=BLUE>&lt;data&gt;</FONT> elements for
+each row.
+
+
+<P><B><FONT COLOR=BLUE>&lt;col&gt;</FONT></B> Indicates a new column in the table
+<UL>
+
+<LI><FONT COLOR=PURPLE>colname</FONT> - tags the named column with this
+colname. This is later used to decide which <FONT COLOR=BLUE>&lt;data&gt;</FONT> elements
+go in this column.
+
+</UL>
+
+
+
+<P><B><FONT COLOR=BLUE>&lt;row&gt;</FONT></B> Use <FONT COLOR=BLUE>&lt;row&gt;</FONT> to block the <FONT COLOR=BLUE>&lt;data&gt;</FONT>
+elements to be used in this row.
+
+
+<P><B><FONT COLOR=BLUE>&lt;data&gt;</FONT></B> Each row has a number of these data
+elements.
+<UL>
+
+<LI><FONT COLOR=PURPLE>id</FONT> - associates this data with the id. Only
+those data elements whose id tags match the <FONT COLOR=PURPLE>colname</FONT>
+of a column in the table get rendered.
+<LI><FONT COLOR=PURPLE>src</FONT> - indicates a file to be parsed for data
+lines.
+
+</UL>
+
+
+
+<H3>Example</H3>
+ 
+
+<PRE>
+&lt;table&gt;
+&lt;col colname="name"&gt;User's Name&lt;/col&gt;
+&lt;col colname="features"&gt;Features&lt;/col&gt;
+&lt;row&gt;
+&lt;data id="name"&gt;Steve Smith&lt;/data&gt;
+&lt;data id="features"&gt;Blonde hair, black clothes&lt;/data&gt;
+&lt;data id="iq"&gt;1000&lt;/data&gt;
+&lt;/row&gt;
+&lt;row&gt;
+&lt;data id="features"&gt;Red face, quick temper, horns&lt;/data&gt;
+&lt;data id="name"&gt;Beelzebub&lt;/data&gt;
+&lt;/row&gt;
+&lt;/table&gt;
+</PRE>
+
+(paragraph:
+generates:
+)
+
+<TABLE BORDER=1 WIDTH="80%">
+<TR VALIGN=TOP><TH>User's Name<TH>Features
+<TR VALIGN=TOP><TD>Steve Smith<TD>Blonde hair, black clothes
+<TR VALIGN=TOP><TD>Beelzebub<TD>Red face, quick temper, horns
+</TABLE>
+
+
+
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+(paragraph:
+Note how the additional data in row 1 is ignored and that the order in
+which the data elements appear is not important.
+)
+
+<A NAME="section8"></A><HR><H2>LARGER EXAMPLE</H2>
+ 
+(paragraph:
+The following is snippets of the XML which creates this document:
+)
+
+<PRE>
+&lt;refguide name="fslxml" section="l" author="Dave Flitney" year="2000"&gt;
+
+&lt;section title="introduction"&gt;
+&lt;paragraph&gt;
+To try and improve our FSL documentation I have written some XML
+translators for web, man and latex. It is hoped that authors will
+write XML
+...
+&lt;/paragraph&gt;
+&lt;/section&gt;
+
+&lt;section title="TAGS"&gt;
+&lt;tagdesc name="..."&gt;
+...
+&lt;/tagdesc&gt;
+&lt;/section&gt;
+
+&lt;section title="examples"&gt;
+
+&lt;pre&gt;
+&lt;refguide name="fslxml" author="Dave Flitney" year="2000"&gt;
+
+...
+&lt;/pre&gt;
+
+&lt;/section&gt;
+
+&lt;/refguide&gt;
+</PRE>
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+<A NAME="section9"></A><HR><H2>DOCUMENT TRANSLATORS</H2>
+ 
+(paragraph:
+A combined document translator <I>fslml(n)</I> is being
+developed. It can translate FSLML documents into LaTeX, man entry, and
+HTML. At present the HTML translator is most developed however
+completion of the other two transltators is imminent.
+)
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+
+<A NAME="section10"></A><HR><H2>BUGS</H2>
+ 
+<OL>
+
+<LI>
+It is awkward to include (X/SG/HT)ML in your XML document for
+visualising as text, eg. as in the LARGER EXAMPLE section above.
+
+
+</OL>
+
+
+
+ <P><FONT SIZE=-1><A HREF="javascript:history.back();">Back</A></FONT>
+
+   <HR>
+  <!-- No Footnotes -->
+  <H4>Dave Flitney  <BR><BR>Copyright &copy; 2000, University of Oxford</H4><BR>
+</BODY></HTML>

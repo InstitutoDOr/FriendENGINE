@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><meta http-equiv="Content-Type"
+content="text/html;charset=utf-8">
+<link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FSL</TITLE></HEAD><BODY><IFRAME width="100%" scrolling="no"
+frameborder="0" src="top.html">Broken</IFRAME>
+
+
+<H1>Featquery - FEAT Results Interrogation</H1>
+
+<H2>Introduction</H2>
+
+<p>Featquery is a tool which allows you to interrogate FEAT results
+within a mask or at a given co-ordinate. The mask/co-ordinate can be
+in standard-space, highres-space or lowres-space. Within this mask (or
+at the given co-ordinate), Featquery calculates a number of image and
+timeseries statistics. For example, you might define a standard-space
+mask for the motor cortex, and Featquery will tell you the mean (and
+peak) % signal change associated with your modelled experimental
+paradigm within that area.
+
+<hr><H2>Choosing FEAT directories to interrogate</H2>
+
+<p>First you must select a previously-created FEAT output directory
+whose results you wish to investigate. You can run multiple queries by
+changing the <b>Number of FEAT directories</b> from the default of
+1. The results of running Featquery will be saved in a directory (by
+default named "featquery") inside each FEAT directory that you select
+here. If you have already run Featquery on a FEAT directory, a "+"
+will be appended to the Featquery output name, e.g. "featquery+".
+
+<hr><H2>Choosing stats images to investigate</H2>
+
+<p>Once you have selected a FEAT directory, a list of stats images
+inside that FEAT directory will appear. Click the buttons next to those
+that you are interested in. For each of these in turn, Featquery will
+calculate various quantities within the selected mask, for example,
+the number of non-zero voxels within the mask, the mean and max values
+of the stats image within the mask, and the co-ordinates of the max
+image value within the mask.
+
+<hr><H2>Setting up a mask or voxel co-ordinates</H2>
+
+<p>You must now choose a <b>Mask image</b>. This would normally be a
+binary image in standard-space, highres-space or lowres-space, with a
+region-of-interest (ROI), for example, the visual cortex, created by
+any method (e.g. hand-drawn or activation from a multi-subject
+higher-level FEAT analysis). Featquery will automatically detect which
+space this mask is in (standard-space, highres-space or lowres-space)
+and will transform it into the native lowres space of example_func; of
+course this can only work if FEAT registration was setup and carried
+out.
+
+<p>If you want a different mask for each selected FEAT directory,
+specify a mask name as a relative filename (i.e., without a "/"). This
+mask will then be looked for in each FEAT directory.
+
+<p>Alternatively, you can specify a single co-ordinate (in voxels or
+mm) at which to extract values from the chosen stats images. This
+still requires a "mask" image to be chosen, as the co-ordinate is
+specified in the space of the mask. Thus if you want the co-ordinates
+to be in lowres space, just select "mask" or "example_func" from the
+FEAT directory. If you want to specify standard-space co-ordinates
+(e.g. MNI152 space) then choose "reg/standard". If you choose to
+specify the co-ordinate in mm (instead of voxels) and the mask image
+is one with a co-ordinate origin set (e.g. reg/standard which by
+default is in MNNI152 space, with the origin at the anterior
+commissure) then the co-ordinates that you enter will be relative to
+this origin, not the corner of the volume.
+
+<p>Finally, you can also automatically generate a mask from one of the
+  various standard-space atlases provided with FSL. To do this, select
+  an atlas from the menu, and then select a structure by pressing
+  the <b>Select label</b> button.
+
+<p>Featquery saves the mask, once transformed into the native space of
+the selected FEAT directory, inside the Featquery output directory,
+called "mask" (even if this only contains a single non-zero voxel, in
+the case of selecting a co-ordinate).
+
+<hr><H2>Further options</H2>
+
+<p>If you select an atlas, extra information will be added into the
+  Featquery output. For each stats image, the position of the maximum
+  voxel (within the input mask) will be used to query the selected
+  atlas, and each structure which overlaps this voxel will be reported
+  (for the probabilistic atlases, the % probability for each
+  overlapping structure will be given).
+
+<p>If you select <b>Convert PE/COPE values to % (VARCOPE to %^2)</b>,
+any PE or COPE parameter estimate or contrast values will be converted
+to percentage signal change values before reporting. This is achieved
+by scaling the PE or COPE values by (100*) the peak-peak height of the
+regressor (or effective regressor in the case of COPEs) and then by
+dividing by mean_func (the mean over time of filtered_func_data). If
+you are running Featquery on a higher-level FEAT directory, mean_func
+is the mean of all the lower-level mean_func images, so the % change
+values are reported correctly. For VARCOPE variance images, the
+equivalent transformation is also made, this time in units of %
+squared (i.e., take the square root to compare with the size of the
+COPE % change).
+
+<!-- % signal change at higher-level N (%N): -->
+<!-- %N = HconN * 100 * mean(HconN-1) * COPEN ./ mean(I0) -->
+
+<p>If you turn on <b>Do not binarise mask (allow weighting)</b> then
+if your mask is non-binary, its non-zero values will weight all
+Featquery output values rather than treating the mask as binary. In
+this case the mask will be scaled such that its mean (over non-zero
+voxels) is 1.
+
+<p>If you have selected a mask image in standard or highres space,
+this will get transformed into lowres space as described above. This
+involves interpolation; at the edges of the mask there will be a
+continuous range of values from 1 down to 0. In order to get back to a
+binary mask, this must be thresholded at some value - the default is
+0.5. However, if you want the mask to be slightly more or less
+inclusive than that default, you can <b>Change post-interpolation
+thresholding of mask</b> - for example, by reducing the value to 0.3,
+the final lowres mask will be slightly larger.
+
+<p>If, as well as masking the stats images that you selected above,
+you want to only consider voxels from the images that are above above
+a given threshold, then turn on <b>Threshold stats images as well as
+masking</b> and select a value.
+
+<p>By default the output from Featquery is saved in a directory called
+"featquery", created inside each selected original FEAT directory (or
+is called "featquery+", etc., if you have already run Featquery
+before). At <b>Featquery output directory name</b> you can change this
+default name to anything else in order to more easily distinguish
+different runs of Featquery.
+
+<hr><H2>Go</H2>
+
+<p>When you press <b>Go</b>, Featquery produces a web page report with
+all requested stats, as well as a raw text version of the main report
+table. Above the main table are links to "Mean time series
+(masked/weighted)" (this is a raw text file containing the mean time
+series, within the mask, of the 4D data file filtered_func_data) and
+"Masked time series plots" (this is a full graphical time series
+report, similar to those shown in the FEAT report, but with everything
+masked by the Featquery mask/co-ordinate, including peri-stimulus
+plots).
+
+<hr><H2>Featquery output</H2>
+
+<p>The first column in the main table shows the "stats image",
+i.e. lists the different FEAT stats images that you asked Featquery to
+report on; each of these is also a link to a raw text file giving the
+data timeseries plot at the position of the maximum image value within
+the mask. The next column tells you the number of non-zero voxels
+within the mask.
+
+<p>The next group of columns give various statistics derived from each
+image's values within the Featquery mask. Most of these are
+self-explanatory (min, mean, median, max); the 10% and 90% columns
+show the image values at 10% and 90% of the way through the ordered
+list of values (i.e., at 10%/90% of the cumulative distribution
+function) - so these could be considered a "robust range" of the data
+values, ignoring the tails/outliers of the distribution.
+
+<p>The final group of columns gives the co-ordinates of the maximum
+image voxel within the Featquery mask, both in voxels in native space
+and in mm in standard space (assuming that FEAT registration was run),
+as well as overlapping atlas strucures, if requested.
+
+<hr><H2>Scripting the running of Featquery and the extraction of
+  values generated by Featquery</H2>
+
+<p>When you press <b>Go</b>, if you started the Featquery GUI from a
+command-line terminal then you will see the command-line call to
+the <b>featquery</b> script that is made. You can easily adapt this to
+script Featquery, if you want to make lots of calls to featquery
+automatically. Type "featquery" to get the full command-line usage.
+
+<p>It is easy to extract data from the raw text output, using unix
+commands like grep and awk. For example, to extract the "# featdir"
+value (column 1) and the median (column 7) of the "cope2" image, you
+might use:<pre>
+cat ~/grot.feat/featquery/report.txt | grep stats/cope2 | awk '{print $1 " " $7}'</pre>
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2002-2006, University of
+Oxford. Written
+by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A>.</FONT>
+
+</BODY></HTML>
+

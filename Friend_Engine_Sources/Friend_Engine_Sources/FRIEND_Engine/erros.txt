@@ -1,0 +1,4 @@
+process.cpp:18:17: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+char *extension=".gz";
+                ^
+1 warning generated.

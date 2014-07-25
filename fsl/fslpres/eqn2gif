@@ -1,0 +1,61 @@
+#!/bin/sh
+
+if [ $# -lt 2 ] ; then
+  echo "Usage: $0 <src.txt> <dest.gif> [scale [convert options]]"
+  echo "       $0 -text 'tex equation' <dest.gif> [scale [convert options]]"
+  exit -1;
+fi
+
+# setup
+
+srcdir=$FSLDIR/etc/fslpres
+
+if [ $1 = -text ] ; then
+  src=/tmp/eqn2gif$$.txt ;
+  echo "$2" > $src ; 
+  shift ;
+else 
+  src=$1;
+fi
+dest=$2;
+
+scale=4.0;
+if [ $# -ge 3 ] ; then
+  scale=$3;
+fi
+
+convargs="";
+if [ $# -ge 4 ] ; then
+  shift;
+  shift;
+  shift;
+  convargs=$@;
+fi
+
+origdir=`pwd`;
+tmpdir=${dest}$$.tmp
+
+mkdir $tmpdir
+cp $src $tmpdir/eqn.txt
+cd $tmpdir
+
+# make tex file
+cp $srcdir/.latex2html-init .
+echo $scale\; >> .latex2html-init
+cp $srcdir/eqn.tex1 eqn.tex
+# strip first non-blank line out of eqn.txt
+grep '[^ 	]' eqn.txt | head -1 >> eqn.tex
+cat $srcdir/eqn.tex2 >> eqn.tex
+
+# generate image
+latex2html eqn.tex
+convert -negate $convargs eqn/img1.png ./img1.gif
+#convert -negate -crop x64+0+64 eqn/img1.png ./img1.gif
+#convert -negate -crop x60 eqn/img1.png ./img1.gif
+
+cd $origdir
+cp $tmpdir/img1.gif $dest
+
+# tidy up
+rm -rf $tmpdir
+

@@ -1,0 +1,46 @@
+#!/bin/sh
+
+Usage() {
+    echo ""
+    echo "Usage: design_ttest2 <design_files_rootname> <NgroupA> <NgroupB> [-m]"
+    echo "-m : include individual group mean contrasts"
+    echo ""
+    exit 1
+}
+
+[ "$3" = "" ] && Usage
+
+OUT=$1
+NA=$2
+NB=$3
+NAandB=`echo "$NA $NB + p" | dc -`
+
+echo "/NumWaves 2" > ${OUT}.mat
+echo "/NumPoints $NAandB" >> ${OUT}.mat
+echo "/PPheights 1 1" >> ${OUT}.mat
+echo "/Matrix" >> ${OUT}.mat
+while [ ! $NA -eq 0 ] ; do
+    echo "1 0" >> ${OUT}.mat
+    NA=`echo "$NA 1 - p" | dc -`
+done
+while [ ! $NB -eq 0 ] ; do
+    echo "0 1" >> ${OUT}.mat
+    NB=`echo "$NB 1 - p" | dc -`
+done
+
+NCON=2
+if [ "$4" != "" ] ; then
+  NCON=4
+fi
+
+echo "/NumWaves 2" > ${OUT}.con
+echo "/NumContrasts $NCON" >> ${OUT}.con
+echo "/PPheights 1 1" >> ${OUT}.con
+echo "/Matrix" >> ${OUT}.con
+if [ $NCON = 4 ] ; then
+    echo "1 0" >> ${OUT}.con
+    echo "0 1" >> ${OUT}.con
+fi
+echo "1 -1" >> ${OUT}.con
+echo "-1 1" >> ${OUT}.con
+

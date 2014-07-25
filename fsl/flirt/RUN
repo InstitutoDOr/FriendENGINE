@@ -1,0 +1,143 @@
+#!/bin/sh
+
+function run { echo $1 ; $1 ; }
+
+if [ $# -ge 1 ] ; then
+  INPIM=`$FSLDIR/bin/remove_ext $1` ;
+else
+  INPIM=mjbrain ;
+fi
+
+if [ $# -ge 2 ] ; then
+  REFIM=`$FSLDIR/bin/remove_ext $2` ;
+else
+  REFIM=colin ;
+fi
+
+if [ $# -ge 3 ] ; then
+  OUTNM=`$FSLDIR/bin/remove_ext $3` ;
+else
+  OUTNM=grot
+fi
+
+NLOPTIONS="-d -v"
+if [ $# -ge 4 ] ; then
+  NLOPTIONS="$NLOPTIONS $4"
+fi
+
+# prepare input images at required resolutions
+if [ `imtest ${INPIM}8` = '0' ] ; then 
+  run "flirt -in ${INPIM} -ref ${INPIM} -out ${INPIM}8 -applyisoxfm 8"
+fi
+if [ `imtest ${INPIM}4` = '0' ] ; then 
+  run "flirt -in ${INPIM} -ref ${INPIM} -out ${INPIM}4 -applyisoxfm 4"
+fi
+if [ `imtest ${INPIM}2` = '0' ] ; then 
+  run "flirt -in ${INPIM} -ref ${INPIM} -out ${INPIM}2 -applyisoxfm 2"
+fi
+if [ `imtest ${INPIM}1` = '0' ] ; then 
+  run "flirt -in ${INPIM} -ref ${INPIM} -out ${INPIM}1 -applyisoxfm 1"
+fi
+ 
+if [ `imtest ${REFIM}8` = '0' ] ; then 
+  run "flirt -in ${REFIM} -ref ${REFIM} -out ${REFIM}8 -applyisoxfm 8"
+fi
+if [ `imtest ${REFIM}4` = '0' ] ; then 
+  run "flirt -in ${REFIM} -ref ${REFIM} -out ${REFIM}4 -applyisoxfm 4"
+fi
+if [ `imtest ${REFIM}2` = '0' ] ; then 
+  run "flirt -in ${REFIM} -ref ${REFIM} -out ${REFIM}2 -applyisoxfm 2"
+fi
+if [ `imtest ${REFIM}1` = '0' ] ; then 
+  run "flirt -in ${REFIM} -ref ${REFIM} -out ${REFIM}1 -applyisoxfm 1"
+fi
+
+if [ ! -e ident.mat ] ; then 
+    echo "1 0 0 0" > ident.mat ; 
+    echo "0 1 0 0" >> ident.mat ;
+    echo "0 0 1 0" >> ident.mat ;
+    echo "0 0 0 1" >> ident.mat ;
+fi
+if [ `imtest identwarp8` = '0' ] ; then
+    run "convertwarp -m ident.mat -r ${REFIM}8 -o identwarp8"
+fi
+if [ `imtest identwarp4` = '0' ] ; then
+    run "convertwarp -m ident.mat -r ${REFIM}4 -o identwarp4"
+fi
+if [ `imtest identwarp2` = '0' ] ; then
+    run "convertwarp -m ident.mat -r ${REFIM}2 -o identwarp2"
+fi
+if [ `imtest identwarp1` = '0' ] ; then
+    run "convertwarp -m ident.mat -r ${REFIM}1 -o identwarp1"
+fi
+
+# Do initial affine alignment (if not already present)
+if [ ! -e ${INPIM}2${REFIM}.mat ] ; then
+  run "flirt -in ${INPIM} -ref ${REFIM} -omat ${INPIM}2${REFIM}.mat"
+fi
+
+# resample output for 8mm stage 
+if [ `imtest ${INPIM}8_to_${REFIM}8` = '0' ] ; then 
+  run "flirt -in ${INPIM}8 -init ${INPIM}2${REFIM}.mat -ref ${REFIM}8 -out ${INPIM}8_to_${REFIM}8 -applyxfm"
+fi
+
+# 8mm stages 
+echo " "
+echo "### 8MM STAGE ###"
+echo " "
+run "./nonlin -i ${INPIM}8 -r ${REFIM}8 -o ${OUTNM}8 -w postwarp8 --initaff=${INPIM}2${REFIM}.mat ${NLOPTIONS} --maxiter=2 --nbins=20 --blursize=20"
+
+
+# resample output for 4mm stage
+run "fslmaths postwarp8 -sub identwarp8 postwarp_rel8"
+run "flirt -in postwarp_rel8 -ref ${REFIM}4 -out prewarp_rel4 -applyxfm -paddingsize 8"
+run "fslmaths prewarp_rel4 -add identwarp4 prewarp4"
+if [ `imtest ${INPIM}4_to_${REFIM}4` = '0' ] ; then 
+  run "flirt -in ${INPIM}4 -init ${INPIM}2${REFIM}.mat -ref ${REFIM}4 -out ${INPIM}4_to_${REFIM}4 -applyxfm"
+fi
+
+# 4mm stages (with decreasing blurring/constraint)
+echo " "
+echo "### 4MM STAGE ###"
+echo " "
+run "./nonlin -i ${INPIM}4 -r ${REFIM}4 -o ${OUTNM}4 -w ${OUTNM}4_warp ${NLOPTIONS} --maxiter=6 --initwarp=prewarp4 --nbins=40 --blursize=20"
+
+run "./nonlin -i ${INPIM}4 -r ${REFIM}4 -o ${OUTNM}4b -w postwarp4 ${NLOPTIONS} --maxiter=4 --initwarp=${OUTNM}4_warp --nbins=40 --blursize=8"
+
+# resample output warp for 2mm stage (include translational fixes? TODO)
+run "fslmaths postwarp4 -sub identwarp4 postwarp_rel4"
+run "flirt -in postwarp_rel4 -ref ${REFIM}2 -out prewarp_rel2 -applyxfm -paddingsize 4"
+run "fslmaths prewarp_rel2 -add identwarp2 prewarp2"
+if [ `imtest ${INPIM}2_to_${REFIM}2` = '0' ] ; then 
+  run "flirt -in ${INPIM}2 -init ${INPIM}2${REFIM}.mat -ref ${REFIM}2 -out ${INPIM}2_to_${REFIM}2 -applyxfm"
+fi
+
+# 2mm stages
+echo " "
+echo "### 2MM STAGE ###"
+echo " "
+run "./nonlin -i ${INPIM}2 -r ${REFIM}2 -o ${OUTNM}2 -w ${OUTNM}2_warp ${NLOPTIONS} --maxiter=6 --initwarp=prewarp2 --nbins=80 --blursize=8"
+
+run "./nonlin -i ${INPIM}2 -r ${REFIM}2 -o ${OUTNM}2b -w postwarp2 ${NLOPTIONS} --maxiter=4 --initwarp=${OUTNM}2_warp --nbins=80 --blursize=4"
+
+# resample output warp for 2mm stage (include translational fixes? TODO)
+run "fslmaths postwarp2 -sub identwarp2 postwarp_rel2"
+run "flirt -in postwarp_rel2 -ref ${REFIM}1 -out prewarp_rel1 -applyxfm -paddingsize 2"
+run "fslmaths prewarp_rel1 -add identwarp1 prewarp1"
+if [ `imtest ${INPIM}1_to_${REFIM}1` = '0' ] ; then 
+  run "flirt -in ${INPIM}1 -init ${INPIM}2${REFIM}.mat -ref ${REFIM}1 -out ${INPIM}1_to_${REFIM}1 -applyxfm"
+fi
+
+# 1mm stages
+echo " "
+echo "### 1MM STAGE ###"
+echo " "
+run "./nonlin -i ${INPIM}1 -r ${REFIM}1 -o ${OUTNM}1 -w ${OUTNM}1_warp ${NLOPTIONS} --maxiter=4 --initwarp=prewarp1 --nbins=80 --blursize=4"
+
+run "./nonlin -i ${INPIM}1 -r ${REFIM}1 -o ${OUTNM}1b -w postwarp1 ${NLOPTIONS} --maxiter=4 --initwarp=${OUTNM}1_warp --nbins=80 --blursize=2"
+
+# finished - display message for checking
+echo " "
+echo "Check results by running:"
+echo fv ${REFIM}1 ${INPIM}1_to_${REFIM}1 ${OUTNM}1b
+

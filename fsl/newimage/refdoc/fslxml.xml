@@ -1,0 +1,341 @@
+<refguide name="fslxml" 
+          author="Dave Flitney" 
+	  year="2000"
+	  toc="true">
+
+<section title="introduction">
+<paragraph>
+To try and improve our FSL documentation I have written some XML
+translators for web, man and latex. It is hoped that authors will write XML
+documents and then use the translators to convert it into appropriate
+output forms. It is quite easy to prepare other document translators
+should the need arise.
+</paragraph>
+
+<paragraph>In this document you will find a reference for each
+<tag>tag</tag> and a list of it's associated
+<attrib>attributes</attrib> if any. Usage is almost identical to HTML
+except that all end-tags, ie. <tag>/tag</tag>, are compulsory.
+</paragraph>
+
+<paragraph>
+The FSL Mark-up Language (FSLML) described in this document is
+extensible. If you feel that some important mark-up is missing or that
+some additional document translator is required then feel free to
+contact the <mail address="fsl-help@fmrib.ox.ac.uk">FSL Help
+Desk</mail> to discuss how to improve FSLML to suit your needs.
+</paragraph>
+</section>
+
+<section title="documenting FSL projects">
+<tagdesc name="manentry|refguide|usrguide">
+These tags select the different style of document. There is very
+little difference between each bar a bit of wording in the title
+sections and the addition of an extra attribute for use in <tag>manentry</tag>.
+<itemize>
+<item><attrib>name</attrib> - The text to go in as the name of the
+document. This is suplemental to some global text announcing the
+documents membership of the FSL sources.</item>
+<item><attrib>author</attrib> - This is you. Probably.</item>
+<item><attrib>year</attrib> - For the copyright details.</item>
+<item><attrib>section</attrib> - Indicates the section of the Unix manual (see
+<man section="1">man</man>) to which this page belongs. This is
+applicable to <tag>manentry</tag> only.</item>
+<item><attrib>toc</attrib> - If set to "true" then a Table of Contents
+will be generated.</item>
+</itemize>
+</tagdesc>
+</section>
+
+<section title="documenting C sources">
+<tagdesc name="directive|include">
+The <tag>directive</tag> tag allows you to format C pre-processor
+directives. Example: <tag>directive
+text="if"</tag>defined(FSLDIR)<tag>/directive</tag> becomes <directive
+text="if">defined(FSLDIR)</directive>.
+<itemize>
+<item><attrib>text</attrib> - The directive's command text</item>
+</itemize>
+The <tag>include</tag> tag is a special case of
+<tag>directive</tag>. Example:
+<tag>include</tag>stdio.h<tag>/include</tag> becomes
+<include>stdio.h</include>.
+</tagdesc>
+
+
+<tagdesc name="function">
+This tag is provided to simplify the documentation of C/C++ functions
+when writing manual style pages.
+<itemize>
+<item><attrib>type</attrib> - The C return type of this function.</item>
+</itemize>
+</tagdesc>
+
+<tagdesc name="param-in|param-out">
+Used to introduce parameters to a function call. <tag>param-in</tag>
+is for arguments whose value is only needed as input to the function
+and <tag>param-out</tag> is for arguments whose value will be set by
+the function.
+<itemize>
+<item><attrib>type</attrib> - The C type of this parameter.</item>
+</itemize>
+</tagdesc>
+
+<subsection title="Example">
+
+<paragraph>
+The following XML might be used to document a C function:
+</paragraph>
+
+<break></break>
+<tag>list</tag><break></break>
+<tag>item</tag><break></break>
+<tag>function type="double"</tag>MyFunction<break></break>
+(<break></break>
+<tag>param-in type="double"</tag>arg1<tag>/param-in</tag>,<break></break>
+<tag>param-out type="int *"</tag>arg2<tag>/param-out</tag><break></break>
+);<break></break>
+<tag>/function</tag><break></break>
+<tag>paragraph</tag><break></break>
+Your descriptive text goes here.<break></break>
+<tag>/paragraph</tag><break></break>
+<tag>/item</tag><break></break>
+<tag>/list</tag><break></break>
+
+<itemize>
+<item>
+<function type="double">MyFunction
+(
+<param-in type="double">arg1</param-in>,
+<param-out type="int *">arg2</param-out>
+);
+</function>
+<paragraph>
+Your descriptive text goes here.
+</paragraph>
+</item>
+</itemize>
+
+</subsection>
+</section>
+
+<section title="documenting GUIs">
+<tagdesc name="guilabel">
+Use this tag to introduce a GUI element into the text. NB Indicate the
+hierarchical nature of menu item with arrows,
+eg. <tag>guilabel</tag>File->Exit<tag>/guilabel</tag> which will be
+rendered as: <guilabel>File->Exit</guilabel>.
+</tagdesc>
+</section>
+
+<section title="documenting XML">
+<tagdesc name="tagdesc">
+For documenting XML tags.
+<itemize>
+<item><attrib>name</attrib> - The name of the tag being documented.</item>
+</itemize>
+</tagdesc>
+
+<tagdesc name="attrib">
+Introduces an attribute, eg. the ones listed in the above tag
+descriptions.
+</tagdesc>
+
+<tagdesc name="tag">
+To mark up an XML tag, ie. <tag>tag</tag>tag-name<tag>tag</tag>
+generates <tag>tag-name</tag>.
+</tagdesc>
+</section>
+
+<section title="general purpose tags">
+<tagdesc name="section|subsection">
+<itemize>
+<item><attrib>title</attrib> - The text to be used as the title for
+the section/subsection. NB. with <tag>section</tag> this title text is
+always capitalised.</item>
+</itemize>
+</tagdesc>
+
+<tagdesc name="paragraph">
+Delimits a paragraph of text.
+</tagdesc>
+
+<tagdesc name="enumerate|itemize|item">
+For making (non-nestable) lists. Usage is similar to the latex
+elements of the same name.
+<paragraph>
+<pre>
+&lt;enumerate&gt;
+&lt;item&gt; An item&lt;/item&gt;
+&lt;item&gt; Another item&lt;/item&gt;
+&lt;item&gt; And another&lt;/item&gt;
+&lt;/enumerate&gt;
+</pre>
+
+generates:
+
+<enumerate>
+<item> An item</item>
+<item> Another item</item>
+<item> And another</item>
+</enumerate>
+
+and using <tag>itemize</tag> instead of <tag>enumerate</tag> gives:
+
+<itemize>
+<item> An item</item>
+<item> Another item</item>
+<item> And another</item>
+</itemize>
+</paragraph>
+</tagdesc>
+
+<tagdesc name="mail"> is for indicating an e-mail address.
+<itemize>
+<item><attrib>address</attrib> - The required address.</item>
+</itemize>
+</tagdesc>
+
+<tagdesc name="link"> for a URL style document/web-page address.
+<itemize>
+<item><attrib>url</attrib> - The name of the URL to be linked to.</item>
+</itemize>
+</tagdesc>
+<tagdesc name="man"> can be used to mark up a man entry <tag>man
+section="l"</tag>fslxml<tag>/man</tag> generates <man section="l">fslxml</man>.
+<itemize>
+<item><attrib>section</attrib> - The <man section="1">man</man> section
+to which this entry belongs.</item>
+</itemize>
+</tagdesc>
+</section>
+
+<section title="Generating tables">
+<tagdesc name="table">Introduces a new table
+Use the <tag>col</tag> tag to introduce columns into the table and
+<tag>row</tag> elements to delimit the <tag>data</tag> elements for
+each row.
+</tagdesc>
+
+<tagdesc name="col"> Indicates a new column in the table
+<itemize>
+<item><attrib>colname</attrib> - tags the named column with this
+colname. This is later used to decide which <tag>data</tag> elements
+go in this column.</item>
+</itemize>
+</tagdesc>
+
+<tagdesc name="row"> Use <tag>row</tag> to block the <tag>data</tag>
+elements to be used in this row.
+</tagdesc>
+
+<tagdesc name="data"> Each row has a number of these data
+elements.
+<itemize>
+<item><attrib>id</attrib> - associates this data with the id. Only
+those data elements whose id tags match the <attrib>colname</attrib>
+of a column in the table get rendered.</item>
+<item><attrib>src</attrib> - indicates a file to be parsed for data
+lines.</item>
+</itemize>
+</tagdesc>
+
+<subsection title="Example">
+
+<pre>
+&lt;table&gt;
+&lt;col colname="name"&gt;User's Name&lt;/col&gt;
+&lt;col colname="features"&gt;Features&lt;/col&gt;
+&lt;row&gt;
+&lt;data id="name"&gt;Steve Smith&lt;/data&gt;
+&lt;data id="features"&gt;Blonde hair, black clothes&lt;/data&gt;
+&lt;data id="iq"&gt;1000&lt;/data&gt;
+&lt;/row&gt;
+&lt;row&gt;
+&lt;data id="features"&gt;Red face, quick temper, horns&lt;/data&gt;
+&lt;data id="name"&gt;Beelzebub&lt;/data&gt;
+&lt;/row&gt;
+&lt;/table&gt;
+</pre>
+
+<paragraph>
+generates:
+</paragraph>
+
+<table>
+<col colname="name">User's Name</col>
+<col colname="features">Features</col>
+<row>
+<data id="name">Steve Smith</data>
+<data id="features">Blonde hair, black clothes</data>
+<data id="iq">1000</data>
+</row>
+<row>
+<data id="features">Red face, quick temper, horns</data>
+<data id="name">Beelzebub</data>
+</row>
+</table>
+</subsection>
+</section>
+
+<paragraph>
+Note how the additional data in row 1 is ignored and that the order in
+which the data elements appear is not important.
+</paragraph>
+
+<section title="Larger example">
+<paragraph>
+The following is snippets of the XML which creates this document:
+</paragraph>
+
+<pre>
+&lt;refguide name="fslxml" section="l" author="Dave Flitney" year="2000"&gt;
+
+&lt;section title="introduction"&gt;
+&lt;paragraph&gt;
+To try and improve our FSL documentation I have written some XML
+translators for web, man and latex. It is hoped that authors will
+write XML
+...
+&lt;/paragraph&gt;
+&lt;/section&gt;
+
+&lt;section title="TAGS"&gt;
+&lt;tagdesc name="..."&gt;
+...
+&lt;/tagdesc&gt;
+&lt;/section&gt;
+
+&lt;section title="examples"&gt;
+
+&lt;pre&gt;
+&lt;refguide name="fslxml" author="Dave Flitney" year="2000"&gt;
+
+...
+&lt;/pre&gt;
+
+&lt;/section&gt;
+
+&lt;/refguide&gt;
+</pre>
+</section>
+
+<section title="document translators">
+<paragraph>
+A combined document translator <man section="n">fslml</man> is being
+developed. It can translate FSLML documents into LaTeX, man entry, and
+HTML. At present the HTML translator is most developed however
+completion of the other two transltators is imminent.
+</paragraph>
+</section>
+
+<section title="bugs">
+<enumerate>
+<item>
+It is awkward to include (X/SG/HT)ML in your XML document for
+visualising as text, eg. as in the LARGER EXAMPLE section above.
+</item>
+</enumerate>
+
+</section>
+</refguide>

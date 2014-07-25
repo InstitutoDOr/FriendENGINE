@@ -1,0 +1,129 @@
+<html>
+<head>
+</head>
+<body>
+<title>
+Examples
+</title>
+<h1 align="center">How to handle the mesh class</h1>
+<br>
+<a href="index.html">back to menu</a>
+<br><br>
+<a href="mesh.html">back to Mesh class</a>
+<br><br>
+<a href="#ex1">example 1</a>
+<br>
+<a href="#ex2">example 2</a>
+<br>
+<hr>
+<a name="ex1"><h2>Example 1 : loading, expanding and saving a mesh</h2></a>
+<br>
+double scale;
+<br><br>
+<font color="#FF0000">//loading the mesh</font>
+<br>
+Mesh m;
+<br>
+m.load("mesh.off");
+<br><br>
+<font color="#FF0000">//expanding the mesh</font>
+<br>
+for (list&lt;Mpoint*&gt;::iterator i = m._points.begin(); i!=m._points.end(); i++ )
+<br>
+&nbsp;{
+<br>
+&nbsp;Vec normal = (*i)->local_normal();
+<br>
+&nbsp;(*i)->_update_coord = (*i)->get_coord() + (normal * scale);
+<br>
+&nbsp;}
+<br><br>
+m.update();
+<br><br>
+<font color="#FF0000">//testing for self intersection</font>
+<br>
+if (m.real_self_intersection()) cerr&lt;&lt;"error : mesh is self intersecting"&lt;&lt;endl;
+<br>
+<br>
+<font color="#FF0000">//saving mesh</font>
+<br>
+m.save("output.off");
+<br>
+<br>
+<a href="index.html">back to menu</a>
+<hr>
+<a name="ex2"><h2>Example 2 : creating a mesh by tesselating a tetrahedron, moving it, and giving a good orientation to triangles</h2></a>
+<br>
+<font color="#FF0000">//creating the mesh</font>
+<br>
+Mesh m;
+<br>
+make_mesh_from_tetra(5, m);
+<br><br>
+double scale_factor = 2;
+<br>
+Pt center(1.5, 2, 3);
+<br>
+Vec translation_vector(0, 13, 5.17);
+<br>
+<br>
+<font color="#FF0000">//translating and rescaling the mesh</font>
+<br>
+m.translation(translation_vector);
+<br>
+m.rescale(scale_factor, center);
+<br><br>
+<font color="#FF0000">//giving a good orientation to triangle</font>
+<br>
+m.reorientate();
+<br>
+//note this is useless here since make_mesh_from_tetra already gives a uniform orientation to the triangles
+<br><br>
+<a href="index.html">back to menu</a>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

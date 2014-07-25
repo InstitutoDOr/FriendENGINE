@@ -1,0 +1,266 @@
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+BET - Brain Extraction Tool
+</H1>
+BET v2.1 - User Guide
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<IMG ALIGN=RIGHT SRC="bet2_eg_small.png" width="50%" hspace="20"><H2>INTRODUCTION</H2>
+ 
+<P>BET (Brain Extraction Tool) deletes non-brain tissue from an image
+of the whole head. It can also estimate the inner and outer skull
+surfaces, and outer scalp surface, if you have good quality
+T1 <i>and</i> T2 input images. 
+
+<p>For more information about BET, see the <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/research/bet/">BET research
+web page</A>. If you use BET, please make sure that you quote the
+following reference in any publications:
+
+<font size=-1><em>
+<p>S.M. Smith.
+<br>Fast robust automated brain extraction. 
+<br>Human Brain Mapping, 17(3):143-155, November 2002.
+</em></font>
+
+<p>If you use the skull and scalp surface extraction functions, please
+also reference the following:
+
+<font size=-1><em>
+<p>M. Jenkinson, M. Pechaud, and S. Smith. 
+<br>BET2: MR-based estimation of brain, skull and scalp surfaces. 
+<br>In Eleventh Annual Meeting of the Organization for Human Brain Mapping, 2005.
+</em></font>
+
+<hr><H2>BET PROGRAMS</H2>
+
+<UL>
+<LI><a href="#bet">bet</a> - the main command-line script which makes
+  calling the core bet2 and betsurf programs easy
+  <UL>
+  <LI><a href="#bet">bet2</a> - the main brain extraction program
+  <LI><a href="#betsurf">betsurf</a> - using a registered T1 and T2 image pair, estimates
+  inner and outer skull surfaces and outer scalp surface
+</UL>
+<LI><a href="#betgui">Bet</a> - the BET GUI<br>
+</UL>
+
+<P>Changes: The old C program called <b>bet</b> has now been
+discontinued; the <b>bet2</b> C++ program gives almost identical
+results. <b>betall</b> has been replaced by the -A and -A2 options in
+the new <b>bet</b> script. <b>betfunc</b> has been replaced by the -F
+option in <b>bet</b>. <b>betpremask</b> has been replaced by the -b
+option in <b>standard_space_roi</b>. <b>betsmallz</b> has been
+replaced by the -Z option in <b>bet</b>.
+
+<A NAME="bet"></A><hr><H2>bet and bet2</H2>
+
+<p>By default <b>bet</b> just calls the <b>bet2</b> program for simple
+  brain extraction. However, it also allows various additional
+  behaviour. The basic usage is:
+
+<p><b>bet &lt;input&gt; &lt;output&gt; [options]</b>
+
+
+<p><b>Main bet2 options:</b>
+
+<p><b>-o</b>&nbsp;&nbsp;&nbsp; generate brain surface outline overlaid onto original image
+
+<p><b>-m</b>&nbsp;&nbsp;&nbsp; generate binary brain mask
+
+<p><b>-s</b>&nbsp;&nbsp;&nbsp; generate rough skull image (not as
+  clean as what <b>betsurf</b> generates)
+
+<p><b>-n</b>&nbsp;&nbsp;&nbsp; don't generate the default brain image output
+
+<p><b>-f &lt;f&gt;</b>&nbsp;&nbsp;&nbsp; fractional intensity threshold (0->1); default=0.5; smaller values give larger brain outline estimates
+
+<p><b>-g &lt;g&gt;</b>&nbsp;&nbsp;&nbsp; vertical gradient in fractional intensity threshold (-1->1); default=0; positive values give larger brain outline at bottom, smaller at top
+
+<p><b>-r &lt;r&gt;</b>&nbsp;&nbsp;&nbsp; head radius (mm not voxels); initial surface sphere is set to half of this
+
+<p><b>-c &lt x y z&gt;</b>&nbsp;&nbsp;&nbsp; centre-of-gravity (voxels not mm) of initial mesh surface.
+
+<p><b>-t</b>&nbsp;&nbsp;&nbsp; apply thresholding to segmented brain image and mask
+
+<p><b>-e</b>&nbsp;&nbsp;&nbsp; generates brain surface as mesh in .vtk format. 
+
+
+
+<p><b>Variations on default bet2 functionality (mutually exclusive options):</b>
+
+<p><b>-R</b>&nbsp;&nbsp;&nbsp; This option runs more "robust" brain
+  centre estimation; it repeatedly calls <b>bet2</b>, each time using
+  the same input image and the same main options, except that
+  the <b>-c</b> option (which sets the starting centre of the brain
+  estimation) is set each time to the centre-of-gravity of the
+  previously estimated brain extraction. The primary purpose is to
+  improve the brain extraction when the input data contains a lot of
+  non-brain matter - most likely when there is a lot of neck included
+  in the input image. By iterating in this way the centre-of-gravity
+  should move up each time towards the true centre, resulting in a
+  better final estimate. The iterations stop when the
+  centre-of-gravity stops moving, up to a maximum of 10 iterations.
+
+<p><b>-S</b>&nbsp;&nbsp;&nbsp; This attempts to cleanup residual eye
+  and optic nerve voxels which <b>bet2</b> can sometimes leave
+  behind. This can be useful when running SIENA or SIENAX, for
+  example. Various stages involving standard-space masking,
+  morphpological operations and thresholdings are combined to produce
+  a result which can often give better results than just
+  running <b>bet2</b>.
+
+<p><b>-B</b>&nbsp;&nbsp;&nbsp; This attempts to reduce image bias, and
+  residual neck voxels. This can be useful when running SIENA or
+  SIENAX, for example. Various stages involving FAST
+  segmentation-based bias field removal and standard-space masking are
+  combined to produce a result which can often give better results
+  than just running <b>bet2</b>.
+
+<p><b>-Z</b>&nbsp;&nbsp;&nbsp; This can improve the brain extraction
+  if only a few slices are present in the data (i.e., a small field of
+  view in the Z direction). This is achieved by padding the end slices
+  in both directions, copying the end slices several times,
+  running <b>bet2</b> and then removing the added slices.
+
+<p><b>-F</b>&nbsp;&nbsp;&nbsp; This option uses <b>bet2</b> to
+determine a brain mask on the basis of the first volume in a 4D data
+set, and applies this to the whole data set. This is principally
+intended for use on FMRI data, for example to remove eyeballs. Because
+it is normally important (in this application) that masking be liberal
+(ie that there be little risk of cutting out valid brain voxels) the
+-f threshold is reduced to 0.3, and also the brain mask is "dilated"
+slightly before being used.
+
+<p><b>-A</b>&nbsp;&nbsp;&nbsp; This runs both <b>bet2</b>
+  and <b>betsurf</b> programs in order to get the additional skull and
+  scalp surfaces created by <b>betsurf</b>. This involves registering
+  to standard space in order to allow <b>betsurf</b> to find the
+  standard space masks it needs.
+
+<p><b>-A2 &lt;T2&gt;</b>&nbsp;&nbsp;&nbsp; This is the same
+  as <b>-A</b> except that a T2 image is also input, to further
+  improve the estimated skull and scalp surfaces. As well as carrying
+  out the standard space registration this also registers the T2 to
+  the T1 input image.
+
+<p>The old script <b>betpremask</b> has been replaced with
+  the <b>-b</b> option in <b>standard_space_roi</b>. This
+  uses <b>flirt</b> to register the input image to a standard space
+  whole-head image; the resulting transform is then inverted and a
+  standard-space brain mask is transformed into the space of the input
+  image, and then applied to this to create the output.
+
+
+<A NAME="betgui"></A><hr><H2>Bet GUI</H2>
+
+<H3>MAIN OPTIONS</H3>
+
+<P>First set the <b>Input image</b> filename and the <b>Output
+    image</b> filename. The output name is also used to generate the
+    filenames for any optional outputs that are turned
+    on in <b>Advanced options</b>.
+ 
+<P>Changing <B>Fractional intensity threshold</B> from its default
+value of 0.5 will cause the overall segmented brain to become larger
+(<0.5) or smaller (>0.5). This threshold must lie between 0 and 1.
+
+<p>If you change the options menu from the default setting of <b>Run
+    standard brain extraction using bet2</b> then you will get one of
+    the <b>Variations on default bet2 functionality</b> described
+    above.
+
+<H3>ADVANCED OPTIONS</H3>
+ 
+<P>By default the only output from BET is an image with all non-brain
+matter removed - this is the <B>Output brain-extracted image</B>
+option.
+
+<P>The <B>Output binary brain mask image</B> option tells BET to
+output a binary brain mask (0 outside of the brain and 1 inside). This
+can then be used in later processing, to mask other images derived
+from the original.
+
+<P>The <B>Apply thresholding to brain and mask image</B> option causes
+BET to apply thresholding to the segmented brain image (and also the
+brain mask if selected). Thus, inside the estimated brain, some voxels
+can be "zeroed" after segmentation, if their intensity falls below an
+automatically estimated threshold.
+
+<P>The <B>Output exterior skull surface image</B> option tells BET
+to produce an image which is an estimate of the exterior surface of
+the skull. All non-skull-surface points are 0 in this image, and
+skull-surface points are 100.
+
+<p>The 
+<B>Output brain surface overlaid onto original image</B> option
+creates an output image which is a copy of the original image, with
+additionally an outline of the brain's surface drawn on top.
+
+<P>Changing <B>Threshold gradient</B> from its default value of 0
+causes a gradient to be apply to the previous threshold. Thus setting
+a positive value here causes the primary threshold to be reduced at
+the bottom of the brain, giving a larger brain estimate there, and a
+smaller estimate of the brain towards the top of the image. This value
+must lie between -1 and 1.
+
+  
+
+
+
+
+<A NAME="betsurf"></A><hr><H2>betsurf</H2>
+
+<p><b>betsurf</b> is the program that produces the three additional
+surfaces (inner & outer skull, outer scalp). It can output these
+surfaces as filled-in binary mask images, surface-only binary mask
+images and <a href="http://www.geomview.org">Geomview</a> OFF mesh
+format files.
+
+<p>betsurf requires ideally good resolution T1- and T2-weighted input
+images. It can work only from just a T1 image, but the results will
+generally not be as good. The images should ideally be better than
+2x2x2mm - the smaller the voxel size the better. betsurf requires that
+bet2 has already been run on the T1 image, with the -e mesh output
+option for the brain surface. It also requires that the T2 image
+already be aligned (e.g., using <a
+href="../flirt/index.html">flirt</a>) to the T1. Finally, it requires
+that you supply a transformation from the T1 to standard space (e.g.,
+generated by flirt) as it uses standard-space masks in order to
+constraint some of the mesh fitting.
+
+<p> The .vtk and .off Geomview mesh files contain mm co-ordinates. If
+the image has radiological ordering ( see fslorient ) then the mm
+co-ordinates are the voxel co-ordinates scaled by the mm voxel
+sizes. If the image has neurological ordering the y and z co-ordinates
+are the same as for radiological ordering, but the x co-ordinates will
+be inverted ( x_mm = ( n - 1 - x ) * x_dim ) where n is the number of
+voxels in the x-direction, x is the voxel co-ordinate and x_dim is the
+voxel size in mm.
+
+<p>As an example of how to use bet2 and betsurf together, see the -A
+and -A2 options in the <b>bet</b> script. The -A2 option:<UL>
+
+<LI>Registers the T2 to the T1 image.
+
+<LI>Registers the T1 image to standard space (not to transform the
+image but just to get the transform matrix itself).
+
+<LI>Runs bet2 to get the initial brain extraction from the T1 image.
+
+<LI>Runs betsurf to get the other head surfaces.
+
+
+</UL>
+
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2004-2007, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+

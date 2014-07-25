@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"> 
+
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>Functions for manipulating AVW header files</title>
+</head>
+
+<hr>
+
+<center>
+<h1>Functions for manipulating AVW header files</h1>
+</center>
+
+<hr>
+
+The LoadVarian program now places 'useful' information into the AVW header files.  The AVW header is a C structure, called <code>dsr</code> defined in the file dbh.h.  The fields filled in by LoadVarian are listed below.
+
+<p>
+
+<table border=1>
+<tr>
+<td><b>dsr</b></td>
+<td><b>Description</b></td>
+<td><b>Common Name</b></td>
+
+<tr>
+<td><code>header.dime.dim[1]<code></td>
+<td>Matrix size in X dimension (points)</td>
+<td>xdim</td>
+<tr>
+
+<tr>
+<td><code>header.dime.dim[2]<code></td>
+<td>Matrix size in Y dimension (lines)</td>
+<td>ydim</td>
+<tr>
+
+<tr>
+<td><code>header.dime.dim[3]<code></td>
+<td>Matrix size in Z dimension (slices)</td>
+<td>zdim</td>
+<tr>
+
+<tr>
+<td><code>header.dime.dim[4]<code></td>
+<td>Number of volumes</td>
+<td>vdim</td>
+<tr>
+
+<tr>
+<td><code>header.dime.pixdim[1]<code></td>
+<td>Voxel dimension along X</td>
+<td>xvox</td>
+<tr>
+
+<tr>
+<td><code>header.dime.pixdim[2]<code></td>
+<td>Voxel dimension along Y</td>
+<td>yvox</td>
+<tr>
+
+<tr>
+<td><code>header.dime.pixdim[3]<code></td>
+<td>Voxel dimension along Z (slice thickness)</td>
+<td>zvox</td>
+<tr>
+
+<tr>
+<td><code>header.dime.pixdim[4]<code></td>
+<td>Time between acquisition of volumes (in seconds)</td>
+<td>tr</td>
+<tr>
+
+<tr>
+<td><code>header.dime.datatype<code></td>
+<td>Data type (short,float,complex,etc.)</td>
+<td>dt</td>
+<tr>
+
+<tr>
+<td><code>header.dime.glmax<code></td>
+<td>Maximum value to display</td>
+<td>max</td>
+<tr>
+
+<tr>
+<td><code>header.dime.glmin<code></td>
+<td>Minimum value to display</td>
+<td>min</td>
+<tr>
+
+<tr>
+<td><code>header.hist.orient<code></td>
+<td>Image orientation (Axial,Sagittal,Coronal)</td>
+<td>orient</td>
+<tr>
+
+<tr>
+<td><code>header.hk.db_name<code></td>
+<td>Study ID</td>
+<td>study</td>
+<tr>
+
+<tr>
+<td><code>header.hist.descrip<code></td>
+<td>Experiment description</td>
+<td>descrip</td>
+<tr>
+
+<tr>
+<td><code>header.hist.scannum<code></td>
+<td>Scan number in study</td>
+<td>scannum</td>
+<tr>
+
+<tr>
+<td><code>header.hist.patient_id<code></td>
+<td>Patient name or id number</td>
+<td>patient</td>
+<tr>
+
+<tr>
+<td><code>header.hist.exp_data<code></td>
+<td>Date of scan</td>
+<td>date</td>
+<tr>
+
+</table>
+
+<p> To maintian this information in the header file, and pass it on from file to file, the following stratagy is recommended.  All the helper functions to do this are availiable in the files <code><a href="new_hfunc.h">new_hfunc.h</a></code> and <code><a href="new_hfunc.c">new_hfunc.c</a></code>.
+
+<pre>
+#include "new_hfunc.h" <i>/* Use functions in new_hfunc.c */</i>
+
+int main(int argc,char *argv[])
+{
+  struct dsr header;  <i>/* Declare a header structure  */</i>
+
+  avw_read(filename,&header);  <i>/* Read data from file to stucture  */</i>
+
+  avw_get_dim(&header,&xdim,&ydim,&zdim,&vdim);  <i>/* Find matrix dimensions */</i>
+
+  avw_set_maxmin(&header,max,min);  <i>/* Set intensity maximum and minimum */ </i>
+
+  avw_write(filename,&header);  <i>/* Write data from stucture to file */</i>
+}
+</pre>
+
+<p>A number of functions are availiable in new_hfunc.c change the parameters shown in the table above.
+
+<hr>
+<font size=-1><a href="http://www.fmrib.ox.ac.uk/~stuart/index.html">Back</a> to my home page.</font>
+<div align=right><font size=-2>Stuart Clare 2.9.99</font></div>

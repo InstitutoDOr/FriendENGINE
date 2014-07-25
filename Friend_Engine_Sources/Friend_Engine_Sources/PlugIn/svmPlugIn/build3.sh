@@ -1,0 +1,16 @@
+gcc -shared -fPIC -Wl,-soname,libsvm.so -o libsvm.so svmPlugIn.o vardb.o masks.o intervals.o fslfuncs.o svmobj.o svmfuncs.o defs.o svm.o parser.o statistics.o socket.o socket2.o alglibinternal.o filefuncs.o ap.o specialfunctions.o linalg.o alglibmisc.o \
+-L$FSLDIR/extras/lib \
+-L$FSLDIR/lib \
+-L../../libsvm \
+-lfslio \
+-lnewimage \
+-lmiscmaths \
+-lcprob \
+-lnewmat \
+-lniftiio \
+-lz \
+-lznz \
+-lmiscplot \
+-lgdc \
+-lgd \
+-lpng

@@ -1,0 +1,518 @@
+<!-- {{{ start -->
+
+<HTML><HEAD><link REL="stylesheet" TYPE="text/css" href="../fsl.css"><TITLE>FSL</TITLE></HEAD><BODY><hr><TABLE BORDER=0 WIDTH="100%"><TR><TD ALIGN=CENTER><H1>
+SIENA - Analysis of Structural Brain MRI Data
+</H1>
+SIENA - Structural Image Evaluation, using Normalisation, of Atrophy - v2.6
+<br><br>
+<a href="#intro">intro</a> - <a href="#tools">tools used</a> - <a href="#siena">SIENA</a> - <a
+href="#sienax">SIENAX</a> - <a href="#sienar">voxelwise SIENA statistics</a>
+<TD ALIGN=RIGHT><a href="../index.html"><IMG BORDER=0 SRC="../images/fsl-logo.jpg"></a></TR></TABLE><HR>
+
+<!-- }}} -->
+<!-- {{{ Introduction -->
+
+
+<i>SIENA v2.6 has switched to using FAST v4 and so results should not be
+mixed with previous SIENA versions in the same analysis.</i>
+
+<a name="intro"></a><p><H2>Introduction</H2>
+
+<p>SIENA is a package for both single-time-point ("cross-sectional")
+and two-time-point ("longitudinal") analysis of brain change, in
+particular, the estimation of atrophy (volumetric loss of brain
+tissue). SIENA has been used in many clinical studies.
+
+<p><b>siena</b> estimates percentage brain volume change (PBVC)
+betweem two input images, taken of the same subject, at different
+points in time. It calls a series of FSL programs to strip the
+non-brain tissue from the two images, register the two brains (under
+the constraint that the skulls are used to hold the scaling constant
+during the registration) and analyse the brain change between the two
+time points. It is also possible to project the voxelwise atrophy
+measures into standard space in a way that allows for multi-subject
+voxelwise statistical testing.
+
+<p><b>sienax</b> estimages total brain tissue volume, from a single
+image, normalised for skull size. It calls a series of FSL programs:
+It first strips non-brain tissue, and then uses the brain and skull
+images to estimate the scaling between the subject's image and
+standard space. It then runs tissue segmentation to estimate the
+volume of brain tissue, and multiplies this by the estimated scaling
+factor, to reduce head-size-related variability between subjects.
+
+<p>For more detail on SIENA and technical reports, see the <A
+HREF="http://www.fmrib.ox.ac.uk/analysis/research/siena/">SIENA web
+page</A>.
+
+<p>If you use SIENA in your research, please make sure that you
+reference the following articles. You may alternatively wish to use
+the brief descriptive methods text and expanded list of references
+given below.
+
+<!-- {{{ Referencing SIENA (minimal version) -->
+
+<hr><b>Referencing SIENA (minimal version)</b>
+
+<p>Two-timepoint percentage brain volume change was estimated with SIENA [Smith 2002], part of FSL [Smith 2004].
+<br>&nbsp;&nbsp;&nbsp;or
+<br>Brain tissue volume, normalised for subject head size, was estimated with SIENAX [Smith 2002], part of FSL [Smith 2004].
+
+<font size=-1><em>
+<p>[Smith 2002] S.M. Smith, Y.&nbsp;Zhang, M.&nbsp;Jenkinson, J.&nbsp;Chen, P.M. Matthews, A.&nbsp;Federico, and N.&nbsp;De&nbsp;Stefano.
+<BR>&nbsp;&nbsp;&nbsp;Accurate, robust and automated longitudinal and cross-sectional brain change analysis.
+<BR>&nbsp;&nbsp;&nbsp;NeuroImage, 17(1):479-489, 2002.
+
+<p>[Smith 2004] S.M. Smith, M.&nbsp;Jenkinson, M.W. Woolrich, C.F. Beckmann, T.E.J. Behrens, H.&nbsp;Johansen-Berg, P.R. Bannister, M.&nbsp;De&nbsp;Luca, I.&nbsp;Drobnjak, D.E. Flitney, R.&nbsp;Niazy, J.&nbsp;Saunders, J.&nbsp;Vickers, Y.&nbsp;Zhang, N.&nbsp;De&nbsp;Stefano, J.M. Brady, and P.M. Matthews.
+<BR>&nbsp;&nbsp;&nbsp;Advances in functional and structural MR image analysis and implementation as FSL.
+<BR>&nbsp;&nbsp;&nbsp;NeuroImage, 23(S1):208-219, 2004.
+</em></font>
+
+<!-- }}} -->
+<!-- {{{ Referencing SIENA (more detailed text and references) -->
+
+<hr><b>Referencing SIENA (more detailed text and references)</b>
+
+<p><b>SIENA</b>. Two-timepoint percentage brain volume change was
+estimated with SIENA [Smith 2001, Smith 2002], part of FSL [Smith
+2004]. SIENA starts by extracting brain and skull images from the
+two-timepoint whole-head input data [Smith 2002b]. The two brain
+images are then aligned to each other [Jenkinson 2001, Jenkinson 2002]
+(using the skull images to constrain the registration scaling); both
+brain images are resampled into the space halfway between the
+two. Next, tissue-type segmentation is carried out [Zhang 2001] in
+order to find brain/non-brain edge points, and then perpendicular edge
+displacement (between the two timepoints) is estimated at these edge
+points. Finally, the mean edge displacement is converted into a
+(global) estimate of percentage brain volume change between the two
+timepoints.
+
+<p><b>SIENAX</b>. Brain tissue volume, normalised for subject head
+size, was estimated with SIENAX [Smith 2001, Smith 2002], part of FSL
+[Smith 2004]. SIENAX starts by extracting brain and skull images from
+the single whole-head input data [Smith 2002b]. The brain image is
+then affine-registered to MNI152 space [Jenkinson 2001, Jenkinson
+2002] (using the skull image to determine the registration scaling);
+this is primarily in order to obtain the volumetric scaling factor, to
+be used as a normalisation for head size. Next, tissue-type
+segmentation with partial volume estimation is carried out [Zhang
+2001] in order to calculate total volume of brain tissue (including
+separate estimates of volumes of grey matter, white matter, peripheral
+grey matter and ventricular CSF).
+
+<p><b>Voxelwise multi-subject SIENA statistics</b>. First, SIENA was
+run separately for each subject. Next, for each subject, the edge
+displacement image (encoding, at brain/non-brain edge points, the
+outwards or inwards edge change between the two timepoints) was
+dilated, transformed into MNI152 space, and masked by a standard
+MNI152-space brain edge image. In this way the edge displacement
+values were warped onto the standard brain edge [Bartsch 2004]. Next,
+the resulting images from all subjects were fed into voxelwise
+statistical analysis to test for.....
+
+<font size=-1><em>
+<P>[Smith 2001] S.M. Smith, N.&nbsp;De&nbsp;Stefano, M.&nbsp;Jenkinson, and P.M. Matthews.
+<BR>&nbsp;&nbsp;&nbsp;Normalised accurate measurement of longitudinal brain change.
+<BR>&nbsp;&nbsp;&nbsp;Journal of Computer Assisted Tomography, 25(3):466-475, May/June 2001.
+
+<P>[Smith 2002] S.M. Smith, Y.&nbsp;Zhang, M.&nbsp;Jenkinson, J.&nbsp;Chen, P.M. Matthews, A.&nbsp;Federico, and N.&nbsp;De&nbsp;Stefano.
+<BR>&nbsp;&nbsp;&nbsp;Accurate, robust and automated longitudinal and cross-sectional brain change analysis.
+<BR>&nbsp;&nbsp;&nbsp;NeuroImage, 17(1):479-489, 2002.
+
+<P>[Smith 2004] S.M. Smith, M.&nbsp;Jenkinson, M.W. Woolrich, C.F. Beckmann, T.E.J. Behrens, H.&nbsp;Johansen-Berg, P.R. Bannister, M.&nbsp;De&nbsp;Luca, I.&nbsp;Drobnjak, D.E. Flitney, R.&nbsp;Niazy, J.&nbsp;Saunders, J.&nbsp;Vickers, Y.&nbsp;Zhang, N.&nbsp;De&nbsp;Stefano, J.M. Brady, and P.M. Matthews.
+<BR>&nbsp;&nbsp;&nbsp;Advances in functional and structural MR image analysis and
+  implementation as FSL.
+<BR>&nbsp;&nbsp;&nbsp;NeuroImage, 23(S1):208-219, 2004.
+
+<P>[Smith 2002b] S.M. Smith.
+<BR>&nbsp;&nbsp;&nbsp;Fast robust automated brain extraction.
+<BR>&nbsp;&nbsp;&nbsp;Human Brain Mapping, 17(3):143-155, November 2002.
+
+<P>[Jenkinson 2001] M.&nbsp;Jenkinson and S.M. Smith.
+<BR>&nbsp;&nbsp;&nbsp;A global optimisation method for robust affine registration of brain images.
+<BR>&nbsp;&nbsp;&nbsp;Medical Image Analysis, 5(2):143-156, June 2001.
+
+<P>[Jenkinson 2002] M.&nbsp;Jenkinson, P.R. Bannister, J.M. Brady, and S.M. Smith.
+<BR>&nbsp;&nbsp;&nbsp;Improved optimisation for the robust and accurate linear registration and motion correction of brain images.
+<BR>&nbsp;&nbsp;&nbsp;NeuroImage, 17(2):825-841, 2002.
+
+<P>[Zhang 2001] Y.&nbsp;Zhang, M.&nbsp;Brady, and S.&nbsp;Smith.
+<BR>&nbsp;&nbsp;&nbsp;Segmentation of brain MR images through a hidden Markov random field model and the expectation maximization algorithm.
+<BR>&nbsp;&nbsp;&nbsp;IEEE Trans. on Medical Imaging, 20(1):45-57, 2001.
+
+<P>[Bartsch 2004] A.J. Bartsch, N.&nbsp;Bendszus, N.&nbsp;De&nbsp;Stefano, G.&nbsp;Homola, and S.&nbsp;Smith.
+<BR>&nbsp;&nbsp;&nbsp;Extending SIENA for a multi-subject statistical analysis of sample-specific cerebral edge shifts: Substantiation of early brain regeneration through abstinence from alcoholism.
+<BR>&nbsp;&nbsp;&nbsp;In Tenth Int. Conf. on Functional Mapping of the Human Brain, 2004.
+
+</em></font>
+
+<!-- }}} -->
+
+<!-- }}} -->
+<!-- {{{ FSL Tools used -->
+
+<a name="tools"></a><p><hr><H2>FSL Tools used</H2>
+
+This section lists the generic FSL programs that SIENA uses.
+
+<p><a href="../bet2/index.html">bet</a> - Brain Extraction Tool. This
+automatically removes all non-brain tissue from the image. It can
+optionally output the binary brain mask that was derived during this
+process, and output an estimate of the external surface of the skull,
+for use as a scaling constraint in later registration.
+
+<p><b>pairreg</b>, a script supplied with <a
+href="../flirt/index.html">FLIRT</a> - FMRIB's Linear Image
+Registration Tool. This script calls FLIRT with a special optimisation
+schedule, to register two brain images whilst at the same time using
+two skull images to hold the scaling constant (in case the brain has
+shrunk over time, or the scanner calibration has changed). The script
+first calls FLIRT to register the brains as fully as possible. This
+registration is then applied to the skull images, but only the scaling
+and skew are allowed to change. This is then applied to the brain
+images, and a final pass optimally rotates and translates the brains
+to get the best final registration.
+
+<p><a href="../fast/index.html">fast</a> - FMRIB's Automated
+Segmentation Tool. This program automatically segments a brain-only
+image into different tissue types (normally background, grey matter,
+white matter, CSF and other). It also corrects for bias field. It is
+used in various ways in the SIENA scripts. Note that both <b>siena</b>
+and <b>sienax</b> allow you to choose between segmentation of grey
+matter and white matter as separate classes or a single class. It is
+important to choose the right option here, depending on whether there
+is or is not reasonable grey-white contrast in the image.
+
+<!-- }}} -->
+<!-- {{{ SIENA - Two-Time-Point Estimation -->
+
+<a name="siena"></a><p><hr><H2>SIENA - Two-Time-Point Estimation</H2>
+
+<h3>Usage</h3>
+
+<p>A default SIENA analysis is run by typing:
+
+<p><b>siena &lt;input1&gt; &lt;input2&gt;</b>
+
+<p>The input filenames must not contain directory names - i.e. all
+must be done within a single directory.
+
+<p>Other options are:
+
+<p><b>-o &lt;output-dir&gt;</b> : set output directory (the default output is &lt;input1&gt;_to_&lt;input2&gt;_siena)
+
+<p><b>-d</b> : debug (don't delete intermediate files)
+
+<p><b>-B "bet options"</b> : if you want to change the BET defaults,
+  put BET options inside double-quotes after using the -B flag. For
+  example, to increase the size of brain estimation, use: <code>-B "-f
+  0.3"</code>
+
+<p><b>-2</b> : two-class segmentation (don't segment grey and white
+matter separately) - use this if there is poor grey/white contrast
+
+<p><b>-t2</b>: tell FAST that the input images are T2-weighted and not T1
+
+<p><b>-m</b> : use standard-space masking as well as BET (e.g. if it
+is proving hard to get reliable brain segmentation from BET, for
+example if eyes are hard to segment out) - register to standard space
+in order to use a pre-defined standard-space brain mask
+
+<p><b>-t &lt;t&gt;</b>: ignore from t (mm) upwards in MNI152/Talairach space
+- if you need to ignore the top part of the head (e.g. if some
+subjects have the top missing and you need consistency across
+subjects)
+
+<p><b>-b &lt;b&gt;</b>: ignore from b (mm) downwards in MNI152/Talairach space; b should probably be -ve
+
+<p><b>-S "siena_diff options"</b> : if you want to send options to the
+  siena_diff program (that estimates change between two aligned
+  images), put these options in double-quotes after the -S flag. For
+  example, to tell siena_diff to run FAST segmentation with an
+  increased number of iterations, use <code>-S "-s -i 20"</code>
+
+
+
+<h3>What the script does</h3>
+
+<p><b>siena</b> carries out the following steps:
+
+<p>Run <b>bet</b> on the two input images, producing as output, for
+each input: extracted brain, binary brain mask and skull image. If you
+need to call BET with a different threshold than the default of 0.5,
+use <b>-f &lt;threshold&gt;</b>.
+
+<p>Run <b>siena_flirt</b>, a separate script, to register the two
+brain images. This first calls the FLIRT-based registration script
+<b>pairreg</b> (which uses the brain and skull images to carry out
+constrained registration). It then deconstructs the final transform
+into two half-way transforms which take the two brain images into a
+space halfway between the two, so that they both suffer the same
+amount of interpolation-related blurring. Finally the script produces
+a multi-slice gif picture showing the registration quality, with one
+transformed image as the background and edges from the other
+transformed image superimposed in red.
+
+<p>The final step is to carry out change analysis on the registered
+brain images. This is done using the program <b>siena_diff</b>. (In
+order to improve slightly the accuracy of the <b>siena_diff</b>
+program, a self-calibration script <b>siena_cal</b>, described later,
+is run before this.) <b>siena_diff</b> carries out the following
+steps:
+
+<UL>
+
+<LI>Transforms original whole head images and brain masks for each
+time point into the space halfway between them, using the two halfway
+transforms previously generated.
+
+<LI>Combines the two aligned masks using logical OR (if either is 1
+then the output is 1). 
+
+<LI>The combined mask is used to mask the two aligned head
+images, resulting in aligned brain images.
+
+<LI>The change between the two aligned brain images is now estimated,
+using the following method (note that options given to the
+<b>siena</b> script are passed on to <b>siena_diff</b>): Apply tissue
+segmentation to the first brain image. At all points which are
+reported as boundaries between brain and non-brain (including internal
+brain-CSF boundaries), compute the distance that the brain surface has
+moved between the two time points. This motion of the brain edge
+(perpendicular to the local edge) is calulated on the basis of
+sub-voxel correlation (matching) of two 1D vectors; these are taken
+from the 3D images, a fixed distance either side of the surface point,
+and perpendicular to it, and are differentiated before correlation,
+allowing some variation in the two original images. Compute mean
+perpendicular surface motion and convert to PBVC.
+
+<LI>To make this conversion between mean perpendicular edge motion and
+PBVC, it is necessary to assume a certain relationship between real
+brain surface area, number of estimated edge points and real brain
+volume. This number can be estimated for general images, but will vary
+according to slice thickness, image sequence type, etc, causing small
+scaling errors in the final PBVC. In order to correct for this,
+self-calibration is applied, in which <b>siena</b> calls
+<b>siena_cal</b>. This script runs <b>siena_diff</b> on one of the
+input images relative to a scaled version of itself, with the scaling
+pre-determined (and therefore known). Thus the final PBVC is known in
+advance and the estimated value can be compared with this to get a
+correction factor for the current image. This is done for both input
+images and the average taken, to give a correction factor to be fed
+into <b>siena_diff</b>.
+
+</UL>
+
+The files created in the SIENA output directory are:
+
+<UL>
+
+<LI><code>report.siena</code> the SIENA log, including the final PBVC
+estimate.
+
+<LI><code>report.html</code> a webpage report including images showing
+various stages of the analysis, the final result and a description of
+the SIENA method.
+
+<LI><code>A_halfwayto_B_render</code> a colour-rendered image of edge
+motion superimposed on the halfway A image. Red-yellow means brain
+volume increase and Blue means brain volume decrease ("atrophy").
+
+<LI><code>A_and_B.gif</code> a gif image showing the results of the registration,
+using one transformed image as the background and the other as the
+coloured edges foreground.
+
+<LI><code>A_to_B.mat</code> the transformation taking A to B, using the brain and
+skull images.
+
+<LI><code>B_to_A.mat</code> the transformation taking B to A, using the brain and
+skull images.
+
+<LI><code>A_halfwayto_B.mat</code> and <code>B_halfwayto_A.mat</code> the transformations taking
+the images to the halfway positions.
+
+</UL>
+
+<!-- }}} -->
+<!-- {{{ SIENAX - Single-Time-Point Estimation -->
+
+<a name="sienax"></a><p><hr><H2>SIENAX - Single-Time-Point Estimation</H2>
+
+<h3>Usage</h3>
+
+<p>A default SIENAX analysis is run by typing:
+
+<p><b>sienax &lt;input&gt;</b>
+
+<p>The input filename must not contain directory names - i.e. all must
+be done within the current directory.
+
+<p>Other options are:
+
+<p><b>-o &lt;output-dir&gt;</b> : set output directory (the default output is &lt;input&gt;_sienax)
+
+<p><b>-d</b> : debug (don't delete intermediate files)
+
+<p><b>-B "bet options"</b> : if you want to change the BET defaults,
+  put BET options inside double-quotes after using the -B flag. For
+  example, to increase the size of brain estimation, use: <code>-B "-f
+  0.3"</code>
+
+<p><b>-2</b> : two-class segmentation (don't segment grey and white
+matter separately) - use this if there is poor grey/white contrast
+
+<p><b>-t2</b>: tell FAST that the input images are T2-weighted and not T1
+
+<p><b>-t &lt;t&gt;</b>: ignore from t (mm) upwards in MNI152/Talairach space
+- if you need to ignore the top part of the head (e.g. if some
+subjects have the top missing and you need consistency across
+subjects)
+
+<p><b>-b &lt;b&gt;</b>: ignore from b (mm) downwards in MNI152/Talairach space; b should probably be -ve
+
+<p><b>-r</b>: tell SIENAX to estimate "regional" volumes as well as
+global; this produces peripheral cortex GM volume (3-class
+segmentation only) and ventricular CSF volume
+
+<p><b>-lm &lt;mask&gt;</b>: use a lesion (or lesion+CSF) mask to
+remove incorrectly labelled "grey matter" voxels
+
+<p><b>-S "FAST options"</b> : if you want to change the segmentation
+  defaults, put FAST options inside double-quotes after using the -S
+  flag. For example, to increase the number of segmentation
+  iterations use: <code>-S "-i 20"</code>
+
+
+
+<h3>What the script does</h3>
+
+<p><b>sienax</b> carries out the following steps:
+
+<UL>
+
+  <LI>Run <b>bet</b> on the single input image, outputting the
+  extracted brain, and the skull image. If you need to call BET with a
+  different threshold than the default of 0.5, use <b>-f
+  &lt;threshold&gt;</b>.
+
+  <LI>Run <b>pairreg</b> (which uses the brain and skull images to
+  carry out constrained registration); the MNI152 standard brain is
+  the target (reference), using brain and skull images derived from
+  the MNI152. Thus, as with two-time-point atrophy, the brain is
+  registered (this time to the standard brain), again using the skull
+  as the scaling constraint. Thus brain tissue volume (estimated
+  below) will be relative to a "normalised" skull size. (Ignore the
+  "WARNING: had difficulty finding robust limits in histogram"
+  message; this appears because FLIRT isn't too happy with the unusual
+  histograms of skull images, but is nothing to worry about in this
+  context.) Note that all later steps are in fact carried out on the
+  original (but stripped) input image, not the registered input image;
+  this is so that the original image does not need to be resampled
+  (which introduces blurring). Instead, to make use of the
+  normalisation described above, the brain volume (estimated by the
+  segmentation step described below) is scaled by a scaling factor
+  derived from the normalising transform, before being reported as the
+  final normalised brain volume.
+
+  <LI>A standard brain image mask, (derived from the MNI152 and
+  slightly dilated) is transformed into the original image space (by
+  inverting the normalising transform found above) and applied to the
+  brain image. This helps ensure that the original brain extraction
+  does not include artefacts such as eyeballs.
+
+  <LI>Segmentation is now run on the masked brain using
+  <b>fast</b>. If there is reasonable grey-white contrast, grey
+  matter and white matter volumes are reported separately, as well as
+  total brain volume (this is the default behaviour). Otherwise
+  (i.e. if <b>sienax</b> was called with the <b>-2</b> option), just
+  brain/CSF/background segmentation is carried out, and only brain
+  volume is reported. Before reporting, all volumes are scaled by the
+  normalising scaling factor, as described above, so that all
+  subjects' volumes are reported relative to a normalised skull size.
+
+</UL>
+
+The main files created in the SIENAX output directory are:
+
+<UL>
+
+<LI><code>report.sienax</code> the SIENAX log, including the final
+volume estimates.
+
+<LI><code>report.html</code> a webpage report including images showing
+various stages of the analysis, the final result and a description of
+the SIENAX method.
+
+<LI><code>I_render</code> a colour-rendered image showing the segmentation
+output superimposed on top of the original image.
+
+</UL>
+
+<!-- }}} -->
+<!-- {{{ Voxelwise SIENA Statistics -->
+
+<a name="sienar"></a><p><hr><H2>Voxelwise SIENA Statistics</H2>
+
+<p>We have extended SIENA to allow the voxelwise statistical analysis
+of atrophy across subjects. This takes a SIENA-derived edge "flow
+image" (edge displacement between the timepoints) for each subject,
+warps these to align with a standard-space edge image and then carries
+out voxelwise cross-subject statistical analysis to identify brain
+edge points which, for example, are signficantly atrophic for the
+group of subjects as a whole, or where atrophy correlates
+significantly with age or disease progression.
+
+<p>In order to carry out voxelwise SIENA statistics, do the following:
+
+<UL>
+
+<LI> Run <br><code>siena A B</code><br> on all subjects'
+two-timepoints data (here <code>A</code> and <code>B</code>).
+
+<LI> For each subject run <br><code>cd &lt;siena_output_directory&gt;<br>
+siena_flow2std A B</code><br>
+this runs flirt to generate the transform to standard space (if it
+doesn't already exist), takes the edge flow (atrophy) image generated
+by <code>siena</code>, dilates this several times (to "thicken" this edge
+flow image), transforms to standard space, and masks with a standard
+space edge mask. It then smooths this with a default Gaussian filter of
+half-width 5mm before remasking. If you want to change the smoothing
+then use the -s option; set the smoothing to zero to turn if off
+completely.
+
+<LI> All subjects will now have an edge flow image in standard edge
+space called <code>A_to_B_flow_to_std</code>. Merge these into a
+single 4D image; for example, if each subject's analysis has so far
+been carried out in a subdirectory called subject_*/A_to_B_siena, where the *
+could be subject ID or name, use a command such as:<br><code> fslmerge
+-t flow_all_subjects `imglob
+subject_*/A_to_B_siena/A_to_B_flow_to_std*`</code><br>
+
+Note: it is very important that the order that the subjects appear in
+this command matches the order you intend when you then create the
+design matrix!
+
+<LI> You are now ready to carry out the cross-subject statistics. We
+recommend using <a href="../randomise/index.html">randomise</a> for
+this, as the above steps are very unlikely to generate nice Gaussian
+distributions in the data. You will need to generate a FEAT-style
+design matrix <code>design.mat</code> and contrasts file
+<code>design.con</code>. The mask image that you use for randomise
+should be <code>${FSLDIR}/data/standard/MNI152_T1_2mm_edges</code>
+
+</UL>
+
+<!-- }}} -->
+<!-- {{{ end -->
+
+<p><HR><FONT SIZE=1>Copyright &copy; 2000-2004, University of
+Oxford. Written by <A
+HREF="http://www.fmrib.ox.ac.uk/~steve/index.html">S. Smith</A>.</FONT>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+</BODY></HTML>
+
+<!-- }}} -->

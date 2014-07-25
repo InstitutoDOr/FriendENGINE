@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><meta http-equiv="Content-Type"
+content="text/html;charset=utf-8">
+<link REL="stylesheet" TYPE="text/css" href="../fsl.css">
+<TITLE>FSL</TITLE></HEAD><BODY><IFRAME width="100%" scrolling="no"
+frameborder="0" src="top.html">Broken</IFRAME>
+
+
+<H2>FEAT - Perfusion FMRI Analysis</H2>
+
+<hr><H3>Introduction</H3>
+
+<p>It is straighforward to analyse perfusion FMRI data (often also
+  referred to as ASL or arterial spin labelling) with FEAT. The data
+  needs special treatment because each voxel's timeseries alternates
+  between "tag" and "control" conditions, with control timepoints
+  having higher intensity. If there is BOLD signal present (for
+  example because the echo time is not short) this can be modelled as
+  the average of the tag and control. The perfusion (flow) signal can
+  be modelled as the difference between the tag and control
+  conditions; when there is activation, this difference increases.
+
+<p>There are currently two ways of analysing such data with FEAT -
+  <b>subtraction</b> of tag from control (as part of pre-stats
+  processing), <i>or</i> <b>full perfusion signal modelling</b>, where
+  separate EVs model the BOLD signal, the (constant-height)
+  tag-control difference and the modulation of this by the
+  activation. The choice of which approach to take will depend on the
+  data - subtraction can be better if there is certain structured
+  noise in the data, whilst full modelling can give more accurate
+  modelling, as the data does not have to be resampled, so no
+  information is lost through interpolation.
+
+<p>With either approach, initial evidence suggests that it is
+  worthwhile using highpass filtering (with cutoff set according to
+  the same norms as BOLD FMRI analysis).
+
+<hr><IMG ALIGN=RIGHT hspace=20 vspace=20 SRC="perfmodel.png">
+
+<H3>Full perfusion signal modelling</H3>
+
+<p>If you want to fully model the different aspects of the perfusion
+  data, you will need to setup at least 3 EVs. See the example design
+  matrix:
+
+<UL>
+
+<LI> EV1 models the baseline (constant height) control-tag alternating
+  intensity variation. This models the difference between control and
+  tag conditions when no stimulation is present, i.e., when there is
+  no functional activation.
+
+<LI> EV2 models the BOLD signal, which often contaminates the
+  perfusion signal, particularly if the TE (echo time) is not
+  low. This EV models the slow signal that is the mean of the tag and
+  control conditions. It should be setup as you would setup a normal
+  BOLD FMRI analysis, with the basic EV timings set according to
+  stimulation timings, and then convolved using a standard HRF
+  convolution.
+
+<LI> EV3 is formed by multiplying EVs 1 and 2 together, and models the
+  activation component of the control-tag signal. It is close to zero
+  during rest and rises in amplitude during activation.
+
+</UL>
+
+<p> For an experiment with just a single experimental condition, these
+  EVs are generally all that you need, and can be setup via
+  the <b>Model setup wizard</b>. If you have more than one condition,
+  then for each new condition you will need a new EV similar to EV2,
+  modelling the BOLD response, and also a corresponding EV formed from
+  interacting the BOLD response EV with EV1. Note that for each
+  interaction EV, you need to click on the <b>Demean EV</b> button for
+  EV1 only. This makes the modulation envelope for the perfusion
+  activation EV symmetric about zero, rather than only positive, and
+  results in a slightly better model of the perfusion data.
+
+<p> The above assumes that the tag-control order of the data is such
+  that the first timepoint is tag. If not, you should change
+  the <b>Phase</b> for EV1 from 0 to the TR.
+
+<p> You should leave FILM whitening turned on.
+
+<hr><H3>Subtraction</H3>
+
+<b>Perfusion subtraction</b> subtracts even from odd timepoints in
+order to convert tag-control alternating timepoints into a
+perfusion-only signal. If you are setting up a full perfusion model
+(see above) then you should <i>not</i> use this option.
+
+<p>To use the subtraction method, select your input data, and make
+sure that you set the TR correctly (i.e., how long each tag or control
+volume takes to acquire) in the <b>Data</b> part of the FEAT
+GUI. Then, in <b>Pre-stats</b>, setup the pre-processing as normal in
+FEAT, except that you should turn on <b>Perfusion subtraction</b>. You
+should <i>not</i> be using <b>intensity normalisation</b> so leave
+that turned off. You may wish to use <b>Highpass</b> filtering; this
+will remove low frequency noise still present <i>after</i> the
+subtraction processing. FEAT will automatically turn off FILM
+prewhitening if you use perfusion subtraction (this is set in
+the <b>Stats</b> part of the GUI).
+
+<p>By default it is assumed that your first timepoint is tag, the
+second is control, etc. If your data is the other way round, change
+the <b>First timepoint is tag</b> setting to <b>First timepoint is
+control</b>.
+
+<p>Next, setup the model as you normally would for an FMRI analysis,
+  with an EV for each experimental condition.  The subtraction causes
+  a temporal shift of the sampled signal to half a TR earlier; hence
+  you should ideally shift your model forwards in time by half a TR,
+  for example by reducing custom timing onsets by half a TR or by
+  increasing the model shape phase by half a TR.
+
+<p>To see exactly what the subtraction processing is doing, look at
+  the $FSLDIR/bin/perfusion_subtract script. This splits the original
+  timeseries into two, one containing all even timepoints and the
+  other containing all the odds. It then creates two new timeseries
+  from each, in one case shifting the data forwards by half an
+  (original) TR and in the other shifting it back by half a TR. The
+  appropriate combinations of these are then subtracted from each
+  other, before re-combining into a processed dataset that has the
+  same number of timepoints as the original data. Sinc (temporal)
+  interpolation is used in order to minimised temporal blurring
+  induced by the shifting. This approach has better accuracy (with
+  respect to removing BOLD contamination and recovering perfusion
+  signal) and efficiency (particularly with respect to not halving the
+  number of timepoints) than simpler perfusion subtraction
+  methods. However, the filter affects the autocorrelation structure
+  in the timeseries, in a way that is not well-matched to the
+  autocorrelation estimation in FILM. This is why FILM whitening is
+  turned off, and instead, to correct for the reduced degrees of
+  freedom in the filtered data, the varcope and degrees-of-freedom are
+  automatically corrected after running FILM in OLS mode.
+
+</BODY></HTML>
+

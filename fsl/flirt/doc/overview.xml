@@ -1,0 +1,61 @@
+<usrguide name="Overview of the FLIRT project" section="l" rootdir="../" author="Mark Jenkinson" 
+year="2000">
+
+<section title="Introduction">
+This document gives a brief description of the various command line
+programs available in the FLIRT component of FSL.  A description of
+the GUI interface is contained in another document.
+
+<p>
+For each of the programs described here, a full list of available options
+can be obtained by running the command with no options.
+</p>
+</section>
+
+
+<section title="FLIRT">
+<type>flirt</type> is the main program that performs affine registration.  It takes
+an input (<attrib>-in</attrib>) and a reference
+(<attrib>-ref</attrib>) volume, and then calculates the affine
+transformation that registers the input to the reference.  The
+transformation can be saved as a 4x4 affine matrix
+(<attrib>-omat</attrib>).
+
+<p>
+In addition, FLIRT can also be used to apply a saved transformation to
+a volume (<attrib>-applyxfm</attrib> and <attrib>-out</attrib>).  For
+this usage the reference volume must still be specified as this sets
+the voxel and image dimensions of the resulting volume.
+</p>
+</section>
+
+
+<section title="CONVERT_XFM">
+<type>convert_xfm</type> is a utility that is used to convert between different
+transformation file formats.  It can read and write ascii 4x4 matrices.  In
+addition, it can be used to concatenate two transforms (using
+<attrib>-concat</attrib> with the second transform) or to find the
+inverse transformation (using <attrib>-inverse</attrib>).
+
+
+</section>
+
+<section title="RMSDIFF">
+<type>rmsdiff</type> is a utility that calculates the Root Mean Square deviation
+(in millimetres) between two transformations.  That is, it compares
+two transformations (normally two possible registrations of the same
+volume pair) to see how much they differ.  This is useful to compare
+alternative registrations.
+</section>
+
+<section title="AVSCALE">
+<type>avscale</type> is a utility that displays the decomposed elements of an
+affine matrix.  It displays the rotation/translation matrix, the
+individual axis scalings, the individual skews, the average scaling,
+and the forward and backward halfway transformations.  In order to set
+the centre of rotation it requires the input volume (also called the
+reslice volume).
+</section>
+
+
+</usrguide>
