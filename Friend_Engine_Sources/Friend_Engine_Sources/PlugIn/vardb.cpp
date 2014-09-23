@@ -18,6 +18,24 @@
 #endif
 #include "vardb.h"
 
+using namespace std;
+
+void replaceAll(string& str, const string& from, const string& to) {
+	if (from.empty())
+		return;
+	string wsRet;
+	wsRet.reserve(str.length());
+	size_t start_pos = 0, pos;
+	while ((pos = str.find(from, start_pos)) != string::npos) {
+		wsRet += str.substr(start_pos, pos - start_pos);
+		wsRet += to;
+		pos += from.length();
+		start_pos = pos;
+	}
+	wsRet += str.substr(start_pos);
+	str.swap(wsRet); // faster than str = wsRet;
+}
+
 // returns the class of a volume index. It calls the respective DesignObject function
 int studyParams::getClass(int idx)
 {
@@ -174,8 +192,8 @@ void studyParams::readConfig(CSimpleIniA &ini)
    tTestCutOff= readedIni.GetDoubleValue("FRIEND", "tTestCutOff", 5.5);
    clusterSize = readedIni.GetLongValue("FRIEND", "ClusterSize", clusterSize);
    
-   strcpy(trainFeatureSuffix, readedIni.GetValue("FRIEND", "CurrentRunSuffix"));
-   strcpy(testFeatureSuffix, readedIni.GetValue("FRIEND", "ModelRunSuffix"));
+   sprintf(trainFeatureSuffix, "_%s", readedIni.GetValue("FRIEND", "CurrentRunSuffix"));
+   sprintf(testFeatureSuffix,  "_%s", readedIni.GetValue("FRIEND", "ModelRunSuffix"));
    
    byCutOff = readedIni.GetLongValue("FRIEND", "ByCutOff", 0);
    includeMotionParameters = readedIni.GetLongValue("FRIEND", "IncludeMotionParameters", 1);
@@ -198,6 +216,7 @@ void studyParams::readConfig(CSimpleIniA &ini)
    invX = readedIni.GetLongValue("FRIEND", "InvX", invX);
    invY = readedIni.GetLongValue("FRIEND", "InvY", invY);
    invZ = readedIni.GetLongValue("FRIEND", "InvZ", invZ);
+   rIniRead = 1;
 }
 
 // saves a config information in a buffer to disk
@@ -228,6 +247,7 @@ void studyParams::prepRealtimeVars()
     snprintf(predictionFileAux, buffSize, "%s%s", outputDir, "predictionaux.nii");
     
     snprintf(inputDir, buffSize, "%s%s%c", outputDir, "input", PATHSEPCHAR);
+	fprintf(stderr, "Creating inputdir\n");
 #ifdef WIN32
     _mkdir(inputDir);
 #else
@@ -244,6 +264,7 @@ void studyParams::prepRealtimeVars()
     snprintf(activationFile, buffSize, "%s%s", inputDir, "RAI_ax_cube.nii");
     
     snprintf(glmDir, buffSize, "%s%s%c", outputDir, "glm", PATHSEPCHAR);
+	fprintf(stderr, "Creating glmdir\n");
 #ifdef WIN32
     _mkdir(glmDir);
 #else
@@ -269,6 +290,7 @@ void studyParams::prepRealtimeVars()
     snprintf(glmMatrixFile, buffSize, "%s%s%s%s", glmDir, "design_with2Gamma", trainFeatureSuffix, ".txt");
    
     snprintf(logDir, buffSize, "%s%s%c", outputDir, "log", PATHSEPCHAR);
+	(stderr, "Creating log dir\n");
 #ifdef WIN32
     _mkdir(logDir);
 #else
@@ -276,6 +298,7 @@ void studyParams::prepRealtimeVars()
 #endif
     
    snprintf(preprocDir, buffSize, "%s%s%c", outputDir, "preproc", PATHSEPCHAR);
+   fprintf(stderr, "Creating preproc dir\n");
 #ifdef WIN32
    _mkdir(preprocDir);
 #else
@@ -283,25 +306,50 @@ void studyParams::prepRealtimeVars()
 #endif
 
    // setting Design object internal variables
+    fprintf(stderr, "reading design file %s\n", designFile);
     interval.readDesignFile(designFile);
-    strcpy(interval.glmDir, glmDir);
+	fprintf(stderr, "Copying information to Design Object\n");
+	strcpy(interval.glmDir, glmDir);
     strcpy(interval.baselineCondition, baselineCondition);
+	fprintf(stderr, "generating contrasts \n");
     interval.generateContrasts(conditionContrasts, 0);
     sprintf(fsfFile, "%s%s%s%s", glmDir, subject, trainFeatureSuffix, ".fsf");
     sprintf(parFile, "%s%s%s%s", glmDir, "confounds", trainFeatureSuffix, ".txt");
     sprintf(rmsFile, "%s%s%s%s", logDir, "rms_abs", trainFeatureSuffix, ".rms");
     getPreprocVolumePrefix(preprocVolumePrefix);
+	fprintf(stderr, "end preproc vars\n");
 }
 
 // sets the value of a variable. Not used right now
 void studyParams::setVar(char *var, char *value)
 {
+	string temp = value, from, to;
+
+	from = "glmdir"; to = glmDir;
+	replaceAll(temp, from, to);
+
+	from = "outputdir"; to = outputDir;
+	replaceAll(temp, from, to);
+
+	from = "studydir"; to = studyDir;
+	replaceAll(temp, from, to);
+
+	from = "inputdir"; to = inputDir;
+	replaceAll(temp, from, to);
+
+	from = "logdir"; to = logDir;
+	replaceAll(temp, from, to);
+
+	from = "preprocdir"; to = preprocDir;
+	replaceAll(temp, from, to);
+
+	readedIni.SetValue("FRIEND", var, temp.c_str(), NULL, true);
     strToUpper(var);
-    if (strcmp(var, "MASKFILE") == 0) strcpy(maskFile, value);
-    if (strcmp(var, "PREFIX") == 0) strcpy(rawVolumePrefix, value);
-    if (strcmp(var, "DESIGN") == 0) strcpy(designFile, value);
-    if (strcmp(var, "CURRENTRUNSUFFIX") == 0) strcpy(trainFeatureSuffix, value);
-    if (strcmp(var, "MODELRUNSUFFIX") == 0) strcpy(testFeatureSuffix, value);
+	if (strcmp(var, "MASKFILE") == 0) strcpy(maskFile, temp.c_str());
+	if (strcmp(var, "PREFIX") == 0) strcpy(rawVolumePrefix, temp.c_str());
+	if (strcmp(var, "DESIGN") == 0) strcpy(designFile, temp.c_str());
+	if (strcmp(var, "CURRENTRUNSUFFIX") == 0) strcpy(trainFeatureSuffix, temp.c_str());
+	if (strcmp(var, "MODELRUNSUFFIX") == 0) strcpy(testFeatureSuffix, temp.c_str());
 }
 
 // determines, given a volume index, if its in a baseline block. Calls the respective DesignObject function
@@ -325,6 +373,7 @@ void studyParams::setSocketfd(int Sock)
 // initializating control variables
 void studyParams::initializeStates()
 {
+   rIniRead=0;
    rPrepVars=0;
    rPreProc=0;
    rGLM=0;

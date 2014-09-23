@@ -9,6 +9,8 @@
 #include "socket2.h"
 #ifdef WINDOWS
 #include <WinSock2.h>
+#else
+#include <errno.h>
 #endif
 #include <string.h>
 #include <stdlib.h>
@@ -42,7 +44,7 @@ int Socket2::nextReadSize()
 #else
    status = ioctl(Socketfd, FIONREAD, &result);
 #endif
-   
+   if (status != 0) connectionProblem = 1;
    return result;
 }
 
@@ -54,11 +56,45 @@ int Socket2::read(char *buffer, int size)
    return 0;
 }
 
+int Socket2::readToBuffer(char *buffer, int &dataSize)
+{
+	int moreToRead = 1, count = 0;
+	if (dataSize > sizeof(buffer)) dataSize = sizeof(buffer); // reads for now the minimum between the local buffer and data avaiable
+	if (dataSize > 0) // something more ?
+	{
+		count = recv(Socketfd, buffer, dataSize, 0);
+		if (count > 0)
+		{
+			ostr.write(buffer, count); // writes the data in the stream object
+			buffersize += count; // updates the stream buffer size variable
+		}
+		else
+		{
+			if (count = 0)
+			{
+				fprintf(stderr, "connection closed.\n");
+				connectionProblem = 1;
+			}
+			else
+			{
+#ifdef WINDOWS
+				int error = WSAGetLastError();
+#else
+				int error = errno();
+#endif
+				connectionProblem = 1;
+			}
+			moreToRead = 0;
+		}
+	}
+	return moreToRead;
+}
+
 // core function to read all socket data avaiable to a stream object
 void Socket2::readStream()
 {
    char buffer[1024];
-   int count, dataSize;
+   int dataSize;
    
 #ifndef	WINDOWS
    fd_set	fds;
@@ -73,23 +109,27 @@ void Socket2::readStream()
    FD_ZERO(&fds);
 #endif
    FD_SET(Socketfd, &fds);
-   if(select(Socketfd + 1, &fds, NULL, NULL, &tv)==1)
+
+   int descriptors = select(Socketfd + 1, &fds, NULL, NULL, &tv);
+   connectionProblem = 0;
+   if(descriptors==1)
    {
+      // verifying if exists something to read
+	  dataSize = nextReadSize();
+
+	  if (dataSize == 0) // nothing to read. Trying to read something anyway till timeout.
+	  {
+		  dataSize = 1;
+  	      readToBuffer(buffer, dataSize);
+	  }
       while ((dataSize=nextReadSize())) // reading all data available
       {
-         if (dataSize > sizeof(buffer)) dataSize = sizeof(buffer); // reads for now the minimum between the local buffer and data avaiable
-         if (dataSize > 0) // something more ?
-         {
-            count = recv(Socketfd, buffer, dataSize, 0);
-            if (count > 0)
-            {
-               ostr.write(buffer, count); // writes the data in the stream object
-               buffersize += count; // updates the stream buffer size variable
-            }
-            else break;
-         }
+		  if (!readToBuffer(buffer, dataSize)) 
+			  break;
       }
    }
+   else if (descriptors < 0) // socket potentially invalid
+	   connectionProblem = 1;
 }
 
 // return the size of last read operation
@@ -126,7 +166,7 @@ int Socket2::readLine(char *buffer, int size)
    buffer[0] = 0;
    ostr.getline(buffer, size); //reading a line
    buffersize-=ostr.gcount();
-   if ((strlen(buffer) >= size-1) || (strlen(buffer)< 2)) // If no newline in buffer or buffer size too short, then trying to read more data from the socket
+   if ((strlen(buffer) >= size-1) || (strlen(buffer)< 1)) // If no newline in buffer or buffer size too short, then trying to read more data from the socket
    {
       // verifying status of the stream object
       if (!ostr.good())

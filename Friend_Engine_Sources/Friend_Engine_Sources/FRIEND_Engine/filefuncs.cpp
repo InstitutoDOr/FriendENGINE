@@ -1,5 +1,6 @@
 #ifndef WINDOWS
 #include <dirent.h>
+#include <unistd.h>
 #ifdef UNIX
 #ifndef LINUX
 #include "copyfile.h"
@@ -115,31 +116,38 @@ int returnFileNameExists(char *fileName, char *fileNameExists)
 }
 
 // checks if a file exists
+int _fileExists(char *fileName)
+{
+	int resp;
+#ifdef WIN32
+	if (_access(fileName, 0) != -1)
+#else
+	if (access(fileName, 0) != -1)
+#endif
+		resp = 1;
+	else resp = 0;
+	return resp;
+}
+
+// checks if a file exists
 int fileExists(char *fileName)
 {
    int resp;
    if (fileName==NULL) return 0;
-	#ifdef WIN32
-   if (_access(fileName, 0) != -1)
-   #else
-   if (access(fileName, 0) != -1)
-   #endif
-      resp=1;
-	else resp=0;
-   
-   if (resp==0)
+   resp = _fileExists(fileName);
+   char auxFileName[2048];
+
+   if (resp == 0)
    {
-      char gzFileName[2048];
-      sprintf(gzFileName, "%s%s", fileName, ".gz");
-      #ifdef WIN32
-      if (_access(gzFileName, 0) != -1)
-      #else
-      if (access(gzFileName, 0) != -1)
-      #endif
-         resp=1;
-      else resp=0;
-      if (resp)
-         strcpy(fileName, gzFileName);
+      sprintf(auxFileName, "%s%s", fileName, ".nii");
+	  resp = _fileExists(auxFileName);
+	  if (resp == 0)
+	  {
+		  sprintf(auxFileName, "%s%s", fileName, ".nii.gz");
+		  resp = _fileExists(auxFileName);
+	  }
+	  if (resp)
+		  strcpy(fileName, auxFileName);
    }
    return resp;
 }

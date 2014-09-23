@@ -249,20 +249,36 @@ int DesignObject::maxIndex()
    return intervals[intervals.size()-1].end;
 }
 
+// remove spaces from string
+std::string trim(const std::string &s)
+{
+	std::string::const_iterator it = s.begin();
+	while (it != s.end() && isspace(*it))
+		it++;
+
+	std::string::const_reverse_iterator rit = s.rbegin();
+	while (rit.base() != it && isspace(*rit))
+		rit++;
+
+	return std::string(it, rit.base());
+}
+
 // reads a design file
 int DesignObject::readDesignFile(char *designFile)
 {
-   cleanUp();
+	cleanUp();
 	ifstream in;
 	string row;
 	in.open(designFile);
 	
-   intervals.clear();
+	intervals.clear();
    
    // reading a line
 	while (getline(in, row))
 	{
-      intervals.resize(intervals.size()+1);
+		row = trim(row);
+		if (row.empty()) continue;
+	   intervals.resize(intervals.size()+1);
 	   {
          // parsing start-end,CONDITION line
          char num[20];
@@ -285,8 +301,11 @@ int DesignObject::readDesignFile(char *designFile)
          stripReturns(intervals[intervals.size()-1].condition);
 	   }
 	}
+	fprintf(stderr, "Closing file.\n");
 	in.close();
-   getConditionsList();
+	fprintf(stderr, "Getting condition list.\n");
+	getConditionsList();
+	fprintf(stderr, "Exitting function.\n");
 	return intervals.size();
 }
 

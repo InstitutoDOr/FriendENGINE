@@ -844,7 +844,9 @@ template <class T>
 
     extrapolation oldex = aniso.getextrapolationmethod();
     if ((oldex==boundsassert) || (oldex==boundsexception)) 
-      { aniso.setextrapolationmethod(constpad); }
+    { 
+		aniso.setextrapolationmethod(constpad);
+	}
 
 	float stepx, stepy, stepz;
 	if (nn==1) aniso.setinterpolationmethod(nearestneighbour);
@@ -860,12 +862,15 @@ template <class T>
     volume<T> iso(sx,sy,sz);
     float fx, fy, fz;
     int x, y, z;
-    for (fz=0.0, z=0; z<sz; z++, fz+=stepz) {
-      for (fy=0.0, y=0; y<sy; y++, fy+=stepy) {
-	for (fx=0.0, x=0; x<sx; x++, fx+=stepx) {
-	  iso(x,y,z) = (T)aniso.interpolate(fx,fy,fz);
-	}
-      }
+    for (fz=0.0, z=0; z<sz; z++, fz+=stepz) 
+	{
+        for (fy=0.0, y=0; y<sy; y++, fy+=stepy) 
+		{
+	        for (fx=0.0, x=0; x<sx; x++, fx+=stepx) 
+			{
+	           iso(x,y,z) = (T)aniso.interpolate(fx,fy,fz);
+	        }
+        }
     }
     iso.copyproperties(aniso);
     iso.setdims(dx,dy,dz);
@@ -877,11 +882,19 @@ template <class T>
     iso2Aniso(2,2)=stepy;
     iso2Aniso(3,3)=stepz;
     iso2Aniso(4,4)=1.0;
+	write_ascii_matrix(iso2Aniso, "e:\\matrixiso.txt");
+
     if (aniso.sform_code()!=NIFTI_XFORM_UNKNOWN) {
-      iso.set_sform(aniso.sform_code(), aniso.sform_mat() * iso2Aniso);
+		write_ascii_matrix(aniso.sform_mat(), "e:\\matrixaniso.txt");
+		Matrix result = aniso.sform_mat() * iso2Aniso;
+		write_ascii_matrix(result, "e:\\matrixr1.txt");
+      iso.set_sform(aniso.sform_code(), result);
     }
     if (aniso.qform_code()!=NIFTI_XFORM_UNKNOWN) {
-      iso.set_qform(aniso.qform_code(), aniso.qform_mat() * iso2Aniso);
+		write_ascii_matrix(aniso.qform_mat(), "e:\\matrixaniso.txt");
+		Matrix result = aniso.qform_mat() * iso2Aniso;
+		write_ascii_matrix(result, "e:\\matrixr2.txt");
+		iso.set_qform(aniso.qform_code(), result);
     }
 	string fileName=output;
 	save_orig_volume(iso, fileName);

@@ -56,7 +56,7 @@ public:
    FSLIO *runReferencePtr;
    
    // control variables
-   bool rPrepVars, rPreProc, rPipeline, rGLM, rFeatureSel, rTrain;
+   bool rIniRead, rPrepVars, rPreProc, rPipeline, rGLM, rFeatureSel, rTrain;
 
    char subject[BUFF_SIZE], raiFile[BUFF_SIZE], rfiFile[BUFF_SIZE];
 

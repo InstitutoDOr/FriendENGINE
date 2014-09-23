@@ -98,6 +98,10 @@ class FriendProcess
            
                // gets the status phase
                void getPhaseStatus(string phase, char *response);
+
+			   // return in the config file was read
+			   int FriendProcess::isConfigRead();
+
            
 		virtual ~FriendProcess()
            {

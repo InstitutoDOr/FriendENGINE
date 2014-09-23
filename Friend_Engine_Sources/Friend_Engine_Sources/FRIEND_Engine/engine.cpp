@@ -190,7 +190,13 @@ bool	friendEngine::serverChild ( int	socketFd )
          fprintf(stderr, "waiting for command \n");
          socks.readLine(command, 255);
          stripReturns(command);
-         fprintf(stderr, "command received : %s\n", command);
+		 
+		 if ((strlen(command) == 0) && (socks.connectionProblem)) // possible transmission error, timeout communication
+		 {
+			 fprintf(stderr, "Connection problems. Aborting thread!\n");
+			 break;
+		 }
+         else fprintf(stderr, "command received : %s\n", command);
          strToUpper(command);
 
          // non blocked commands
@@ -209,6 +215,9 @@ bool	friendEngine::serverChild ( int	socketFd )
             
             // assigning the session variable
             process.setSessionPointer(newSession);
+
+			// reading the config file
+			process.readConfigFile(configFile);
          }
          else
          if (strcmp(command, "ENDSESSION") == 0)
@@ -506,7 +515,8 @@ bool	friendEngine::serverChild ( int	socketFd )
             char library[500], trainfname[100], testfname[100], initfname[100], finalfname[200], volumefname[200], afterpreprocfname[200];
             
             // reading the default config file study_params.txt
-            process.readConfigFile(configFile);
+			if (process.isConfigRead()==0)
+               process.readConfigFile(configFile);
 
             // reading library filename and function names. The names must come in order
             socks.readLine(library, 500);
@@ -536,13 +546,14 @@ bool	friendEngine::serverChild ( int	socketFd )
             socks.writeString(command);
          }
          else
-         // sets a config file variable content. Actually this function not working right now. Can you help?
-         if (strcmp(command, "SET") == 0) 
+		 if (strcmp(command, "SET") == 0) 
          {
             socks.readLine(tag, 255);
             socks.readLine(value, 255);
             stripReturns(tag);
-            stripReturns(value);
+			stripReturns(value);
+
+			process.prepRealtimeVars();
 
             fprintf(stderr, "%s=%s\n", tag, value);
             process.setVar(tag, value);

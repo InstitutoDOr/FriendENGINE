@@ -186,9 +186,15 @@ void FriendProcess::featureSelection()
          CmdLn.str("");
          CmdLn << "fslmaths " << vdb.featuresAllTrainSuffix << " -thr " << value << " " << vdb.featuresTrainSuffix;
          fslmaths((char *)CmdLn.str().c_str());
-      }
+	  }
    }
-   vdb.rFeatureSel=true;
+
+   // create binary version
+   CmdLn.str("");
+   CmdLn << "fslmaths " << vdb.featuresTrainSuffix << " -bin " << vdb.featuresTrainSuffix << "_bin -odt char";
+   fslmaths((char *)CmdLn.str().c_str());
+
+   vdb.rFeatureSel = true;
 }
 
 // call plugin train function
@@ -551,6 +557,7 @@ void FriendProcess::initializeStates()
 void FriendProcess::prepRealtimeVars()
 {
    vdb.prepRealtimeVars();
+   fprintf(stderr, "Will call init function.\n");
    pHandler.callInitFunction(vdb);
    vdb.rPrepVars=1;
 }
@@ -593,6 +600,10 @@ void FriendProcess::setSessionPointer(Session *sessionPtr)
       sessionPtr->setVDBPointer(&vdb);
 }
 
+int FriendProcess::isConfigRead()
+{
+	return vdb.rIniRead;
+}
 
 // automatic feedback calculations
 void FriendProcess::setFeedbackCalculation(int automaticCalculations)
@@ -621,15 +632,20 @@ void FriendProcess::prepRealTime()
    char arqAxial[BUFF_SIZE] = { }, CmdLn[BUFF_SIZE] = { }, betAnat[BUFF_SIZE] = { };
    size_t buffSize = BUFF_SIZE-1;
    
-   if (!vdb.rPrepVars) prepRealtimeVars();
+   if (!vdb.rPrepVars)
+   {
+	   fprintf(stderr, "Calling PrepRealtime vars.\n");
+	   prepRealtimeVars();
+   }
+	  
 
    if (!fileExists(vdb.baseImage))
    {
       // Anatomic Processing
       snprintf(arqAxial, buffSize, "%s%s", vdb.inputDir, "RAI_ax.nii");
       resampleVolume(vdb.raiFile, arqAxial, 1, 1, 1, vdb.TR, 0);
-      axial(arqAxial, vdb.baseImage);
-      centralizeVolume(arqAxial, vdb.baseImage);
+	  axial(arqAxial, arqAxial);
+	  centralizeVolume(arqAxial, vdb.baseImage);
    }
 
    // creating a resampled anatomic with the same voxel dim as the functional, for registering the pipelines outcomes with this volume for presenting in FRONT END. Actually the FRIEND engine does not do this corregistering

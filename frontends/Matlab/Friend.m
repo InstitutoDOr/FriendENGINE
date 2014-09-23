@@ -22,7 +22,7 @@ function varargout = Friend(varargin)
 
 % Edit the above text to modify the response to help Friend
 
-% Last Modified by GUIDE v2.5 16-Apr-2014 09:06:20
+% Last Modified by GUIDE v2.5 17-Sep-2014 09:08:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -109,8 +109,8 @@ actualVolume=0;
 guiObject = hObject;
 
 [pathstr,name,ext] = fileparts(get(hObject,'FileName'));
-baseDir=sprintf('%s\\', pathstr);
-files = dir(sprintf('%s\\figures\\*.jpg', baseDir));
+baseDir=sprintf('%s/', pathstr);
+files = dir(sprintf('%s/figures/*.jpg', baseDir));
 names = {files(:).name};
 
 rotationx=[];
@@ -326,7 +326,6 @@ if (phase == 2)
     % sending FEEDBACK command
     fprintf(mainThread, 'NBFEEDBACK');
     response=fgetl(mainThread);
-    pipelineType=2;
     actualVolume=1;
     phase = 25;
 end
@@ -403,7 +402,7 @@ setPlugInInformation();
 phase = 1;
 
 global pipelineType;
-pipelineType = 2;
+pipelineType = 1;
 
 global timerObj;
 start(timerObj);
@@ -563,7 +562,7 @@ if (pipelineType == 2)
    if (imageNumber ==0) 
        imageNumber=1;
    end;
-   imshow(sprintf('%sfigures\\%s', baseDir, names{imageNumber}));
+   imshow(sprintf('%sfigures/%s', baseDir, names{imageNumber}));
 end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% EU IMPLEMENTEI   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -588,3 +587,25 @@ function figure1_DeleteFcn(hObject, eventdata, handles)
 global timerObj;
 stop(timerObj);
 delete(timerObj);
+
+
+% --- Executes during object creation, after setting all properties.
+function figure1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function pushbutton1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pushbutton1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over pushbutton1.
+function pushbutton1_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to pushbutton1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

@@ -23,7 +23,7 @@ class Socket2
 {
 private:
    int buffersize;
-   
+
    // verifies if there is more data to read in socket
    int nextReadSize();
    
@@ -40,6 +40,12 @@ public:
    std::stringstream ostr;
    
    int Socketfd, TCPIPTimeOut;
+
+   // indicates if there is a connection problem
+   int connectionProblem;
+
+   // reads the socket data to memory buffer
+   int readToBuffer(char *buffer, int &dataSize);
    
    // assigns a previously created socket to this class
    void setSocketfd(int Sock);

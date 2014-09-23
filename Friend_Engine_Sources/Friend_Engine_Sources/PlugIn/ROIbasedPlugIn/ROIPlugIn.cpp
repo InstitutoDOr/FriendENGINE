@@ -17,12 +17,20 @@
 // initializes the object variables. This function brings the mni mask to subject space
 int roiProcessing::initialization(studyParams &vdb)
 {
+	if (vdb.readedIni.IsEmpty())
+	{
+		fprintf(stderr, "the studyparams.txt file was not read.\n");
+		return 1;
+	}
    strcpy(vdb.mniMask, vdb.readedIni.GetValue("FRIEND", "ActivationLevelMask"));
    strcpy(vdb.mniTemplate, vdb.readedIni.GetValue("FRIEND", "ActivationLevelMaskReference"));
+   targetValue = vdb.readedIni.GetDoubleValue("FRIEND", "ActivationLevel");
+   int masktype = vdb.readedIni.GetLongValue("FRIEND", "ActivationLevelMaskType");
+
    fprintf(stderr, "mnimask = %s\n", vdb.mniMask);
    fprintf(stderr, "mnitemp = %s\n", vdb.mniTemplate);
-   targetValue = vdb.readedIni.GetDoubleValue("FRIEND", "ActivationLevel");
-   if ((fileExists(vdb.mniMask)) && (fileExists(vdb.mniTemplate)))
+   fprintf(stderr, "masktype = %d\n", masktype);
+   if ((fileExists(vdb.mniMask)) && (fileExists(vdb.mniTemplate)) && (masktype == 2))
    {
       char outputFile[500], prefix[500]="_RFI2", name[500];
       
@@ -38,6 +46,12 @@ int roiProcessing::initialization(studyParams &vdb)
       
       // loads the reference mask
       meanCalculation.loadReference(outputFile);
+   }
+   else if ((fileExists(vdb.mniMask)) && (masktype == 1))
+   {
+	   // loads the reference mask
+	   fprintf(stderr, "Loading native space mask %s\n", vdb.mniMask);
+	   meanCalculation.loadReference(vdb.mniMask);
    }
    lastBaselineValue=0;
    return 0;
