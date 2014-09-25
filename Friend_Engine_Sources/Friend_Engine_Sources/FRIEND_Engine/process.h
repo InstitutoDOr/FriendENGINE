@@ -100,7 +100,7 @@ class FriendProcess
                void getPhaseStatus(string phase, char *response);
 
 			   // return in the config file was read
-			   int FriendProcess::isConfigRead();
+			   int isConfigRead();
 
            
 		virtual ~FriendProcess()

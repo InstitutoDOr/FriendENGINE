@@ -14,6 +14,7 @@
 #endif
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /// searches for new line and carriage return message delimiters in a string
 bool hasNewline(const char *text)
@@ -77,11 +78,13 @@ int Socket2::readToBuffer(char *buffer, int &dataSize)
 			}
 			else
 			{
+/*			
 #ifdef WINDOWS
 				int error = WSAGetLastError();
 #else
 				int error = errno();
 #endif
+*/
 				connectionProblem = 1;
 			}
 			moreToRead = 0;
