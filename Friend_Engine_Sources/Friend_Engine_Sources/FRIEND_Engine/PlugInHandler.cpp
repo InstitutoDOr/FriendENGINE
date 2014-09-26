@@ -116,7 +116,6 @@ int PluginHandler::callInitFunction(studyParams &vdb)
 {
    if (initFunction != NULL)
    {
-      fprintf(stderr, "Initialization function called.\n");
       return initFunction(vdb, userData);
    }
    else return 0;

@@ -4,7 +4,7 @@ import time;
 import datetime;
 
 #communication variables
-HOST = '10.36.1.140';
+HOST = '127.0.0.1';
 PORT = 5678;
 TR = 2.0;
 sessionID = '';
@@ -190,7 +190,7 @@ if (PIPELINE==2):
    # changing the directory of the volumes
    mainThread.send('SET\n');
    mainThread.send('Prefix\n');
-   mainThread.send('outputdirRUN02\DRIN-\n');
+   mainThread.send('outputdirRUN02/DRIN-\n');
    response=readsocket(mainThread);
    
 print 'sessionID received = %s' % (sessionID);

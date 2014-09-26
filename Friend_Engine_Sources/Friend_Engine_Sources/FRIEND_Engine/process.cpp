@@ -279,7 +279,6 @@ BOOL FriendProcess::isReadyNextFile(int index, char *rtPrefix, char *format, cha
 
 		   osc << "  " << outFile << '\0';
 		   // transforms an analyze file into a nii file, inverting axes accordingly
-		   //fprintf(stderr, "%s", osc.str().c_str());
 		   fslSwapDimRT(osc.str().c_str(), vdb.runReferencePtr);
 
 		   osc.str("");
@@ -556,10 +555,11 @@ void FriendProcess::initializeStates()
 // initializating all other variables
 void FriendProcess::prepRealtimeVars()
 {
-   vdb.prepRealtimeVars();
-   fprintf(stderr, "Will call init function.\n");
-   pHandler.callInitFunction(vdb);
-   vdb.rPrepVars=1;
+   if (!vdb.rPrepVars) 
+   {
+      vdb.prepRealtimeVars();
+      vdb.rPrepVars=1;
+   }
 }
 
 // change a config file variable value
@@ -634,10 +634,9 @@ void FriendProcess::prepRealTime()
    
    if (!vdb.rPrepVars)
    {
-	   fprintf(stderr, "Calling PrepRealtime vars.\n");
 	   prepRealtimeVars();
+       pHandler.callInitFunction(vdb);
    }
-	  
 
    if (!fileExists(vdb.baseImage))
    {
