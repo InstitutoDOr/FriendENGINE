@@ -13,9 +13,9 @@ using namespace NEWIMAGE;
 #include <direct.h>
 #define snprintf sprintf_s
 #define chdir _chdir
-char *extension[]="";
+char extension[]="";
 #else
-char *extension[]=".gz";
+char extension[]=".gz";
 
 #endif
 // set socket data for response

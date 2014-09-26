@@ -301,11 +301,8 @@ int DesignObject::readDesignFile(char *designFile)
          stripReturns(intervals[intervals.size()-1].condition);
 	   }
 	}
-	fprintf(stderr, "Closing file.\n");
 	in.close();
-	fprintf(stderr, "Getting condition list.\n");
 	getConditionsList();
-	fprintf(stderr, "Exitting function.\n");
 	return intervals.size();
 }
 

@@ -78,6 +78,7 @@ bool isReadable(char *fileName)
 {
    fstream filen;
    int r;
+   if (!fileExists(fileName)) return false; 
    filen.open(fileName, ios::in | ios::out);
    if (filen.good()) r =true;
    else r = false;
@@ -139,15 +140,20 @@ int fileExists(char *fileName)
 
    if (resp == 0)
    {
-      sprintf(auxFileName, "%s%s", fileName, ".nii");
-	  resp = _fileExists(auxFileName);
-	  if (resp == 0)
-	  {
-		  sprintf(auxFileName, "%s%s", fileName, ".nii.gz");
-		  resp = _fileExists(auxFileName);
-	  }
-	  if (resp)
-		  strcpy(fileName, auxFileName);
+      sprintf(auxFileName, "%s%s", fileName, ".gz");
+      resp = _fileExists(auxFileName);
+      if (resp == 0)
+      {
+         sprintf(auxFileName, "%s%s", fileName, ".nii");
+         resp = _fileExists(auxFileName);
+         if (resp == 0)
+         {
+            sprintf(auxFileName, "%s%s", fileName, ".nii.gz");
+            resp = _fileExists(auxFileName);
+         }
+      }
+      if (resp)
+         strcpy(fileName, auxFileName);
    }
    return resp;
 }

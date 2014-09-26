@@ -882,18 +882,13 @@ template <class T>
     iso2Aniso(2,2)=stepy;
     iso2Aniso(3,3)=stepz;
     iso2Aniso(4,4)=1.0;
-	write_ascii_matrix(iso2Aniso, "e:\\matrixiso.txt");
 
     if (aniso.sform_code()!=NIFTI_XFORM_UNKNOWN) {
-		write_ascii_matrix(aniso.sform_mat(), "e:\\matrixaniso.txt");
 		Matrix result = aniso.sform_mat() * iso2Aniso;
-		write_ascii_matrix(result, "e:\\matrixr1.txt");
       iso.set_sform(aniso.sform_code(), result);
     }
     if (aniso.qform_code()!=NIFTI_XFORM_UNKNOWN) {
-		write_ascii_matrix(aniso.qform_mat(), "e:\\matrixaniso.txt");
 		Matrix result = aniso.qform_mat() * iso2Aniso;
-		write_ascii_matrix(result, "e:\\matrixr2.txt");
 		iso.set_qform(aniso.qform_code(), result);
     }
 	string fileName=output;
