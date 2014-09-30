@@ -290,7 +290,7 @@ void studyParams::prepRealtimeVars()
     snprintf(glmMatrixFile, buffSize, "%s%s%s%s", glmDir, "design_with2Gamma", trainFeatureSuffix, ".txt");
    
     snprintf(logDir, buffSize, "%s%s%c", outputDir, "log", PATHSEPCHAR);
-	(stderr, "Creating log dir\n");
+	fprintf(stderr, "Creating log dir\n");
 #ifdef WIN32
     _mkdir(logDir);
 #else

@@ -71,7 +71,7 @@ int Socket2::readToBuffer(char *buffer, int &dataSize)
 		}
 		else
 		{
-			if (count = 0)
+			if (count == 0)
 			{
 				fprintf(stderr, "connection closed.\n");
 				connectionProblem = 1;
