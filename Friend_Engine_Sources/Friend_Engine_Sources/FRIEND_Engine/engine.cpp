@@ -67,6 +67,8 @@ void sleep(int h)
 #endif
 
 extern int 	TCPIPTimeOut;
+extern char exePath[500];
+
 #ifdef WINDOWS
 bool	WINAPI friendEngineHelper ( friendEngine	* );
 #else
@@ -173,6 +175,7 @@ bool	friendEngine::serverChild ( int	socketFd )
    }
    fprintf(stderr, "Current dir = %s\n", workingDir);
    sprintf(configFile, "%s%c%s", workingDir, PATHSEPCHAR, "study_params.txt");
+   strcpy(exePath, workingDir);
    
    // setting the response socket
    process.setSocketfd(socketFd);

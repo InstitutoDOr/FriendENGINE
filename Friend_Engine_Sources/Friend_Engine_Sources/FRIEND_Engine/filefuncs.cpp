@@ -20,15 +20,44 @@
 
 using namespace std;
 
+void replaceAll(string& str, const string& from, const string& to);
+
+char exePath[500];
+
 // performs a shell like expansion of fileName
 void expandFilename(char *fileName)
 {
 #ifndef WINDOWS
-   wordexp_t exp_result;
-   wordexp(fileName, &exp_result, 0);
-   fileName[0]=0;
-   strcpy(fileName, exp_result.we_wordv[0]);
-   wordfree(&exp_result);
+	char actualPath[500], actualSuperPath[500];
+	wordexp_t exp_result;
+
+	// getting the actual directory
+	if (strlen(exePath)== 0) getcwd(exePath, 500);
+	strcpy(actualPath, exePath);
+
+	extractFilePath(actualPath, actualSuperPath);
+	includeTrailingPathDelimiter(actualPath);
+	includeTrailingPathDelimiter(actualSuperPath);
+
+	wordexp(fileName, &exp_result, 0);
+	fileName[0] = 0;
+	strcpy(fileName, exp_result.we_wordv[0]);
+	wordfree(&exp_result);
+
+	// resolving . and ..
+	string auxName = fileName;
+	string path = actualPath;
+	string superPath = actualSuperPath;
+	string toChange;
+
+	toChange = "..";
+	toChange += PATHSEPCHAR;
+	replaceAll(auxName, toChange, superPath);
+
+	toChange = ".";
+	toChange += PATHSEPCHAR;
+	replaceAll(auxName, toChange, superPath);
+	strcpy(fileName, auxName.c_str());
 #endif
 }
 

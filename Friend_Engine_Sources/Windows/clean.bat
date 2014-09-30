@@ -33,6 +33,15 @@ rmdir libBrainDecoding\libBrainDecoding\Release /s /q
 rmdir libBrainDecoding\libBrainDecoding\debug /s /q
 del   libBrainDecoding\libBrainDecoding.sdf
 
+echo Removing intermediate files and directories of buildAll
+rmdir buildAll\release /s /q
+rmdir buildAll\debug /s /q
+del   buildAll\buildAll.sdf
+
+echo Removing executable files
+del Application\*.exe
+del Application\*.ilk
+del Application\*.dll
 
 echo Deleting the testdata intermediate files and directories
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\input /s /q

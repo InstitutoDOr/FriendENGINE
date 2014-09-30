@@ -448,6 +448,17 @@ int estimateActivation(int start, int ini, int end, int slidingWindowSize, char 
 {
    char tmpName[5000];
 
+   // verifying if all files exists
+   for (int i = ini; i <= end; i++)
+   {
+	   sprintf(tmpName, suffix, ini);
+	   if (!fileExists(tmpName)) // file Exists corrects the name, like adding .gz, etc..
+	   {
+		   fprintf(stderr, "File %s does not exists. Leaving the estimateActivation function.\n", tmpName);
+		   return 0;
+	   }
+   }
+
    // reading basal volume, if exists
    volume<float> basalVolume;
    if (basalFileName != NULL)
@@ -459,10 +470,11 @@ int estimateActivation(int start, int ini, int end, int slidingWindowSize, char 
    // suffix here handles all the the width of the number, e.g 00001, not just 1. It cames like %.5d
    volume<float> auxVol;
    sprintf(tmpName, suffix, ini);
-   string auxn = tmpName;
 
    // until the file is ready, stall. That's the best option?
-   while (isReadable(tmpName)==false) {};
+   if (fileExists(tmpName)) // file Exists corrects the name, like adding .gz, etc..
+      while (isReadable(tmpName)==false) {};
+   string auxn = tmpName;
    
    
    // read first volume just to get the volume properties
@@ -482,10 +494,11 @@ int estimateActivation(int start, int ini, int end, int slidingWindowSize, char 
 	   {
   	      volume<float> tmp;
 	      sprintf(tmpName, suffix, j);
-         while (isReadable(tmpName)==false) {};
- 		   string Tmpname = tmpName;
-         read_volume(tmp, Tmpname);
-		   activation[i-ini] += tmp;
+		  if (fileExists(tmpName)) // file Exists corrects the name, like adding .gz, etc.. 
+             while (isReadable(tmpName)==false) {};
+ 		  string Tmpname = tmpName;
+          read_volume(tmp, Tmpname);
+		  activation[i-ini] += tmp;
 	   }
 	   activation[i-ini] /= (float) (i-beginning+1);
       // if `basalFileName` is defined, then subtract the value

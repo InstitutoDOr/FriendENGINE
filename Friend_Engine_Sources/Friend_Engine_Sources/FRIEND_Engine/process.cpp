@@ -378,6 +378,7 @@ void FriendProcess::runRealtimePipeline()
    
     // reading the design file
     vdb.interval.readDesignFile(vdb.designFile);
+	vdb.interval.generateContrasts(vdb.conditionContrasts, 0);
    
     // looping
     while (vdb.actualImg <= vdb.runSize)

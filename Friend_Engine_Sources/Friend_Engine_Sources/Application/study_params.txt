@@ -3,13 +3,13 @@
 # Section 4.3-Software Execution of the FRIEND manual,
 # where the tag is explained in more detail
 # I.01 Parenting working directory
-StudyDir=/Users/idor/Desktop/Desenv/Friend_Engine_Sources/TestData
+StudyDir=../TestData
 # I.02 Subject identifier
 Subject=SUBJ002
 # I.03 Reference Anatomical Image
-RAI=/Users/idor/Desktop/Desenv/Friend_Engine_Sources/TestData/SUBJ002/RAI.nii
+RAI=../TestData/SUBJ002/RAI.nii
 # I.04 Reference Functional Image
-RFI=/Users/idor/Desktop/Desenv/Friend_Engine_Sources/TestData/SUBJ002/RFI.nii
+RFI=../TestData/SUBJ002/RFI.nii
 # I.05 TR
 TR=2
 # I.06 Number of volumes to be averaged in the sliding window
@@ -17,9 +17,9 @@ SlidingWindowSize=3
 # I.06 Number of volumes to be acquired in the current functional run
 FuncVolumes=296
 # I.07 Prefix (currently for Philips DRIN only)
-Prefix=/Users/idor/Desktop/Desenv/Friend_Engine_Sources/TestData/SUBJ002/RUN01/DRIN-
+Prefix=../TestData/SUBJ002/RUN01/DRIN-
 # I.08 Text file with the design of the study
-Design=/Users/idor/Desktop/Desenv/Friend_Engine_Sources/TestData/SUBJ002/design.txt
+Design=../TestData/SUBJ002/design.txt
 # I.09 Baseline condition as specified in the Design file
 BaselineCondition=STOP
 # I.10 t-test map threshold used for feature selection
@@ -80,8 +80,8 @@ ReferenceWholeVolume=1
 StorePredictions=0
 MaskForMeanExtraction=
 LowTValueVoxelsMask=
-ActivationLevelMask=/Users/idor/Desktop/Desenv/Friend_Engine_Sources/TestData/hmat_spm_final.nii
-ActivationLevelMaskReference=/Users/idor/Desktop/Desenv/Friend_Engine_Sources/TestData/MNI152_T1_1mm_brain.nii.gz
+ActivationLevelMask=../TestData/hmat_spm_final.nii
+ActivationLevelMaskReference=../TestData/MNI152_T1_1mm_brain.nii.gz
 ActivationLevelMaskType=2
 TriggerActivationLevel=1
 ActivationLevelChange=0.26
