@@ -12,6 +12,11 @@
 #else
 #include <errno.h>
 #endif
+
+#ifdef UNIX
+#include <sys/select.h>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
