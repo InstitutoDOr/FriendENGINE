@@ -1,3 +1,4 @@
+mkdir -p Application
 ./clean.sh
 cd FRIEND_Engine
 chmod +x build.sh
