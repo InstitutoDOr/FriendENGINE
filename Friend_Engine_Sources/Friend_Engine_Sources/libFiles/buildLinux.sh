@@ -40,6 +40,7 @@ sudo g++ -fPIC -g -c $FSLDIR/src/miscmaths/miscmaths.cc $FSLDIR/src/miscmaths/op
 -I$FSLDIR/extras/include/libprob \
 -I$FSLDIR/extras/src/newmat \
 -I$FSLDIR/extras/src/zlib \
+-I$FSLDIR/extras/src/libprob \
 -I$FSLDIR/extras/include/newmat 
 
 sudo ar rcs libmiscmaths.a miscmaths.o optimise.o miscprob.o kernel.o histogram.o base2z.o t2z.o f2z.o minimize.o cspline.o sparse_matrix.o sparsefn.o rungekutta.o

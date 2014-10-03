@@ -9,6 +9,7 @@ main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp int
 -I$FSLDIR/extras/src/libgdc \
 -I$FSLDIR/extras/src/libpng \
 -I$FSLDIR/extras/src/libprob \
+-I$FSLDIR/extras/src/zlib \
 -I../simpleini \
 -L$FSLDIR/extras/lib \
 -L$FSLDIR/lib \
