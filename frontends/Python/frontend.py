@@ -81,7 +81,7 @@ def getResponse(*arg):
 	     # this is the true acknowledge 
          ack=readsocket(responseThread);
    except:
-      print "Time out !!!"
+      print("Time out !!!");
    responseThread.close();
    return response;
    
@@ -90,7 +90,7 @@ def getFeedbackValue(actualVolume):
     global bufferLines;
     responseThread = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
     responseThread.connect((HOST, PORT));
-    print "Sending TEST command";
+    print("Sending TEST command");
     responseThread.send('SESSION\n');
     responseThread.send(sessionID + '\n');
 
@@ -108,31 +108,31 @@ def processPhase(phase, actualVolume, mainThread):
    global bufferLines;
    if (phase == 1):
       # sending PREPROC command
-      print "sending PREPROC command";
+      print("sending PREPROC command");
       mainThread.send('NBPREPROC\n');
       response=readsocket(mainThread);
       phase = 15;
 
    if (phase == 15):
       # sees if PREPROC terminates
-      print "Querying PREPROC termination status.";
+      print("Querying PREPROC termination status.");
       response=getResponse('PREPROC\n');
-      print "Response received = %s" % (response);
+      print("Response received = %s" % (response));
       if (response == 'OK'):
          phase = 2;
  
    if (phase == 2):
       # sending FEEDBACK command
-      print "sending FEEDBACK command";
+      print("sending FEEDBACK command");
       mainThread.send('NBFEEDBACK\n');
       response=readsocket(mainThread);
-      print "Response received = %s" % (response);
+      print("Response received = %s" % (response));
       actualVolume=1;
       phase = 25;
 
    if (phase == 25):
       #retrieving Graph Parameters
-      print "Querying graph parameters of volume %d." % (actualVolume);
+      print("Querying graph parameters of volume %d." % (actualVolume));
       response=getResponse('GRAPHPARS\n', actualVolume);
       values=response.split(';');
       if (response == 'END'):
@@ -153,16 +153,16 @@ def processPhase(phase, actualVolume, mainThread):
          response=readsocket(mainThread);
          phase = 100;
       elif (len(values) == 9):
-         print "%s : Volume = %s"  % (timestamp(), values[1]);
-         print "ROT   (X = %s,  Y = %s, Z = %s)"  % (values[2], values[3], values[4]);
-         print "TRANS (X = %s,  Y = %s, Z = %s)"  % (values[5], values[6], values[7]);
-         print "RMS      = %s"  % (values[8]);
+         print("%s : Volume = %s"  % (timestamp(), values[1]));
+         print("ROT   (X = %s,  Y = %s, Z = %s)"  % (values[2], values[3], values[4]));
+         print("TRANS (X = %s,  Y = %s, Z = %s)"  % (values[5], values[6], values[7]));
+         print("RMS      = %s"  % (values[8]));
          if (PIPELINE == 2):
             classe, feedback = getFeedbackValue(actualVolume);
-            print "Feedback=%s\n" % (feedback);
+            print("Feedback=%s\n" % (feedback));
          actualVolume = actualVolume + 1;
       else:
-	     print "Response received = %s" % (response);
+         print("Response received = %s" % (response));
    return (phase, actualVolume); 
 
 
@@ -193,7 +193,7 @@ if (PIPELINE==2):
    mainThread.send('outputdirRUN02/DRIN-\n');
    response=readsocket(mainThread);
    
-print 'sessionID received = %s' % (sessionID);
+print("sessionID received = %s" % (sessionID));
 
 # configuring plugIn information
 setPlugInInformation(mainThread);

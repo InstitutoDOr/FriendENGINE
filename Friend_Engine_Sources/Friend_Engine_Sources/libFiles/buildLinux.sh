@@ -2,7 +2,7 @@ echo recreating newmat library
 sudo g++ -fPIC -g -c \
 $FSLDIR/extras/src/newmat/bandmat.cpp $FSLDIR/extras/src/newmat/cholesky.cpp $FSLDIR/extras/src/newmat/evalue.cpp $FSLDIR/extras/src/newmat/fft.cpp $FSLDIR/extras/src/newmat/hholder.cpp $FSLDIR/extras/src/newmat/jacobi.cpp $FSLDIR/extras/src/newmat/myexcept.cpp $FSLDIR/extras/src/newmat/newmat1.cpp $FSLDIR/extras/src/newmat/newmat2.cpp $FSLDIR/extras/src/newmat/newmat3.cpp $FSLDIR/extras/src/newmat/newmat4.cpp $FSLDIR/extras/src/newmat/newmat5.cpp $FSLDIR/extras/src/newmat/newmat6.cpp $FSLDIR/extras/src/newmat/newmat7.cpp $FSLDIR/extras/src/newmat/newmat8.cpp $FSLDIR/extras/src/newmat/newmat9.cpp $FSLDIR/extras/src/newmat/newmatex.cpp $FSLDIR/extras/src/newmat/newmatnl.cpp $FSLDIR/extras/src/newmat/newmatrm.cpp $FSLDIR/extras/src/newmat/solution.cpp $FSLDIR/extras/src/newmat/sort.cpp $FSLDIR/extras/src/newmat/submat.cpp $FSLDIR/extras/src/newmat/svd.cpp $FSLDIR/extras/src/newmat/newfft.cpp \
 -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
--I$FSLDIR/extras/src/newmat 
+-I$FSLDIR/extras/src/newmat
 
 sudo ar rcs libnewmat.a bandmat.o cholesky.o evalue.o fft.o hholder.o jacobi.o myexcept.o newmat1.o newmat2.o newmat3.o newmat4.o newmat5.o newmat6.o newmat7.o newmat8.o newmat9.o newmatex.o newmatnl.o newmatrm.o solution.o sort.o submat.o svd.o newfft.o
 
@@ -11,6 +11,7 @@ echo recreating niftiio
 sudo gcc -fPIC -g -c $FSLDIR/src/niftiio/nifti1_io.c -I$FSLDIR/src/niftiio \
 -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I$FSLDIR/src \
+-I$FSLDIR/extras/src/zlib \
 -I$FSLDIR/extras/include
 
 sudo ar rcs libniftiio.a nifti1_io.o
@@ -23,7 +24,9 @@ $FSLDIR/src/newimage/lazy.cc $FSLDIR/src/newimage/newimage.cc $FSLDIR/src/newima
 -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
--I$FSLDIR/extras/include/newmat
+-I$FSLDIR/extras/include/newmat \
+-I$FSLDIR/extras/src/newmat \
+-I$FSLDIR/extras/src/zlib
 
 sudo ar rcs libnewimage.a lazy.o newimage.o generalio.o newimagefns.o complexvolume.o imfft.o costfns.o
 
@@ -35,6 +38,8 @@ sudo g++ -fPIC -g -c $FSLDIR/src/miscmaths/miscmaths.cc $FSLDIR/src/miscmaths/op
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/include/libprob \
+-I$FSLDIR/extras/src/newmat \
+-I$FSLDIR/extras/src/zlib \
 -I$FSLDIR/extras/include/newmat 
 
 sudo ar rcs libmiscmaths.a miscmaths.o optimise.o miscprob.o kernel.o histogram.o base2z.o t2z.o f2z.o minimize.o cspline.o sparse_matrix.o sparsefn.o rungekutta.o
@@ -47,6 +52,8 @@ sudo gcc -fPIC -g -c $FSLDIR/src/fslio/fslio.c \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/include/libprob \
+-I$FSLDIR/extras/src/newmat \
+-I$FSLDIR/extras/src/zlib \
 -I$FSLDIR/extras/include/newmat 
 
 sudo ar rcs libfslio.a fslio.o
@@ -58,6 +65,8 @@ sudo gcc -fPIC -g -c $FSLDIR/src/znzlib/znzlib.c \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/src/libgdc \
 -I$FSLDIR/extras/include/libprob \
+-I$FSLDIR/extras/src/newmat \
+-I$FSLDIR/extras/src/zlib \
 -I$FSLDIR/extras/include/newmat 
 
 sudo ar rcs libznz.a znzlib.o
