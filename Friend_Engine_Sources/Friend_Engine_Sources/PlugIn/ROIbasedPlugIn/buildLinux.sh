@@ -10,6 +10,7 @@ ROIPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/filefuncs.cpp ../../
 -I$FSLDIR/extras/src/newmat \
 -I$FSLDIR/extras/src/libgd \
 -I$FSLDIR/extras/src/libgdc \
+-I$FSLDIR/extras/src/zlib \
 -I$FSLDIR/extras/src/libpng \
 -I$FSLDIR/extras/src/libprob \
 -I../../simpleini
