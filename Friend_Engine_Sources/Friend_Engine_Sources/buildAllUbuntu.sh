@@ -2,9 +2,11 @@ mkdir -p Application
 ./clean.sh
 cd libFiles
 rm -f *.a
+chmod +x buildUbuntu.sh
 ./buildUbuntu.sh
 cd ..
 cd FRIEND_Engine
+chmod +x buildUbuntu.sh
 ./buildUbuntu.sh
 cd ..
 cd PlugIn
