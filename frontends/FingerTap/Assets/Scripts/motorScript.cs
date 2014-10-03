@@ -27,7 +27,7 @@ public class motorScript : MonoBehaviour {
 	private int actualPhase=0;
 	private int blockLength = 22;
 
-	private String HostData = "10.36.1.140";
+	private String HostData = "127.0.0.1";
 	private Int32 Port = 5678;
 	private float TR = 1.2f;
 

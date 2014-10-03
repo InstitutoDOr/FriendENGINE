@@ -5,7 +5,7 @@ using System;
 public class movimentaPrimeiroBloco : MonoBehaviour {
 	public GUIText texto; 
 	private AssemblyCSharp.FriendEngineComm comm;
-	private String HostData = "10.36.1.140";
+	private String HostData = "127.0.0.1";
 	private Int32 Port = 5678;
 	private float TR = 2;
 	private float tryInterval;

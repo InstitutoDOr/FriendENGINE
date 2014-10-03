@@ -94,7 +94,7 @@ global sessionID;
 phase = 0;
 percentage=0;
 
-host = '10.36.1.140';
+host = '127.0.0.1';
 port = 5678;
 timeOut = 10;
 mainThread = tcpip(host, port);
