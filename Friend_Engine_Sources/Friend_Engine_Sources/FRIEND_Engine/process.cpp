@@ -70,27 +70,32 @@ void FriendProcess::glm()
    generateRmsFile(Pref, 1, vdb.interval.maxIndex(), vdb.rmsFile);
 
    // generating the rotation graph png
-   fprintf(stderr, "Generating movement and rms graphics\n");
+   fprintf(stderr, "Generating rotation movement graphics\n");
    CmdLn << "fsl_tsplot -i " << vdb.parFile << " -t \"MCFLIRT estimated rotations (radians)\" -u 1 --start=1 --finish=3 -a x,y,z -w 640 -h 144 -o " << vdb.logDir << "rot" << vdb.trainFeatureSuffix << ".png";
 
    fsl_tsplot((char *)CmdLn.str().c_str());
 
    // generating the translations graph png
+   fprintf(stderr, "Generating translations movement graphics\n");
    CmdLn.str("");
    CmdLn << "fsl_tsplot -i " << vdb.parFile << " -t \"MCFLIRT estimated translations (mm)\" -u 1 --start=4 --finish=6 -a x,y,z -w 640 -h 144 -o " << vdb.logDir << "trans" << vdb.trainFeatureSuffix << ".png";
 
    fsl_tsplot((char *)CmdLn.str().c_str());
 
    // generating the rms graph png
+   fprintf(stderr, "Generating rms graphics\n");
    CmdLn.str("");
    CmdLn << "fsl_tsplot -i " << vdb.rmsFile << " -t \"MCFLIRT estimated mean displacement (mm)\" -u 1 --start=1 --finish=1 -a absolute -w 640 -h 144 -o " << vdb.logDir << "rms" << vdb.trainFeatureSuffix << ".png";
 
    fsl_tsplot((char *)CmdLn.str().c_str());
 
    // copying the concatenated movements parameter file to log dir
+   fprintf(stderr, "Copying confound files\n");
    CmdLn.str("");
-   CmdLn << "/bin/cp -p " << vdb.parFile << " " << vdb.logDir << "confounds" <<  vdb.trainFeatureSuffix << ".txt";
-   system(CmdLn.str().c_str());
+   CmdLn << vdb.logDir << "confounds" <<  vdb.trainFeatureSuffix << ".txt";
+   //CmdLn << "/bin/cp -p " << vdb.parFile << " " << vdb.logDir << "confounds" <<  vdb.trainFeatureSuffix << ".txt";
+   //system(CmdLn.str().c_str());
+   copyFile(vdb.parFile, CmdLn.str().c_str());
 
    
    // generating the design matrix file
@@ -152,7 +157,7 @@ void FriendProcess::featureSelection()
       for (int t=0;t<strlen(name);t++)
       if (name[t] == '.') name[t] = '_';
       
-      sprintf(vdb.subjectSpaceMask, "%s%s%s.nii%s", vdb.inputDir, name, vdb.trainFeatureSuffix, extension);
+      sprintf(vdb.subjectSpaceMask, "%s%s%s.nii", vdb.inputDir, name, vdb.trainFeatureSuffix);
       
       // brings the mni mask to subject space
       MniToSubject(vdb.rfiFile, vdb.mniMask, vdb.mniTemplate, vdb.subjectSpaceMask, prefix);
@@ -162,7 +167,7 @@ void FriendProcess::featureSelection()
    { // just use all mni mask (in native space)
       char outputFile[BUFF_SIZE];
       sprintf(outputFile, "%s.nii%s", vdb.featuresTrainSuffix, extension);
-      copyfile(vdb.subjectSpaceMask, outputFile);
+      copyFile(vdb.subjectSpaceMask, outputFile);
    }
    else
    {
@@ -256,10 +261,20 @@ BOOL FriendProcess::isBaselineCondition(char * condition)
 // verifies if the next file is ready to be read by FRIEND and transforms it in nifti accordingly
 BOOL FriendProcess::isReadyNextFile(int index, char *rtPrefix, char *format, char *inFile)
 {
+	BOOL result = isReadyNextFileCore(index, index, rtPrefix, format, inFile);
+	if (!result)
+		result = isReadyNextFileCore(index+1, index, rtPrefix, format, inFile);
+	return result;
+}
+
+// verifies if the next file is ready to be read by FRIEND and transforms it in nifti accordingly
+BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefix, char *format, char *inFile)
+{
    BOOL response=0;
    char  number[50], outFile[BUFF_SIZE], volumeName[BUFF_SIZE];
-   sprintf(number, format, index);
+   sprintf(number, format, indexIn);
    sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, number, ".img");
+   sprintf(number, format, indexOut);
    sprintf(outFile, "%s%s%s", rtPrefix, number, ".nii");
    if (fileExists(inFile))
    {
@@ -302,7 +317,7 @@ BOOL FriendProcess::isReadyNextFile(int index, char *rtPrefix, char *format, cha
    if (response)
    {
       if (returnFileNameExists(outFile, volumeName))
-         pHandler.callVolumeFunction(vdb, index, volumeName);
+         pHandler.callVolumeFunction(vdb, indexIn, volumeName);
    }
       
    return response;

@@ -61,6 +61,16 @@ void expandFilename(char *fileName)
 #endif
 }
 
+void copyFile(const char *fromfile, const char *tofile)
+{
+	ifstream source(fromfile, ios::binary);
+	ofstream dest(tofile, ios::binary);
+
+	dest << source.rdbuf();
+
+	source.close();
+	dest.close();
+}
 // just copying the files
 void copyfile(char *fromfile, char *tofile)
 {

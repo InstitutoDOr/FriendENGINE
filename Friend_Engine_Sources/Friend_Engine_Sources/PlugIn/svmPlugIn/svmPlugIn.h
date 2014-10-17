@@ -23,6 +23,7 @@ class SVMProcessing
    char svmTrainingFile[BUFF_SIZE], svmModelFile[BUFF_SIZE], svmModelPredictFile[BUFF_SIZE], svmWeightNormFile[BUFF_SIZE], svmWeightFile[BUFF_SIZE];
    char svmDir[BUFF_SIZE];
    int svmFeatureSelection;
+   double minDistance, maxDistance, extrapolationFactor;
    svm_model *model;
    
    // initializes variables and creates the svm directory

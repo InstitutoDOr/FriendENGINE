@@ -14,17 +14,22 @@
 #include "vardb.h"
 #include "svmPlugIn.h"
 #include <sys/stat.h>
+#include <fstream>
 
 #ifdef WINDOWS
-#define DLLExport extern "C" __declspec(dllexport) int _stdcall 
+#define DLLExport extern "C" __declspec(dllexport) int 
 #else
 #define DLLExport extern "C" int 
 #endif
+
+// remove spaces from string
+std::string trim(const std::string &s);
 
 // initializes variables and creates the svm directory
 void SVMProcessing::initializeVars(studyParams &vdb)
 {
    size_t buffSize = BUFF_SIZE-1;
+   char svmTestingFile[BUFF_SIZE];
    
    // initializing specific variables
    svmFeatureSelection = vdb.readedIni.GetLongValue("FRIEND", "SVMFeatureSelection", 0);
@@ -32,6 +37,33 @@ void SVMProcessing::initializeVars(studyParams &vdb)
    snprintf(svmDir, buffSize, "%s%s%c", vdb.outputDir, "svm", PATHSEPCHAR);
    
    sprintf(svmTrainingFile, "%s%s%s%s", svmDir, "training", vdb.trainFeatureSuffix, ".txt");
+   sprintf(svmTestingFile, "%s%s%s%s", svmDir, "training", vdb.testFeatureSuffix, ".tst");
+
+   fprintf(stderr, "%s\n", svmTrainingFile);
+   fprintf(stderr, "%s\n", svmTestingFile);
+
+   extrapolationFactor = 1.2;
+   minDistance = 0;
+   maxDistance = 0;
+   if (fileExists(svmTestingFile))
+   {
+	   ifstream testFile;
+	   testFile.open(svmTestingFile);
+	   string row;
+	   while (getline(testFile, row))
+	   {
+		   double sampleClass, hyperplaneDistance, predictedClass;
+		   row = trim(row);
+		   if (row.empty()) continue;
+		   stringstream str(row);
+		   str >> sampleClass >> hyperplaneDistance >> predictedClass;
+		   minDistance = min(minDistance, hyperplaneDistance);
+		   maxDistance = max(maxDistance, hyperplaneDistance);
+	   }
+	   testFile.close();
+	   fprintf(stderr, "Distance limits %f %f\n", minDistance, maxDistance);
+   }
+
    
    sprintf(svmModelFile, "%s%s%s%s", svmDir, vdb.subject, vdb.trainFeatureSuffix, ".model");
    
@@ -77,7 +109,7 @@ void SVMProcessing::train()
    // getting a vector containing the classes for each volume
    vdbPtr->interval.getClassArray(classes);
    
-   char svmMask[BUFF_SIZE];
+   char svmMask[BUFF_SIZE], svmTestingFile[BUFF_SIZE];
    sprintf(svmMask, "%s%s", vdbPtr->featuresSuffix, vdbPtr->trainFeatureSuffix);
    
    // transforms the 4D volume in a svm like input file
@@ -89,6 +121,15 @@ void SVMProcessing::train()
    // training
    CmdLn << "svmtrain -t 0 " << svmTrainingFile << " " << svmModelFile;
    svmObject.train(CmdLn.str().c_str());
+
+   CmdLn.str("");
+
+   sprintf(svmTestingFile, "%s%s%s%s", svmDir, "training", vdbPtr->trainFeatureSuffix, ".tst");
+
+   // testing the training data
+   CmdLn << "svmpredict " << svmTrainingFile << " " << svmModelFile << " " << svmTestingFile;
+   svmObject.predict(CmdLn.str().c_str());
+
    
    // Generating weight map volume
    fprintf(stderr, "Generating weight map volumes\n");
@@ -118,6 +159,10 @@ void SVMProcessing::test(char *volumeFile, float &classnum, float &projection)
    {
       fprintf(stderr, "volumeFile tested : %s with mask : %s\n", volumeFile, featuresTestMask);
       predict(model, volumeFile, featuresTestMask, classnum, projection);
+
+	  if (projection < 0) projection = projection / minDistance;
+	  else projection = projection / maxDistance;
+	  projection *= extrapolationFactor;
    }
 }
 

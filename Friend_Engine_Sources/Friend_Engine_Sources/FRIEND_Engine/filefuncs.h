@@ -5,6 +5,9 @@
 // just copies a file
 void copyfile(char *fromfile, char *tofile);
 
+// another version crossplatform
+void copyFile(const char *fromfile, const char *tofile);
+
 // just deleting a directory
 int removeDirectory(const char *dirName);
 

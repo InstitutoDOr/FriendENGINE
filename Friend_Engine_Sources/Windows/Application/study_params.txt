@@ -1,4 +1,4 @@
-[FRIEND]
+﻿[FRIEND]
 # The "I.xx" entry is a reference to Table Input Window in
 # Section 4.3-Software Execution of the FRIEND manual,
 # where the tag is explained in more detail

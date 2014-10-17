@@ -161,13 +161,18 @@ void studyParams::readConfigBuffer(char *buffer, int size)
 // reads a config file in a SimpleIni variable
 void studyParams::readConfig(CSimpleIniA &ini)
 {
-   randomRun = 0;
-   std::string buffer;
+	std::string buffer;
 
-   ini.Save(buffer);
-   readedIni.LoadData(buffer);
+	ini.Save(buffer);
+	readedIni.LoadData(buffer);
+	readConfigVars();
+}
 
-   strcpy(subject, readedIni.GetValue("FRIEND", "SUBJECT"));
+// reads the information known by the studyParams object
+void studyParams::readConfigVars()
+  {
+	randomRun = 0;
+	strcpy(subject, readedIni.GetValue("FRIEND", "SUBJECT"));
    
    strcpy(raiFile, readedIni.GetValue("FRIEND", "RAI"));
    expandFilename(raiFile);
@@ -281,7 +286,7 @@ void studyParams::prepRealtimeVars()
    
     snprintf(featuresTrainSuffix, buffSize, "%s%s", featuresSuffix, trainFeatureSuffix);
    
-    snprintf(featuresAllTrainSuffix, buffSize, "%s%s", featuresAllSuffix,trainFeatureSuffix);
+    snprintf(featuresAllTrainSuffix, buffSize, "%s%s", featuresAllSuffix, trainFeatureSuffix);
    
     snprintf(train4DFile, buffSize, "%s%s%s%s", glmDir, "4D_mc_ms_G", trainFeatureSuffix, ".nii");
    
@@ -317,7 +322,7 @@ void studyParams::prepRealtimeVars()
     sprintf(parFile, "%s%s%s%s", glmDir, "confounds", trainFeatureSuffix, ".txt");
     sprintf(rmsFile, "%s%s%s%s", logDir, "rms_abs", trainFeatureSuffix, ".rms");
     getPreprocVolumePrefix(preprocVolumePrefix);
-	fprintf(stderr, "end preproc vars\n");
+	fprintf(stderr, "Number of conditions : %d\n", interval.conditionNames.size() > 0);
 }
 
 // sets the value of a variable. Not used right now
@@ -344,12 +349,16 @@ void studyParams::setVar(char *var, char *value)
 	replaceAll(temp, from, to);
 
 	readedIni.SetValue("FRIEND", var, temp.c_str(), NULL, true);
+	/*
     strToUpper(var);
 	if (strcmp(var, "MASKFILE") == 0) strcpy(maskFile, temp.c_str());
 	if (strcmp(var, "PREFIX") == 0) strcpy(rawVolumePrefix, temp.c_str());
 	if (strcmp(var, "DESIGN") == 0) strcpy(designFile, temp.c_str());
 	if (strcmp(var, "CURRENTRUNSUFFIX") == 0) strcpy(trainFeatureSuffix, temp.c_str());
 	if (strcmp(var, "MODELRUNSUFFIX") == 0) strcpy(testFeatureSuffix, temp.c_str());
+	*/
+	readConfigVars();
+	prepRealtimeVars();
 }
 
 // determines, given a volume index, if its in a baseline block. Calls the respective DesignObject function

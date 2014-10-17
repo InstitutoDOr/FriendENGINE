@@ -384,7 +384,7 @@ int execStandardizeVolume(char *base, char *mask, char *output, int NN)
 	char baseTemp[500];
 	volume<T> Base;
 	read_volume(Base,string(base));
-	sprintf(baseTemp, "%st.nii.gz", FslMakeBaseName(base));
+	sprintf(baseTemp, "%st.nii", FslMakeBaseName(base));
 	if (NN == 0)
 	{
       // harmonizes the voxel dimensions
@@ -409,7 +409,9 @@ int execStandardizeVolume(char *base, char *mask, char *output, int NN)
       // same coordinate space
 	   execSameFov<T>(baseTemp, output, output);
 	}
-	remove(baseTemp);
+
+	if (fileExists(baseTemp))
+	   remove(baseTemp);
 	return 1;
 }
 

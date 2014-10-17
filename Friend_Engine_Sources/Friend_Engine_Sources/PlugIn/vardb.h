@@ -105,6 +105,9 @@ public:
    
    // reads a config file in a SimpleIni variable
    void readConfig(CSimpleIniA &ini);
+
+   // reads the information known by the studyParams object into its variables
+   void readConfigVars();
    
    // saves a config information in a buffer to disk
    void saveConfigBuffer(char *buffer, int size, char *configFile);

@@ -158,7 +158,7 @@ namespace AssemblyCSharp
 		     protected virtual void writePluginInfo()
 		     {
 			    mainThread.writeSocket ("PLUGIN");
-			    mainThread.writeSocket ("libROI.dll");
+			    mainThread.writeSocket ("libROI");
 			    mainThread.writeSocket ("no");
 			    mainThread.writeSocket ("processROI");
 			    mainThread.writeSocket ("initializeROIProcessing");

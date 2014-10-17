@@ -23,7 +23,10 @@ class FriendProcess
                // verifies if the next file is ready to be processed by FRIEND
                BOOL isReadyNextFile(int index, char *rtPrefix, char *format, char *infile);
 
-               // generate a file concatenating all the processed volumes rms values
+			   // verifies if the next file is ready to be processed by FRIEND
+			   BOOL isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefix, char *format, char *inFile);
+
+			   // generate a file concatenating all the processed volumes rms values
                void generateRmsFile(char *dPrefix, int ini, int end, char *output);
 
                // generate a file concatenating all movement parameters of the processed volumes

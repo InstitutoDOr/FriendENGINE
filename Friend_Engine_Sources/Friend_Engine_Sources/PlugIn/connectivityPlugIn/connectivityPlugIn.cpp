@@ -11,7 +11,7 @@
 #include "filefuncs.h"
 
 #ifdef WINDOWS
-#define DLLExport extern "C" __declspec(dllexport) int _stdcall 
+#define DLLExport extern "C" __declspec(dllexport) int 
 #else
 #define DLLExport extern "C" int 
 #endif

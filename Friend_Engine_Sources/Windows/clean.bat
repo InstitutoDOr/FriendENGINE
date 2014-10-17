@@ -47,6 +47,7 @@ echo Deleting the testdata intermediate files and directories
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\input /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\glm /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\log /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\svm /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\preproc /s /q
 del ..\Friend_Engine_Sources\TestData\SUBJ002\MNI2RFI_RFI2.mat
 del ..\Friend_Engine_Sources\TestData\SUBJ002\RFI2MNI_RFI2.mat
