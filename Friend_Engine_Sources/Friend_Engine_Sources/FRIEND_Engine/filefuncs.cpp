@@ -14,6 +14,7 @@
 #endif
 
 #include "defs.h"
+#include <sys/stat.h>
 #include "filefuncs.h"
 #include <string.h>
 #include <stdlib.h>
