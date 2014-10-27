@@ -173,6 +173,7 @@ bool	friendEngine::serverChild ( int	socketFd )
    {
 	   getcwd(workingDir, 500);
    }
+
    fprintf(stderr, "Current dir = %s\n", workingDir);
    sprintf(configFile, "%s%c%s", workingDir, PATHSEPCHAR, "study_params.txt");
    strcpy(exePath, workingDir);
@@ -181,12 +182,14 @@ bool	friendEngine::serverChild ( int	socketFd )
    process.setSocketfd(socketFd);
    // setting the library path to the default directory
    process.setLibraryPath(workingDir);
+   // setting the engine executable path
+   process.setApplicationPath(workingDir);
    // begining things
    process.initializeStates();
 
    if (workingDir != NULL)
    {
-      // reading commands from FRONTEND until END shows up
+      // reading commands from FRONTEND until END or ENDSESSION shows up
       while (1)
       {
          // reading the command
@@ -223,7 +226,25 @@ bool	friendEngine::serverChild ( int	socketFd )
 			process.readConfigFile(configFile);
          }
          else
-         if (strcmp(command, "ENDSESSION") == 0)
+		 // sends the sessionId of the last opended session
+		 if (strcmp(command, "LASTSESSION") == 0)
+		 {
+			 if (sessionList.size() > 0)
+			 {
+				 std::map<string, Session *>::reverse_iterator it;
+				 it = sessionList.rbegin();
+				 strcpy(sessionID, it->first.c_str());
+			 }
+			 else strcpy(sessionID, "NOTFOUND");
+
+			 sprintf(command, "%s\n", sessionID);
+			 socks.writeString(command);
+
+			 sprintf(command, "OK\n");
+			 socks.writeString(command);
+		 }
+		 else
+		 if (strcmp(command, "ENDSESSION") == 0)
          {
             // reading sessionID
             socks.readLine(sessionID, 200);
@@ -312,6 +333,7 @@ bool	friendEngine::serverChild ( int	socketFd )
                   
                   session->getFeedbackResponse(index, response);
                   socks.writeString(response);
+				  fprintf(stderr, "Volume index %d\n", index);
 				  fprintf(stderr, "Sending response %s\n", response);
                   
                   sprintf(command, "OK\n");
@@ -609,6 +631,8 @@ bool	friendEngine::serverChild ( int	socketFd )
    }
    endTime = time(NULL);
    fprintf(stderr, "Finished. Elapsed time = %ld secs.\n", endTime-iniTime);
+   // delaying the thread termination to allow clients to read the last send message
+   sleep(1000);
    closesocket ( socketFd );
    return (TRUE);
 }

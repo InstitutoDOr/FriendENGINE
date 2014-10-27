@@ -1,0 +1,68 @@
+sub int setTrialParams( int index ) begin
+	st_frase.set_stimulus( estimulos[index][1] );
+	st_frase.set_event_code( "sentenca_"+linhasRandFile[index][1]+"_"+linhasRandFile[index][2] );
+	fim_sentenca.set_time( 1000+estimulos[index][1].get_wavefile().duration() );
+	
+	#fix_pos_frase.set_port_code( category );
+	int posJ = ((index-1)%jitters.count())+1;
+	int tS = duracaoSentenca + jitters[posJ];
+	fix_jitter.set_time( tS );
+	fix_jitter.set_event_code( "jitter_"+string(tS-duracaoSentenca) );
+	if estimulos[index].count()==2 then
+		st_pergunta.set_stimulus( estimulos[index][2] );
+		st_pergunta.set_event_code( "pergunta_"+linhasRandFile[index][3] );
+		tS = tS+duracaoPergunta;
+	end;
+	return tS;
+end;
+
+#Read file and output each line in a array
+sub getLinesFile( string filename, array<string,1>& linhas ) begin
+	string linha;
+	input_file randomTxt = new input_file;
+	randomTxt.open( filename );
+	loop until !randomTxt.last_succeeded() begin
+		linha = randomTxt.get_line();
+		if linha.trim().count() > 0 then
+			linhas.add( linha );
+		end;
+	end;
+	randomTxt.close();
+end;
+
+#INVERTE TEXTOS
+sub flipHTexts( array<text,1>& a ) begin
+	int i=1;
+	loop until i>a.count() begin
+		a[i].flip_horizontally();
+		i=i+1;
+	end;
+end;
+
+#INVERTE IMAGENS
+sub flipHBitmaps( array<bitmap,1>& a ) begin
+	int i=1;
+	loop until i>a.count() begin
+		a[i].flip_horizontally();
+		i=i+1;
+	end;
+end;
+
+#INVERTE POSIÇÃO DOS ELEMENTOS DE UMA PINTURA
+sub flipPosXParts( picture& pic, array<int,1>& values_x ) begin
+	int j=1;
+	loop until j>values_x.count() begin
+		pic.set_part_x(j, values_x[j] );
+		j=j+1;
+	end;
+end;
+
+#RELATA O NUMERO DE PULSOS RECEBIDOS
+sub gravaPulsosRecebidos begin		
+	string fname = logfile.filename(); 
+	if fname == "" then fname = "undefined"; end;
+	output_file file_volumes = new output_file;
+	file_volumes.open_append( "pulsos_recebidos.txt" );
+	file_volumes.print( fname + "\tNÚMERO DE PULSOS RECEBIDOS:\t" + string(  pulse_manager.main_pulse_count() ) + "\n" );
+	file_volumes.close();
+end;

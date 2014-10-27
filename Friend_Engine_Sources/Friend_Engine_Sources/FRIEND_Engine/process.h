@@ -8,6 +8,10 @@
 class FriendProcess
         {
             private:
+
+				// holds the engine executable path
+				char exePath[BUFF_SIZE];
+
                // holds plugin information
                PluginHandler pHandler;
            
@@ -84,10 +88,14 @@ class FriendProcess
                // make the last steps after the processing of the  run
                void wrapUpRun();
 
-               // functions related to the plugIn
+			   // set the engine executable directory
+			   void setApplicationPath(char *path);
+
+			   // functions related to the plugIn
                // set the library file and function names of the plugIn
                void loadFunctions(char *library, char *trainFunc, char *testFunc, char *initFunc, char *finalFunc, char *volumeFunc, char *afterPreprocFunc);
-               // set the path for plug in library file
+
+			   // set the path for plug in library file
                void setLibraryPath(char *path);
            
                // sets the session pointer

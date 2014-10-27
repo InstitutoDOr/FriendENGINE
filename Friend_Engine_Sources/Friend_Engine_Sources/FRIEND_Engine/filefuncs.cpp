@@ -9,9 +9,11 @@
 #include <wordexp.h>
 #else
 #include "dirent.h"
+#include "direct.h"
 #include "io.h"
 #endif
 
+#include "defs.h"
 #include "filefuncs.h"
 #include <string.h>
 #include <stdlib.h>
@@ -71,6 +73,7 @@ void copyFile(const char *fromfile, const char *tofile)
 	source.close();
 	dest.close();
 }
+
 // just copying the files
 void copyfile(char *fromfile, char *tofile)
 {
@@ -82,6 +85,41 @@ void copyfile(char *fromfile, char *tofile)
    copyfile_state_free(state);
 #endif
 #endif
+}
+
+// copy directory
+int copyDirectory(const char *dirSource, const char *dirDest)
+{
+	DIR *dirIn;
+	struct dirent *entry;
+	char pathIn[PATH_MAX], pathOut[PATH_MAX];
+
+#ifdef WIN32
+	_mkdir(dirDest);
+#else
+	mkdir(dirDest, 0777); // notice that 777 is different than 0777
+#endif
+
+	dirIn = opendir(dirSource);
+	if (dirIn == NULL) {
+		return 0;
+	}
+
+	while ((entry = readdir(dirIn)) != NULL) {
+		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+			sprintf(pathIn, "%s%c%s", dirSource, PATHSEPCHAR,  entry->d_name);
+			sprintf(pathOut, "%s%c%s", dirDest, PATHSEPCHAR, entry->d_name);
+			if (entry->d_type == DT_DIR) {
+				copyDirectory(pathIn, pathOut);
+			}
+			else if (entry->d_type == DT_REG)
+			    copyFile(pathIn, pathOut);
+		}
+
+	}
+	closedir(dirIn);
+
+	return 1;
 }
 
 // just deleting a directory

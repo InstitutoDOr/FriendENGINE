@@ -11,6 +11,9 @@ void copyFile(const char *fromfile, const char *tofile);
 // just deleting a directory
 int removeDirectory(const char *dirName);
 
+// copy a directory
+int copyDirectory(const char *dirSource, const char *dirDest);
+
 // verifying if a file is ready to be read
 bool isReadable(char *fileName);
 

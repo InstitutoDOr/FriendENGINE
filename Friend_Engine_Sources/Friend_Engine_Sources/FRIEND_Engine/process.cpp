@@ -263,6 +263,7 @@ BOOL FriendProcess::isReadyNextFile(int index, char *rtPrefix, char *format, cha
 {
 	BOOL result = isReadyNextFileCore(index, index, rtPrefix, format, inFile);
 	if (!result)
+		// trying to resolve Philips DRINdumper tool skipping volume problem
 		result = isReadyNextFileCore(index+1, index, rtPrefix, format, inFile);
 	return result;
 }
@@ -270,49 +271,64 @@ BOOL FriendProcess::isReadyNextFile(int index, char *rtPrefix, char *format, cha
 // verifies if the next file is ready to be read by FRIEND and transforms it in nifti accordingly
 BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefix, char *format, char *inFile)
 {
-   BOOL response=0;
-   char  number[50], outFile[BUFF_SIZE], volumeName[BUFF_SIZE];
-   sprintf(number, format, indexIn);
-   sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, number, ".img");
-   sprintf(number, format, indexOut);
-   sprintf(outFile, "%s%s%s", rtPrefix, number, ".nii");
-   if (fileExists(inFile))
+   BOOL response=0, fileChecked=0;
+   char  numberIn[50], numberOut[50], outFile[BUFF_SIZE], volumeName[BUFF_SIZE];
+
+   // forming the output file
+   sprintf(numberOut, format, indexOut);
+   sprintf(outFile, "%s%s%s", rtPrefix, numberOut, ".nii");
+
+   // forming the input file
+   sprintf(numberIn, format, indexIn);
+
+   if (!fileExists(outFile))
    {
-	   if (isReadable(inFile))
+	   // in DICOM
+	   sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".dcm");
+	   if (fileExists(inFile))
 	   {
+		   // executes the dcm2nii tool
 		   stringstream osc;
-		   osc << "fslswapdim " << inFile;
+		   osc << exePath << PATHSEPCHAR << "dcm2nii -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
+		   fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
+		   system(osc.str().c_str());
+	   }
+	   else
+	   {
+		   // in Analyze. The engine converts it to nifti and inerts the axis, if needed
+		   sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".img");
+		   if (fileExists(inFile))
+		   {
+			   if (isReadable(inFile))
+			   {
+				   stringstream osc;
+				   osc << "fslswapdim " << inFile;
 
-		   if (!vdb.invX) osc << " x";
-		   else osc << " -x";
+				   if (!vdb.invX) osc << " x";
+				   else osc << " -x";
 
-		   if (!vdb.invY) osc << " y";
-		   else osc << " -y";
+				   if (!vdb.invY) osc << " y";
+				   else osc << " -y";
 
-		   if (!vdb.invZ) osc << " z";
-		   else osc << " -z";
+				   if (!vdb.invZ) osc << " z";
+				   else osc << " -z";
 
-		   osc << "  " << outFile << '\0';
-		   // transforms an analyze file into a nii file, inverting axes accordingly
-		   fslSwapDimRT(osc.str().c_str(), vdb.runReferencePtr);
+				   osc << "  " << outFile << '\0';
+				   // transforms an analyze file into a nii file, inverting axes accordingly
+				   fslSwapDimRT(osc.str().c_str(), vdb.runReferencePtr);
 
-		   osc.str("");
-		   osc << "fslmaths " << outFile << " " << outFile << " -odt float";
-		   fslmaths((char *)osc.str().c_str());
-
-
-		   if ((fileExists(outFile)) && (isReadable(outFile))) 
-			   response = 1;
+				   osc.str("");
+				   osc << "fslmaths " << outFile << " " << outFile << " -odt float";
+				   fslmaths((char *)osc.str().c_str());
+			   }
+		   }
 	   }
    }
-   else 
-   { // verifying if the final file exists
-	   if ((fileExists(outFile)) && (isReadable(outFile)))
-       {
-         response = 1;
-       }
-       else response = 0;
-   }
+
+   // verifying if the final file exists. It servers the NIFTI case
+   if ((fileExists(outFile)) && (isReadable(outFile)))
+        response = 1;
+   else response = 0;
    
    if (response)
    {
@@ -364,10 +380,12 @@ void FriendProcess::generateRmsFile(char *dPrefix, int ini, int end, char *outpu
 // runs the real time pipeline at once. Calls the realtimePipelineStep for each volume
 void FriendProcess::runRealtimePipeline()
 {
-    char preprocVolumePrefix[BUFF_SIZE];
+    char preprocVolumePrefix[BUFF_SIZE], auxConfigFile[BUFF_SIZE];
     char format[30];
     char msg[50];
    
+	sprintf(auxConfigFile, "%sstudy_params_%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
+	vdb.readedIni.SaveFile(auxConfigFile);
 	fprintf(stderr, "processing pipeline begin\n");
     if (!vdb.rPrepVars) prepRealtimeVars();
     vdb.actualBaseline[0]=0;
@@ -407,8 +425,8 @@ void FriendProcess::runRealtimePipeline()
     {
        sprintf(msg, "%s", "ENDGRAPH\n");
        vdb.socks.writeString(msg);
-       vdb.rPipeline = true;
     }
+	vdb.rPipeline = true;
 	fprintf(stderr, "processing pipeline end\n");
 }
 
@@ -485,6 +503,12 @@ void FriendProcess::loadFunctions(char *library, char *trainFunc, char *testFunc
 void FriendProcess::setLibraryPath(char *path)
 {
    pHandler.setLibraryPath(path);
+}
+
+// set the path for plug in library file
+void FriendProcess::setApplicationPath(char *path)
+{
+	strcpy(exePath, path);
 }
 
 // process one volume in the pipeline
@@ -605,6 +629,12 @@ void FriendProcess::wrapUpRun()
    {
       if (fileExists(newpreprocDir)) removeDirectory(newpreprocDir);
       rename(vdb.preprocDir, newpreprocDir);
+
+	  // copying source dir into subject directory
+	  char destDir[BUFF_SIZE], sourceDir[BUFF_SIZE];
+	  extractFilePath(vdb.rawVolumePrefix, sourceDir);
+	  sprintf(destDir, "%s%ccopied%s", vdb.outputDir, PATHSEPCHAR, vdb.trainFeatureSuffix);
+	  copyDirectory(sourceDir, destDir);
    }
    
 }

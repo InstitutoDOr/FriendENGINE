@@ -1,0 +1,100 @@
+int duration_offset = 7;
+bool INVERSE = false;
+int duracaoSentenca = 6000;
+int duracaoPergunta = 4000;
+if subject[ subject.count()-1 ]=='_' then
+	string subj = subject.lower(); #Para checar a posição do SIM
+	simDir = subj[subject.count()]=='d'; #Informa se SIM deverá aparecer na direita
+	subject = subject.substring(1, subject.count()-2);
+end;
+
+int totalT = end_index-start_index+1;
+array<sound> estimulos[0][0]; # < <SENTENCA[,PERGUNTA]>,... >
+array<string> linhasRandFile[0][0];
+
+#array<int> jitters[12] = {-1000,-800,-600,-400,-200,-100,100,200,400,600,800,1000};
+array<int> jitters[13] = {-1000,-833,-667,-500,-333,-167,0,167,333,500,667,833,1000};
+
+jitters.shuffle();
+
+include "functions.pcl"; #Subrotinas criadas para o experimento
+
+# flip bitmaps|texts only once in the beginning!!!
+if( INVERSE ) then
+	flipHTexts( texts );
+end;
+if (INVERSE && !simDir) || (!INVERSE && simDir) then
+	array<int> defs_inv[2] = {300,-300};
+	flipPosXParts( sim_nao, defs_inv );
+end;
+
+array<string> linhas_wavs[0];
+array<string> sentencas_wavs[totalT][3];
+getLinesFile( "../SUBJECTS/"+subject+"/"+randFile, linhas_wavs ); #Coloca as linhas lidas no array
+int n = start_index;
+loop until n > end_index begin
+	array<string> partes[0];
+	string linha = linhas_wavs[n]; #Para resolver problema no Presentation 16.2
+	linha.split("\t", partes);
+	if( partes.count()==3 ) then
+		partes[3] = partes[3].trim();
+	else
+		partes.add("");
+	end;
+	linhasRandFile.add( partes );
+	sentencas_wavs[n] = partes;
+	n=n+1;
+end;
+
+#Preload stimulus
+int nT=start_index; #nT = num Trial
+loop until nT > end_index begin
+	#Sentenca
+	array<sound> estimulosTrial[0];
+	string fname = "Sentencas/"+sentencas_wavs[nT][1]+".wav";	
+	wavefile wav = new wavefile( fname );
+	sound seq = new sound( wav ); #Carrega o arquivo de cada sequencia
+	seq.get_wavefile().load();
+	estimulosTrial.add( seq );
+	
+	#Perguntas
+	string tipo = sentencas_wavs[nT][3];
+	if tipo.count()>0 then
+		fname = "Perguntas/"+sentencas_wavs[nT][1]+"_"+tipo+".wav";
+		wav = new wavefile( fname );
+		seq = new sound( wav ); #Carrega o arquivo de cada pergunta
+		seq.get_wavefile().load();
+		estimulosTrial.add( seq );
+	end;
+	estimulos.add(estimulosTrial);
+	
+	nT = nT+1;	
+end;
+
+#Start
+int tS = 0;
+int time_offset = 0;
+
+loop until pulse_manager.main_pulse_count() > 0 begin end;
+int starttime = pulse_manager.main_pulse_time( 1 );
+int time_first_pulse = starttime;
+
+#Main loop
+nT=start_index;
+loop until nT > end_index begin	
+	fraseTrial.set_start_time( starttime + time_offset );
+	tS = setTrialParams( nT-start_index+1 );
+	fraseTrial.present();
+	if estimulos[nT].count()==2 then
+		perguntaTrial.set_start_time( tS-duracaoSentenca );
+		perguntaTrial.present();			
+	end;
+	time_offset = time_offset + tS;
+	
+	nT=nT+1;
+end;
+
+#Fechando Experimento
+endOfExperimentTrial.set_start_time( (number_volumes+1)*2000 + starttime );
+endOfExperimentTrial.present();
+gravaPulsosRecebidos();

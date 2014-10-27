@@ -50,16 +50,30 @@ void SVMProcessing::initializeVars(studyParams &vdb)
 	   ifstream testFile;
 	   testFile.open(svmTestingFile);
 	   string row;
+	   double negativeCount = 0, positiveCount = 0;
 	   while (getline(testFile, row))
 	   {
-		   double sampleClass, hyperplaneDistance, predictedClass;
+		   double sampleClass, projection, predictedClass;
 		   row = trim(row);
 		   if (row.empty()) continue;
 		   stringstream str(row);
-		   str >> sampleClass >> hyperplaneDistance >> predictedClass;
-		   minDistance = min(minDistance, hyperplaneDistance);
-		   maxDistance = max(maxDistance, hyperplaneDistance);
+		   str >> sampleClass >> projection >> predictedClass;
+
+		   // taking the mean of the projections of the two classes as the maximum distance of each class
+		   if (projection < 0)
+		   {
+			   negativeCount++;
+			   minDistance += projection;
+		   }
+		   else if (projection > 0)
+		   {
+			   positiveCount++;
+			   maxDistance += projection;
+		   }
 	   }
+	   if (negativeCount != 0) minDistance /= negativeCount;
+	   if (positiveCount != 0) maxDistance /= positiveCount;
+
 	   testFile.close();
 	   fprintf(stderr, "Distance limits %f %f\n", minDistance, maxDistance);
    }
