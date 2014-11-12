@@ -33,11 +33,15 @@ void SVMProcessing::initializeVars(studyParams &vdb)
    
    // initializing specific variables
    svmFeatureSelection = vdb.readedIni.GetLongValue("FRIEND", "SVMFeatureSelection", 0);
-   
+   cummulativeTraining = vdb.readedIni.GetLongValue("FRIEND", "SVMCummulativeTraining", 0);
+
    snprintf(svmDir, buffSize, "%s%s%c", vdb.outputDir, "svm", PATHSEPCHAR);
    
    sprintf(svmTrainingFile, "%s%s%s%s", svmDir, "training", vdb.trainFeatureSuffix, ".txt");
-   sprintf(svmTestingFile, "%s%s%s%s", svmDir, "training", vdb.testFeatureSuffix, ".tst");
+
+   if (cummulativeTraining)
+	   sprintf(svmTestingFile, "%s%s%s%s", svmDir, "cummulative_training", vdb.testFeatureSuffix, ".tst");
+   else sprintf(svmTestingFile, "%s%s%s%s", svmDir, "training", vdb.testFeatureSuffix, ".tst");
 
    fprintf(stderr, "%s\n", svmTrainingFile);
    fprintf(stderr, "%s\n", svmTestingFile);
@@ -81,7 +85,9 @@ void SVMProcessing::initializeVars(studyParams &vdb)
    
    sprintf(svmModelFile, "%s%s%s%s", svmDir, vdb.subject, vdb.trainFeatureSuffix, ".model");
    
-   sprintf(svmModelPredictFile, "%s%s%s%s", svmDir, vdb.subject, vdb.testFeatureSuffix, ".model");
+   if (cummulativeTraining)
+	   sprintf(svmModelPredictFile, "%s%s%s%s%s", svmDir, "cummulative_", vdb.subject, vdb.testFeatureSuffix, ".model");
+   else sprintf(svmModelPredictFile, "%s%s%s%s", svmDir, vdb.subject, vdb.testFeatureSuffix, ".model");
 
    sprintf(svmWeightNormFile, "%s%s%s%s",  svmDir, "weights_norm", vdb.trainFeatureSuffix, ".nii");
            
@@ -107,7 +113,8 @@ void SVMProcessing::cleanUp()
 // handles the training
 void SVMProcessing::train()
 {
-   char prefix[BUFF_SIZE];
+	char prefix[BUFF_SIZE], lastCummulativeTrainingFile[BUFF_SIZE], actualCummulativeTrainingFile[BUFF_SIZE], 
+		cummulativeModelFile[BUFF_SIZE], cummulativeTestingFile[BUFF_SIZE];
    vector <int> classes, indices;
    
    std::stringstream CmdLn;
@@ -144,6 +151,33 @@ void SVMProcessing::train()
    CmdLn << "svmpredict " << svmTrainingFile << " " << svmModelFile << " " << svmTestingFile;
    svmObject.predict(CmdLn.str().c_str());
 
+   if (cummulativeTraining)
+   {
+	   sprintf(lastCummulativeTrainingFile, "%s%s%s%s", svmDir, "cummulative_training", vdbPtr->testFeatureSuffix, ".txt");
+	   sprintf(actualCummulativeTrainingFile, "%s%s%s%s", svmDir, "cummulative_training", vdbPtr->trainFeatureSuffix, ".txt");
+
+	   if (fileExists(lastCummulativeTrainingFile))
+	   {
+		   mergeFiles(svmTrainingFile, lastCummulativeTrainingFile, actualCummulativeTrainingFile);
+	   }
+	   else copyFile(svmTrainingFile, actualCummulativeTrainingFile);
+
+	   sprintf(cummulativeModelFile, "%s%s%s%s%s", svmDir, "cummulative_", vdbPtr->subject, vdbPtr->trainFeatureSuffix, ".model");
+
+	   // training
+	   CmdLn.str("");
+	   CmdLn << "svmtrain -t 0 " << actualCummulativeTrainingFile << " " << cummulativeModelFile;
+	   svmObject.train(CmdLn.str().c_str());
+
+	   CmdLn.str("");
+
+	   sprintf(cummulativeTestingFile, "%s%s%s%s", svmDir, "cummulative_training", vdbPtr->trainFeatureSuffix, ".tst");
+
+	   // testing the cummulative training data
+	   CmdLn << "svmpredict " << actualCummulativeTrainingFile << " " << cummulativeModelFile << " " << cummulativeTestingFile;
+	   svmObject.predict(CmdLn.str().c_str());
+   }
+
    
    // Generating weight map volume
    fprintf(stderr, "Generating weight map volumes\n");
@@ -157,6 +191,21 @@ void SVMProcessing::train()
       generateWeightVolume(model, svmMask, 1, svmWeightNormFile);
       generateWeightVolume(model, svmMask, 0, svmWeightFile);
       unloadModel(model);
+   }
+
+   if (cummulativeTraining)
+   {
+	   char cummulativeSvmWeightNormFile[BUFF_SIZE], cummulativeSvmWeightFile[BUFF_SIZE];
+	   sprintf(cummulativeSvmWeightNormFile, "%s%s%s%s", svmDir, "cummulative_weights_norm", vdbPtr->trainFeatureSuffix, ".nii");
+	   sprintf(cummulativeSvmWeightFile, "%s%s%s%s", svmDir, "cummulative_weights", vdbPtr->trainFeatureSuffix, ".nii");
+
+	   model = svm_load_model(cummulativeModelFile);
+	   if (model != NULL)
+	   {
+		   generateWeightVolume(model, svmMask, 1, cummulativeSvmWeightNormFile);
+		   generateWeightVolume(model, svmMask, 0, cummulativeSvmWeightFile);
+		   unloadModel(model);
+	   }
    }
 }
 
@@ -218,7 +267,7 @@ DLLExport testSVM(studyParams &vdb, int index, float &classnum, float &projectio
    char tempVolume[BUFF_SIZE], prefix[BUFF_SIZE];
    SVMProcessing *svmProcessingVar = (SVMProcessing *) userData;
 
-   sprintf(tempVolume, "%s%s",  vdb.outputDir, "temp.nii.gz");
+   sprintf(tempVolume, "%s%s",  vdb.outputDir, "temp.nii");
    
    vdb.getFinalVolumeFormat(prefix);
    
@@ -230,6 +279,7 @@ DLLExport testSVM(studyParams &vdb, int index, float &classnum, float &projectio
    fprintf(stderr, "Classifying.\n");
    svmProcessingVar->test(tempVolume, classnum, projection);
    
-   remove(tempVolume);
+   if (fileExists(tempVolume))
+      remove(tempVolume);
    return 1;
 }

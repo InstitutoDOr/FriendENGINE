@@ -55,6 +55,9 @@ public:
    // pointer to the reference volume
    FSLIO *runReferencePtr;
    
+   // last read configFile
+   char configFileNameRead[BUFF_SIZE];
+
    // control variables
    bool rIniRead, rPrepVars, rPreProc, rPipeline, rGLM, rFeatureSel, rTrain;
 
@@ -68,6 +71,9 @@ public:
 
    // returns the final volume file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
    void getFinalVolumeFormat(char *format);
+
+   // returns the motion corrected gausian file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+   void getMCGVolumeFormat(char *format);
    
    // returns the prefix for the raw volumes (internal function)
    void _getPreprocVolumePrefix(char *prefix);

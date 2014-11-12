@@ -128,6 +128,9 @@ public:
    
    // updates the state of variables with another value
    void addValue(float value, int calculateMean = 1);
+
+   // saves the curve and the mean curve in a file, separated by ;
+   void saveCurves(char *file);
    
 #ifndef __GNUC__
    WeightedMean() {  width = 0; };

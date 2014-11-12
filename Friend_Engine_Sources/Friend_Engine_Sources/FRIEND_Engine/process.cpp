@@ -332,8 +332,8 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
    
    if (response)
    {
-      if (returnFileNameExists(outFile, volumeName))
-         pHandler.callVolumeFunction(vdb, indexIn, volumeName);
+	  strcpy(volumeName, outFile);
+      pHandler.callVolumeFunction(vdb, indexIn, volumeName);
    }
       
    return response;
@@ -384,7 +384,7 @@ void FriendProcess::runRealtimePipeline()
     char format[30];
     char msg[50];
    
-	sprintf(auxConfigFile, "%sstudy_params_%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
+	sprintf(auxConfigFile, "%sstudy_params%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
 	vdb.readedIni.SaveFile(auxConfigFile);
 	fprintf(stderr, "processing pipeline begin\n");
     if (!vdb.rPrepVars) prepRealtimeVars();

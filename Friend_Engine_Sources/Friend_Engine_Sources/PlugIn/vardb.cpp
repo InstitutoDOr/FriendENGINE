@@ -80,10 +80,22 @@ void studyParams::getMCGVolumeName(char *outFile, char *number)
    sprintf(outFile, "%s%s%s", preprocVolumePrefix, number, "_mc_g.nii");
 }
 
+// returns the motion corrected gausian file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+void studyParams::getMCGVolumeFormat(char *format)
+{
+	sprintf(format, "%s%c0%dd%s", preprocVolumePrefix, '%', numberWidth, ".nii");
+}
+
 // motion corrected, gaussian filtered, baseline mean subtracted
 void studyParams::getFinalVolumeName(char *outFile, char *number)
 {
    sprintf(outFile, "%s%s%s%s", preprocDir, "mc_ms_G_3sw_", number, ".nii");
+}
+
+// returns the final volume file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+void studyParams::getFinalVolumeFormat(char *format)
+{
+	sprintf(format, "%s%s%c0%dd%s", preprocDir, "mc_ms_G_3sw_", '%', numberWidth, ".nii");
 }
 
 // the following three functions returns the concatenation of a volume filename type. The diference from above functions is in `number` parameter
@@ -111,12 +123,6 @@ void studyParams::getFinalVolumeName(char *outFile, int number)
     getFinalVolumeName(outFile, numberString);
 }
 
-// returns the final volume file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
-void studyParams::getFinalVolumeFormat(char *format)
-{
-   sprintf(format, "%s%s%c0%dd%s", preprocDir, "mc_ms_G_3sw_", '%', numberWidth, ".nii");
-}
-
 // returns the prefix for the raw volumes (internal function)
 void studyParams::_getPreprocVolumePrefix(char *pref)
 {
@@ -142,6 +148,7 @@ void studyParams::readConfigFile(char *configFile)
         fprintf(stderr, "Error reading config file = %s\n", configFile);
         return;
     }
+	strcpy(configFileNameRead, configFile);
     readConfig(ini);
 }
 

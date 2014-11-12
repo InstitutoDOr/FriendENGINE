@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libMotor", "..\libMotor\lib
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libROI", "..\libROI\libROI\libROI.vcxproj", "{8DA608B0-7E42-4F37-BD3A-9B82E36A5476}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libEmotionROI", "..\libEmotionROI\libEmotionROI\libEmotionROI.vcxproj", "{69FE4A40-3A2F-442F-96B5-D42F75B8A5CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -39,6 +41,10 @@ Global
 		{8DA608B0-7E42-4F37-BD3A-9B82E36A5476}.Debug|Win32.Build.0 = Debug|Win32
 		{8DA608B0-7E42-4F37-BD3A-9B82E36A5476}.Release|Win32.ActiveCfg = Release|Win32
 		{8DA608B0-7E42-4F37-BD3A-9B82E36A5476}.Release|Win32.Build.0 = Release|Win32
+		{69FE4A40-3A2F-442F-96B5-D42F75B8A5CE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{69FE4A40-3A2F-442F-96B5-D42F75B8A5CE}.Debug|Win32.Build.0 = Debug|Win32
+		{69FE4A40-3A2F-442F-96B5-D42F75B8A5CE}.Release|Win32.ActiveCfg = Release|Win32
+		{69FE4A40-3A2F-442F-96B5-D42F75B8A5CE}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

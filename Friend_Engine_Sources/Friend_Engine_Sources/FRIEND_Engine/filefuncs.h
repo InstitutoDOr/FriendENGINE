@@ -2,6 +2,9 @@
 #define FILEFUNCS_H
 #include "defs.h"
 
+// merge to files in binary mode
+void mergeFiles(const char *fromfileA, const char *fromfileB, const char *tofile);
+
 // just copies a file
 void copyfile(char *fromfile, char *tofile);
 

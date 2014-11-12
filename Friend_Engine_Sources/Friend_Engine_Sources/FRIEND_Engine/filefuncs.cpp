@@ -64,6 +64,21 @@ void expandFilename(char *fileName)
 #endif
 }
 
+void mergeFiles(const char *fromfileA, const char *fromfileB, const char *tofile)
+{
+	ofstream dest(tofile, ios::binary);
+
+	ifstream sourceA(fromfileA, ios::binary);
+	dest << sourceA.rdbuf();
+	sourceA.close();
+
+	ifstream sourceB(fromfileB, ios::binary);
+	dest << sourceB.rdbuf();
+	sourceB.close();
+
+	dest.close();
+}
+
 void copyFile(const char *fromfile, const char *tofile)
 {
 	ifstream source(fromfile, ios::binary);

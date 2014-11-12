@@ -356,8 +356,10 @@ float WeightedMean::meanExtract(int index)
         // constructing the denominator
         coefsSum = coefsSum + meanCoefs[(width-1)+i-(index-1)];
     }
-    // returning the result
-    mean = mean / coefsSum;
+
+	// returning the result
+	if (coefsSum != 0) mean = mean / coefsSum;
+	else mean = 0;
     return mean;
 };
 
@@ -382,6 +384,17 @@ void WeightedMean::addValue(float value, int calculateMean)
    if (calculateMean) meanExtract(usedPoints);
 };
 
+// saves the curve and the mean curve in a file, separated by ;
+void WeightedMean::saveCurves(char *file)
+{
+	fstream output(file, fstream::in | fstream::out | fstream::trunc);
+	for (int i = 0; i < usedPoints; i++)
+	{
+		meanExtract(i+1);
+		output << vectorData[i] << ";" << mean << "\n";
+	}
+	output.close();
+}
 
 // sets the size of the list of roi maps
 void RegionCorrelation::setCalculatorMapsSize(int size)
