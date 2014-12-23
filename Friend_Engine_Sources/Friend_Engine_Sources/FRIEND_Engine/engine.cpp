@@ -638,7 +638,6 @@ bool	friendEngine::serverChild ( int	socketFd )
    // delaying the thread termination to allow clients to read the last send message
    sleep(1000);
    closesocket ( socketFd );
-   fprintf(stderr, "Connection closed.\n");
    return (TRUE);
 }
 
