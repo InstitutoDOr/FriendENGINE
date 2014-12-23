@@ -21,7 +21,6 @@ int main(int argc, char* argv[])
    friendEngine app;
    char port[20] = "5678";
 
-   MniToSubject("E:\\projetos\\NFB_VR\\RFI.nii", "E:\\projetos\\NFB_VR\\Mask_VR_ROI.nii", "E:\\projetos\\NFB_VR\\MNI152_T1_1mm_brain.nii", "E:\\projetos\\NFB_VR\\rfimask.nii", NULL);
    extractFilePath(argv[0], app.workingDir);
    if (argc >1) strcpy(port, argv[1]);
    // entry function for the object. This starts the FRIEND Engine server
