@@ -231,7 +231,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
 
   if(help.value()) {
     options.usage();
-    exit(EXIT_SUCCESS);
+	return(EXIT_SUCCESS);
   }
 
   if( !((zstatname.set() && residname.unset()) || (residname.set() && zstatname.unset())) ||
@@ -247,7 +247,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
     cerr << "You must specify the degrees of freedom for processing a 4d residual image." << endl; 
     cerr << "***************************************************************************" << endl;
     cerr << endl;
-    exit(EXIT_FAILURE);    
+	return(EXIT_FAILURE);
   }
 
   if(verbose.value()) {
@@ -285,7 +285,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
   if (!samesize(R[0],mask)) {
     cerr << "Mask and Data (residuals/zstat) volumes MUST be the same size!"
 	 << endl;
-    exit(EXIT_FAILURE);
+	return(EXIT_FAILURE);
   }
 
   if(verbose.value()) cerr << "Standardising....";

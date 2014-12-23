@@ -75,7 +75,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
 
   if(argc<2){
     print_usage(argc,argv);
-    exit(1);
+	return; // (1);
   }
 
 
@@ -89,16 +89,16 @@ void globaloptions::parse_command_line(int argc,char** argv,
     first = arg[0];
     if (first!='-') {
       cerr << "Unrecognised option " << first << endl;
-      exit(-1);
+	  return; // (-1);
     }
     
     // put options without arguments here
     if ( arg == "-help" ) {
       print_usage(argc,argv);
-      exit(0);
+	  return; // (0);
     } else if ( arg == "-version") {
       print_version();
-      exit(0);
+	  return; // (0);
     } else if ( arg == "-applyxfm" || arg == "-applynonisoxfm" ) {
       do_optimise = false;
       iso = false;
@@ -163,7 +163,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
     if (n+1>=argc) 
       { 
 	cerr << "Lacking argument to option " << arg << endl;
-	exit(-1);
+	return; // (-1);
       }
 
     // put options with 1 argument here
@@ -263,7 +263,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
 	  datatype = DT_UNSIGNED_CHAR;
 	} else {
 	  cerr << "Unrecognised data type: " << dataarg << endl;
-	  exit(-1);
+	  return; // (-1);
 	}
       }
       n+=2;
@@ -287,7 +287,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
 	  maincostfn = LabelDiff;
 	} else {
 	  cerr << "Unrecognised cost function type: " << costarg << endl;
-	  exit(-1);
+	  return; // (-1);
 	}
       }
       n+=2;
@@ -311,7 +311,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
 	  searchcostfn = LabelDiff;
 	} else {
 	  cerr << "Unrecognised cost function type: " << costarg << endl;
-	  exit(-1);
+	  return; // (-1);
 	}
       }
       n+=2;
@@ -327,7 +327,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
 	  interpmethod = NEWIMAGE::Sinc;
 	} else {
 	  cerr << "Unrecognised interpolation method: " << interparg << endl;
-	  exit(-1);
+	  return; // (-1);
 	}
       }
       n+=2;
@@ -343,7 +343,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
 	  sincwindow = Blackman;
 	} else {
 	  cerr << "Unrecognised sinc window: " << winarg << endl;
-	  exit(-1);
+	  return; // (-1);
 	}
       }
       n+=2;
@@ -357,7 +357,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
 	  anglerep = Euler;
 	} else {
 	  cerr << "Unrecognised angle representation: " << anglearg << endl;
-	  exit(-1);
+	  return; // (-1);
 	}
       }
       n+=2;
@@ -367,7 +367,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
     if (n+2>=argc) 
       { 
 	cerr << "Lacking argument to option " << arg << endl;
-	exit(-1);
+	return; // (-1);
       }
     
     
@@ -389,7 +389,7 @@ void globaloptions::parse_command_line(int argc,char** argv,
       continue;
     } else { 
       cerr << "Unrecognised option " << arg << endl;
-      exit(-1);
+	  return; // (-1);
     } 
 
     
@@ -399,13 +399,13 @@ void globaloptions::parse_command_line(int argc,char** argv,
   if (inputfname.size()<1) {
     cerr << "ERROR:: Input volume filename not found\n\n";
     print_usage(argc,argv);
-    exit(2);
+	return; // (2);
   }
 
   if (reffname.size()<1) {
     cerr << "ERROR:: Reference volume filename not found\n\n";
     print_usage(argc,argv);
-    exit(2);
+	return; // (2);
   }
 }
 

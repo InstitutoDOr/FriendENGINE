@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8DA608B0-7E42-4F37-BD3A-9B82E36A5476}</ProjectGuid>
+    <ProjectGuid>{69FE4A40-3A2F-442F-96B5-D42F75B8A5CE}</ProjectGuid>
     <RootNamespace>libEmotionROI</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>libEmotionROI</ProjectName>

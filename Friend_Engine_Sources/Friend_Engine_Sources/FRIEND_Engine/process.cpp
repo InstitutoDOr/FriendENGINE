@@ -18,6 +18,7 @@ char extension[]="";
 char extension[]=".gz";
 
 #endif
+
 // set socket data for response
 void FriendProcess::setSocketfd(int Sock)
 {
@@ -299,7 +300,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		   sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".img");
 		   if (fileExists(inFile))
 		   {
-			   if (isReadable(inFile))
+			   if (isFSLReadable(inFile))
 			   {
 				   stringstream osc;
 				   osc << "fslswapdim " << inFile;
@@ -326,7 +327,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
    }
 
    // verifying if the final file exists. It servers the NIFTI case
-   if ((fileExists(outFile)) && (isReadable(outFile)))
+   if ((fileExists(outFile)) && (isFSLReadable(outFile)))
         response = 1;
    else response = 0;
    

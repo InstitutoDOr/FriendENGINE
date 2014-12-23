@@ -29,6 +29,9 @@ int feat_model(char *cmdLn);
 int convert_xfm(char *cmdLn);
 #endif
 
+// verifies if a file is readable by FSL
+bool isFSLReadable(char *fileName);
+
 // reorients a volume file to axial
 int axial(char *innam, char *outnam);
 

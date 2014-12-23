@@ -343,16 +343,16 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
       narg++;
       if (narg>=argc) {
 	cerr << "Must specify an argument to -k" << endl;
-	exit(2);
+	return(2);
       }
       read_volume4D(mask,argv[narg]);
       if (!samesize(mask[0],vol[0])) {
 	cerr << "Mask and image must be the same size" << endl;
-	exit(3);
+	return(3);
       }
       if ( mask.tsize() > vol.tsize() ) {
 	cerr << "Mask and image must be the same size" << endl;
-	exit(3);
+	return(3);
       }
       if ( mask.tsize() != vol.tsize() && mask.tsize() != 1) {
 	// copy the last max volume until the correct size is reached
@@ -371,7 +371,7 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
         lthr = atof(argv[narg]);
       } else {
 	cerr << "Must specify an argument to -l" << endl;
-	exit(2);
+	return(2);
       }
       generate_masks(mask,masknz,vol,lthr,uthr);
       vol*=mask;
@@ -381,7 +381,7 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
         uthr = atof(argv[narg]);
       } else {
 	cerr << "Must specify an argument to -u" << endl;
-	exit(2);
+	return(2);
       }
       generate_masks(mask,masknz,vol,lthr,uthr);
       vol*=mask;
@@ -444,11 +444,11 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
         n = atof(argv[narg]);
       } else {
 	cerr << "Must specify an argument to -p" << endl;
-	exit(2);
+	return(2);
       }
       if ( (n<0) || (n>100) ) {
     	cerr << "Percentile must be between 0 and 100" << endl;
-    	exit(1);
+    	return(1);
       }
       if (mask.nvoxels()>0) cout << vol.percentile((float) n/100.0, mask) << " ";
       else cout << vol.percentile((float) n/100.0) << " ";
@@ -459,11 +459,11 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
         n = atof(argv[narg]);
       } else {
 	cerr << "Must specify an argument to -P" << endl;
-	exit(2);
+	return(2);
       }
       if ( (n<0) || (n>100) ) {
     	cerr << "Percentile must be between 0 and 100" << endl;
-    	exit(1);
+    	return(1);
       }
       if (mask.nvoxels()<1) {
 	generate_masks(mask,masknz,vol,lthr,uthr); 
@@ -477,12 +477,12 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
         n = atof(argv[narg]);
       } else {
 	cerr << "Must specify the number of bins" << endl;
-	exit(2);
+	return(2);
       }
       int nbins = (int) n;
       if (nbins<1) {
     	cerr << "Must specify at least 1 bin" << endl;
-    	exit(1);
+    	return(1);
       }
       if (mask.nvoxels()>0) {
 	cout << vol.histogram(nbins,vol.min(),vol.max(),mask) << " ";
@@ -496,12 +496,12 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
         n = atof(argv[narg]);
       } else {
 	cerr << "Must specify the number of bins" << endl;
-	exit(2);
+	return(2);
       }
       int nbins = (int) n;
       if (nbins<1) {
     	cerr << "Must specify at least 1 bin" << endl;
-    	exit(1);
+    	return(1);
       }
       float min=0;
       narg++;
@@ -509,7 +509,7 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
         min = atof(argv[narg]);
       } else {
 	cerr << "Must specify the histogram minimum intensity" << endl;
-	exit(2);
+	return(2);
       }
       float max=0;
       narg++;
@@ -517,7 +517,7 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
         max = atof(argv[narg]);
       } else {
 	cerr << "Must specify the histogram maximum intensity" << endl;
-	exit(2);
+	return(2);
       }
       if (mask.nvoxels()>0) {
 	cout << vol.histogram(nbins,min,max,mask) << " ";
@@ -526,7 +526,7 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
       }
     } else {
 	cerr << "Unrecognised option: " << sarg << endl;
-	exit(3);
+	return(3);
     }
   
     narg++;

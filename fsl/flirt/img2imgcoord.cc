@@ -149,7 +149,7 @@ void parse_command_line(int argc, char* argv[])
 {
   if(argc<2){
     print_usage(argc,argv);
-    exit(1);
+    return(1);
   }
 
 
@@ -170,7 +170,7 @@ void parse_command_line(int argc, char* argv[])
     // put options without arguments here
     if ( arg == "-help" ) {
       print_usage(argc,argv);
-      exit(0);
+      return(0);
     } else if ( arg == "-vox" ) {
       globalopts.mm = false;
       n++;
@@ -214,7 +214,7 @@ void parse_command_line(int argc, char* argv[])
       continue;
     } else { 
       cerr << "Unrecognised option " << arg << endl;
-      exit(-1);
+      return(-1);
     } 
 
   }  // while (n<argc)
@@ -301,7 +301,7 @@ int main(int argc,char *argv[])
     }
     catch (...) {
       cerr << "An error occured while reading file: " << globalopts.warpfname << endl;
-      exit(EXIT_FAILURE);
+      return(EXIT_FAILURE);
     }
   }
 

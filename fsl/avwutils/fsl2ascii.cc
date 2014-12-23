@@ -101,7 +101,7 @@ int do_work(int argc, char *argv[])
   if (xsize*ysize*zsize*tsize != amat.Nrows() * amat.Ncols()) {
     cerr << "Sizes incompatible: " <<  xsize*ysize*zsize*tsize << " voxels vs " << amat.Nrows() * amat.Ncols() << " numbers" << endl;
     cerr << "Matrix dimensions are " << amat.Nrows() << " by " << amat.Ncols() << endl;
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   amat = reshape(amat.t(),tsize,xsize*ysize*zsize);
   ovol.setmatrix(amat);

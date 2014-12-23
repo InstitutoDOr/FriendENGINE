@@ -170,7 +170,7 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
   if ( (help.value()) || (!options.check_compulsory_arguments(true)) )
     {
       options.usage();
-      exit(EXIT_FAILURE);
+	  return(EXIT_FAILURE);
     }
   
 

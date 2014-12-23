@@ -1137,7 +1137,7 @@ vector<double> co_ext(const volume<float> & t1, const volume<float> & t2, const 
 
       //leftmost min
       double minabs = pt1.next_point_under(pt1.begin(), .30);
-      if (minabs == -500) {output = false;exit (-1);}
+	  if (minabs == -500) { output = false; return resul; /* (-1)*/; }
 	
       double localminabs = minabs; 
       if (output)
@@ -1334,7 +1334,7 @@ extern "C" __declspec(dllexport) int _stdcall betsurf(char *CmdLn)
   catch(X_OptionError& e) {
     options.usage();
     cerr << endl << e.what() << endl;
-    exit(EXIT_FAILURE);
+	return(EXIT_FAILURE);
   } 
   catch(std::exception &e) {
     cerr << e.what() << endl;
@@ -1353,7 +1353,7 @@ extern "C" __declspec(dllexport) int _stdcall betsurf(char *CmdLn)
 
   if (t1only.value()) {
     t1only_main(argc, argv, nb_pars, options);
-    exit (0);
+    return (0);
   }
 
   if (argc - nb_pars < 5)

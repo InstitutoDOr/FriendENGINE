@@ -81,9 +81,6 @@
     <ClCompile Include="..\..\..\..\fsl\miscmaths\cspline.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\fsl\feat5\cutoffcalc.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\dataanalysis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -142,9 +139,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\fsl\melodic\fsl_regfilt.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\fsl\melodic\fsl_sbca.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\fsl\miscvis\fsl_tsplot.cc">

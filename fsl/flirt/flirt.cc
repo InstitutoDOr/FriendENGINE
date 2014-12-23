@@ -2172,7 +2172,7 @@ void interpretcommand(const string& comline, bool& skip,
     // COPY
     if (words.size()<3) {
       cerr << "Wrong number of args to COPY" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src, dest;
     int d1, d2, d3, d4;
@@ -2183,7 +2183,7 @@ void interpretcommand(const string& comline, bool& skip,
     // CLEAR
     if (words.size()<2) {
       cerr << "Wrong number of args to CLEAR" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2191,12 +2191,12 @@ void interpretcommand(const string& comline, bool& skip,
     usrclear(src);
   } else if (words[0]=="exit") {
     // EXIT
-    exit(0);
+	  return; // (0);
   } else if (words[0]=="print") {
     // PRINT
     if (words.size()<2) {
       cerr << "Wrong number of args to PRINT" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2206,7 +2206,7 @@ void interpretcommand(const string& comline, bool& skip,
     // SAVE
     if (words.size()<3) {
       cerr << "Wrong number of args to SAVE" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2216,7 +2216,7 @@ void interpretcommand(const string& comline, bool& skip,
     // READ
     if (words.size()<3) {
       cerr << "Wrong number of args to READ" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2226,7 +2226,7 @@ void interpretcommand(const string& comline, bool& skip,
     // PRINTPARAMS
     if (words.size()<2) {
       cerr << "Wrong number of args to PRINTPARAMS" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2236,7 +2236,7 @@ void interpretcommand(const string& comline, bool& skip,
     // SAVEPARAMS
     if (words.size()<3) {
       cerr << "Wrong number of args to SAVEPARAMS" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2246,7 +2246,7 @@ void interpretcommand(const string& comline, bool& skip,
     // READPARAMS
     if (words.size()<3) {
       cerr << "Wrong number of args to READPARAMS" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2256,7 +2256,7 @@ void interpretcommand(const string& comline, bool& skip,
     // DUALSORT
     if (words.size()<3) {
       cerr << "Wrong number of args to DUALSORT" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr mat1, mat2;
     int d1, d2, d3, d4;
@@ -2267,7 +2267,7 @@ void interpretcommand(const string& comline, bool& skip,
     // SORT
     if (words.size()<2) {
       cerr << "Wrong number of args to SORT" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2278,7 +2278,7 @@ void interpretcommand(const string& comline, bool& skip,
     int usrdof=12;
     if (words.size()>2) {
       cerr << "Wrong number of args to SEARCH" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     if (words.size()==2) {
       setscalarvariable(words[1],usrdof);
@@ -2289,7 +2289,7 @@ void interpretcommand(const string& comline, bool& skip,
     // OPTIMISE
     if (words.size()<5) {
       cerr << "Wrong number of args to OPTIMISE" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     int usrdof=12, usrmaxitn=4, usrrow1=1, usrrow2=999999;
     ColumnVector usrperturbation(12);
@@ -2320,7 +2320,7 @@ void interpretcommand(const string& comline, bool& skip,
     // MEASURECOST
     if (words.size()<5) {
       cerr << "Wrong number of args to MEASURECOST" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     int usrdof=12, usrrow1=1, usrrow2=999999;
     ColumnVector usrperturbation(12);
@@ -2348,7 +2348,7 @@ void interpretcommand(const string& comline, bool& skip,
     // ALIGNCOG
     if (words.size()<2) {
       cerr << "Wrong number of args to ALIGNCOG" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2358,7 +2358,7 @@ void interpretcommand(const string& comline, bool& skip,
     // ALIGNPAXES
     if (words.size()<2) {
       cerr << "Wrong number of args to ALIGNPAXES" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2368,7 +2368,7 @@ void interpretcommand(const string& comline, bool& skip,
     // SETSCALE
     if (words.size()<2) {
       cerr << "Wrong number of args to SETSCALE" << endl;
-      exit(-1);
+	  return;// (-1);
     }
     float usrscale;
     setscalarvariable(words[1],usrscale);
@@ -2377,7 +2377,7 @@ void interpretcommand(const string& comline, bool& skip,
     // SETROW
     if (words.size()<18) {
       cerr << "Wrong number of args to SETROW" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2387,7 +2387,7 @@ void interpretcommand(const string& comline, bool& skip,
     // SETROWPARAMS
     if (words.size()<14) {
       cerr << "Wrong number of args to SETROWPARAMS" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     MatVecPtr src;
     int d1, d2;
@@ -2397,14 +2397,14 @@ void interpretcommand(const string& comline, bool& skip,
     // SETOPTION
     if (words.size()<3) {
       cerr << "Wrong number of args to SETOPTION" << endl;
-      exit(-1);
+	  return; // (-1);
     }
     usrsetoption(words);
   } else if (words[0]=="if") {
     // IF
     if (words.size()<4) {
       cerr << "Wrong number of args to IF" << endl;
-      exit(-1);
+	  return; // n(-1);
     }
     float arg1, arg2;
     setscalarvariable(words[1],arg1);
@@ -2423,13 +2423,13 @@ void interpretcommand(const string& comline, bool& skip,
       skip = !(arg1 >= arg2);
     } else {
       cerr << "Cannot recognise operator " << words[2] << " in IF statement\n";
-      exit(-1);
+	  return; // (-1);
     }
   } else {
     cerr << "Unrecognised command " << words[0] << endl;
     cerr << " ... ignoring" << endl;
     //cerr << "Quitting." << endl;
-    //exit(-1);
+    //return(-1);
   }
 }
 

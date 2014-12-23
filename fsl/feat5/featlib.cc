@@ -82,7 +82,8 @@ char *find_key(FILE *fd, char *control_line, const char *key)
       return control_line+strlen(key);
 	  
   printf("Error: key \"%s\" not found.\n",key);
-  exit(1);
+  //exit(1);
+  return NULL;
 }
 
 /* }}} */

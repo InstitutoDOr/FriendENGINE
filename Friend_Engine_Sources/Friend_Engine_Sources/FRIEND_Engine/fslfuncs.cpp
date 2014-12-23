@@ -86,6 +86,18 @@ int convert_xfm(char *cmdLn)
 }
 #endif
 
+bool isFSLReadable(char *fileName)
+{
+	FSLIO *OP = FslOpen(fileName, "r");
+	if (OP == NULL) return false;
+	else
+	{
+		FslClose(OP);
+		FslFree(OP);
+		return true;
+	}
+}
+
 // maps nifti orientation constants in 1, -1, 2, -2, 3, -3 numbers
 int niftiOrientationInt( int ii )
 {
@@ -407,7 +419,7 @@ int execStandardizeVolume(char *base, char *mask, char *output, int NN)
 	   execAxial<T>(base, baseTemp);
       
       // same coordinate space
-	   execSameFov<T>(baseTemp, output, output);
+	  execSameFov<T>(baseTemp, output, output);
 	}
 
 	if (fileExists(baseTemp))
@@ -475,7 +487,7 @@ int estimateActivation(int start, int ini, int end, int slidingWindowSize, char 
 
    // until the file is ready, stall. That's the best option?
    if (fileExists(tmpName)) // file Exists corrects the name, like adding .gz, etc..
-      while (isReadable(tmpName)==false) {};
+      while (isFSLReadable(tmpName)==false) {};
    string auxn = tmpName;
    
    
@@ -497,7 +509,7 @@ int estimateActivation(int start, int ini, int end, int slidingWindowSize, char 
   	      volume<float> tmp;
 	      sprintf(tmpName, suffix, j);
 		  if (fileExists(tmpName)) // file Exists corrects the name, like adding .gz, etc.. 
-             while (isReadable(tmpName)==false) {};
+             while (isFSLReadable(tmpName)==false) {};
  		  string Tmpname = tmpName;
           read_volume(tmp, Tmpname);
 		  activation[i-ini] += tmp;
@@ -999,7 +1011,7 @@ void MniToSubject(char *betRFI, char * mniTemplate, char * mniStandard, char* RF
     char standardTemplate[500];
     char prefixcalc[500];
     char outDir[500];
-    char ext[]="_std.nii.gz";
+    char ext[]="_std.nii";
     stringstream cmdLn;
     
     strcpy(interpolation, " -interp nearestneighbour");
@@ -1038,6 +1050,9 @@ void MniToSubject(char *betRFI, char * mniTemplate, char * mniStandard, char* RF
         cmdLn.str("");
         cmdLn << "flirt -ref \"" <<  betRFI << "\" -in \"" << standardTemplate << "\" -o \"" << output << "\" -applyxfm -init \"" << MNI2RFITransf << "\" " << interpolation;
         flirt((char *)cmdLn.str().c_str());
+
+		// make sure of the right side. Further calculations will use the volume without using the transformation matrix
+		sameFov(betRFI, output, output);
     };
 };
 

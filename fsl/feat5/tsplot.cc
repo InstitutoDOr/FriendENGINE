@@ -733,7 +733,7 @@ volume4D<float> acs;
       if(!outputFile.is_open())
       {
 	cerr << "Can't open output report file " << outputName << endl;
-	exit(1);
+	return(1);
       }
       outputFile << "<HTML>\n<TITLE>"<< statType << num2str(i) <<"</TITLE>\n<BODY BACKGROUND=\"file:"<< fslPath <<"/doc/images/fsl-bg.jpg\">\n<hr><CENTER>\n<H1>FEAT Time Series Report - "<< statType << num2str(i) <<"</H1>\n</CENTER>\n<hr><b>Full plots</b><p>\n"<< graphText;
       if (useTriggers) outputFile << "\n<hr><b>Peristimulus plots</b><p>\n"<< peristimulusText <<"\n<HR></BODY></HTML>\n\n";
@@ -748,7 +748,7 @@ volume4D<float> acs;
   if(!outputFile.is_open())
   {
       cerr << "Can't open output report file " << outputName << endl;
-      exit(1);
+	  return(1);
   }
   outputFile << "<HTML>\n<TITLE>FEAT Time Series Report</TITLE>\n<BODY BACKGROUND=\"file:" << fslPath << "/doc/images/fsl-bg.jpg\">\n<hr><CENTER>\n<H1>FEAT Time Series Report</H1>\n</CENTER>\n<hr>" << indexText << "<HR></BODY></HTML>" << endl << endl;
   outputFile.close();
@@ -758,7 +758,7 @@ volume4D<float> acs;
   if(!outputFile.is_open())
   {
       cerr << "Can't open output report file " << outputName << endl;
-      exit(1);
+      return(1);
   }
   outputFile << indexText << endl << endl;
   outputFile.close();

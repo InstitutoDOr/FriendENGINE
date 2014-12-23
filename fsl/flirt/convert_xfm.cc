@@ -154,7 +154,7 @@ void parse_command_line(int argc, char* argv[])
 {
   if(argc<2){
     print_usage(argc,argv);
-    exit(1);
+	return; // (1);
   }
 
 
@@ -175,7 +175,7 @@ void parse_command_line(int argc, char* argv[])
     // put options without arguments here
     if ( arg == "-help" ) {
       print_usage(argc,argv);
-      exit(0);
+	  return; // (0);
     } else if ( arg == "-inverse" ) {
       globalopts.inverse = true;
       n++;
@@ -211,7 +211,7 @@ void parse_command_line(int argc, char* argv[])
       continue;
     } else { 
       cerr << "Unrecognised option " << arg << endl;
-      exit(-1);
+	  return; // (-1);
     } 
 
   }  // while (n<argc)
@@ -219,7 +219,7 @@ void parse_command_line(int argc, char* argv[])
   if (globalopts.initmatfname.size()<1) {
     cerr << "Input matrix filename not found" << endl << endl;
     print_usage(argc,argv);
-    exit(2);
+	return; // (2);
   }
 }
 

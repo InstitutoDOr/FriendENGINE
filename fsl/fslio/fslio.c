@@ -31,7 +31,7 @@
 static int FslIgnoreMFQ=0;
 static int FslOverrideOutputType=-1;
 
-#define FSLIOERR(x) { fprintf(stderr,"Error:: %s\n",(x)); fflush(stderr); exit(EXIT_FAILURE); }
+#define FSLIOERR(x) { fprintf(stderr,"Error:: %s\n",(x)); fflush(stderr); return(EXIT_FAILURE); }
 
 #ifdef WINDOWS
 #define strdup _strdup
@@ -414,7 +414,7 @@ void FslInit4Write(FSLIO* fslio, const char* filename, int ft)
 
   if (!FslIsValidFileType(imgtype)) {
     fprintf(stderr,"Error: Failed to determine file type for writing in FslOpen()\n");
-    exit(EXIT_FAILURE);
+    return(EXIT_FAILURE);
   }
   
   if ( (FslBaseFileType(imgtype)!=FSL_TYPE_MINC) ) {
@@ -611,7 +611,7 @@ int check_for_multiple_filenames(const char* filename)
         otype = getenv("FSLMULTIFILEQUIT");
         if (otype!=NULL) {
           fprintf(stderr,"STOPPING PROGRAM\n");
-          exit(EXIT_FAILURE);
+          return(EXIT_FAILURE);
         }
       }
       return 1;

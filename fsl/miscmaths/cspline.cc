@@ -114,11 +114,13 @@ namespace MISCMATHS{
   void Cspline::fit(){
     if(vals.Nrows()<4){
       cerr<<"Cspline::fit - You have less than 4 data pts for spline fitting."<<endl;
-      exit(-1);
+      //exit(-1);
+	  return;
     }
     if(nodes.Nrows()!=vals.Nrows()){
       cerr<<"Nodes and VALS must be the same length in your spline"<<endl;
-      exit(-1);
+      //exit(-1);
+	  return;
     }
     int n=vals.Nrows();
     ColumnVector s(n);
@@ -174,13 +176,15 @@ namespace MISCMATHS{
     // On your head be it if you don't.
     if(nodes.Nrows()!=vals.Nrows()){
       cerr<<"Cspline:interpolate: Nodes and Vals should be the same length"<<endl;
-      exit(-1);
+     // exit(-1);
+	  return -1;
     }
 
     float ret;
     if(!fitted){
       cerr<<"Cspline::interpolate - Cspline has not been fitted"<<endl;
-      exit(-1);
+      //exit(-1);
+	  return -1;
     }
     else{
       
@@ -219,16 +223,19 @@ namespace MISCMATHS{
     float ret;
     if(!fitted){
       cerr<<"Cspline::interpolate - Cspline has not been fitted"<<endl;
-      exit(-1);
+      //exit(-1);
+	  return -1;
     }
     else{
       if(ind>n-1){
 	cerr<<"Cspline::interpolate - segment index is greater than number of segments - exiting"<<endl;
-	exit(-1);
+	//exit(-1);
+	return -1;
       }
       else if(ind<1){
       	cerr<<"Cspline::interpolate - segment index is less than 1 - exiting"<<endl;
-	exit(-1);
+	//exit(-1);
+		return -1;
       }
       float a=coefs(ind,1);
       float b=coefs(ind,2);
@@ -245,16 +252,18 @@ namespace MISCMATHS{
     // nodes must be monotonically increasing. I don't check this. 
     // On your head be it if you don't.
     
-    if(nodes.Nrows()!=vals.Nrows()){
+	  ColumnVector ret(x.Nrows());
+	  if (nodes.Nrows() != vals.Nrows()){
       cerr<<"Cspline::interpolate -  Nodes and Vals should be the same length"<<endl;
-      exit(-1);
+      //exit(-1);
+	  return ret;
     }
     
-    ColumnVector ret(x.Nrows());  
 
     if(!fitted){
       cerr<<"Cspline::interpolate - Cspline has not been fitted"<<endl;
-      exit(-1);
+      //exit(-1);
+	  return ret;
     }
     else{
 
@@ -298,16 +307,18 @@ namespace MISCMATHS{
     // nodes must be monotonically increasing. I don't check this. 
     // On your head be it if you don't.
     
-    if(nodes.Nrows()!=vals.Nrows()){
+	  ColumnVector ret(x.Nrows());
+
+	  if (nodes.Nrows() != vals.Nrows()){
       cerr<<"Cspline::interpolate - Nodes and Vals should be the same length"<<endl;
-      exit(-1);
+      //exit(-1);
+	  return ret;
     }
     
-    ColumnVector ret(x.Nrows());  
-
     if(!fitted){
       cerr<<"Cspline::interpolate - Cspline has not been fitted"<<endl;
-      exit(-1);
+      //exit(-1);
+	  return ret;
     }
     else{
       for(int xnum=1;xnum<=x.Nrows();xnum++){

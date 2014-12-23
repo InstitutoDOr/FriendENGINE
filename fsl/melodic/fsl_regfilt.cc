@@ -259,11 +259,13 @@ void write_res(){
 }
 
 int do_work(int argc, char* argv[]) {
-  if(setup())
-		exit(1);
+	if (setup())
+		//exit(1);
+		return -1;
 
-	if(dofilter())
-		exit(1);	
+	if (dofilter())
+		//exit(1);
+		return -1;
 	write_res();
 	return 0;
 }

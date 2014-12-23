@@ -75,7 +75,7 @@ void Globaloptions::parse_command_line(int argc,char** argv)
 {
   if (argc < 3) {
     print_usage(argc,argv);
-    exit(1);
+	return; // (1);
   }
 
   int n=1;
@@ -98,7 +98,7 @@ void Globaloptions::parse_command_line(int argc,char** argv)
     // put options without arguments here
     if ( arg == "-help" ) {
       print_usage(argc,argv);
-      exit(0);
+	  return; // (0);
     } else if ( arg == "-v" ) {
       verbose = 5;
       n++;
@@ -168,7 +168,7 @@ void Globaloptions::parse_command_line(int argc,char** argv)
     if (n+1>=argc) 
       { 
 	cerr << "Lacking argument to option " << arg << endl;
-	exit(-1); 
+	return; // (-1);
       }
 
     // put options with 1 argument here
@@ -253,20 +253,20 @@ void Globaloptions::parse_command_line(int argc,char** argv)
    
     } else { 
       cerr << "Unrecognised option " << arg << endl;
-      exit(-1);
+	  return; // (-1);
     } 
     
     if (n+2>=argc) 
       { 
 	cerr << "Lacking argument to option " << arg << endl;
-	exit(-1);
+	return; // (-1);
       }
   }
   
   if (inputfname.size()<1) {
     cerr << "Input filename not found\n\n";
     print_usage(argc,argv);
-    exit(2);
+	return; // n(2);
   }
   
   if (outputfname.size()<1) {

@@ -93,7 +93,7 @@ void Session::getGraphResponse(int index, char *msg)
 void Session::getFeedbackResponse(int index, char *msg)
 {
    if (feedbacksList.size() < index) sprintf(msg, "0\n0\n");
-   else sprintf(msg, "%d\n%f\n%s", feedbacksList[index-1].classNumber, feedbacksList[index-1].percentage, feedbacksList[index-1].additionalResponse);
+   else sprintf(msg, "%d\n%f\n%s", feedbacksList[index - 1].classNumber, feedbacksList[index - 1].percentage, feedbacksList[index - 1].additionalResponse);
 }
 
 void Session::getCommandResponse(string command, char *response)

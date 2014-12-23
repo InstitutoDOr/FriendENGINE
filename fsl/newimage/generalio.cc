@@ -475,7 +475,7 @@ void check_filename(const string& basename)
   FSLIO* OP=FslOpen(basename.c_str(),"r");
   if (OP==NULL) {
     cerr << "ERROR: Cannot open volume " << basename << " for reading!\n";
-    exit(1);
+	return; //exit (1);
   }
 }
 
@@ -567,7 +567,7 @@ short dtype(const string& filename)
   IP1 = FslOpen(basename.c_str(),"rb");
   if (IP1==NULL) {
     cerr << "Cannot open volume " << basename << " for reading!\n";
-    exit(1);
+    return(1);
   }
 
   short dtype;
@@ -592,7 +592,7 @@ short fslFileType(const string& filename)
   IP1 = FslOpen(basename.c_str(),"rb");
   if (IP1==NULL) {
     cerr << "Cannot open volume " << basename << " for reading!\n";
-    exit(1);
+    return(1);
   }
 
   short fileType(-1);
@@ -672,7 +672,7 @@ int read_complexvolume(volume<float>& realvol, volume<float>& imagvol,
   FSLIO* IP1 = FslOpen(basename.c_str(), "r");
   if (IP1==NULL) {
     cerr << "Cannot open volume " << basename << " for reading!\n";
-    exit(1);
+    return(1);
   }
   short sx,sy,sz,st;
   FslGetDim(IP1,&sx,&sy,&sz,&st);
@@ -730,7 +730,7 @@ int read_complexvolume4D(volume4D<float>& realvols, volume4D<float>& imagvols,
   FSLIO* IP1 = FslOpen(basename.c_str(), "r");
   if (IP1==NULL) {
     cerr << "Cannot open volume " << basename << " for reading!\n";
-    exit(1);
+    return(1);
   }
   short sx,sy,sz,st;
   FslGetDim(IP1,&sx,&sy,&sz,&st);

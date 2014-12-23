@@ -273,7 +273,7 @@ extern "C" __declspec(dllexport) int _stdcall fsl_tsplot(char *CmdLn)
   }  catch(X_OptionError& e) {
     options.usage();
     cerr << endl << e.what() << endl;
-                                                     exit(EXIT_FAILURE);
+                                                     return(EXIT_FAILURE);
   } catch(std::exception &e) {
     cerr << e.what() << endl;
   } 

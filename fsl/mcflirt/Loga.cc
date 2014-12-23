@@ -97,7 +97,7 @@ namespace UTILS {
 	      break;
 	    default:
 	      cerr << "Error!: Unknown Log directory return value" << endl;
-	      exit(0);
+	      return(0);
 	    }
 	  } else {
 	    // setup logfile

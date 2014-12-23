@@ -159,7 +159,7 @@ int applywarp()
   // Check for sillines
   if (relwarp.value() && abswarp.value()) {
     cerr << "Only one of --abs and --rel can be set" << endl;
-    exit(EXIT_FAILURE);
+    return(EXIT_FAILURE);
   }
   // Assert value for data-type
   short  dtypecode = DT_FLOAT;
@@ -171,7 +171,7 @@ int applywarp()
     else if (datatype.value()==string("double")) dtypecode = DT_DOUBLE;
     else {
       cerr << "Unknown data type " << datatype.value() << endl;
-      exit(EXIT_FAILURE);
+      return(EXIT_FAILURE);
     }
   }
   
@@ -213,7 +213,7 @@ int applywarp()
     }
     catch (...) {
       cerr << "An error occured while reading file: " << warpname.value() << endl;
-      exit(EXIT_FAILURE);
+      return(EXIT_FAILURE);
     }
   }
   else {  // This is intended to let one use applywarp to resample files using flirt-matrices only in a convenient way
@@ -243,11 +243,11 @@ int applywarp()
       char         skrutt[256];
       if (sscanf(supersamplelevel.value().c_str(),"%1u%s",&ssfac,skrutt) != 1) {
         cerr << "Invalid argument " << supersamplelevel.value() << " to --superlevel parameter" << endl;
-        exit(EXIT_FAILURE);
+        return(EXIT_FAILURE);
       }
       if (ssfac < 1 || ssfac > 10) { 
         cerr << "Argument to --superlevel parameter must be between 1 and 10, or a (for automatic)" << endl;
-        exit(EXIT_FAILURE);
+        return(EXIT_FAILURE);
       }
       ssvec.assign(3,ssfac);
     }
@@ -265,7 +265,7 @@ int applywarp()
     read_volume(mask,maskname.value());
     if (!samesize(refvol,mask)) {
       cerr << "--ref and --mask must have same size" << endl;
-      exit(EXIT_FAILURE);
+      return(EXIT_FAILURE);
     }
   }
 
@@ -285,7 +285,7 @@ int applywarp()
   }
   else {
     cerr << "Unknown interpolation type " << interp.value() << endl;
-    exit(EXIT_FAILURE);
+    return(EXIT_FAILURE);
   }
 
   boost::shared_ptr<volume<float> >   ssout_ptr;     // Used for (optional) super-sampling
@@ -297,7 +297,7 @@ int applywarp()
     isize[2] = ssvec[2]*outvol.zsize();
     if ((isize[0]*isize[1]*isize[2]) > LargeIma) {
       cerr << "Supersampling renders output image too large" << endl;
-      exit(EXIT_FAILURE);
+      return(EXIT_FAILURE);
     }
     ssout_ptr = boost::shared_ptr<volume<float> >(new volume<float>(isize[0],isize[1],isize[2]));
     vector<float>  vsize(3,0.0);
@@ -382,14 +382,14 @@ extern "C" __declspec(dllexport) int _stdcall applywarp(char *CmdLn)
     if (help.value() || !options.check_compulsory_arguments(true)) {
       options.usage();
       freeparser(argc, argv);
-      exit(EXIT_FAILURE);
+      return(EXIT_FAILURE);
     }
   }  
   catch(X_OptionError& e) {
     options.usage();
     cerr << endl << e.what() << endl;
     freeparser(argc, argv);
-    exit(EXIT_FAILURE);
+    return(EXIT_FAILURE);
   } 
   catch(std::exception &e) {
     cerr << e.what() << endl;

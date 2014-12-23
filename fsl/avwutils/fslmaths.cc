@@ -222,7 +222,7 @@ int check_for_output_name(int i, int argc_1)
 {
   if (i>argc_1) {
     cerr << "Error: no output filename specified!" << endl;
-    exit(EXIT_FAILURE);
+	return (EXIT_FAILURE);
   }
   return 0;
 }
@@ -955,7 +955,7 @@ if (!separatenoise)
 	  tfce(inputVolume[t], height_power, size_power, connectivity, 0, 0);
 	}
 	catch(Exception& e) { 
-	  cerr << "ERROR: TFCE failed, please check your file for valid sizes and voxel values." <<  e.what() << endl << endl << "Exiting" << endl; 
+	  cerr << "ERROR: TFCE failed, please check your file for valid sizes and voxel values." <<  e.what() << endl << endl << "Exiting" << endl;
 	  return 1;
 	}
       }
@@ -1100,7 +1100,7 @@ if (!separatenoise)
        if ( inputVolume.tsize() != 6 )
 	 {
 	   cout << "Error: input to tensor option is not a tensor!" << endl;
-	   exit(1);
+	   return (1);
 	 }
        volume<float> dti_L1(inputVolume.xsize(),inputVolume.ysize(),inputVolume.zsize()),
 	 dti_L2(inputVolume.xsize(),inputVolume.ysize(),inputVolume.zsize()),

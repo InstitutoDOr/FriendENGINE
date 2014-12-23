@@ -1058,7 +1058,7 @@ if (vol2.nvoxels() > 1 )
   if (!theopt || strncmp(theopt,"-",1)==0 )
     {
       cerr << "Error - must have a LUT name after the -l option." << endl;
-      exit (1);
+      return (1);
     }
 
   if(strstr(theopt,"/")==NULL){
@@ -1076,7 +1076,7 @@ if (vol2.nvoxels() > 1 )
   if (!theopt || strncmp(theopt,"-",1)==0)
     {
       cerr << "Error - must have a scaling factor after the -s option." << endl;
-      exit (1);
+      return (1);
     }
   scale /= atof(theopt);
 }
@@ -1097,7 +1097,7 @@ if (vol2.nvoxels() > 1 )
   if (!theopt)
     {
       cerr << "Error - must set min and max intensities after the -i option." << endl;
-      exit (1);
+      return (1);
     }
   intensity_min=atof(theopt);
 
@@ -1105,7 +1105,7 @@ if (vol2.nvoxels() > 1 )
   if (!theopt)
     {
       cerr << "Error - must set min and max intensities after the -i option." << endl;
-      exit (1);
+      return (1);
     }
   intensity_max=atof(theopt);
 }
@@ -1118,7 +1118,7 @@ if (vol2.nvoxels() > 1 )
 	if (!theopt)
 	  {
 	    cerr << "Error - must set threshold value after the -e option." << endl;
-	    exit (1);
+	    return (1);
 	  }
 	edgethresh=atof(theopt);
 	
@@ -1284,7 +1284,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a slice choice after the -x option." << endl;
-      exit (1);
+      return (1);
     }
   float slice=atof(theopt);
 
@@ -1292,7 +1292,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename when using the -x option." << endl;
-      exit (1);
+      return (1);
     }
 
   sag(slice, sagcorskip*y_size_pic, y_size_pic);
@@ -1308,7 +1308,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a slice choice after the -y option." << endl;
-      exit (1);
+      return (1);
     }
   float slice=atof(theopt);
 
@@ -1316,7 +1316,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename when using the -y option." << endl;
-      exit (1);
+      return (1);
     }
 
   cor(slice, sagcorskip*x_size_pic, x_size_pic);
@@ -1332,7 +1332,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a slice choice after the -z option." << endl;
-      exit (1);
+      return (1);
     }
   float slice=atof(theopt);
 
@@ -1340,7 +1340,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename when using the -z option." << endl;
-      exit (1);
+      return (1);
     }
 
   axi(slice, axiskip*x_size_pic, x_size_pic);
@@ -1356,7 +1356,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename after the -a option." << endl;
-      exit (1);
+      return (1);
     }
 
   int width=y_size_pic+2*x_size_pic;
@@ -1381,7 +1381,7 @@ memset(picb,0,picsize);
       if (theopt==NULL)
 	{
 	  cerr << "Error - must set the <sample> option choice when using the -S option." << endl;
-	  exit (1);
+	  return (1);
 	}
       sample=atoi(theopt);
     }
@@ -1390,7 +1390,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must set the <width> option when using the -S or -A options." << endl;
-      exit (1);
+      return (1);
     }
   maxwidth=atoi(theopt);
 
@@ -1398,7 +1398,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename after the -S or -A options." << endl;
-      exit (1);
+      return (1);
     }
 
   slices=(int)(ceil(float(z_size / sample)));
@@ -1584,7 +1584,7 @@ if (vol2.nvoxels() > 1 )
   if (!theopt || strncmp(theopt,"-",1)==0 )
     {
       cerr << "Error - must have a LUT name after the -l option." << endl;
-      exit (1);
+      return (1);
     }
 
   if(strstr(theopt,"/")==NULL){
@@ -1602,7 +1602,7 @@ if (vol2.nvoxels() > 1 )
   if (!theopt || strncmp(theopt,"-",1)==0)
     {
       cerr << "Error - must have a scaling factor after the -s option." << endl;
-      exit (1);
+      return (1);
     }
   scale /= atof(theopt);
 }
@@ -1623,7 +1623,7 @@ if (vol2.nvoxels() > 1 )
   if (!theopt)
     {
       cerr << "Error - must set min and max intensities after the -i option." << endl;
-      exit (1);
+      return (1);
     }
   intensity_min=atof(theopt);
 
@@ -1631,7 +1631,7 @@ if (vol2.nvoxels() > 1 )
   if (!theopt)
     {
       cerr << "Error - must set min and max intensities after the -i option." << endl;
-      exit (1);
+      return (1);
     }
   intensity_max=atof(theopt);
 }
@@ -1783,7 +1783,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a slice choice after the -x option." << endl;
-      exit (1);
+      return (1);
     }
   float slice=atof(theopt);
 
@@ -1791,7 +1791,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename when using the -x option." << endl;
-      exit (1);
+      return (1);
     }
 
   sag(slice, sagcorskip*y_size_pic, y_size_pic);
@@ -1807,7 +1807,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a slice choice after the -y option." << endl;
-      exit (1);
+      return (1);
     }
   float slice=atof(theopt);
 
@@ -1815,7 +1815,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename when using the -y option." << endl;
-      exit (1);
+      return (1);
     }
 
   cor(slice, sagcorskip*x_size_pic, x_size_pic);
@@ -1831,7 +1831,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a slice choice after the -z option." << endl;
-      exit (1);
+      return (1);
     }
   float slice=atof(theopt);
 
@@ -1839,7 +1839,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename when using the -z option." << endl;
-      exit (1);
+      return (1);
     }
 
   axi(slice, axiskip*x_size_pic, x_size_pic);
@@ -1855,7 +1855,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename after the -a option." << endl;
-      exit (1);
+      return (1);
     }
 
   int width=y_size_pic+2*x_size_pic;
@@ -1880,7 +1880,7 @@ memset(picb,0,picsize);
       if (theopt==NULL)
 	{
 	  cerr << "Error - must set the <sample> option choice when using the -S option." << endl;
-	  exit (1);
+	  return (1);
 	}
       sample=atoi(theopt);
     }
@@ -1889,7 +1889,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must set the <width> option when using the -S or -A options." << endl;
-      exit (1);
+      return (1);
     }
   maxwidth=atoi(theopt);
 
@@ -1897,7 +1897,7 @@ memset(picb,0,picsize);
   if (theopt==NULL)
     {
       cerr << "Error - must have a picture output filename after the -S or -A options." << endl;
-      exit (1);
+      return (1);
     }
 
   slices=(int)(ceil(float(z_size / sample)));

@@ -422,14 +422,14 @@ BOOL	Socket	::	Accept()
 					setsockopt(Socketfd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
 				}
 
-                printf("Connected in %s", ctime(&Now));
+                fprintf(stderr, "Connected in %s", ctime(&Now));
 #else
                 inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
                 printf("Connected by address: %s in %s", str, ctime(&Now));
 #endif
 		return ( TRUE );
 		}
-	printf("Error (accept) : %d\n", errno);
+	fprintf(stderr, "Error (accept) : %d\n", errno);
 	closesocket(ListenSocketfd);
 	Listened = 0;
 	ListenSocketfd = 0;

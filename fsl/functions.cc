@@ -66,7 +66,7 @@ char *find_line(char *filename, char *key, char *fl)
   if (return_ptr==NULL)
     {
       printf("Can't find key %s\n",key);
-      exit(1);
+      return(1);
     }
   else
     return return_ptr;

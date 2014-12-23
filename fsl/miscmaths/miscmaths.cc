@@ -1081,17 +1081,17 @@ float rms_deviation(const Matrix& affmat1, const Matrix& affmat2,
 
   if ((affmat1.Nrows()==4) && (affmat1.Ncols()==4)) { a1=affmat1; }
   else if ((affmat1.Nrows()==3) && (affmat1.Ncols()==3)) { a1=IdentityMatrix(4); a1.SubMatrix(1,3,1,3)=affmat1; }
-  else { cerr << "ERROR:: Can only calculate RMS deviation for 4x4 or 3x3 matrices" << endl; exit(-5); }
+  else { cerr << "ERROR:: Can only calculate RMS deviation for 4x4 or 3x3 matrices" << endl; return(-5); }
 
   if ((affmat2.Nrows()==4) && (affmat2.Ncols()==4)) { a2=affmat2; }
   else if ((affmat2.Nrows()==3) && (affmat2.Ncols()==3)) { a2=IdentityMatrix(4); a2.SubMatrix(1,3,1,3)=affmat2; }
-  else { cerr << "ERROR:: Can only calculate RMS deviation for 4x4 or 3x3 matrices" << endl; exit(-5); }
+  else { cerr << "ERROR:: Can only calculate RMS deviation for 4x4 or 3x3 matrices" << endl; return(-5); }
 
   try {
     isodiff = a1*a2.i() - IdentityMatrix(4);
   } catch(...) {
     cerr << "RMS_DEVIATION ERROR:: Could not invert matrix" << endl;  
-    exit(-5); 
+    return(-5); 
   }
   Matrix adiff(3,3);
   adiff = isodiff.SubMatrix(1,3,1,3);
@@ -1852,12 +1852,13 @@ ReturnMatrix neq(const Matrix& mat1,const Matrix& mat2)
 
 ReturnMatrix SD(const Matrix& mat1,const Matrix& mat2) 
 {
+  Matrix ret(mat1.Nrows(), mat1.Ncols());
   if((mat1.Nrows() != mat2.Nrows()) ||
      (mat1.Ncols() != mat2.Ncols()) ){
     cerr <<"MISCMATHS::SD - matrices are of different dimensions"<<endl;
-    exit(-1);
+	return ret; //exit (-1);
   }
-  Matrix ret(mat1.Nrows(),mat1.Ncols());
+  
   for (int r = 1; r <= mat1.Nrows(); r++) {
     for (int c =1; c <= mat1.Ncols(); c++) {
       if( mat2(r,c)==0)
@@ -2176,11 +2177,11 @@ void ols(const Matrix& data,const Matrix& des,const Matrix& tc, Matrix& cope,Mat
   // TB 2004
   if(data.Nrows() != des.Nrows()){
     cerr <<"MISCMATHS::ols - data and design have different number of time points"<<endl;
-    exit(-1);
+	return; //exit (-1);
   }
   if(des.Ncols() != tc.Ncols()){
     cerr <<"MISCMATHS::ols - design and contrast matrix have different number of EVs"<<endl;
-    exit(-1);
+	return;//exit (-1);
   }  
   Matrix pdes = pinv(des);
   Matrix prevar=diag(tc*pdes*pdes.t()*tc.t());

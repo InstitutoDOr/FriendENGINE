@@ -224,6 +224,9 @@ bool	friendEngine::serverChild ( int	socketFd )
 
 			// reading the config file
 			process.readConfigFile(configFile);
+			char sessionLogFileName[500];
+			sprintf(sessionLogFileName, "%s%c%s.txt", workingDir, PATHSEPCHAR, sessionID);
+			//freopen(sessionLogFileName, "w+", stderr);
          }
          else
 		 // sends the sessionId of the last opended session
@@ -267,6 +270,7 @@ bool	friendEngine::serverChild ( int	socketFd )
             process.wrapUpRun();
             sprintf(command, "OK\n");
             socks.writeString(command);
+			//freopen("CON", "w", stderr);
             break;
          }
          else
@@ -634,6 +638,7 @@ bool	friendEngine::serverChild ( int	socketFd )
    // delaying the thread termination to allow clients to read the last send message
    sleep(1000);
    closesocket ( socketFd );
+   fprintf(stderr, "Connection closed.\n");
    return (TRUE);
 }
 

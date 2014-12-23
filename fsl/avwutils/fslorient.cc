@@ -154,7 +154,7 @@ int showmat(const Matrix& mat) {
 int testminargs(int argnum, int argc) {
   if (argc < (argnum + 1)) {
     print_usage();
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   return 0;
 }

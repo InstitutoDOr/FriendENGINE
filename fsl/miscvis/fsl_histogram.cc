@@ -247,13 +247,13 @@ extern "C" __declspec(dllexport) int _stdcall fsl_histogram(char *CmdLn)
     if ( (help.value()) || (!options.check_compulsory_arguments(true)) )
       {
 	options.usage();
-	exit(EXIT_FAILURE);
+	return(EXIT_FAILURE);
       }
     
   }  catch(X_OptionError& e) {
     options.usage();
     cerr << endl << e.what() << endl;
-    exit(EXIT_FAILURE);
+    return(EXIT_FAILURE);
   } catch(std::exception &e) {
     cerr << e.what() << endl;
   } 
