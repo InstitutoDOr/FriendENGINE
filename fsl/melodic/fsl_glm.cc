@@ -169,21 +169,12 @@ namespace fslglm
 		/*
 }
 */
-//Globals 
-	Melodic::basicGLM glm;
 	int voxels = 0;
-	Matrix data;
-	Matrix design;
-	Matrix contrasts;
-	Matrix fcontrasts;
-	Matrix meanR;
-	RowVector vnscales;
-	volume<float> mask;  
 
 ////////////////////////////////////////////////////////////////////////////
 
 // Local functions
-void save4D(Matrix what, string fname){
+void save4D(Matrix what, string fname, Matrix &data, volume<float> &mask){
 		if(what.Ncols()==data.Ncols()||what.Nrows()==data.Nrows()){
 			volume4D<float> tempVol;
 			if(what.Nrows()>what.Ncols())
@@ -201,16 +192,17 @@ bool isimage(Matrix what){
 		return FALSE;
 }
 
-void saveit(Matrix what, string fname){
+void saveit(Matrix what, string fname, Matrix &data, volume<float> &mask){
 	if(isimage(what))
-		save4D(what,fname);
+		save4D(what,fname, data, mask);
 	else if(fsl_imageexists(fndesign.value()))
 		write_ascii_matrix(what.t(),fname);
 	else
 		write_ascii_matrix(what,fname);
 }
 
-int setup(){
+int setup(Matrix &data, volume<float> &mask, Matrix &design, Matrix &contrasts, Matrix &fcontrasts, Matrix &meanR, RowVector &vnscales)
+{
 	if(fsl_imageexists(fnin.value())){//read data
 		//input is 3D/4D vol
 		volume4D<float> tmpdata;
@@ -297,39 +289,49 @@ int setup(){
 	return 0;	
 }
 
-void write_res(){	
+void write_res(Melodic::basicGLM &glm, Matrix &data, RowVector &vnscales, volume<float> &mask){
 	if(fnout.value()>"")
-		saveit(glm.get_beta(),fnout.value());
+		saveit(glm.get_beta(),fnout.value(), data, mask);
 	if(outcope.value()>"")
-		saveit(glm.get_cbeta(),outcope.value());
+		saveit(glm.get_cbeta(), outcope.value(), data, mask);
 	if(outz.value()>"")
-		saveit(glm.get_z(),outz.value());
+		saveit(glm.get_z(), outz.value(), data, mask);
 	if(outt.value()>"")
-		saveit(glm.get_t(),outt.value());
+		saveit(glm.get_t(), outt.value(), data, mask);
 	if(outp.value()>"")
-		saveit(glm.get_p(),outp.value());
+		saveit(glm.get_p(), outp.value(), data, mask);
 	if(outf.value()>"")
-		saveit(glm.get_f_fmf(),outf.value());
+		saveit(glm.get_f_fmf(), outf.value(), data, mask);
 	if(outpf.value()>"")
-		saveit(glm.get_pf_fmf(),outpf.value());
+		saveit(glm.get_pf_fmf(), outpf.value(), data, mask);
 	if(outres.value()>"")
-		saveit(glm.get_residu(),outres.value());
+		saveit(glm.get_residu(), outres.value(), data, mask);
 	if(outvarcb.value()>"")
-		saveit(glm.get_varcb(),outvarcb.value());
+		saveit(glm.get_varcb(), outvarcb.value(), data, mask);
 	if(outsigsq.value()>"")
-		saveit(glm.get_sigsq(),outsigsq.value());
+		saveit(glm.get_sigsq(), outsigsq.value(), data, mask);
 	if(outdata.value()>"")
-		saveit(data,outdata.value());
+		saveit(data, outdata.value(), data, mask);
 	if(outvnscales.value()>"")
-		saveit(vnscales,outvnscales.value());
+		saveit(vnscales, outvnscales.value(), data, mask);
 }
 
 int do_work(int argc, char* argv[]) {
-  if(setup())
+	//Globals 
+	Melodic::basicGLM glm;
+	Matrix data;
+	Matrix design;
+	Matrix contrasts;
+	Matrix fcontrasts;
+	Matrix meanR;
+	RowVector vnscales;
+	volume<float> mask;
+
+	if (setup(data, mask, design, contrasts, fcontrasts, meanR, vnscales))
 		return(1);
 
 	glm.olsfit(data,design,contrasts,dofset.value());
-	write_res();
+	write_res(glm, data, vnscales, mask);
 	return 0;
 }
 
