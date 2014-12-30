@@ -16,8 +16,11 @@ class ConfusionMatrix
    int matrixRank;
    
    // initializes the confusion matrix
-   ConfusionMatrix(int iRank);
+   ConfusionMatrix();
    
+   // sets the number of classes of the experiment
+   void ConfusionMatrix::setRank(int rank);
+
    // sets a class name
    void setClassName(int classNumber, const string &className);
    

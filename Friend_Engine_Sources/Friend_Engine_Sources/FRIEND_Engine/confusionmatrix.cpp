@@ -1,11 +1,17 @@
 #include "confusionmatrix.h"
 
 // initializes the confusion matrix
-ConfusionMatrix::ConfusionMatrix(int rank)
+ConfusionMatrix::ConfusionMatrix()
 {
-   matrixRank = rank;
+   matrixRank = 0;
+}
+
+// sets the number of classes of the experiment
+void ConfusionMatrix::setRank(int rank)
+{
+	matrixRank = rank;
 	matrix.resize(matrixRank * matrixRank);
-   classNames.resize(matrixRank);
+	classNames.resize(matrixRank);
 }
 
 // sets a class name. Note : the first class number is 1

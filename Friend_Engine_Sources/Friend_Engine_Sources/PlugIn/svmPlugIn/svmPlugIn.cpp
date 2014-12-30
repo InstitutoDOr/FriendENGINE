@@ -32,6 +32,7 @@ void SVMProcessing::initializeVars(studyParams &vdb)
    char svmTestingFile[BUFF_SIZE];
    
    // initializing specific variables
+   hasPredicted = 0;
    svmFeatureSelection = vdb.readedIni.GetLongValue("FRIEND", "SVMFeatureSelection", 0);
    cummulativeTraining = vdb.readedIni.GetLongValue("FRIEND", "SVMCummulativeTraining", 0);
 
@@ -101,6 +102,9 @@ void SVMProcessing::initializeVars(studyParams &vdb)
 #endif
    model = NULL;
    vdbPtr = &vdb;
+   accuracyResults.setRank(vdb.interval.conditionNames.size());
+   for (int t = 0; t < vdb.interval.conditionNames.size(); t++)
+	   accuracyResults.setClassName(t + 1, vdb.interval.conditionNames[t]);
 }
 
 // deallocates the memory used
@@ -210,7 +214,7 @@ void SVMProcessing::train()
 }
 
 // handles the testing
-void SVMProcessing::test(char *volumeFile, float &classnum, float &projection)
+void SVMProcessing::test(int index, char *volumeFile, float &classnum, float &projection)
 {
    // getting the training mask name
    char featuresTestMask[BUFF_SIZE];
@@ -222,6 +226,16 @@ void SVMProcessing::test(char *volumeFile, float &classnum, float &projection)
    {
       fprintf(stderr, "volumeFile tested : %s with mask : %s\n", volumeFile, featuresTestMask);
       predict(model, volumeFile, featuresTestMask, classnum, projection);
+	  hasPredicted = 1;
+
+	  int actualClass = vdbPtr->getClass(index);
+	  int predicted = (int)classnum;
+	  int idxInterval = vdbPtr->interval.returnInterval(index);
+	  if (!vdbPtr->interval.isBaselineCondition(vdbPtr->interval.intervals[idxInterval].condition))
+	  {
+		  if (index >= vdbPtr->interval.intervals[idxInterval].start + vdbPtr->offset)
+			  accuracyResults.reportResult(actualClass, predicted);
+	  }
 
 	  if (projection < 0) projection = projection / minDistance;
 	  else projection = projection / maxDistance;
@@ -246,6 +260,13 @@ DLLExport finalSVM(studyParams &vdb, void *&userData)
    if (userData != NULL)
    {
       SVMProcessing *svmProcessingVar = (SVMProcessing *) userData;
+	  if (svmProcessingVar->hasPredicted)
+	  {
+		  char confusionMatrixFile[500];
+		  sprintf(confusionMatrixFile, "%s%s%s.txt", svmProcessingVar->svmDir, "confusionMatrix", vdb.trainFeatureSuffix);
+		  svmProcessingVar->accuracyResults.saveMatrixReport(confusionMatrixFile);
+	  }
+
       svmProcessingVar->cleanUp();
       delete svmProcessingVar;
       userData = NULL;
@@ -277,7 +298,7 @@ DLLExport testSVM(studyParams &vdb, int index, float &classnum, float &projectio
    estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);
    
    fprintf(stderr, "Classifying.\n");
-   svmProcessingVar->test(tempVolume, classnum, projection);
+   svmProcessingVar->test(index, tempVolume, classnum, projection);
    
    if (fileExists(tempVolume))
       remove(tempVolume);

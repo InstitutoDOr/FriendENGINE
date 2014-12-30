@@ -14,6 +14,7 @@
 #include "svmobj.h"
 #include <iostream>
 #include <sstream>
+#include "confusionmatrix.h"
 
 // object responsible for handling all the SVM steps needed for
 class SVMProcessing
@@ -25,7 +26,9 @@ class SVMProcessing
    int svmFeatureSelection;
    int cummulativeTraining;
    double minDistance, maxDistance, extrapolationFactor;
+   int hasPredicted;
    svm_model *model;
+   ConfusionMatrix accuracyResults;
    
    // initializes variables and creates the svm directory
    void initializeVars(studyParams &vdb);
@@ -34,7 +37,7 @@ class SVMProcessing
    void train();
    
    // handles the train step
-   void test(char *volumeFile, float &classnum, float &projection);
+   void test(int index, char *volumeFile, float &classnum, float &projection);
    
    // deallocates the memory used
    void cleanUp();

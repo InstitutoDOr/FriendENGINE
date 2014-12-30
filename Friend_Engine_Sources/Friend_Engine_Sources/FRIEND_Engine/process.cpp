@@ -636,6 +636,7 @@ void FriendProcess::wrapUpRun()
 	  extractFilePath(vdb.rawVolumePrefix, sourceDir);
 	  sprintf(destDir, "%s%ccopied%s", vdb.outputDir, PATHSEPCHAR, vdb.trainFeatureSuffix);
 	  copyDirectory(sourceDir, destDir);
+	  pHandler.callFinalFunction(vdb);
    }
    
 }
