@@ -69,7 +69,7 @@ int emotionRoiProcessing::initialization(studyParams &vdb)
 void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 {
 	// Bring MNI Mask to Subject Space
-	char outputFile[500], name[500], regionExtractMapFile[500], roiVolumeFile[500];
+	char compositeFile[500], outputFile[500], name[500], regionExtractMapFile[500], roiVolumeFile[500];
 	double correlationExtractPercent;
 	char prefix[30] = "_RFI2";
 
@@ -80,6 +80,10 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 	sprintf(outputFile, "%s%s%s.nii", vdb.inputDir, name, vdb.trainFeatureSuffix);
 
 	MniToSubject(vdb.rfiFile, vdb.mniMask, vdb.mniTemplate, outputFile, prefix);
+
+	// saving a composite file just to assure the side of the roi volume
+	sprintf(compositeFile, "%s%s%s.nii", vdb.inputDir, "compositeFile", vdb.trainFeatureSuffix);
+	uniteVolumes(vdb.rfiFile, outputFile, compositeFile);
 
 	// read Region extract map file and percentage
 	correlationExtractPercent = vdb.readedIni.GetDoubleValue("FRIEND", "PercentageOfBestVoxelsPerROI") / 100.0;
@@ -132,15 +136,21 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
    double positivePSC, negativePSC;
 
    volume<float> v;
-   // gets the motion corrected and gaussian file
 
    if (0)
    {
+	   // gets the motion corrected and gaussian file
 	   vdb.getMCGVolumeName(processedFile, index);
 	   read_volume(v, string(processedFile));
    }
    else
    {
+	   // making the activation volume for viewing
+	   vdb.getFinalVolumeFormat(prefix);
+	   vdb.setActivationFile(index);
+	   estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
+
+	   // gets the motion corrected and gaussian file and calculates the mean with the last n volumes (n = sliding window size)
 	   sprintf(tempVolume, "%s%s", vdb.outputDir, "temp.nii");
 	   vdb.getMCGVolumeFormat(prefix);
 	   estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);

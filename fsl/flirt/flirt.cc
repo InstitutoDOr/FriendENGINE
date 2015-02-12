@@ -2678,6 +2678,47 @@ extern "C" __declspec(dllexport) int _stdcall flirt(char *CmdLn)
   return(0);
 }
 
+void final_transform2(const volume<float>& testvol, volume<float>& outputvol,
+	const Matrix& finalmat, interps interpmethod, float paddingsize)
+{
+	if (interpmethod == NearestNeighbour) {
+		testvol.setinterpolationmethod(nearestneighbour);
+	}
+	else if (interpmethod == NEWIMAGE::Sinc) {
+		setupsinc(testvol);
+		testvol.setinterpolationmethod(sinc);
+	}
+	else {
+		testvol.setinterpolationmethod(trilinear);
+	}
+	affine_transform(testvol, outputvol, finalmat, paddingsize);
+}
+
+// this does the applyxfm!
+extern "C" __declspec(dllexport) int _stdcall applyXFM(volume<float> *refvol, Matrix *initmat, char *inputfname, volume4D<float> *outputvol, int NN, float paddingsize, float isoscale)
+{
+	volume4D<float> testvol;
+	interps interpmethod = TriLinear;
+
+	if (NN) interpmethod = NearestNeighbour;
+
+	read_volume4D(testvol, string(inputfname));
+
+	if (isoscale != 0) {
+		resample_refvol(*refvol, isoscale);
+	}
+
+	float min_sampling_ref = 1.0;
+	min_sampling_ref = Min((*refvol).xdim(), Min((*refvol).ydim(), (*refvol).zdim()));
+
+	for (int t0 = testvol.mint(); t0 <= testvol.maxt(); t0++) {
+		int tref = t0 - testvol.mint();
+		testvol[t0] = blur(testvol[t0], min_sampling_ref);
+		final_transform2(testvol[t0], (*outputvol)[tref], *initmat, interpmethod, paddingsize);
+	}
+	return 0;
+}
+
 }
 
 

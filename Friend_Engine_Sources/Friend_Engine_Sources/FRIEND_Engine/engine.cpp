@@ -226,6 +226,7 @@ bool	friendEngine::serverChild ( int	socketFd )
 			process.readConfigFile(configFile);
 			char sessionLogFileName[500];
 			sprintf(sessionLogFileName, "%s%c%s.txt", workingDir, PATHSEPCHAR, sessionID);
+			fprintf(stderr, "Session %s created.\n", sessionID);
 			//freopen(sessionLogFileName, "w+", stderr);
          }
          else
@@ -265,6 +266,7 @@ bool	friendEngine::serverChild ( int	socketFd )
 
                delete session;
                sessionList.erase(it);
+			   fprintf(stderr, "Session %s deleted.\n", sessionID);
             }
 
             process.wrapUpRun();

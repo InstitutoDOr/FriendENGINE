@@ -102,6 +102,7 @@ void SVMProcessing::initializeVars(studyParams &vdb)
 #endif
    model = NULL;
    vdbPtr = &vdb;
+   accuracyResults.setNeutralClassCount(1); // we expect one neutral class
    accuracyResults.setRank(vdb.interval.conditionNames.size());
    for (int t = 0; t < vdb.interval.conditionNames.size(); t++)
 	   accuracyResults.setClassName(t + 1, vdb.interval.conditionNames[t]);
@@ -282,25 +283,48 @@ DLLExport trainSVM(studyParams &vdb, void *&userData)
    return 0;
 }
 
+/*
 // plug in test function
 DLLExport testSVM(studyParams &vdb, int index, float &classnum, float &projection, void * &userData)
 {
-   char tempVolume[BUFF_SIZE], prefix[BUFF_SIZE];
+	char tempVolume[BUFF_SIZE], prefix[BUFF_SIZE];
+	SVMProcessing *svmProcessingVar = (SVMProcessing *)userData;
+
+	sprintf(tempVolume, "%s%s", vdb.outputDir, "temp.nii");
+
+	vdb.getFinalVolumeFormat(prefix);
+
+	remove(tempVolume);
+
+	vdb.setActivationFile(index);
+
+	fprintf(stderr, "Generating tempfile.\n");
+	estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);
+
+	fprintf(stderr, "Classifying.\n");
+	svmProcessingVar->test(index, tempVolume, classnum, projection);
+
+	if (fileExists(tempVolume))
+		remove(tempVolume);
+	return 1;
+}
+*/
+
+// plug in test function
+DLLExport testSVM(studyParams &vdb, int index, float &classnum, float &projection, void * &userData)
+{
+   char prefix[BUFF_SIZE];
    SVMProcessing *svmProcessingVar = (SVMProcessing *) userData;
 
-   sprintf(tempVolume, "%s%s",  vdb.outputDir, "temp.nii");
-   
    vdb.getFinalVolumeFormat(prefix);
-   
-   remove(tempVolume);
-   
-   fprintf(stderr, "Generating tempfile.\n");
-   estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);
+
+   fprintf(stderr, "Generating activation file.\n");
+   vdb.setActivationFile(index);
+
+   estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
    
    fprintf(stderr, "Classifying.\n");
-   svmProcessingVar->test(index, tempVolume, classnum, projection);
+   svmProcessingVar->test(index, vdb.activationFile, classnum, projection);
    
-   if (fileExists(tempVolume))
-      remove(tempVolume);
    return 1;
 }

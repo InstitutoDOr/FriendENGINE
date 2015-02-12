@@ -41,8 +41,9 @@ int sameFov(char *base, char *mask, char *output);
 // reformats a `mask` volume to axial and harmonizes the voxels geometry with `base` volume.
 int standardizeVolume(char *base, char *mask, char *output, int NN);
 
-// calculates the final step of the FRIEND pipeline, the sliding window mean. Note this saves a 4D volume
+// calculates the final step of the FRIEND pipeline, the sliding window mean
 int estimateActivation(int ini, int end, int slidingWindowSize, char *suffix, char *output);
+int estimateActivation(int ini, int end, int slidingWindowSize, char *suffix, char *maskFileName, char *output);
 
 // loads the data struture of a volume in memory
 FSLIO * fslioopen(char *file);
@@ -70,5 +71,8 @@ void MniToSubject(char *BetRFI, char *mniTemplate, char *mniStandard, char* outp
 
 // this function adjusts a `mask` volume corregistered with a `functional` with another `reference` volume. This function is used to adjust a mask coregistered with the RFI volume with the first volume of a run, to account for movements.
 void functionalNormalization(char *mask, char *functional, char *reference, char *output, bool nearestNeighbour);
+
+// this function engraves a roi volume in a RFI volume, to make sure of the side
+void uniteVolumes(char *referenceVolume, char *roiVolume, char *outputFile);
 
 #endif

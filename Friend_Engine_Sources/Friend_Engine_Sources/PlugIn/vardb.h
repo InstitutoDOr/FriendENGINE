@@ -22,7 +22,7 @@ class studyParams
 {
 public:
    // directory variables
-   char studyDir[BUFF_SIZE], inputDir[BUFF_SIZE], logDir[BUFF_SIZE], outputDir[BUFF_SIZE], baseDir[BUFF_SIZE], glmDir[BUFF_SIZE],  preprocDir[BUFF_SIZE];
+   char activationsDir[BUFF_SIZE], studyDir[BUFF_SIZE], inputDir[BUFF_SIZE], logDir[BUFF_SIZE], outputDir[BUFF_SIZE], baseDir[BUFF_SIZE], glmDir[BUFF_SIZE],  preprocDir[BUFF_SIZE];
    
    // prefix and suffix variables
    char preprocVolumePrefix[BUFF_SIZE], mcSuffix[BUFF_SIZE], featuresSuffix[BUFF_SIZE], featuresAllSuffix[BUFF_SIZE], featuresAllTrainSuffix[BUFF_SIZE], featuresTrainSuffix[BUFF_SIZE], trainFeatureSuffix[BUFF_SIZE], testFeatureSuffix[BUFF_SIZE], rawVolumePrefix[BUFF_SIZE];
@@ -84,6 +84,9 @@ public:
    // returns the sprintf format for the number part
    void getFormat(char *format);
    
+   // sets the activationFile variable with the proper name
+   void setActivationFile(int number);
+
    // return the final volume filename
    void getFinalVolumeName(char *outfile, char *number);
    void getFinalVolumeName(char *outfile, int number);

@@ -535,6 +535,12 @@ int estimateActivation(int start, int ini, int end, int slidingWindowSize, char 
    return 0;
 }
 
+// same function above, but with default values for start and basalFilename
+int estimateActivation(int ini, int end, int slidingWindowSize, char *suffix, char *maskFileName, char *output)
+{
+	return estimateActivation(1, ini, end, slidingWindowSize, suffix, NULL, maskFileName, output);
+}
+
 // same function above, but with default values for start, basalFilename and maskFilename
 int estimateActivation(int ini, int end, int slidingWindowSize, char *suffix, char *output)
 {
@@ -1088,4 +1094,23 @@ void functionalNormalization(char *mask, char *functional, char *reference, char
       " -interp nearestneighbour";
       flirt((char *)cmdLn.str().c_str());
    }
+}
+
+// this function engraves a roi volume in a RFI volume, to make sure of the side
+void uniteVolumes(char *referenceVolume, char *roiVolume, char *outputFile)
+{
+	volume<float> reference, roi;
+
+	read_volume(reference, string(referenceVolume));
+	read_volume(roi, string(roiVolume));
+
+	for (int z = roi.minz(); z <= roi.maxz(); z++){
+		for (int y = roi.miny(); y <= roi.maxy(); y++){
+			for (int x = roi.minx(); x <= roi.maxx(); x++)
+			{
+				if (roi(x, y, z)) reference(x, y, z) = roi(x, y, z);
+			}
+		}
+	}
+	save_volume(reference, string(outputFile));
 }

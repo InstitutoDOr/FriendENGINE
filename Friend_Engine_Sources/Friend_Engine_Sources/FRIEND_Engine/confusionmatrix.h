@@ -17,9 +17,15 @@ class ConfusionMatrix
    
    // initializes the confusion matrix
    ConfusionMatrix();
+
+   // counts the number of classes with no examples
+   int neutralClasses;
+
+   // sets the number of neutral classes, ignored in the kappa claculation 
+   void setNeutralClassCount(int count);
    
    // sets the number of classes of the experiment
-   void ConfusionMatrix::setRank(int rank);
+   void setRank(int rank);
 
    // sets a class name
    void setClassName(int classNumber, const string &className);

@@ -99,6 +99,14 @@ void studyParams::getFinalVolumeFormat(char *format)
 }
 
 // the following three functions returns the concatenation of a volume filename type. The diference from above functions is in `number` parameter
+void studyParams::setActivationFile(int number)
+{
+	char format[50], numberString[50];
+	getFormat(format);
+	sprintf(numberString, format, number);
+	sprintf(activationFile, "%s%s%s%s", activationsDir, "activation_", numberString, ".nii");
+}
+
 void studyParams::getMCVolumeName(char *outFile, int number)
 {
    char format[50], numberString[50];
@@ -258,8 +266,16 @@ void studyParams::prepRealtimeVars()
    
     snprintf(predictionFileAux, buffSize, "%s%s", outputDir, "predictionaux.nii");
     
-    snprintf(inputDir, buffSize, "%s%s%c", outputDir, "input", PATHSEPCHAR);
-	fprintf(stderr, "Creating inputdir\n");
+	snprintf(activationsDir, buffSize, "%s%s%s%c", outputDir, "activations", trainFeatureSuffix, PATHSEPCHAR);
+	fprintf(stderr, "Creating activation dir\n");
+#ifdef WIN32
+	_mkdir(activationsDir);
+#else
+	mkdir(activationsDir, 0777); // notice that 777 is different than 0777
+#endif
+	
+	snprintf(inputDir, buffSize, "%s%s%c", outputDir, "input", PATHSEPCHAR);
+	fprintf(stderr, "Creating input dir\n");
 #ifdef WIN32
     _mkdir(inputDir);
 #else
@@ -276,7 +292,7 @@ void studyParams::prepRealtimeVars()
     snprintf(activationFile, buffSize, "%s%s", inputDir, "RAI_ax_cube.nii");
     
     snprintf(glmDir, buffSize, "%s%s%c", outputDir, "glm", PATHSEPCHAR);
-	fprintf(stderr, "Creating glmdir\n");
+	fprintf(stderr, "Creating glm dir\n");
 #ifdef WIN32
     _mkdir(glmDir);
 #else

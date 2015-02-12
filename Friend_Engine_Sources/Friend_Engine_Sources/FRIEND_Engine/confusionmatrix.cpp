@@ -4,6 +4,7 @@
 ConfusionMatrix::ConfusionMatrix()
 {
    matrixRank = 0;
+   neutralClasses = 0;
 }
 
 // sets the number of classes of the experiment
@@ -12,6 +13,12 @@ void ConfusionMatrix::setRank(int rank)
 	matrixRank = rank;
 	matrix.resize(matrixRank * matrixRank);
 	classNames.resize(matrixRank);
+}
+
+// sets the number of neutral classes, ignored in the kappa claculation 
+void ConfusionMatrix::setNeutralClassCount(int count)
+{
+	neutralClasses = count;
 }
 
 // sets a class name. Note : the first class number is 1
@@ -58,7 +65,9 @@ float ConfusionMatrix::kappa() // (Hits percentage - Chance percentage) / (100 -
 // calculates the chance probability
 float ConfusionMatrix::chance()
 {
-	return (float) (100.0 / (float) matrixRank);
+	int validClasses = matrixRank - neutralClasses;
+	if (validClasses < 0) validClasses = 1;
+	return (float) (100.0 / (float) (validClasses));
 }
 
 // returns the accucary of the samples informed to the confusion matrix
@@ -90,7 +99,7 @@ float ConfusionMatrix::accuracyClassPrediction(int classNumber)
    int acc=0, total=0;
    for (int i=0;i<matrixRank;i++)
    {
-	   if (i == classNumber) acc = matrix[i*matrixRank+classNumber-1];
+	   if (i == (classNumber-1)) acc = matrix[i*matrixRank+classNumber-1];
 	   total += matrix[i*matrixRank+classNumber-1];
    }
    return (float)(acc * 100) / (float)total;
@@ -102,7 +111,7 @@ float ConfusionMatrix::sensibilityClassPrediction(int classNumber)
    int acc=0, total=0;
    for (int i=0;i<matrixRank;i++)
    {
-      if (i == classNumber) acc = matrix[(classNumber-1)*matrixRank+i];
+      if (i == (classNumber-1)) acc = matrix[(classNumber-1)*matrixRank+i];
 	  total += matrix[(classNumber-1)*matrixRank+i];
    }
    return (float)(acc * 100) / (float)total;

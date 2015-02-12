@@ -619,11 +619,7 @@ void FriendProcess::cleanUp()
 void FriendProcess::wrapUpRun()
 {
    char newpreprocDir[BUFF_SIZE], tempVolume[BUFF_SIZE];
-   
-   // deleting the temporary volume
-   sprintf(tempVolume, "%s%s",  vdb.outputDir, "temp.nii");
-   remove(tempVolume);
-   
+      
    // renaming the preproc directory
    sprintf(newpreprocDir, "%s%s%s",  vdb.outputDir, "preproc", vdb.trainFeatureSuffix);
    if (vdb.rPipeline)

@@ -102,6 +102,7 @@ def getFeedbackValue(actualVolume):
     percentage=readsocket(responseThread);
 	# reading acknowledge
     response=readsocket(responseThread);
+    responseThread.close();
     return (classe, percentage);
 	
 def processPhase(phase, actualVolume, mainThread):

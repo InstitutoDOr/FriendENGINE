@@ -67,3 +67,10 @@ rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\preproc /s /q
 del ..\Friend_Engine_Sources\TestData\SUBJ002\MNI2RFI_RFI2.mat
 del ..\Friend_Engine_Sources\TestData\SUBJ002\RFI2MNI_RFI2.mat
 del ..\Friend_Engine_Sources\TestData\SUBJ002\RFI2MNI_RFI2.nii
+
+
+echo Removing fsl.dll files
+rmdir ..\..\fsl\release /s /q
+rmdir ..\..\fsl\debug /s /q
+del   ..\..\fsl\fsl.sdf
+del   ..\..\fsl\fsl.opensdf
