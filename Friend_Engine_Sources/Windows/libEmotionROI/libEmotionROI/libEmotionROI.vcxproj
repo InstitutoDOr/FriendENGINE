@@ -95,6 +95,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\fsl\miscvis\fsl_tsplot.cc" />
     <ClCompile Include="..\..\..\..\fsl\zlib\adler32.c" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibinternal.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibmisc.cpp" />
@@ -246,6 +247,8 @@
     <ClCompile Include="..\..\..\..\fsl\zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\fsl\libvis\miscpic.h" />
+    <ClInclude Include="..\..\..\..\fsl\libvis\miscplot.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\EmotionROIPlugIn\EmotionROIPlugIn.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\masks.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\vardb.h" />

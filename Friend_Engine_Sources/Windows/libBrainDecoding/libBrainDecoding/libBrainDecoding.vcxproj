@@ -85,7 +85,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\Release\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -100,9 +100,12 @@
     <ClCompile Include="..\..\..\..\fsl\flirt\convert_xfm.cc" />
     <ClCompile Include="..\..\..\..\fsl\flirt\flirt.cc" />
     <ClCompile Include="..\..\..\..\fsl\flirt\globaloptions.cc" />
+    <ClCompile Include="..\..\..\..\fsl\libvis\miscpic.cc" />
+    <ClCompile Include="..\..\..\..\fsl\libvis\miscplot.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\Globaloptionsmc.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\Loga.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\mcflirt.cc" />
+    <ClCompile Include="..\..\..\..\fsl\miscvis\fsl_tsplot.cc" />
     <ClCompile Include="..\..\..\..\fsl\zlib\adler32.c" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibinternal.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibmisc.cpp" />
@@ -227,6 +230,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\fsl\flirt\globaloptions.h" />
+    <ClInclude Include="..\..\..\..\fsl\libvis\miscpic.h" />
+    <ClInclude Include="..\..\..\..\fsl\libvis\miscplot.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\masks.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\vardb.h" />
   </ItemGroup>

@@ -3,6 +3,7 @@
 #include "cctypes.h"
 #include <sstream>
 #include <cstring>
+#include "fslfuncs.h"
 #include "filefuncs.h"
 #include <ctime>
 #ifdef WINDOWS

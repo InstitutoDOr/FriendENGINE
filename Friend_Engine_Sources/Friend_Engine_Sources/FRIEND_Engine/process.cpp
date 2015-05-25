@@ -677,10 +677,9 @@ void FriendProcess::prepRealTime()
    size_t buffSize = BUFF_SIZE-1;
    
    if (!vdb.rPrepVars)
-   {
 	   prepRealtimeVars();
-       pHandler.callInitFunction(vdb);
-   }
+
+   pHandler.callInitFunction(vdb);
 
    if (!fileExists(vdb.baseImage))
    {

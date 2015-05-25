@@ -1,5 +1,5 @@
-﻿Build started 27/06/2014 11:18:32.
-     1>Project "E:\Friend Engine\fsl\gdlib\gdlib\gdlib.vcxproj" on node 2 (Build target(s)).
+﻿Build started 20/02/2015 10:33:46.
+     1>Project "E:\FriendEngine\FriendENGINE\fsl\gdlib\gdlib\gdlib.vcxproj" on node 2 (Rebuild target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\..\gd /I..\..\zlib /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D HAVE_LIBPNG /D BGDWIN32 /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TC /analyze- /errorReport:prompt ..\..\zlib\adler32.c ..\..\gd\array_alloc.c ..\..\zlib\compress.c ..\..\zlib\crc32.c ..\..\zlib\deflate.c ..\..\zlib\example.c ..\..\gd\gd.c ..\..\gd\gd_gd.c ..\..\gd\gd_gd2.c ..\..\gd\gd_gif_in.c ..\..\gd\gd_gif_out.c ..\..\gd\gd_io.c ..\..\gd\gd_io_dp.c ..\..\gd\gd_io_file.c ..\..\gd\gd_io_ss.c ..\..\gd\gd_jpeg.c ..\..\gd\gd_png.c ..\..\gd\gd_security.c ..\..\gd\gd_ss.c ..\..\gd\gd_topal.c ..\..\gd\gd_wbmp.c ..\..\gd\gdc.c ..\..\gd\gdc_pie.c ..\..\gd\gdcache.c ..\..\gd\gdchart.c ..\..\gd\gdfontg.c ..\..\gd\gdfontl.c ..\..\gd\gdfontmb.c ..\..\gd\gdfonts.c ..\..\gd\gdfontt.c ..\..\gd\gdft.c ..\..\gd\gdfx.c ..\..\gd\gdhelpers.c ..\..\gd\gdkanji.c ..\..\gd\gdtables.c ..\..\gd\gdxpm.c ..\..\zlib\gzclose.c ..\..\zlib\gzlib.c ..\..\zlib\gzread.c ..\..\zlib\gzwrite.c ..\..\zlib\infback.c ..\..\zlib\inffast.c ..\..\zlib\inflate.c ..\..\zlib\inftrees.c ..\..\gd\mtables.c ..\..\gd\png.c ..\..\gd\pngerror.c ..\..\gd\pngget.c ..\..\gd\pngmem.c ..\..\gd\pngpread.c ..\..\gd\pngread.c ..\..\gd\pngrio.c ..\..\gd\pngrtran.c ..\..\gd\pngrutil.c ..\..\gd\pngset.c ..\..\gd\pngtrans.c ..\..\gd\pngwio.c ..\..\gd\pngwrite.c ..\..\gd\pngwtran.c ..\..\gd\pngwutil.c ..\..\gd\price_conv.c ..\..\gd\strlcpy.c ..\..\zlib\trees.c ..\..\zlib\uncompr.c ..\..\gd\wbmp.c ..\..\zlib\zutil.c
          adler32.c
@@ -295,7 +295,7 @@
          wbmp.c
          zutil.c
        Lib:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"E:\Friend Engine\fsl\gdlib\Release\gdlib.lib" /NOLOGO /LTCG Release\adler32.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"E:\FriendEngine\FriendENGINE\fsl\gdlib\Release\gdlib.lib" /NOLOGO /LTCG Release\adler32.obj
          Release\array_alloc.obj
          Release\compress.obj
          Release\crc32.obj
@@ -361,9 +361,9 @@
          Release\uncompr.obj
          Release\wbmp.obj
          Release\zutil.obj
-         gdlib.vcxproj -> E:\Friend Engine\fsl\gdlib\Release\gdlib.lib
-     1>Done Building Project "E:\Friend Engine\fsl\gdlib\gdlib\gdlib.vcxproj" (Build target(s)).
+         gdlib.vcxproj -> E:\FriendEngine\FriendENGINE\fsl\gdlib\Release\gdlib.lib
+     1>Done Building Project "E:\FriendEngine\FriendENGINE\fsl\gdlib\gdlib\gdlib.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:09.78
+Time Elapsed 00:00:19.53

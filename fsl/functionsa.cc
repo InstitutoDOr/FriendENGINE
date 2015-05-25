@@ -1295,17 +1295,23 @@ int fmrib_main2(int argc,char *argv[], FSLIO *src)
   return retval;
 }
 
-extern "C" __declspec(dllexport) void _stdcall mem_desalocamatriz(vector<Matrix> * mat)
+extern "C" __declspec(dllexport) void _stdcall mem_loadMatriz(Matrix * &mat, char *arquivo)
+{
+	mat = new Matrix;
+	*mat = read_ascii_matrix(arquivo);
+}
+
+extern "C" __declspec(dllexport) void _stdcall mem_desalocaArrayMatriz(vector<Matrix> * mat)
 {
 	delete mat;
 }
 
-/*
-extern "C" __declspec(dllexport) void _stdcall mem_desalocamatriz(Matrix * mat)
+
+extern "C" __declspec(dllexport) void _stdcall mem_desalocaMatriz(Matrix * mat)
 {
 	delete mat;
 }
-*/
+
 
 extern "C" __declspec(dllexport) void _stdcall mem_loadvolume(char *input, volume<float>* &vol)
 {

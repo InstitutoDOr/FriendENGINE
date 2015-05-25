@@ -69,9 +69,65 @@ int emotionRoiProcessing::initialization(studyParams &vdb)
 void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 {
 	// Bring MNI Mask to Subject Space
-	char compositeFile[500], outputFile[500], name[500], regionExtractMapFile[500], roiVolumeFile[500];
+	char compositeFile[500], outputFile[500], name[500], regionExtractMapFile[500], roiVolumeFile[500], meanFile[500];
+	char pngFile[500];
 	double correlationExtractPercent;
+	stringstream CmdLn;
 	char prefix[30] = "_RFI2";
+	vector<vector<double>> timeseries;
+
+	// generating the means file
+	volume<float> v;
+
+	// preparing timeseries variable
+	timeseries.resize(meanCalculation.means.size());
+	for (int i = 0; i < timeseries.size(); i++)
+		timeseries[i].resize(vdb.interval.maxIndex());
+
+	// calculating the means
+	for (int i = 0; i < vdb.interval.maxIndex(); i++)
+	{
+		loadVolume(vdb, v, i+1);
+		meanCalculation.calculateMeans(v);
+
+		for (int j = 0; j < meanCalculation.means.size(); j++)
+			timeseries[j][i] = meanCalculation.means[j];
+	}
+
+	// z normalized
+	for (int j = 0; j < timeseries.size(); j++)	znormalise(timeseries[j]);
+
+	// saving the result to file
+	sprintf(meanFile, "%s%s_%s%s.txt", vdb.outputDir, vdb.subject, "means", vdb.trainFeatureSuffix);
+	fstream Output(meanFile, fstream::in | fstream::out | fstream::trunc);
+	for (int i = 0; i < vdb.interval.maxIndex(); i++)
+	{
+		for (int j = 0; j < timeseries.size(); j++)
+			Output << timeseries[j][i] << '\t';
+		Output << '\n';
+	}
+	Output.close();
+
+	// generating the roi means graph png
+	fprintf(stderr, "Generating roi means graphic\n");
+	changeFileExt(meanFile, ".png", pngFile);
+	CmdLn << "fsl_tsplot -i " << meanFile << " -t \"z-normalised roi means plot\" -u 1 --start=1 --finish=" << meanCalculation.means.size() << " -a ";
+
+	// Building the labels with the intensities of the roi volume file
+	int counter=0;
+	CmdLn << '\"';
+	for (std::map<int, int>::iterator it = meanCalculation.mapping.begin(); it != meanCalculation.mapping.end(); ++it)
+	{
+		CmdLn << "Intensity " << it->first;
+		counter++;
+		if (counter < meanCalculation.means.size())
+			CmdLn << ',';
+	}
+	// completing the command
+	CmdLn << '\"';
+	CmdLn << " -w 640 -h 144 -o " << pngFile;
+	fsl_tsplot((char *)CmdLn.str().c_str());
+
 
 	extractFileName(vdb.mniMask, name);
 	for (int t = 0; t<strlen(name); t++)
@@ -128,37 +184,44 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 	}
 }
 
+// load a volume for computation
+void emotionRoiProcessing::loadVolume(studyParams &vdb, volume<float> &v, int index)
+{
+	char processedFile[200], prefix[BUFF_SIZE], tempVolume[BUFF_SIZE];
+	if (0)
+	{
+		// gets the motion corrected and gaussian file
+		vdb.getMCGVolumeName(processedFile, index);
+		read_volume(v, string(processedFile));
+	}
+	else
+	{
+		// making the activation volume for viewing
+		vdb.getFinalVolumeFormat(prefix);
+		vdb.setActivationFile(index);
+		estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
+
+		// gets the motion corrected and gaussian file and calculates the mean with the last n volumes (n = sliding window size)
+		sprintf(tempVolume, "%s%s", vdb.outputDir, "temp.nii");
+		vdb.getMCGVolumeFormat(prefix);
+		estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);
+		read_volume(v, string(tempVolume));
+		if (fileExists(tempVolume))
+			remove(tempVolume);
+	}
+
+}
+
 // calculates the feedback value
 int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &classnum, float &projection)
 {
-	char processedFile[200], prefix[BUFF_SIZE], tempVolume[BUFF_SIZE];
    int idxInterval = vdb.interval.returnInterval(index);
    double positivePSC, negativePSC;
 
    volume<float> v;
 
-   if (0)
-   {
-	   // gets the motion corrected and gaussian file
-	   vdb.getMCGVolumeName(processedFile, index);
-	   read_volume(v, string(processedFile));
-   }
-   else
-   {
-	   // making the activation volume for viewing
-	   vdb.getFinalVolumeFormat(prefix);
-	   vdb.setActivationFile(index);
-	   estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
 
-	   // gets the motion corrected and gaussian file and calculates the mean with the last n volumes (n = sliding window size)
-	   sprintf(tempVolume, "%s%s", vdb.outputDir, "temp.nii");
-	   vdb.getMCGVolumeFormat(prefix);
-	   estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);
-	   read_volume(v, string(tempVolume));
-	   if (fileExists(tempVolume))
-		   remove(tempVolume);
-   }
-
+   loadVolume(vdb, v, index);
    // if in baseline condition, calculates the mean volume, one by one
    classnum = vdb.getClass(index);
    projection = 0;

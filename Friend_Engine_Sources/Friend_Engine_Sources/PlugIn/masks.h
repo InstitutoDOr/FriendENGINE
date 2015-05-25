@@ -37,6 +37,9 @@ typedef struct
    bool operator()(roiPoint const &a, roiPoint const &b) const { return a.value < b.value; }
 } lesserRoiPoint;
 
+// znormalize a vetor of double
+void znormalise(vector<double>&values);
+
 // calculates the mean of a set of rois
 class RoiMeanCalculation
 {

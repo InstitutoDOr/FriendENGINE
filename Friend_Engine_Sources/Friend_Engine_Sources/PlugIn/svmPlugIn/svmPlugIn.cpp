@@ -155,6 +155,17 @@ void SVMProcessing::train()
    // testing the training data
    CmdLn << "svmpredict " << svmTrainingFile << " " << svmModelFile << " " << svmTestingFile;
    svmObject.predict(CmdLn.str().c_str());
+   generateProjetionsGraph(svmTestingFile);
+
+   // testing the training data with the prediction model
+   if (fileExists(svmModelPredictFile))
+   {
+	   CmdLn.str("");
+	   sprintf(svmTestingFile, "%s%s%s%s", svmDir, "testing", vdbPtr->trainFeatureSuffix, ".tst");
+	   CmdLn << "svmpredict " << svmTrainingFile << " " << svmModelPredictFile << " " << svmTestingFile;
+	   svmObject.predict(CmdLn.str().c_str());
+	   generateProjetionsGraph(svmTestingFile);
+   }
 
    if (cummulativeTraining)
    {
@@ -178,9 +189,20 @@ void SVMProcessing::train()
 
 	   sprintf(cummulativeTestingFile, "%s%s%s%s", svmDir, "cummulative_training", vdbPtr->trainFeatureSuffix, ".tst");
 
+
 	   // testing the cummulative training data
 	   CmdLn << "svmpredict " << actualCummulativeTrainingFile << " " << cummulativeModelFile << " " << cummulativeTestingFile;
 	   svmObject.predict(CmdLn.str().c_str());
+	   generateProjetionsGraph(cummulativeTestingFile);
+
+	   if (fileExists(svmModelPredictFile))
+	   {
+		   CmdLn.str("");
+		   sprintf(cummulativeTestingFile, "%s%s%s%s", svmDir, "cummulative_testing", vdbPtr->trainFeatureSuffix, ".tst");
+		   CmdLn << "svmpredict " << actualCummulativeTrainingFile << " " << svmModelPredictFile << " " << cummulativeTestingFile;
+		   svmObject.predict(CmdLn.str().c_str());
+		   generateProjetionsGraph(cummulativeTestingFile);
+	   }
    }
 
    

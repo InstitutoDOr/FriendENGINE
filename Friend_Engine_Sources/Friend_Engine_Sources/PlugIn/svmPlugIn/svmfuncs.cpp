@@ -3,18 +3,52 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "svmfuncs.h"
-
+#include "fslfuncs.h"
+#include "filefuncs.h"
 #include "newimage/newimageall.h"
 #include "miscmaths/miscmaths.h"
 #include "utils/fsl_isfinite.h"
 #include "libprob.h"
 #include "parser.h"
+#include <string>
 
 using namespace MISCMATHS;
 using namespace NEWIMAGE;
 
 
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
+
+void generateProjetionsGraph(char *projectionsFile)
+{
+	char pngFile[1000];
+	changeFileExt(projectionsFile, ".png", pngFile);
+	generateProjetionsGraph(projectionsFile, pngFile);
+}
+
+void generateProjetionsGraph(char *projectionsFile, char *pngFile)
+{
+	char tempFile[1000];
+	stringstream CmdLn;
+	string row;
+
+	fstream projections(projectionsFile, fstream::in);
+	changeFileExt(projectionsFile, ".proj", tempFile);
+	fstream Output(tempFile, fstream::in | fstream::out | fstream::trunc);
+	while (getline(projections, row))
+	{
+		std::size_t found = row.find("Accuracy");
+		if (found == std::string::npos)
+			Output << row << '\n';
+	}
+	Output.close();
+	projections.close();
+
+	// generating the projections graph png
+	fprintf(stderr, "Generating svm projection graphics\n");
+	CmdLn << "fsl_tsplot -i " << tempFile << " -t \"SVM projections\" -u 1 --start=2 --finish=2 -a Projections -w 640 -h 144 -o " << pngFile;
+
+	fsl_tsplot((char *)CmdLn.str().c_str());
+}
 
 // calculates the svm weights of a model, storing the values in a vector object
 void calculateWeightVector(const svm_model *model, vector <double> &weightVector)

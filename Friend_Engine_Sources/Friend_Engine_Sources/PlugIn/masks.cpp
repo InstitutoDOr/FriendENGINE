@@ -17,6 +17,15 @@
 
 using namespace alglib;
 
+// znormalize a vetor of double
+void znormalise(vector<double>&values)
+{
+	IncrementalStats stats;
+	stats.initialize();
+	for (int i = 0; i < values.size(); i++) stats.addValue(values[i]);
+	for (int i = 0; i < values.size(); i++) values[i] = stats.zValue(values[i]);
+}
+
 // creates a vector of weights with points of a sigmoid fuction
 void sigmoid(int dataPoints, vector<float> &points, float slope = 1, float start = -6, float end = 6)
 {

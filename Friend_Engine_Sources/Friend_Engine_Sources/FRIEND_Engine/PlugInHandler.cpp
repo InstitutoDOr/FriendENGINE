@@ -48,6 +48,7 @@ void PluginHandler::unLoadLibrary()
    finalFunction = NULL;
    volumeFunction = NULL;
    afterPreprocFunction = NULL;
+   userData = NULL;
 }
 
 // loads an external library and import its functions
@@ -108,6 +109,7 @@ void PluginHandler::loadFunctions(char *library, char *trainFunc, char *testFunc
       finalFunction = NULL;
       volumeFunction = NULL;
       afterPreprocFunction = NULL;
+	  userData = NULL;
    }
 }
 
@@ -116,7 +118,8 @@ int PluginHandler::callInitFunction(studyParams &vdb)
 {
    if (initFunction != NULL)
    {
-      return initFunction(vdb, userData);
+	   if (userData == NULL)
+         return initFunction(vdb, userData);
    }
    else return 0;
 }
@@ -151,7 +154,12 @@ int PluginHandler::callTestFunction(studyParams &vdb, int index, float &classnum
 
 int PluginHandler::callFinalFunction(studyParams &vdb)
 {
+	int r;
    if (finalFunction != NULL)
-      return finalFunction(vdb, userData);
+   {
+	   r = finalFunction(vdb, userData);
+	   userData = NULL;
+	   return r;
+   }
    else return 0;
 }

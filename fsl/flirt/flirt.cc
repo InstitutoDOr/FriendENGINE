@@ -2695,7 +2695,7 @@ void final_transform2(const volume<float>& testvol, volume<float>& outputvol,
 }
 
 // this does the applyxfm!
-extern "C" __declspec(dllexport) int _stdcall applyXFM(volume<float> *refvol, Matrix *initmat, char *inputfname, volume4D<float> *outputvol, int NN, float paddingsize, float isoscale)
+extern "C" __declspec(dllexport) int _stdcall applyXFM(volume<float> *refvol, Matrix *initmat, char *inputfname, volume4D<float> *outputvol, int NN, float paddingsize)
 {
 	volume4D<float> testvol;
 	interps interpmethod = TriLinear;
@@ -2703,10 +2703,6 @@ extern "C" __declspec(dllexport) int _stdcall applyXFM(volume<float> *refvol, Ma
 	if (NN) interpmethod = NearestNeighbour;
 
 	read_volume4D(testvol, string(inputfname));
-
-	if (isoscale != 0) {
-		resample_refvol(*refvol, isoscale);
-	}
 
 	float min_sampling_ref = 1.0;
 	min_sampling_ref = Min((*refvol).xdim(), Min((*refvol).ydim(), (*refvol).zdim()));

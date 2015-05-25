@@ -10,6 +10,10 @@ struct weightPoint {
 
 using namespace std;
 
+// generates a graphic with the SVM projections
+void generateProjetionsGraph(char *projectionsFile);
+void generateProjetionsGraph(char *projectionsFile, char *pngFile);
+
 // calculates the svm weights of a model, storing the values in a vector object
 void calculateWeightVector(const svm_model *model, vector <double> &weightVector);
 
