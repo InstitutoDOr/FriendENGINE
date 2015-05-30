@@ -619,16 +619,6 @@ int check_for_multiple_filenames(const char* filename)
   return 0;
 }
 
-
-void FslFree(FSLIO* OP)
-{
-  if (OP->niftiptr->fname != NULL) free(OP->niftiptr->fname);
-  if (OP->niftiptr->iname != NULL) free(OP->niftiptr->iname);
-  if (OP->niftiptr != NULL) free(OP->niftiptr);
-  if (OP->fileptr != NULL) free(OP->fileptr);
-  free(OP);
-}
-
 /***************************************************************
  * FslOpen
  ***************************************************************/

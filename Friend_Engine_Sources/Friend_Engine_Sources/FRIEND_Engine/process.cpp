@@ -272,6 +272,95 @@ BOOL FriendProcess::isReadyNextFile(int index, char *rtPrefix, char *format, cha
 // verifies if the next file is ready to be read by FRIEND and transforms it in nifti accordingly
 BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefix, char *format, char *inFile)
 {
+	BOOL response = 0, fileChecked = 0;
+	char  numberIn[50], numberOut[50], outFile[BUFF_SIZE], volumeName[BUFF_SIZE];
+
+	// forming the output file
+	sprintf(numberOut, format, indexOut);
+	sprintf(outFile, "%s%s%s", rtPrefix, numberOut, ".nii");
+
+	// forming the input file
+	sprintf(numberIn, format, indexIn);
+
+	if (!fileExists(outFile))
+	{
+		// in DICOM
+		sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".dcm");
+		fprintf(stderr, "Searching file : %s\n", inFile);
+		if (fileExists(inFile))
+		{
+			// executes the dcm2nii tool
+			stringstream osc;
+			osc << exePath << PATHSEPCHAR << "dcm2nii -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
+			fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
+			system(osc.str().c_str());
+		}
+		else
+		{
+			// in Analyze. The engine converts it to nifti and inerts the axis, if needed
+			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".img");
+			fprintf(stderr, "Searching file : %s\n", inFile);
+			if (fileExists(inFile))
+			{
+				if (isReadable(inFile))
+				{
+					stringstream osc;
+					osc << "fslswapdim " << inFile;
+
+					if (!vdb.invX) osc << " x";
+					else osc << " -x";
+
+					if (!vdb.invY) osc << " y";
+					else osc << " -y";
+
+					if (!vdb.invZ) osc << " z";
+					else osc << " -z";
+
+					osc << "  " << outFile << '\0';
+					// transforms an analyze file into a nii file, inverting axes accordingly
+					fslSwapDimRT(osc.str().c_str(), vdb.runReferencePtr);
+
+					osc.str("");
+					osc << "fslmaths " << outFile << " " << outFile << " -odt float";
+					fslmaths((char *)osc.str().c_str());
+				}
+			}
+
+			// in NIFTI. The engine converts it to nifti and inerts the axis, if needed
+			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".nii");
+			fprintf(stderr, "Searching file : %s\n", inFile);
+			if (fileExists(inFile))
+			{
+				if (isReadable(inFile))
+				{
+					stringstream osc;
+					osc.str("");
+					osc << "fslmaths " << inFile << " " << outFile << " -odt float";
+					fslmaths((char *)osc.str().c_str());
+				}
+			}
+
+		}
+	}
+
+	// verifying if the final file exists. It servers the NIFTI case
+	if ((fileExists(outFile)) && (isReadable(outFile)))
+		response = 1;
+	else response = 0;
+
+	if (response)
+	{
+		strcpy(volumeName, outFile);
+		pHandler.callVolumeFunction(vdb, indexIn, volumeName);
+	}
+
+	return response;
+}
+
+/*
+// verifies if the next file is ready to be read by FRIEND and transforms it in nifti accordingly
+BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefix, char *format, char *inFile)
+{
    BOOL response=0, fileChecked=0;
    char  numberIn[50], numberOut[50], outFile[BUFF_SIZE], volumeName[BUFF_SIZE];
 
@@ -339,6 +428,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
       
    return response;
 }
+*/
 
 // generate a file concatenating all movement parameters of the processed volumes
 void FriendProcess::generateConfoundFile(char *dPrefix, int ini, int end, char *output)

@@ -86,6 +86,15 @@ int convert_xfm(char *cmdLn)
 }
 #endif
 
+void FslFree(FSLIO* OP)
+{
+	if (OP->niftiptr->fname != NULL) free(OP->niftiptr->fname);
+	if (OP->niftiptr->iname != NULL) free(OP->niftiptr->iname);
+	if (OP->niftiptr != NULL) free(OP->niftiptr);
+	if (OP->fileptr != NULL) free(OP->fileptr);
+	free(OP);
+}
+
 bool isFSLReadable(char *fileName)
 {
 	FSLIO *OP = FslOpen(fileName, "r");
