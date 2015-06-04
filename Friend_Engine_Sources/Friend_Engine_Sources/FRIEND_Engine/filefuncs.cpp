@@ -56,7 +56,7 @@ void expandFilename(char *fileName)
 
 	toChange = "..";
 	toChange += PATHSEPCHAR;
-	BOOL hasTwoDots = 0;
+	int hasTwoDots = 0;
 	size_t pos;
 	while ((pos = auxName.find(toChange, 0)) != string::npos) {
 		hasTwoDots = 1;
