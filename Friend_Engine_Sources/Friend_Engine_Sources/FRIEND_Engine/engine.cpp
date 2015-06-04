@@ -510,8 +510,8 @@ bool	friendEngine::serverChild ( int	socketFd )
          // pipeline function. This is the only function that runs until then end of processing all volumes in the run. Here we set automatic feedback calculations. Needs an open session to work.
          if (strcmp(command, "FEEDBACK") == 0)
          {
-            process.runRealtimePipeline();
-            process.setFeedbackCalculation(1);
+			process.setFeedbackCalculation(1);
+			process.runRealtimePipeline();
             sprintf(command, "OK\n");
             socks.writeString(command);
          }

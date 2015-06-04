@@ -31,21 +31,22 @@ char exePath[500];
 void expandFilename(char *fileName)
 {
 #ifndef WINDOWS
-	char actualPath[500], actualSuperPath[500];
 	wordexp_t exp_result;
-
-	// getting the actual directory
-	if (strlen(exePath)== 0) getcwd(exePath, 500);
-	strcpy(actualPath, exePath);
-
-	extractFilePath(actualPath, actualSuperPath);
-	includeTrailingPathDelimiter(actualPath);
-	includeTrailingPathDelimiter(actualSuperPath);
 
 	wordexp(fileName, &exp_result, 0);
 	fileName[0] = 0;
 	strcpy(fileName, exp_result.we_wordv[0]);
 	wordfree(&exp_result);
+
+#endif
+
+	char actualPath[500], actualSuperPath[500];
+	// getting the actual directory
+	if (strlen(exePath)== 0) getcwd(exePath, 500);
+	strcpy(actualPath, exePath);
+	strcpy(actualSuperPath, actualPath);
+
+	includeTrailingPathDelimiter(actualPath);
 
 	// resolving . and ..
 	string auxName = fileName;
@@ -55,13 +56,25 @@ void expandFilename(char *fileName)
 
 	toChange = "..";
 	toChange += PATHSEPCHAR;
-	replaceAll(auxName, toChange, superPath);
+	BOOL hasTwoDots = 0;
+	size_t pos;
+	while ((pos = auxName.find(toChange, 0)) != string::npos) {
+		hasTwoDots = 1;
+		extractFilePath(actualSuperPath, actualSuperPath);
+		auxName.erase(pos, toChange.length());
+	}
+	if (hasTwoDots)
+	{
+		includeTrailingPathDelimiter(actualSuperPath);
+		superPath = actualSuperPath;
+		auxName = superPath + auxName;
+	}
+	
 
 	toChange = ".";
 	toChange += PATHSEPCHAR;
-	replaceAll(auxName, toChange, superPath);
+	replaceAll(auxName, toChange, path);
 	strcpy(fileName, auxName.c_str());
-#endif
 }
 
 void mergeFiles(const char *fromfileA, const char *fromfileB, const char *tofile)

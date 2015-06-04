@@ -43,13 +43,14 @@ void znormalise(vector<double>&values);
 // calculates the mean of a set of rois
 class RoiMeanCalculation
 {
-public:
+private:
    map<int, int> mapping;
    vector<float> means;
    vector<int> counts;
    volume<int> reference;
    
-   // loads the volume that defines a set of rois based on the voxels intensities. For that works the voxel datatype must be int
+public:
+	// loads the volume that defines a set of rois based on the voxels intensities. For that works the voxel datatype must be int
    void loadReference(char *referenceFileName);
    // initializes the object variables
    void reinitialize();
@@ -57,6 +58,18 @@ public:
    void calculateMeans(char *volumeFileName);
    // calculates the mean for each roi
    void calculateMeans(volume<float> &actualvolume);
+   // returns the voxels values of reference volume 
+   int voxelValues(int x, int y, int z);
+   // returns the index of a intensity roi  
+   int roiIndex(int roiValue);
+   // returns the number of voxels in a roi  
+   int roiSize(int roiIndex);
+   // returns the mean value of a voxel  
+   float roiMean(int roiIndex);
+   // returns the number of rois
+   int roiCount();
+   // returns the number of rois
+   void getRoiValues(vector<int> &values);
 };
 
 // extracts the best voxels of each roi

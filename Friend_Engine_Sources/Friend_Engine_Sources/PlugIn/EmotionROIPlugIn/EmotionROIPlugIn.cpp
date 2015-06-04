@@ -39,8 +39,8 @@ int emotionRoiProcessing::initialization(studyParams &vdb)
 	   // loads the reference mask
 	   fprintf(stderr, "Loading native space mask %s\n", roiMask);
 	   meanCalculation.loadReference(roiMask);
-	   positiveIndex = meanCalculation.mapping[3]; // 3 in the intensity value of positive emotion ROI
-	   negativeIndex = meanCalculation.mapping[1]; // 1 in the intensity value of negative emotion ROI
+	   positiveIndex = meanCalculation.roiIndex(3); // 3 in the intensity value of positive emotion ROI
+	   negativeIndex = meanCalculation.roiIndex(1); // 1 in the intensity value of negative emotion ROI
 	   fprintf(stderr, "Positive Index %d\n", positiveIndex);
 	   fprintf(stderr, "Negative Index %d\n", negativeIndex);
    }
@@ -80,7 +80,7 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 	volume<float> v;
 
 	// preparing timeseries variable
-	timeseries.resize(meanCalculation.means.size());
+	timeseries.resize(meanCalculation.roiCount());
 	for (int i = 0; i < timeseries.size(); i++)
 		timeseries[i].resize(vdb.interval.maxIndex());
 
@@ -90,8 +90,8 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 		loadVolume(vdb, v, i+1);
 		meanCalculation.calculateMeans(v);
 
-		for (int j = 0; j < meanCalculation.means.size(); j++)
-			timeseries[j][i] = meanCalculation.means[j];
+		for (int j = 0; j < meanCalculation.roiCount(); j++)
+			timeseries[j][i] = meanCalculation.roiMean(j);
 	}
 
 	// z normalized
@@ -111,16 +111,18 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 	// generating the roi means graph png
 	fprintf(stderr, "Generating roi means graphic\n");
 	changeFileExt(meanFile, ".png", pngFile);
-	CmdLn << "fsl_tsplot -i " << meanFile << " -t \"z-normalised roi means plot\" -u 1 --start=1 --finish=" << meanCalculation.means.size() << " -a ";
+	CmdLn << "fsl_tsplot -i " << meanFile << " -t \"z-normalised roi means plot\" -u 1 --start=1 --finish=" << meanCalculation.roiCount() << " -a ";
 
+	vector<int> roiValues;
+	meanCalculation.getRoiValues(roiValues);
 	// Building the labels with the intensities of the roi volume file
 	int counter=0;
 	CmdLn << '\"';
-	for (std::map<int, int>::iterator it = meanCalculation.mapping.begin(); it != meanCalculation.mapping.end(); ++it)
+	for (int t = 0; t < roiValues.size(); t++)
 	{
-		CmdLn << "Intensity " << it->first;
+		CmdLn << "Intensity " << roiValues[t];
 		counter++;
-		if (counter < meanCalculation.means.size())
+		if (counter < meanCalculation.roiCount())
 			CmdLn << ',';
 	}
 	// completing the command
@@ -162,8 +164,8 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 	if (fileExists(roiVolumeFile))
 	{
 		meanCalculation.loadReference(roiVolumeFile);
-		positiveIndex = meanCalculation.mapping[3]; // 3 in the intensity value of positive emotion ROI
-		negativeIndex = meanCalculation.mapping[1]; // 1 in the intensity value of negative emotion ROI
+		positiveIndex = meanCalculation.roiIndex(3); // 3 in the intensity value of positive emotion ROI
+		negativeIndex = meanCalculation.roiIndex(1); // 1 in the intensity value of negative emotion ROI
 
 		for (int i=1; i <= vdb.interval.maxIndex(); i++)
 		{
@@ -239,15 +241,15 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
          meanCalculation.calculateMeans(meanbaseline);
          
          // calculates the mean roi value of the mean volume. We just need this value
-         positiveBaseline = meanCalculation.means[positiveIndex];
-		 negativeBaseline = meanCalculation.means[negativeIndex];
+         positiveBaseline = meanCalculation.roiMean(positiveIndex);
+		 negativeBaseline = meanCalculation.roiMean(negativeIndex);
 	  }
    }
    else // task condition. Taking the mean of the volume and calculating the PSC
    {
       meanCalculation.calculateMeans(v);
-      positivePSC = PSC(meanCalculation.means[positiveIndex], positiveBaseline);
-	  negativePSC = PSC(meanCalculation.means[negativeIndex], negativeBaseline);
+	  positivePSC = PSC(meanCalculation.roiMean(positiveIndex), positiveBaseline);
+	  negativePSC = PSC(meanCalculation.roiMean(negativeIndex), negativeBaseline);
 
 	  // negative emotion Feedback
 	  if (classnum == 1)

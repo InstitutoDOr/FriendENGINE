@@ -41,8 +41,8 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
       
       // loads the reference mask
       meanCalculation.loadReference(outputFile);
-	  firstRoiIndex  = meanCalculation.mapping[firstRoi];
-	  secondRoiIndex = meanCalculation.mapping[secondRoi];
+	  firstRoiIndex  = meanCalculation.roiIndex(firstRoi);
+	  secondRoiIndex = meanCalculation.roiIndex(secondRoi);
    }
    firstBaselineValue=0;
    secondBaselineValue = 0;
@@ -77,15 +77,15 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
          meanCalculation.calculateMeans(meanbaseline);
          
          // calculates the mean roi value of the mean volume. We just need this value
-		 firstBaselineValue = meanCalculation.means[firstRoiIndex];
-		 secondBaselineValue = meanCalculation.means[secondRoiIndex];
+		 firstBaselineValue = meanCalculation.roiMean(firstRoiIndex);
+		 secondBaselineValue = meanCalculation.roiMean(secondRoiIndex);
 	  }
    }
    else // task condition. Taking the mean of the volume and calculating the PSC
    {
       meanCalculation.calculateMeans(v);
-	  firstRoiMean = meanCalculation.means[firstRoiIndex];
-	  secondRoiMean = meanCalculation.means[secondRoiIndex];
+	  firstRoiMean = meanCalculation.roiMean(firstRoiIndex);
+	  secondRoiMean = meanCalculation.roiMean(secondRoiIndex);
 
 	  firstProjection = PSC(firstRoiMean, firstBaselineValue) / targetValue;
 	  secondProjection = PSC(secondRoiMean, secondBaselineValue) / targetValue;

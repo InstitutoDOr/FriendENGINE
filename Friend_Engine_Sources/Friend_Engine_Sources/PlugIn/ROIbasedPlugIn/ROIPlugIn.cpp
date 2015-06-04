@@ -83,14 +83,14 @@ int roiProcessing::processVolume(studyParams &vdb, int index, float &classnum, f
          meanCalculation.calculateMeans(meanbaseline);
          
          // calculates the mean roi value of the mean volume. We just need this value
-         lastBaselineValue = meanCalculation.means[0];
+         lastBaselineValue = meanCalculation.roiMean(0);
       }
    }
    else // task condition. Taking the mean of the volume and calculating the PSC
    {
-      meanCalculation.calculateMeans(v);
-      projection=PSC(meanCalculation.means[0], lastBaselineValue);
-      projection = projection / targetValue;
+	   meanCalculation.calculateMeans(v);
+	   projection = PSC(meanCalculation.roiMean(0), lastBaselineValue);
+	   projection = projection / targetValue;
       
       // enforcing 0..1 range
       //if (projection > 1) projection = 1;

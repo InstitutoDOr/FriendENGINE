@@ -57,8 +57,13 @@ bool insideRegion(float value, vector<int>regions)
 // loads the volume that defines a set of rois based on the voxels intensities. For that works the voxel datatype must be int
 void RoiMeanCalculation::loadReference(char *referenceFileName)
 {
-   read_volume(reference, string(referenceFileName));
    reinitialize();
+   if (!fileExists(referenceFileName))
+   {
+	   fprintf(stderr, "Reference volume %s not found.\n", referenceFileName);
+	   return;
+   }
+   read_volume(reference, string(referenceFileName));
    
    // counts the number of rois
    int idx=0;
@@ -111,32 +116,85 @@ void RoiMeanCalculation::reinitialize()
 void RoiMeanCalculation::calculateMeans(char *volumeFileName)
 {
    volume<float> actualVolume;
-   read_volume(actualVolume, string(volumeFileName));
-   calculateMeans(actualVolume);
+   if (means.size())
+   {
+	   read_volume(actualVolume, string(volumeFileName));
+	   calculateMeans(actualVolume);
+   }
 }
 
 // calculates the mean for each roi
 void RoiMeanCalculation::calculateMeans(volume<float> &actualvolume)
 {
-   for (int i=0;i<means.size();i++) means[i]=0;
-   
-   for(int z=0;z<reference.zsize();z++)
-      for(int y=0;y<reference.ysize();y++)
-         for(int x=0;x<reference.xsize();x++)
-         {
-            float value=reference.value(x,y,z);
-            if (value != 0)
-            {
-               int idx = mapping[value];
-               if (idx >= -1)
-                  means[idx] += actualvolume.value(x,y,z);
-            }
-         }
-   for (int i=0;i<means.size();i++)
-   {
-      if (counts[i]) means[i] = means[i] / (float) counts[i];
-   }
-   
+	if (means.size())
+	{
+		for (int i = 0; i < means.size(); i++) means[i] = 0;
+
+		for (int z = 0; z < reference.zsize(); z++)
+			for (int y = 0; y < reference.ysize(); y++)
+				for (int x = 0; x < reference.xsize(); x++)
+				{
+					float value = reference.value(x, y, z);
+					if (value != 0)
+					{
+						int idx = mapping[value];
+						if (idx >= -1)
+							means[idx] += actualvolume.value(x, y, z);
+					}
+				}
+
+		for (int i = 0; i < means.size(); i++)
+		{
+			if (counts[i]) means[i] = means[i] / (float)counts[i];
+		}
+	}
+}
+
+// returns the voxels values of reference volume 
+int RoiMeanCalculation::voxelValues(int x, int y, int z)
+{
+	return reference.value(x, y, z);
+}
+
+// returns the index of a intensity roi  
+int RoiMeanCalculation::roiIndex(int roiValue)
+{
+	return mapping[roiValue];
+}
+
+// returns the number of voxels in a roi  
+int RoiMeanCalculation::roiSize(int roiIndex)
+{
+	if (roiIndex < counts.size())
+	{
+		return counts[roiIndex];
+	}
+	else return 0;
+}
+
+// returns the number of rois
+int RoiMeanCalculation::roiCount()
+{
+	return means.size();
+}
+
+// returns the mean value of a voxel  
+float RoiMeanCalculation::roiMean(int index)
+{
+	if (index < means.size())
+	{
+		return means[index];
+	}
+	else return 0;
+
+}
+
+// returns the number of rois
+void RoiMeanCalculation::getRoiValues(vector<int> &values)
+{
+	values.clear();
+	for (std::map<int, int>::iterator it = mapping.begin(); it != mapping.end(); ++it)
+		values.push_back(it->first);
 }
 
 // reads a region extraction map file
@@ -175,7 +233,7 @@ void RegionExtraction::regionBestVoxels(RoiMeanCalculation &reference, volume<fl
          for(int x=0;x<values.xsize();x++)
          {
             // get the voxel intensity in reference
-            int voxelRegion = (int) reference.reference.value(x,y,z);
+            int voxelRegion = (int) reference.voxelValues(x,y,z);
             
             // if is the chosen region, records the voxel values (T values or other voxel value)
             if (region == voxelRegion)
@@ -238,13 +296,13 @@ void RegionExtraction::regionsExtraction(char *refVol, char *valueVol4D, char *v
       int contrast = it->second;
       
       // gets the region index, to get the size of the region
-      int idxregion = reference.mapping[region];
+      int idxregion = reference.roiIndex(region);
       
       // if contrast > 0, get the values from the volume contrast
-      if (contrast) regionBestVoxels(reference, values4D[contrast-1], output, region, reference.counts[idxregion], percentage);
+      if (contrast) regionBestVoxels(reference, values4D[contrast-1], output, region, reference.roiSize(idxregion), percentage);
       else
          // get the values from the summary volume
-         regionBestVoxels(reference, values, output, region, reference.counts[idxregion], percentage);
+		 regionBestVoxels(reference, values, output, region, reference.roiSize(idxregion), percentage);
    }
    // saving the result
    save_volume(output, string(outputVol));
@@ -633,11 +691,11 @@ void RegionCorrelation::_calculateMeans()
         for (int j=0; j<regions[t].size();j++)
         {
             // getting the index of a roi in the region
-            int idx = calculatorMaps[regions[t][j].map-1].mapping[regions[t][j].roiIntensity];
+            int idx = calculatorMaps[regions[t][j].map-1].roiIndex(regions[t][j].roiIntensity);
             // adding the roi mean to the calculation of region mean
             if (idx > -1)
             {
-                mean += calculatorMaps[regions[t][j].map-1].means[idx];
+                mean += calculatorMaps[regions[t][j].map-1].roiMean(idx);
             }
         }
        

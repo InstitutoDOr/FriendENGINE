@@ -1,5 +1,6 @@
 import socket;
 import sys;
+import os;
 import time;
 import datetime;
 
@@ -8,8 +9,7 @@ HOST = '127.0.0.1';
 PORT = 5678;
 TR = 2.0;
 sessionID = '';
-PIPELINE = 1;
-Timeout = 0.3; # I have used 0.05 in the same operational system (Windows). Tested in Mac and Linux (Cent OS), running the engine in Windows.
+Timeout = 0.1; # I have used 0.05 in the same operational system (Windows). Tested in Mac and Linux (Cent OS), running the engine in Windows.
 bufferLines=tuple();
 
 # time stamp
@@ -175,6 +175,16 @@ mainThread.connect((HOST, PORT));
 
 # creating a session and getting sessionID
 sessionID = createSession(mainThread);
+
+option = str(sys.argv[1]);
+
+if (option=="1"):
+   PIPELINE = 1;
+   
+if (option=="2"):
+   PIPELINE = 2;
+   
+
 if (PIPELINE==2):
    # changing the mask type
    mainThread.send('SET\n');
@@ -191,7 +201,13 @@ if (PIPELINE==2):
    # changing the directory of the volumes
    mainThread.send('SET\n');
    mainThread.send('Prefix\n');
-   mainThread.send('outputdirRUN02/DRIN-\n');
+   mainThread.send('outputdirRUN02' + os.path.sep + 'DRIN-\n');
+   response=readsocket(mainThread);
+
+   # changing the current suffix
+   mainThread.send('SET\n');
+   mainThread.send('CurrentRunSuffix\n');
+   mainThread.send('RUN02\n');
    response=readsocket(mainThread);
    
 print("sessionID received = %s" % (sessionID));

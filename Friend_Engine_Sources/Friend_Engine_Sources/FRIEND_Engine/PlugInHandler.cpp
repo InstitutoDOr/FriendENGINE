@@ -17,10 +17,12 @@
 void PluginHandler::loadLibrary()
 {
    char library[BUFF_SIZE];
+   /*
    if (libraryPath)
       sprintf(library, "%s%c%s", libraryPath, PATHSEPCHAR, libraryFile);
    else
-      strcpy(library, libraryFile);
+   */
+   strcpy(library, libraryFile);
    loadFunctions(library, trainFname, testFname, initFname, finalFname, volumeFname, afterPreprocFname);
 }
 
@@ -55,16 +57,21 @@ void PluginHandler::unLoadLibrary()
 void PluginHandler::loadFunctions(char *library, char *trainFunc, char *testFunc, char *initFunc, char *finalFunc, char *volumeFunc, char *afterPreprocFunc)
 {
    char tempLibrary[1024];
+   char libraryComplete[1024];
+
    unLoadLibrary();
+   if (libraryPath) sprintf(libraryComplete, "%s%c%s", libraryPath, PATHSEPCHAR, library);
+   else sprintf(libraryComplete, "%s", library);
+
 #ifdef WINDOWS
-   sprintf(tempLibrary, "%s.dll", library);
+   sprintf(tempLibrary, "%s.dll", libraryComplete);
    handler = (HMODULE) LoadLibraryA(tempLibrary);
 #else
 #ifdef LINUX
-   sprintf(tempLibrary, "%s/%s.so", libraryPath, library); 
+   sprintf(tempLibrary, "%s/%s.so", libraryPath, libraryComplete); 
    handler = dlopen(tempLibrary, RTLD_LAZY);
 #else
-   sprintf(tempLibrary, "%s.dylib", library);
+   sprintf(tempLibrary, "%s.dylib", libraryComplete);
    handler = dlopen(tempLibrary, RTLD_LAZY);
 #endif
 #endif
