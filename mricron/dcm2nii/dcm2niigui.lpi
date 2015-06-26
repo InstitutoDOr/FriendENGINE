@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <Title Value="dcm2niigui.exe"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="25">
+      <Unit0>
+        <Filename Value="dcm2niigui.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dcm2niigui"/>
+        <TopLine Value="1"/>
+        <CursorPos X="2" Y="1"/>
+        <UsageCount Value="206"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="gui.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="MainForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="gui"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="955"/>
+        <CursorPos X="26" Y="961"/>
+        <UsageCount Value="206"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="nifti_form.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NIfTIForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="nifti_form"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="66"/>
+        <CursorPos X="26" Y="73"/>
+        <UsageCount Value="206"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="pref_form.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PrefsForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="pref_form"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="132"/>
+        <CursorPos X="34" Y="158"/>
+        <UsageCount Value="206"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="niftiutil.pas"/>
+        <UnitName Value="niftiutil"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="993"/>
+        <CursorPos X="13" Y="1001"/>
+        <UsageCount Value="77"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="prefs.pas"/>
+        <UnitName Value="prefs"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="229"/>
+        <CursorPos X="90" Y="240"/>
+        <UsageCount Value="105"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="dicomtypes.pas"/>
+        <UnitName Value="dicomtypes"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="655"/>
+        <CursorPos X="48" Y="673"/>
+        <UsageCount Value="104"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\common\define_types.pas"/>
+        <UnitName Value="define_types"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="33" Y="21"/>
+        <UsageCount Value="113"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="convert.pas"/>
+        <UnitName Value="convert"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1613"/>
+        <CursorPos X="1" Y="1618"/>
+        <UsageCount Value="115"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="..\common\gzio2.pas"/>
+        <UnitName Value="gzio2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="114" Y="1"/>
+        <UsageCount Value="82"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="..\common\GraphicsMathLibrary.pas"/>
+        <UnitName Value="GraphicsMathLibrary"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="592"/>
+        <CursorPos X="27" Y="585"/>
+        <UsageCount Value="113"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="..\common\dialogsx.pas"/>
+        <UnitName Value="dialogsx"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="53"/>
+        <CursorPos X="52" Y="60"/>
+        <UsageCount Value="7"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="dicomcompat.pas"/>
+        <UnitName Value="dicomcompat"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="5360"/>
+        <CursorPos X="77" Y="5365"/>
+        <UsageCount Value="114"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="sortdicom.pas"/>
+        <UnitName Value="sortdicom"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="180"/>
+        <CursorPos X="50" Y="189"/>
+        <UsageCount Value="49"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="philips_bvec.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="philips_bvec"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="117" Y="248"/>
+        <UsageCount Value="214"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="..\common\isgui.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="10" Y="1"/>
+        <UsageCount Value="2"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="csaread.pas"/>
+        <UnitName Value="csaread"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="41"/>
+        <CursorPos X="31" Y="53"/>
+        <UsageCount Value="104"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="dialogs_msg.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dialogs_msg"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="7"/>
+        <CursorPos X="11" Y="9"/>
+        <UsageCount Value="208"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="..\common\nifti_types.pas"/>
+        <UnitName Value="nifti_types"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="72"/>
+        <CursorPos X="72" Y="86"/>
+        <UsageCount Value="100"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="..\common\nifti_foreign.pas"/>
+        <UnitName Value="nifti_foreign"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="416"/>
+        <CursorPos X="74" Y="419"/>
+        <UsageCount Value="73"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="parconvert.pas"/>
+        <UnitName Value="parconvert"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1124"/>
+        <CursorPos X="66" Y="1125"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="bvec.pas"/>
+        <UnitName Value="bvec"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="34"/>
+        <CursorPos X="48" Y="61"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="..\..\..\..\..\..\Developer\lazarus\lcl\include\customform.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="2535"/>
+        <CursorPos X="60" Y="2545"/>
+        <UsageCount Value="24"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="..\..\..\..\..\..\Developer\lazarus\lcl\include\menuitem.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="50" Y="1"/>
+        <UsageCount Value="8"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="dicom.pas"/>
+        <UnitName Value="dicom"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="29" Y="6"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit24>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1110" Column="36" TopLine="1091"/>
+      </Position1>
+      <Position2>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1111" Column="43" TopLine="1092"/>
+      </Position2>
+      <Position3>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1113" Column="16" TopLine="1094"/>
+      </Position3>
+      <Position4>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1120" Column="29" TopLine="1109"/>
+      </Position4>
+      <Position5>
+        <Filename Value="bvec.pas"/>
+        <Caret Line="74" Column="12" TopLine="50"/>
+      </Position5>
+      <Position6>
+        <Filename Value="convert.pas"/>
+        <Caret Line="1611" Column="44" TopLine="1587"/>
+      </Position6>
+      <Position7>
+        <Filename Value="convert.pas"/>
+        <Caret Line="67" Column="108" TopLine="66"/>
+      </Position7>
+      <Position8>
+        <Filename Value="convert.pas"/>
+        <Caret Line="242" Column="51" TopLine="223"/>
+      </Position8>
+      <Position9>
+        <Filename Value="convert.pas"/>
+        <Caret Line="397" Column="40" TopLine="375"/>
+      </Position9>
+      <Position10>
+        <Filename Value="convert.pas"/>
+        <Caret Line="1181" Column="29" TopLine="1176"/>
+      </Position10>
+      <Position11>
+        <Filename Value="convert.pas"/>
+        <Caret Line="1182" Column="19" TopLine="1176"/>
+      </Position11>
+      <Position12>
+        <Filename Value="convert.pas"/>
+        <Caret Line="1199" Column="30" TopLine="1181"/>
+      </Position12>
+      <Position13>
+        <Filename Value="convert.pas"/>
+        <Caret Line="1282" Column="29" TopLine="1260"/>
+      </Position13>
+      <Position14>
+        <Filename Value="convert.pas"/>
+        <Caret Line="1370" Column="65" TopLine="1348"/>
+      </Position14>
+      <Position15>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1282" Column="64" TopLine="1272"/>
+      </Position15>
+      <Position16>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1024" Column="61" TopLine="1021"/>
+      </Position16>
+      <Position17>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="6" Column="88" TopLine="1"/>
+      </Position17>
+      <Position18>
+        <Filename Value="convert.pas"/>
+        <Caret Line="1621" Column="66" TopLine="1610"/>
+      </Position18>
+      <Position19>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1" Column="130" TopLine="1"/>
+      </Position19>
+      <Position20>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="343" Column="22" TopLine="304"/>
+      </Position20>
+      <Position21>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="384" Column="26" TopLine="346"/>
+      </Position21>
+      <Position22>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="917" Column="21" TopLine="879"/>
+      </Position22>
+      <Position23>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1141" Column="27" TopLine="1103"/>
+      </Position23>
+      <Position24>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="343" Column="22" TopLine="320"/>
+      </Position24>
+      <Position25>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="384" Column="26" TopLine="346"/>
+      </Position25>
+      <Position26>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="917" Column="21" TopLine="879"/>
+      </Position26>
+      <Position27>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1139" Column="23" TopLine="1113"/>
+      </Position27>
+      <Position28>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1138" Column="27" TopLine="1116"/>
+      </Position28>
+      <Position29>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1052" Column="10" TopLine="1043"/>
+      </Position29>
+      <Position30>
+        <Filename Value="parconvert.pas"/>
+        <Caret Line="1143" Column="75" TopLine="1118"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <SearchPaths>
+      <OtherUnitFiles Value="..\common"/>
+      <SrcPath Value="C:\lazarus\ideintf"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+        <UseAnsiStrings Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+        <UseLineInfoUnit Value="False"/>
+        <StripSymbols Value="True"/>
+      </Debugging>
+      <LinkSmart Value="True"/>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+    <Other>
+      <WriteFPCLogo Value="False"/>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+  <EditorMacros Count="0"/>
+</CONFIG>

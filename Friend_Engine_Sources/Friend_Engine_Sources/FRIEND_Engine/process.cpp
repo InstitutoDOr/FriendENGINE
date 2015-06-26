@@ -46,6 +46,33 @@ void FriendProcess::saveConfigBuffer(char *buffer, int size, char *configFile)
    vdb.saveConfigBuffer(buffer, size, configFile);
 }
 
+
+int isGoodDesign(char *fileName)
+{
+	DiagonalMatrix eigenvals(1);
+	Matrix real_X;
+	int result = 0;
+
+	real_X = read_ascii_matrix(string(fileName));
+	if (real_X.Ncols()>1)
+	{
+		SVD(real_X, eigenvals);
+
+		SortDescending(eigenvals);
+
+		float inv_condition = eigenvals.Minimum() / eigenvals.Maximum();
+
+		if (eigenvals.Minimum()<1e-16)
+		{
+			fprintf(stderr, "Invalid design matrix.\n");
+		}
+		else result = 1;
+	}
+
+	eigenvals.Release();
+	return result;
+}
+
 // preprare files and run fsl_glm on processed volumes
 void FriendProcess::glm()
 {
@@ -61,8 +88,16 @@ void FriendProcess::glm()
    vdb.getFinalVolumeFormat(prefix);
    vdb.getPreprocVolumePrefix(Pref);
    
-   // generating 4D FRIEND pipeline volume for the run. Here we performs the final step, sliding window mean
-   estimateActivation(1, vdb.interval.maxIndex(), vdb.slidingWindowSize, prefix, vdb.trainGLM4DFile);
+   // generating 4D FRIEND pipeline volume for the run. Here we do not performs the final step, sliding window mean
+   // as this calculation shifts the voxel time series
+   estimateActivation(1, vdb.interval.maxIndex(), 1, prefix, vdb.trainGLM4DFile);
+
+   // demeaning the 4D FRIEND pipeline volume for the run. 
+   CmdLn.str("");
+   CmdLn << "fslmaths " << vdb.trainGLM4DFile << " -Tmean -mul -1 -add " << vdb.trainGLM4DFile << " " << vdb.trainGLM4DFile;
+
+   fslmaths((char *)CmdLn.str().c_str());
+
 
    // concatenating the .par (movements parameters) files
    generateConfoundFile(Pref, 1, vdb.interval.maxIndex(), vdb.parFile);
@@ -72,6 +107,7 @@ void FriendProcess::glm()
 
    // generating the rotation graph png
    fprintf(stderr, "Generating rotation movement graphics\n");
+   CmdLn.str("");
    CmdLn << "fsl_tsplot -i " << vdb.parFile << " -t \"MCFLIRT estimated rotations (radians)\" -u 1 --start=1 --finish=3 -a x,y,z -w 640 -h 144 -o " << vdb.logDir << "rot" << vdb.trainFeatureSuffix << ".png";
 
    fsl_tsplot((char *)CmdLn.str().c_str());
@@ -133,9 +169,13 @@ void FriendProcess::glm()
    fslmaths((char *)CmdLn.str().c_str());
 
    fprintf(stderr, "Running fsl_glm\n");
-   CmdLn.str("");
-   CmdLn << "fsl_glm -i " << vdb.trainGLM4DFile << " -d " << vdb.glmMatrixFile << " -c " << vdb.contrastFile << " -m " << auxString << " -o " << vdb.glmDir << "betas" << vdb.trainFeatureSuffix << " --out_t=" << vdb.glmTOutput << " --out_f=" << vdb.glmDir << "pvalues" << vdb.trainFeatureSuffix;
-   fsl_glm((char *)CmdLn.str().c_str());
+   if (isGoodDesign(vdb.glmMatrixFile))
+   {
+	   CmdLn.str("");
+	   CmdLn << "fsl_glm -i " << vdb.trainGLM4DFile << " -d " << vdb.glmMatrixFile << " -c " << vdb.contrastFile << " -m " << auxString << " -o " << vdb.glmDir << "betas" << vdb.trainFeatureSuffix << " --out_t=" << vdb.glmTOutput << " --out_z=" << vdb.glmZOutput << " --out_p=" << vdb.glmDir << "pvalues" << vdb.trainFeatureSuffix;
+	   fsl_glm((char *)CmdLn.str().c_str());
+   }
+   else fprintf(stderr, "Problems in design matrix. Erro in GLM.\n");
    
    vdb.rGLM=true;
 }
@@ -145,9 +185,24 @@ void FriendProcess::featureSelection()
 {
    stringstream CmdLn;
    if (!vdb.rPrepVars) prepRealtimeVars();
-   // generate file with the maximum T for each voxel in the contrasts made
-   CmdLn << "fslmaths " << vdb.glmTOutput << " -Tmax " << vdb.featuresAllTrainSuffix;
-   fslmaths((char *)CmdLn.str().c_str());
+   if (fileExists(vdb.glmTOutput))
+   {
+	   // generate file with the maximum T for each voxel in the contrasts made
+	   CmdLn << "fslmaths " << vdb.glmTOutput << " -Tmax " << vdb.featuresAllTrainSuffix;
+	   fslmaths((char *)CmdLn.str().c_str());
+   }
+   else
+   {
+	   // reporting error an creating a fake glm t output
+	   fprintf(stderr, "Error occurred in glm calculation. Feature selection derived from it is invalid.");
+
+	   CmdLn << "fslmaths " << vdb.maskFile << " -mul 0 " << vdb.featuresAllTrainSuffix;
+	   fslmaths((char *)CmdLn.str().c_str());
+
+	   CmdLn.str("");
+	   CmdLn << "fslmaths " << vdb.maskFile << " -bin " << vdb.glmDir << "pvalues" << vdb.trainFeatureSuffix;
+	   fslmaths((char *)CmdLn.str().c_str());
+   }
 
    // generates the mni mask in subject space
    if (fileExists(vdb.mniMask) && fileExists(vdb.mniTemplate))
@@ -161,7 +216,7 @@ void FriendProcess::featureSelection()
       sprintf(vdb.subjectSpaceMask, "%s%s%s.nii", vdb.inputDir, name, vdb.trainFeatureSuffix);
       
       // brings the mni mask to subject space
-      MniToSubject(vdb.rfiFile, vdb.mniMask, vdb.mniTemplate, vdb.subjectSpaceMask, prefix);
+      MniToSubject(vdb.maskFile, vdb.mniMask, vdb.mniTemplate, vdb.subjectSpaceMask, prefix);
    }
    
    if (vdb.useWholeSubjectSpaceMask)
@@ -172,28 +227,64 @@ void FriendProcess::featureSelection()
    }
    else
    {
-      if (vdb.byCutOff)
-      {
-         // do threshold
-         CmdLn.str("");
-         CmdLn << "fslmaths " << vdb.featuresAllTrainSuffix << " -thr " << vdb.tTestCutOff << " " << vdb.featuresTrainSuffix;
-         fslmaths((char *)CmdLn.str().c_str());
-      }
-      else
-      {
-         /// select a percentage of higher voxels
-         volume<float> features;
-         string featuresFile = vdb.featuresAllSuffix;
-         featuresFile += vdb.trainFeatureSuffix; 
-         read_volume(features, featuresFile);
-         float value=features.percentile((double)1.0-(double)(vdb.percentileHigherVoxels/100.0));
+	   switch (vdb.thresholdType)
+	   {
+		   case 0: // threshold by percentage
+		   {
+			   /// select a percentage of higher voxels
+			   volume<float> features;
+			   string featuresFile = vdb.featuresAllSuffix;
+			   featuresFile += vdb.trainFeatureSuffix;
+			   read_volume(features, featuresFile);
+			   float value = features.percentile((double)1.0 - (double)(vdb.percentileHigherVoxels / 100.0));
 
-         // do threshold
-         CmdLn.str("");
-         CmdLn << "fslmaths " << vdb.featuresAllTrainSuffix << " -thr " << value << " " << vdb.featuresTrainSuffix;
-         fslmaths((char *)CmdLn.str().c_str());
-	  }
+			   // do threshold
+			   CmdLn.str("");
+			   CmdLn << "fslmaths " << vdb.featuresAllTrainSuffix << " -thr " << value << " " << vdb.featuresTrainSuffix;
+			   fslmaths((char *)CmdLn.str().c_str());
+
+			   break;
+		   }
+
+		   case 1: { // threshold by t-value
+			   // do threshold
+			   CmdLn.str("");
+			   CmdLn << "fslmaths " << vdb.featuresAllTrainSuffix << " -thr " << vdb.tTestCutOff << " " << vdb.featuresTrainSuffix;
+			   fslmaths((char *)CmdLn.str().c_str());
+			   break;
+		   }
+
+		   case 2: { // threshold by p-value
+			   // do threshold
+			   CmdLn.str("");
+			   CmdLn << "fslmaths " << vdb.glmDir << "pvalues" << vdb.trainFeatureSuffix << " -uthr " << vdb.pvalueCutOff << " -bin -mul " << vdb.featuresAllTrainSuffix << " " << vdb.featuresTrainSuffix;
+			   fslmaths((char *)CmdLn.str().c_str());
+			   break;
+		   }
+	   }
+
+	   // Saving a copy of the unmasked features
+	   CmdLn.str("");
+	   CmdLn << "fslmaths " << vdb.featuresTrainSuffix << " " << vdb.featuresTrainSuffix << "_NoMasked";
+	   fslmaths((char *)CmdLn.str().c_str());
+
+	   // creates the intersection between the subjectmask and the thresholded mask
+	   if (fileExists(vdb.subjectSpaceMask))
+	   {
+		   CmdLn.str("");
+		   CmdLn << "fslmaths " << vdb.featuresTrainSuffix << " -mas " << vdb.subjectSpaceMask << " " << vdb.featuresTrainSuffix;
+		   fslmaths((char *)CmdLn.str().c_str());
+	   }
+
+	   // erasing clusters with less than clustersize voxels
+	   if (vdb.clusterSize > 0)
+		   clusterSizeFiltering(vdb.featuresTrainSuffix, vdb.featuresTrainSuffix, vdb.clusterSize, 0);
    }
+
+   // restrict the voxel mask created to the betted rfi 
+   CmdLn.str("");
+   CmdLn << "fslmaths " << vdb.featuresTrainSuffix << " -mas " << vdb.maskFile << " " << vdb.featuresTrainSuffix;
+   fslmaths((char *)CmdLn.str().c_str());
 
    // create binary version
    CmdLn.str("");
@@ -593,7 +684,7 @@ void FriendProcess::unLoadLibrary()
 void FriendProcess::loadFunctions(char *library, char *trainFunc, char *testFunc, char *initFunc, char *finalFunc, char *volumeFunc, char *afterPreProcFunc)
 {
    pHandler.loadFunctions(library, trainFunc, testFunc, initFunc, finalFunc, volumeFunc, afterPreProcFunc);
-   if (vdb.rPrepVars) pHandler.callInitFunction(vdb);
+//   if (vdb.rPrepVars) pHandler.callInitFunction(vdb);
 }
 
 // set the path for plug in library file
@@ -773,6 +864,8 @@ void FriendProcess::prepRealTime()
    char arqAxial[BUFF_SIZE] = { }, CmdLn[BUFF_SIZE] = { }, betAnat[BUFF_SIZE] = { };
    size_t buffSize = BUFF_SIZE-1;
    
+   vdb.createDirectories();
+
    if (!vdb.rPrepVars)
 	   prepRealtimeVars();
 
@@ -794,7 +887,7 @@ void FriendProcess::prepRealTime()
    // bet Functional
    if (!fileExists(vdb.maskFile))
    {
-      snprintf(CmdLn, buffSize, "bet %s %s", vdb.rfiFile, vdb.maskFile);
+	   snprintf(CmdLn, buffSize, "bet %s %s %s", vdb.rfiFile, vdb.maskFile, vdb.betParameters);
       bet(CmdLn);
 
       snprintf(CmdLn, buffSize, "bet %s %s %s", vdb.maskFile, vdb.maskFile, vdb.betParameters);

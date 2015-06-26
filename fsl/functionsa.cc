@@ -18,6 +18,15 @@ extern "C" __declspec(dllexport) int _stdcall fslroi(char *CmdLn);
 extern "C" __declspec(dllexport) int _stdcall susan(char *CmdLn);
 template <class T> int _axial(char *innam, char *outnam);
 
+void FslFree(FSLIO* OP)
+{
+	if (OP->niftiptr->fname != NULL) free(OP->niftiptr->fname);
+	if (OP->niftiptr->iname != NULL) free(OP->niftiptr->iname);
+	if (OP->niftiptr != NULL) free(OP->niftiptr);
+	if (OP->fileptr != NULL) free(OP->fileptr);
+	free(OP);
+}
+
 int nifti_orientation_int( int ii )
 {
    switch( ii ){
@@ -63,6 +72,110 @@ void retornaijk(char *innam, int *is, int *ys, int *zs)
 	  FslFree(fslio);
   }
 
+}
+
+template <class T>
+struct triple { T x; T y; T z; };
+
+// get the stats of the clusters
+template <class T>
+void get_stats(const volume<int>& labelim, const volume<T>& origim,
+	vector<int>& size,
+	vector<T>& maxvals, vector<float>& meanvals,
+	vector<triple<int> >& max, vector<triple<float> >& cog,
+	bool minv)
+{
+	int labelnum = labelim.max();
+	size.resize(labelnum + 1, 0);
+	maxvals.resize(labelnum + 1, (T)0);
+	meanvals.resize(labelnum + 1, 0.0f);
+	triple<int> zero;
+	zero.x = 0; zero.y = 0; zero.z = 0;
+	triple<float> zerof;
+	zerof.x = 0; zerof.y = 0; zerof.z = 0;
+	max.resize(labelnum + 1, zero);
+	cog.resize(labelnum + 1, zerof);
+	vector<float> sum(labelnum + 1, 0.0);
+	for (int z = labelim.minz(); z <= labelim.maxz(); z++) {
+		for (int y = labelim.miny(); y <= labelim.maxy(); y++) {
+			for (int x = labelim.minx(); x <= labelim.maxx(); x++) {
+				int idx = labelim(x, y, z);
+				T oxyz = origim(x, y, z);
+				size[idx]++;
+				cog[idx].x += ((float)oxyz)*x;
+				cog[idx].y += ((float)oxyz)*y;
+				cog[idx].z += ((float)oxyz)*z;
+				sum[idx] += (float)oxyz;
+				if ((size[idx] == 1) ||
+					((oxyz>maxvals[idx]) && (!minv)) ||
+					((oxyz<maxvals[idx]) && (minv)))
+				{
+					maxvals[idx] = oxyz;
+					max[idx].x = x;
+					max[idx].y = y;
+					max[idx].z = z;
+				}
+			}
+		}
+	}
+	for (int n = 0; n <= labelnum; n++) {
+		if (size[n]>0.0) {
+			meanvals[n] = (sum[n] / ((float)size[n]));
+		}
+		if (sum[n]>0.0) {
+			cog[n].x /= sum[n];
+			cog[n].y /= sum[n];
+			cog[n].z /= sum[n];
+		}
+	}
+}
+
+extern "C" __declspec(dllexport) void _stdcall clusterSizeFiltering(char *fileName, char *outputName, int minClusterSize, float minValue, int connectionType)
+{
+	volume<float> inVol, mask;
+	volume<int> componentLabels;
+	string inName = string(fileName);
+	vector<int> size, idx;
+	vector<triple<int> > maxpos;
+	vector<triple<float> > cog;
+	vector<float> maxvals;
+	vector<float> meanvals;
+
+	read_volume(inVol, inName);
+	mask = inVol;
+	if (minValue != 0) mask.binarise(minValue);
+	else mask.binarise(0, mask.max() + 1, exclusive);
+	componentLabels = connected_components(mask, connectionType);
+
+	// get the statistics of the connected components
+	get_stats<float>(componentLabels, inVol, size, maxvals, meanvals, maxpos, cog, 0);
+
+	// Zeroing the components smaller than minClusterSize
+	for (int i = 1; i < size.size(); i++)
+	{
+		if (size[i] < minClusterSize)
+		{
+			for (int z = componentLabels.minz(); z <= componentLabels.maxz(); z++){
+				for (int y = componentLabels.miny(); y <= componentLabels.maxy(); y++){
+					for (int x = componentLabels.minx(); x <= componentLabels.maxx(); x++)
+					{
+						if (componentLabels(x, y, z) == i) componentLabels(x, y, z) = 0;
+					}
+				}
+			}
+		}
+	}
+
+	// filtering the volume
+	for (int z = componentLabels.minz(); z <= componentLabels.maxz(); z++){
+		for (int y = componentLabels.miny(); y <= componentLabels.maxy(); y++){
+			for (int x = componentLabels.minx(); x <= componentLabels.maxx(); x++)
+			{
+				if (componentLabels(x, y, z) == 0) inVol(x, y, z) = 0;
+			}
+		}
+	}
+	save_volume(inVol, string(outputName));
 }
 
 extern "C" __declspec(dllexport) void _stdcall CalculaBaseline4D(volume4D<float> *vol4D, int ini, int fim, volume<float> *&saida)

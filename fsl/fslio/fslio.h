@@ -166,7 +166,6 @@ void  FslSetIgnoreMFQ(int flag);
 int   FslGetIgnoreMFQ(void);
 void  FslSetOverrideOutputType(int type);
 int   FslGetOverrideOutputType(void);
-void FslFree(FSLIO* OP);
 
 int  FslGetFileType(const FSLIO *fslio);
 void FslSetFileType(FSLIO *fslio, int filetype);
@@ -253,7 +252,6 @@ size_t FslReadTimeSeries(FSLIO *fslio, void *buffer, short xVox, short yVox, sho
   /* miscellaneous helper stuff */
 
 mat33 mat44_to_mat33(mat44 x);
-
 
 
 /* added by KF pending discussion w/ Mark */

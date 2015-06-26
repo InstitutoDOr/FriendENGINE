@@ -69,10 +69,11 @@
 #include "newimageio.h"
 #include "dirf.h"
 
+void FslFree(FSLIO* OP);
+
 using namespace MISCMATHS;
 
 namespace NEWIMAGE {
-
 
 
 ////////////////////////////////////////////////////////////////////////////

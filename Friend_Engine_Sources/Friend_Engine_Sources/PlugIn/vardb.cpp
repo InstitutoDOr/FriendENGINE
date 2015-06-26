@@ -209,13 +209,14 @@ void studyParams::readConfigVars()
    runSize = readedIni.GetLongValue("FRIEND", "FuncVolumes");
    strcpy(baselineCondition, readedIni.GetValue("FRIEND", "BaselineCondition", "NEUTRAL"));
    offset = readedIni.GetLongValue("FRIEND", "Offset", 4);
-   tTestCutOff= readedIni.GetDoubleValue("FRIEND", "tTestCutOff", 5.5);
+   tTestCutOff = readedIni.GetDoubleValue("FRIEND", "tTestCutOff", 5.5);
+   pvalueCutOff = readedIni.GetDoubleValue("FRIEND", "pvalueCutOff", 0.005);
    clusterSize = readedIni.GetLongValue("FRIEND", "ClusterSize", clusterSize);
    
    sprintf(trainFeatureSuffix, "_%s", readedIni.GetValue("FRIEND", "CurrentRunSuffix"));
    sprintf(testFeatureSuffix,  "_%s", readedIni.GetValue("FRIEND", "ModelRunSuffix"));
    
-   byCutOff = readedIni.GetLongValue("FRIEND", "ByCutOff", 0);
+   thresholdType = readedIni.GetLongValue("FRIEND", "ByCutOff", 0);
    includeMotionParameters = readedIni.GetLongValue("FRIEND", "IncludeMotionParameters", 1);
    referenceFirstVolSequence = readedIni.GetLongValue("FRIEND", "ReferenceFirstVolSequence", 0);
    conditionContrasts = readedIni.GetLongValue("FRIEND", "ConditionContrasts", 1);
@@ -253,6 +254,59 @@ void studyParams::saveConfigBuffer(char *buffer, int size, char *configfile)
     ini.SaveFile(configfile, false);
 }
 
+// creates the necessary directories
+void studyParams::createDirectories()
+{
+	fprintf(stderr, "Creating study dir\n");
+#ifdef WIN32
+	_mkdir(studyDir);
+#else
+	mkdir(studyDir, 0777); // notice that 777 is different than 0777
+#endif
+
+	fprintf(stderr, "Creating study dir\n");
+#ifdef WIN32
+	_mkdir(outputDir);
+#else
+	mkdir(outputDir, 0777); // notice that 777 is different than 0777
+#endif
+
+	fprintf(stderr, "Creating activation dir\n");
+#ifdef WIN32
+	_mkdir(activationsDir);
+#else
+	mkdir(activationsDir, 0777); // notice that 777 is different than 0777
+#endif
+
+	fprintf(stderr, "Creating input dir\n");
+#ifdef WIN32
+	_mkdir(inputDir);
+#else
+	mkdir(inputDir, 0777); // notice that 777 is different than 0777
+#endif
+
+	fprintf(stderr, "Creating glm dir\n");
+#ifdef WIN32
+	_mkdir(glmDir);
+#else
+	mkdir(glmDir, 0777); // notice that 777 is different than 0777
+#endif
+
+	fprintf(stderr, "Creating log dir\n");
+#ifdef WIN32
+	_mkdir(logDir);
+#else
+	mkdir(logDir, 0777); // notice that 777 is different than 0777
+#endif
+
+	fprintf(stderr, "Creating preproc dir\n");
+#ifdef WIN32
+	_mkdir(preprocDir);
+#else
+	mkdir(preprocDir, 0777); // notice that 777 is different than 0777
+#endif
+}
+
 // initializes the internal variables after the config file load
 void studyParams::prepRealtimeVars()
 {
@@ -267,21 +321,10 @@ void studyParams::prepRealtimeVars()
     snprintf(predictionFileAux, buffSize, "%s%s", outputDir, "predictionaux.nii");
     
 	snprintf(activationsDir, buffSize, "%s%s%s%c", outputDir, "activations", trainFeatureSuffix, PATHSEPCHAR);
-	fprintf(stderr, "Creating activation dir\n");
-#ifdef WIN32
-	_mkdir(activationsDir);
-#else
-	mkdir(activationsDir, 0777); // notice that 777 is different than 0777
-#endif
 	
 	snprintf(inputDir, buffSize, "%s%s%c", outputDir, "input", PATHSEPCHAR);
-	fprintf(stderr, "Creating input dir\n");
-#ifdef WIN32
-    _mkdir(inputDir);
-#else
-    mkdir(inputDir, 0777); // notice that 777 is different than 0777
-#endif
-    snprintf(baseImage, buffSize, "%s%s", inputDir, "RAI_ax_cube.nii");
+
+	snprintf(baseImage, buffSize, "%s%s", inputDir, "RAI_ax_cube.nii");
    
     snprintf(matrixFile, buffSize, "%s%s", inputDir, "RFI2RAI_ax_cube_sks.mat");
    
@@ -292,18 +335,14 @@ void studyParams::prepRealtimeVars()
     snprintf(activationFile, buffSize, "%s%s", inputDir, "RAI_ax_cube.nii");
     
     snprintf(glmDir, buffSize, "%s%s%c", outputDir, "glm", PATHSEPCHAR);
-	fprintf(stderr, "Creating glm dir\n");
-#ifdef WIN32
-    _mkdir(glmDir);
-#else
-    mkdir(glmDir, 0777); // notice that 777 is different than 0777
-#endif
     
     snprintf(contrastFile, buffSize, "%s%s%s%s", glmDir, "constrast", trainFeatureSuffix, ".txt");
    
     snprintf(glmTOutput, buffSize, "%s%s%s", glmDir, "tstats", trainFeatureSuffix);
    
-    snprintf(featuresSuffix, buffSize, "%s%s", glmDir, "tstats_features");
+	snprintf(glmZOutput, buffSize, "%s%s%s", glmDir, "zstats", trainFeatureSuffix);
+
+	snprintf(featuresSuffix, buffSize, "%s%s", glmDir, "tstats_features");
    
     snprintf(featuresAllSuffix, buffSize, "%s%s", glmDir, "tstats_features_ALL");
    
@@ -318,20 +357,8 @@ void studyParams::prepRealtimeVars()
     snprintf(glmMatrixFile, buffSize, "%s%s%s%s", glmDir, "design_with2Gamma", trainFeatureSuffix, ".txt");
    
     snprintf(logDir, buffSize, "%s%s%c", outputDir, "log", PATHSEPCHAR);
-	fprintf(stderr, "Creating log dir\n");
-#ifdef WIN32
-    _mkdir(logDir);
-#else
-    mkdir(logDir, 0777); // notice that 777 is different than 0777
-#endif
     
    snprintf(preprocDir, buffSize, "%s%s%c", outputDir, "preproc", PATHSEPCHAR);
-   fprintf(stderr, "Creating preproc dir\n");
-#ifdef WIN32
-   _mkdir(preprocDir);
-#else
-   mkdir(preprocDir, 0777); // notice that 777 is different than 0777
-#endif
 
    // setting Design object internal variables
     fprintf(stderr, "reading design file %s\n", designFile);

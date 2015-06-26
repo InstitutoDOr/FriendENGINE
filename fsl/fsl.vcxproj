@@ -103,7 +103,6 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>.\gdlib\Release\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>g:\friend\fsl.dll</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <LargeAddressAware />
@@ -154,7 +153,6 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>.\gdlib\Release\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>e:\FRIEND\fsl.dll</OutputFile>
       <Version>1.4</Version>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>

@@ -102,9 +102,10 @@ svm_model* loadModel(char *modelFileName)
 }
 
 // unloads a model in memory
-void unloadModel(svm_model *model)
+void unloadModel(svm_model *&model)
 {
    svm_free_and_destroy_model(&model);
+   model = NULL;
 }
 
 // returns the number of voxels whose intensities are above `minValue`

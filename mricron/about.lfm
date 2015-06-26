@@ -1,0 +1,69 @@
+object AboutForm: TAboutForm
+  Left = 683
+  Height = 127
+  Top = 153
+  Width = 327
+  ActiveControl = Panel1
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'About...'
+  ClientHeight = 127
+  ClientWidth = 327
+  Constraints.MaxHeight = 127
+  Constraints.MaxWidth = 327
+  Constraints.MinHeight = 127
+  Constraints.MinWidth = 327
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.0.2.0'
+  object Panel1: TPanel
+    Left = 0
+    Height = 48
+    Top = 0
+    Width = 327
+    Align = alTop
+    Alignment = taLeftJustify
+    BevelOuter = bvNone
+    Caption = ' MRIcron'
+    Font.Color = clBlack
+    Font.Height = -19
+    Font.Name = 'helvetica [adobe]'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 0
+    OnClick = Panel1Click
+    OnDragDrop = Panel1DragDrop
+  end
+  object Panel2: TPanel
+    Left = 8
+    Height = 67
+    Top = 47
+    Width = 307
+    ClientHeight = 67
+    ClientWidth = 307
+    TabOrder = 1
+    object HomepageLabel: TLabel
+      Left = 0
+      Height = 20
+      Top = 10
+      Width = 305
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'version'
+      ParentColor = False
+      OnClick = HomePageClick
+    end
+    object ThreadLabel: TLabel
+      Left = 1
+      Height = 20
+      Top = 36
+      Width = 305
+      Alignment = taCenter
+      AutoSize = False
+      Caption = ' Threads'
+      ParentColor = False
+    end
+  end
+end

@@ -1,4 +1,17 @@
 #include "svm.h"
+#include "masks.h"
+
+// Class to relocate the mean of a projection time serie
+class AdaptingSVM
+{
+	float positiveClass, negativeClass;
+	IncrementalStats incrementalMean;
+
+public:
+	void initialize(char *model);
+	void initialize(struct svm_model *model);
+	void adaptResult(float &classNumber, float &projection, int adapt = 1);
+};
 
 // class responsible for handling the libsvm functions
 class SVMObj

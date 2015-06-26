@@ -24,7 +24,7 @@ double svmSamplePredict(const svm_model *model, const svm_node *sample, double &
 svm_model* loadModel(char *modelFileName);
 
 // unloads a model in memory
-void unloadModel(svm_model *model);
+void unloadModel(svm_model *&model);
 
 // transforms a 4D Volume in a SVM samples file, based on a mask
 void saveSVMFile(const char *volume4DFileName, const char *maskFileName, const char *outputFileName, float minValue, vector <int > &indexes, vector <int> &classes);

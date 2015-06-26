@@ -269,9 +269,13 @@ bool	friendEngine::serverChild ( int	socketFd )
 			   fprintf(stderr, "Session %s deleted.\n", sessionID);
             }
 
-            process.wrapUpRun();
-            sprintf(command, "OK\n");
-            socks.writeString(command);
+			fprintf(stderr, "Sending last ack.\n", sessionID);
+			sprintf(command, "OK\n");
+			socks.writeString(command);
+
+			process.wrapUpRun();
+			fprintf(stderr, "Process object finalized.\n", sessionID);
+			fflush(stderr);
 			//freopen("CON", "w", stderr);
             break;
          }
@@ -636,10 +640,11 @@ bool	friendEngine::serverChild ( int	socketFd )
       }
    }
    endTime = time(NULL);
-   fprintf(stderr, "Finished. Elapsed time = %ld secs.\n", endTime-iniTime);
+
    // delaying the thread termination to allow clients to read the last send message
    sleep(1000);
    closesocket ( socketFd );
+   fprintf(stderr, "Finished. Elapsed time = %ld secs.\n", endTime - iniTime);
    return (TRUE);
 }
 

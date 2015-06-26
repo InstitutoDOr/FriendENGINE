@@ -1,0 +1,47 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TMainForm','FORMDATA',[
+  'TPF0'#9'TMainForm'#8'MainForm'#4'Left'#3'c'#1#6'Height'#3'k'#1#3'Top'#3#132#0
+  +#5'Width'#3'V'#2#13'ActiveControl'#7#6'Panel1'#14'AllowDropFiles'#9#7'Captio'
+  +'n'#6#7'dcm2nii'#12'ClientHeight'#3'k'#1#11'ClientWidth'#3'V'#2#4'Menu'#7#9
+  +'MainMenu1'#7'OnClose'#7#9'FormClose'#8'OnCreate'#7#10'FormCreate'#11'OnDrop'
+  +'Files'#7#13'FormDropFiles'#6'OnShow'#7#8'FormShow'#10'LCLVersion'#6#7'1.0.2'
+  +'.0'#0#5'TMemo'#5'Memo1'#4'Left'#2#4#6'Height'#3'E'#1#3'Top'#2'"'#5'Width'#3
+  +'N'#2#5'Align'#7#8'alClient'#18'BorderSpacing.Left'#2#4#19'BorderSpacing.Rig'
+  +'ht'#2#4#20'BorderSpacing.Bottom'#2#4#10'ScrollBars'#7#14'ssAutoVertical'#8
+  +'TabOrder'#2#0#0#0#6'TPanel'#6'Panel1'#4'Left'#2#0#6'Height'#2'"'#3'Top'#2#0
+  +#5'Width'#3'V'#2#5'Align'#7#5'alTop'#10'BevelOuter'#7#6'bvNone'#12'ClientHei'
+  +'ght'#2'"'#11'ClientWidth'#3'V'#2#8'TabOrder'#2#1#0#6'TLabel'#6'Label1'#4'Le'
+  +'ft'#2#1#6'Height'#2#26#3'Top'#2#5#5'Width'#3#140#0#9'Alignment'#7#14'taRigh'
+  +'tJustify'#7'Anchors'#11#6'akLeft'#0#8'AutoSize'#8#7'Caption'#6#16'Output Fo'
+  +'rmat:  '#6'Layout'#7#8'tlCenter'#11'ParentColor'#8#0#0#9'TComboBox'#9'TypeC'
+  +'ombo'#4'Left'#3#160#0#6'Height'#2#20#3'Top'#2#3#5'Width'#3#8#1#10'ItemHeigh'
+  +'t'#2#0#13'Items.Strings'#1#6#24'SPM2 (3D Anlyze hdr/img)'#6#23'SPM5 (3D NIf'
+  +'TI hdr/img)'#6#19'SPM8 (3D NIfTI nii)'#6#16'4D NIfTI hdr/img'#6#23'FSL/SPM8'
+  +' (4D NIfTI nii)'#6#29'Compressed FSL (4D NIfTI nii)'#0#5'Style'#7#14'csDrop'
+  +'DownList'#8'TabOrder'#2#0#0#0#0#11'TOpenDialog'#10'OpenHdrDlg'#11'FilterInd'
+  +'ex'#2#0#4'left'#2#24#3'top'#2'0'#0#0#9'TMainMenu'#9'MainMenu1'#4'left'#2'X'
+  +#3'top'#2'0'#0#9'TMenuItem'#5'File1'#7'Caption'#6#4'File'#0#9'TMenuItem'#13
+  +'DICOMtoNIfTI1'#7'Caption'#6#14'DICOM to NIfTI'#8'ShortCut'#3'D@'#7'OnClick'
+  +#7#15'dcm2niiBtnClick'#0#0#9'TMenuItem'#12'ModifyNIfTI1'#7'Caption'#6#12'Mod'
+  +'ify NIfTI'#7'OnClick'#7#17'ModifyNIfTI1Click'#0#0#9'TMenuItem'#10'NIfTI3D4D'
+  +'1'#7'Caption'#6#14'NIfTI 3D -> 4D'#7'OnClick'#7#15'NIfTI3D4D1Click'#0#0#9'T'
+  +'MenuItem'#15'AnonymizeDICOM1'#7'Caption'#6#15'Anonymize DICOM'#7'OnClick'#7
+  +#20'AnonymizeDICOM1Click'#0#0#9'TMenuItem'#5'Exit1'#7'Caption'#6#4'Exit'#7'O'
+  +'nClick'#7#10'Exit1Click'#0#0#0#9'TMenuItem'#5'Edit1'#7'Caption'#6#4'Edit'#0
+  +#9'TMenuItem'#5'Copy1'#7'Caption'#6#4'Copy'#7'OnClick'#7#10'Copy1Click'#0#0#0
+  +#9'TMenuItem'#12'UntestedMenu'#7'Caption'#6#8'Untested'#0#9'TMenuItem'#17'Mi'
+  +'rrorXdimension1'#7'Caption'#6#18'Mirror X-dimension'#7'OnClick'#7#22'Mirror'
+  +'Xdimension1Click'#0#0#9'TMenuItem'#7'SumTPM1'#7'Caption'#6#7'Sum TPM'#7'OnC'
+  +'lick'#7#12'SumTPM1Click'#0#0#9'TMenuItem'#17'ExtractDICOMdims1'#7'Caption'#6
+  +#18'Extract DICOM dims'#7'OnClick'#7#22'ExtractDICOMdims1Click'#0#0#9'TMenuI'
+  +'tem'#16'ExtractDICOMhdr1'#7'Caption'#6#20'Extract DICOM header'#7'OnClick'#7
+  +#21'ExtractDICOMhdr1Click'#0#0#9'TMenuItem'#17'ExtractNIfTIhdrs1'#7'Caption'
+  +#6#20'Extract NIfTI header'#7'OnClick'#7#22'ExtractNIfTIhdrs1Click'#0#0#9'TM'
+  +'enuItem'#10'HalveMenu1'#7'Caption'#6#25'Halve dimensions in-plane'#7'OnClic'
+  +'k'#7#15'HalveMenu1Click'#0#0#0#9'TMenuItem'#5'Help1'#7'Caption'#6#4'Help'#0
+  +#9'TMenuItem'#12'Preferences1'#7'Caption'#6#11'Preferences'#7'OnClick'#7#17
+  +'Preferences1Click'#0#0#9'TMenuItem'#6'About1'#7'Caption'#6#4'Help'#7'OnClic'
+  +'k'#7#11'About1Click'#0#0#0#0#22'TSelectDirectoryDialog'#22'SelectDirectoryD'
+  +'ialog1'#4'left'#3#159#0#3'top'#2'6'#0#0#0
+]);

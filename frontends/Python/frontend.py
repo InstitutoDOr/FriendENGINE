@@ -176,7 +176,10 @@ mainThread.connect((HOST, PORT));
 # creating a session and getting sessionID
 sessionID = createSession(mainThread);
 
-option = str(sys.argv[1]);
+if (len(sys.argv)>1):
+   option = str(sys.argv[1]);
+else:
+   option = "1";
 
 if (option=="1"):
    PIPELINE = 1;

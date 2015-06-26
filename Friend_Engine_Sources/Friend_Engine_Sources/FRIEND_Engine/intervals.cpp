@@ -94,7 +94,8 @@ const char *DesignObject::getCondition(int idx)
 int DesignObject::getConditionsList()
 {
 	conditionNames.clear();
-   
+	conditionNamesWithoutBaseline.clear();
+
    // inserting names that doesn't exists in the list
 	for (int i = 0; i< intervals.size(); i++)
 	{
@@ -102,12 +103,16 @@ int DesignObject::getConditionsList()
       if (stringIndex(conditionNames, intervals[i].condition) == -1)
 		{
 		   string actualCondition = intervals[i].condition;
-         conditionNames.push_back(actualCondition);
+		   conditionNames.push_back(actualCondition);
+		   if (!isBaselineCondition(actualCondition))
+			   conditionNamesWithoutBaseline.push_back(actualCondition);
 		}
 	}
    
    // ordering conditions
    std::sort(conditionNames.begin(), conditionNames.end());
+   std::sort(conditionNamesWithoutBaseline.begin(), conditionNamesWithoutBaseline.end());
+
    return conditionNames.size();
 }
 
@@ -120,11 +125,14 @@ int DesignObject::getVolumeIndices(int offset, int start, int end, vector <int> 
    if (NoFirstInterval) initInterval=1;
 	for (int i=initInterval;i<intervals.size();i++)
 	{
-		for (int j=(intervals[i].start+offset);j<=intervals[i].end;j++)
-      if ((j >= start) && (j <= end) && (!isBaselineCondition(intervals[i].condition)))
-      {
-         indexes.push_back(j);
-      }
+
+		for (int j = (intervals[i].start + offset); j <= intervals[i].end; j++)
+		{
+			if ((j >= start) && (j <= end) && ((!isBaselineCondition(intervals[i].condition)) || (conditionNamesWithoutBaseline.size()==1))) // if we jut have one condition include baseline
+			{
+				indexes.push_back(j);
+			}
+		}
 	}
 	return indexes.size();
 }
@@ -313,80 +321,74 @@ void DesignObject::generateContrasts(bool conditionContrasts, bool temporalDeriv
    int arrayContrastSize=0, arrayContrastInd=0;
    int contrastSize=0;
    
-   // Contrasts with baseline
-   if (conditionNames.size() >= 2)
-   {
-      for (int t = 1; t<= conditionNames.size(); t++)
-      if (!isBaselineCondition(conditionNames[t-1]))
-      contrastSize++;
-   };
+   // Number of non baseline conditions contrasts 
+   contrastSize = conditionNamesWithoutBaseline.size();
    
-   // contrast between non baseline conditions
+   // Number of contrasts between non baseline conditions
    if (conditionContrasts)
    {
       // Contrasts with Baseline (T negative condition, J positive condition)
-      for (int t=1; t<= conditionNames.size(); t++)
+      for (int t=1; t<= conditionNamesWithoutBaseline.size(); t++)
       {
-         if (!isBaselineCondition(conditionNames[t-1]))
-         {
-            for (int j=1; j <= conditionNames.size(); j++)
-            if ((!isBaselineCondition(conditionNames[j-1])) && (t!=j))
-            contrastSize++;
-         };
+		  for (int j=1; j <= conditionNamesWithoutBaseline.size(); j++)
+			  if (t!=j) contrastSize++;
       };
    };
    
-   if (temporalDerivatives) arrayContrastSize = 2 * conditionNames.size();
-   else arrayContrastSize = conditionNames.size();
+   // Defining the size of the contrast vector, depending of the use of temporal derivatives
+   if (temporalDerivatives) arrayContrastSize = 2 * conditionNamesWithoutBaseline.size();
+   else arrayContrastSize = conditionNamesWithoutBaseline.size();
    
+   // Actually filling the contrast information
+   // First condition contrast 
    contrasts.resize(contrastSize);
-   if (conditionNames.size() >= 2)
+   if (conditionNamesWithoutBaseline.size())
    {
-      for (int t = 1; t<= conditionNames.size(); t++)
+      for (int t = 1; t<= conditionNamesWithoutBaseline.size(); t++)
       {
-         if (!isBaselineCondition(conditionNames[t-1]))
-         {
-            contrasts[contrastInd].contrastVector = (float  *) malloc(arrayContrastSize * sizeof(float));
-            arrayContrastInd=0;
-            for (int j=1; j <= conditionNames.size(); j++)
-            {
-               if (isBaselineCondition(conditionNames[j-1])) contrasts[contrastInd].contrastVector[arrayContrastInd++] = -1;
-               else if (t==j) contrasts[contrastInd].contrastVector[arrayContrastInd++] = 1;
-               else contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
-               if (temporalDerivatives) contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
-            };
-            sprintf(contrasts[contrastInd].name, "%s%s%s", conditionNames[t-1].c_str(), "-", baselineCondition);
-            contrastInd++;
-         };
+        contrasts[contrastInd].contrastVector = (float  *) malloc(arrayContrastSize * sizeof(float));
+		// zeroing the contrast vector
+		for (int j = 0; j < arrayContrastSize; j++) contrasts[contrastInd].contrastVector[j] = 0;
+
+        arrayContrastInd=0;
+        for (int j=1; j <= conditionNamesWithoutBaseline.size(); j++)
+        {
+            if (t==j) contrasts[contrastInd].contrastVector[arrayContrastInd++] = 1;
+            else contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
+            if (temporalDerivatives) contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
+        };
+        sprintf(contrasts[contrastInd].name, "%s", conditionNamesWithoutBaseline[t-1].c_str());
+        contrastInd++;
       };
    };
    
+   // Now contrast between non baseline conditions
    if (conditionContrasts)
    {
       // Contrasts without Baseline (T negative condition, J positive condition)
-      for (int t=1; t <= conditionNames.size(); t++)
+      for (int t=1; t <= conditionNamesWithoutBaseline.size(); t++)
       {
-         if (!isBaselineCondition(conditionNames[t-1]))
-         {
-            for (int j=1; j <= conditionNames.size(); j++)
+        for (int j=1; j <= conditionNamesWithoutBaseline.size(); j++)
+        {
+            if (t!=j)
             {
-               if ((!isBaselineCondition(conditionNames[j-1])) && (t!=j))
-               {
-                  contrasts[contrastInd].contrastVector = (float  *) malloc(arrayContrastSize * sizeof(float));
-                  arrayContrastInd=0;
-                  for (int s=1; s <= conditionNames.size(); s++)
-                  {
-                     if (isBaselineCondition(conditionNames[s-1]))  contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
-                     else if (t==s) contrasts[contrastInd].contrastVector[arrayContrastInd++] = -1;
-                     else if (s==j) contrasts[contrastInd].contrastVector[arrayContrastInd++] = 1;
-                     else contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
-                     if (temporalDerivatives) contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
-                  };
-                  sprintf(contrasts[contrastInd].name, "%s%s%s", conditionNames[j-1].c_str(), "-", conditionNames[t-1].c_str());
-                  contrastInd++;
-               };
+                contrasts[contrastInd].contrastVector = (float  *) malloc(arrayContrastSize * sizeof(float));
+
+				// zeroing the contrast vector
+				for (int j = 0; j < arrayContrastSize; j++) contrasts[contrastInd].contrastVector[j] = 0;
+
+				arrayContrastInd = 0;
+                for (int s=1; s <= conditionNamesWithoutBaseline.size(); s++)
+                {
+                    if (t==s) contrasts[contrastInd].contrastVector[arrayContrastInd++] = -1;
+                    else if (s==j) contrasts[contrastInd].contrastVector[arrayContrastInd++] = 1;
+                    else contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
+                    if (temporalDerivatives) contrasts[contrastInd].contrastVector[arrayContrastInd++] = 0;
+                };
+                sprintf(contrasts[contrastInd].name, "%s%s%s", conditionNamesWithoutBaseline[j-1].c_str(), "-", conditionNamesWithoutBaseline[t-1].c_str());
+                contrastInd++;
             };
-         };
+        };
       };
    };
 };
@@ -468,9 +470,9 @@ void DesignObject::generateFSFFile(char *fileName, int numDynamics, bool motionP
    else outputFile << "set fmri(motionevs) 0" << '\n';
    outputFile << "" << '\n';
    outputFile << "# Number of EVs" << '\n';
-   outputFile << "set fmri(evs_orig) " << conditionNames.size() << '\n';
-   if (temporalDerivatives) outputFile << "set fmri(evs_real) " << 2*conditionNames.size() << '\n';
-   else outputFile << "set fmri(evs_real) " << conditionNames.size()  << '\n';
+   outputFile << "set fmri(evs_orig) " << conditionNamesWithoutBaseline.size() << '\n';
+   if (temporalDerivatives) outputFile << "set fmri(evs_real) " << 2*conditionNamesWithoutBaseline.size() << '\n';
+   else outputFile << "set fmri(evs_real) " << conditionNamesWithoutBaseline.size()  << '\n';
    outputFile << "set fmri(evs_vox) 0" << '\n';
    outputFile << "" << '\n';
    outputFile << "# Number of contrasts" << '\n';
@@ -491,10 +493,10 @@ void DesignObject::generateFSFFile(char *fileName, int numDynamics, bool motionP
    outputFile << "set fmri(paradigm_hp) 100" << '\n';
    outputFile << "" << '\n';
 
-   for (int t=1; t<=conditionNames.size(); t++)
+   for (int t=1; t<=conditionNamesWithoutBaseline.size(); t++)
    {
       outputFile << "# EV " << t << " title" << '\n';
-      outputFile << "set fmri(evtitle" << t << ") \"" << conditionNames[t-1] << "\"" << '\n';
+      outputFile << "set fmri(evtitle" << t << ") \"" << conditionNamesWithoutBaseline[t-1] << "\"" << '\n';
       outputFile << "" << '\n';
       outputFile << "# Basic waveform shape (EV " << t << ")" << '\n';
       outputFile << "# 0 : Square" << '\n';
@@ -527,7 +529,7 @@ void DesignObject::generateFSFFile(char *fileName, int numDynamics, bool motionP
       outputFile << "" << '\n';
       outputFile << "# Custom EV file (EV " << t << ")" << '\n';
 
-      sprintf(customFile, "%s%s%s",  glmDir, conditionNames[t-1].c_str(), ".txt");
+      sprintf(customFile, "%s%s%s",  glmDir, conditionNamesWithoutBaseline[t-1].c_str(), ".txt");
 
       outputFile << "set fmri(custom" << t << ") \"" << customFile << "\"" << '\n';
       outputFile << "" << '\n';
@@ -539,7 +541,7 @@ void DesignObject::generateFSFFile(char *fileName, int numDynamics, bool motionP
       outputFile << "" << '\n';
       outputFile << "# Orthogonalise EV " << t << " wrt EV 0" << '\n';
       outputFile << "set fmri(ortho" << t << ".0) 0" << '\n';
-      for (int j = 1; j <= conditionNames.size(); j++)
+      for (int j = 1; j <= conditionNamesWithoutBaseline.size(); j++)
       {
          outputFile << "" << '\n';
          outputFile << "# Orthogonalise EV " << t << " wrt EV " << j << '\n';
@@ -561,8 +563,8 @@ void DesignObject::generateFSFFile(char *fileName, int numDynamics, bool motionP
       outputFile << "" << '\n';
       outputFile << "# Title for contrast_real " << t << '\n';
       outputFile << "set fmri(conname_real." << t << ") \"" << contrasts[t-1].name << "\"" << '\n';
-      if (temporalDerivatives) contrastVectorSize = 2 * conditionNames.size();
-      else contrastVectorSize = conditionNames.size();
+      if (temporalDerivatives) contrastVectorSize = 2 * conditionNamesWithoutBaseline.size();
+      else contrastVectorSize = conditionNamesWithoutBaseline.size();
       for (int j = 1; j <= contrastVectorSize; j++)
       {
          outputFile << "" << '\n';
@@ -580,5 +582,6 @@ void DesignObject::cleanUp()
    intervals.clear();
    classes.clear();
    conditionNames.clear();
+   conditionNamesWithoutBaseline.clear();
    contrasts.clear();
 }

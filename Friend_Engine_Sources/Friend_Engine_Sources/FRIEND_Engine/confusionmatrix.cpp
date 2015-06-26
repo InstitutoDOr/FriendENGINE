@@ -67,7 +67,22 @@ float ConfusionMatrix::chance()
 {
 	int validClasses = matrixRank - neutralClasses;
 	if (validClasses < 0) validClasses = 1;
+	if (matrixRank == 2) validClasses = 2;
 	return (float) (100.0 / (float) (validClasses));
+}
+
+// returns the number of examples correctly classified
+int ConfusionMatrix::correctExamples()
+{
+	int total = 0, acc = 0;
+
+	for (int target = 0; target < matrixRank; target++)
+		for (int acquired = 0; acquired < matrixRank; acquired++)
+		{
+			if (target == acquired) acc = acc + matrix[target*matrixRank + acquired];
+			total = total + matrix[target*matrixRank + acquired];
+		};
+	return acc;
 }
 
 // returns the accucary of the samples informed to the confusion matrix
@@ -150,9 +165,9 @@ void ConfusionMatrix::saveMatrixReport(const char *file)
 		fprintf(f, "-------------------------------------------------------------------------------------------------------------------------------\n");
 		fprintf(f, "|%20s|", "Specificity");
 
-		for (int j=0;j<matrixRank;j++)
+		int acc = 0, total = 0;
+		for (int j = 0; j<matrixRank; j++)
 		{
-			int acc=0, total=0;
 			for (int i=0;i<matrixRank;i++)
 			{
 				if (i==j) acc = matrix[i*matrixRank+j];
@@ -170,9 +185,9 @@ void ConfusionMatrix::saveMatrixReport(const char *file)
 		sprintf(buffer, "%.2f", hits());
 		strcat(buffer, "%");
 
-		fprintf(f, "kappa Value   : %.2f\n", kappa());
+		fprintf(f, "kappa Value    : %.2f\n", kappa());
 		fprintf(f, "Total Accuracy : %s\n", buffer);
-		fprintf(f, "Total Examples : %d\n", examples());
+		fprintf(f, "Accuracy       : %d in %d\n", correctExamples(), examples());
 		fclose(f);
 	}
 }

@@ -27,7 +27,8 @@ class DesignObject
          vector <Interval> intervals;
          vector <int> classes;
          vector <string> conditionNames;
-         vector <Contrast> contrasts;
+		 vector <string> conditionNamesWithoutBaseline;
+		 vector <Contrast> contrasts;
    
          // tests if a condition is the baseline condition
          bool isBaselineCondition(const string condition);

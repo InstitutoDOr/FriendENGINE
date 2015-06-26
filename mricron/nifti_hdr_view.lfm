@@ -1,0 +1,1394 @@
+object HdrForm: THdrForm
+  Left = 369
+  Height = 418
+  Top = 154
+  Width = 542
+  ActiveControl = PageControl1
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'NIfTI Header Information'
+  ClientHeight = 418
+  ClientWidth = 542
+  Constraints.MaxHeight = 418
+  Constraints.MaxWidth = 542
+  Constraints.MinHeight = 418
+  Constraints.MinWidth = 542
+  Font.Name = 'MS Sans Serif'
+  Menu = MainMenu1
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.0.12.0'
+  object PageControl1: TPageControl
+    Left = 4
+    Height = 395
+    Top = 4
+    Width = 534
+    ActivePage = TabRequired
+    Align = alClient
+    BorderSpacing.Left = 2
+    BorderSpacing.Top = 2
+    BorderSpacing.Right = 2
+    BorderSpacing.Bottom = 2
+    BorderSpacing.Around = 2
+    TabIndex = 0
+    TabOrder = 0
+    object TabRequired: TTabSheet
+      Caption = 'Dimensions'
+      ClientHeight = 356
+      ClientWidth = 528
+      object Label21: TLabel
+        Left = 6
+        Height = 18
+        Top = 6
+        Width = 80
+        Caption = 'Header Type'
+        ParentColor = False
+      end
+      object Label1: TLabel
+        Left = 14
+        Height = 18
+        Top = 35
+        Width = 269
+        Caption = 'Dimension   Length     Spacing            Unit'
+        Font.Name = 'MS Sans Serif'
+        ParentColor = False
+        ParentFont = False
+      end
+      object Label2: TLabel
+        Left = 16
+        Height = 18
+        Top = 67
+        Width = 46
+        Caption = 'I Space'
+        ParentColor = False
+      end
+      object Label3: TLabel
+        Left = 16
+        Height = 18
+        Top = 97
+        Width = 49
+        Caption = 'J Space'
+        ParentColor = False
+      end
+      object Label4: TLabel
+        Left = 16
+        Height = 18
+        Top = 131
+        Width = 51
+        Caption = 'K Space'
+        ParentColor = False
+      end
+      object Label8: TLabel
+        Left = 6
+        Height = 18
+        Top = 297
+        Width = 30
+        Caption = 'Data'
+        ParentColor = False
+      end
+      object Label7: TLabel
+        Left = 294
+        Height = 18
+        Top = 235
+        Width = 41
+        Caption = 'Offset'
+        ParentColor = False
+      end
+      object Label44: TLabel
+        Left = 16
+        Height = 18
+        Top = 166
+        Width = 31
+        Caption = 'Time'
+        ParentColor = False
+      end
+      object Label29: TLabel
+        Left = 16
+        Height = 18
+        Top = 198
+        Width = 51
+        Caption = '5th Dim'
+        ParentColor = False
+      end
+      object Label41: TLabel
+        Left = 16
+        Height = 18
+        Top = 230
+        Width = 51
+        Caption = '6th Dim'
+        ParentColor = False
+      end
+      object Label42: TLabel
+        Left = 16
+        Height = 18
+        Top = 265
+        Width = 51
+        Caption = '7th Dim'
+        ParentColor = False
+      end
+      object HeaderMagicDrop: TComboBox
+        Left = 108
+        Height = 20
+        Top = 2
+        Width = 239
+        ItemHeight = 0
+        Items.Strings = (
+          'Unknown'
+          'ni1: NIfTI separate file (hdr+.img)'
+          'n+1: NIfTI   embedded (.nii)'
+          'ni2: NIfTI2 separate file (hdr+.img)'
+          'n+2: NIfTI2   embedded (.nii)'
+        )
+        OnSelect = HeaderMagicDropSelect
+        Style = csDropDownList
+        TabOrder = 15
+      end
+      object Endian: TComboBox
+        Left = 231
+        Height = 20
+        Top = 291
+        Width = 210
+        ItemHeight = 0
+        Items.Strings = (
+          'Native Endian'
+          'Swapped Endian'
+        )
+        Style = csDropDownList
+        TabOrder = 16
+      end
+      object fTypeDrop: TComboBox
+        Left = 56
+        Height = 20
+        Top = 291
+        Width = 152
+        DropDownCount = 20
+        ItemHeight = 0
+        Items.Strings = (
+          'binary'
+          '8-bit S'
+          '8-bit int U*'
+          '16-bit int S*'
+          '16-bit int U'
+          '32-bit int S*'
+          '32-bit int U'
+          '64-bit int S'
+          '64-bit int U'
+          '32-bit real*'
+          '64-bit real*'
+          '128-bit real'
+          '24-bit rgb'
+          '64-bit com'
+          '128-bit complex'
+          '256-bit complex'
+        )
+        OnSelect = ImageSzChange
+        Style = csDropDownList
+        TabOrder = 17
+      end
+      object xyzt_sizeDrop: TComboBox
+        Left = 262
+        Height = 20
+        Top = 87
+        Width = 128
+        ItemHeight = 0
+        Items.Strings = (
+          'Unknown'
+          'Meter'
+          'Millimeter'
+          'Micrometer'
+          'Micron'
+        )
+        Style = csDropDownList
+        TabOrder = 18
+      end
+      object xyzt_timeDrop: TComboBox
+        Left = 262
+        Height = 20
+        Top = 157
+        Width = 128
+        ItemHeight = 0
+        Items.Strings = (
+          'Unknown'
+          'Second'
+          'Millisecond'
+          'Microsecond'
+          'Hertzsecond'
+          'Part '
+          'Part per million'
+        )
+        Style = csDropDownList
+        TabOrder = 19
+      end
+      object Xdim: TSpinEdit
+        Left = 80
+        Height = 16
+        Top = 59
+        Width = 74
+        MaxValue = 9999
+        MinValue = 1
+        OnExit = ImageSzChange
+        TabOrder = 0
+        Value = 2
+      end
+      object Ydim: TSpinEdit
+        Left = 80
+        Height = 16
+        Top = 89
+        Width = 74
+        MaxValue = 9999
+        MinValue = 1
+        OnChange = ImageSzChange
+        OnExit = ImageSzChange
+        TabOrder = 1
+        Value = 2
+      end
+      object Zdim: TSpinEdit
+        Left = 80
+        Height = 16
+        Top = 123
+        Width = 74
+        MaxValue = 9999
+        MinValue = 1
+        OnChange = ImageSzChange
+        OnExit = ImageSzChange
+        TabOrder = 2
+        Value = 1
+      end
+      object Xmm: TFloatSpinEdit
+        Left = 164
+        Height = 16
+        Top = 59
+        Width = 74
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 10
+        Value = 0
+      end
+      object Ymm: TFloatSpinEdit
+        Left = 164
+        Height = 16
+        Top = 89
+        Width = 74
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 11
+        Value = 0
+      end
+      object Zmm: TFloatSpinEdit
+        Left = 164
+        Height = 16
+        Top = 123
+        Width = 74
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 12
+        Value = 0
+      end
+      object OffsetEdit: TSpinEdit
+        Left = 342
+        Height = 16
+        Top = 230
+        Width = 94
+        MaxValue = 999999
+        OnExit = ImageSzChange
+        TabOrder = 14
+        Value = 1
+      end
+      object TDim: TSpinEdit
+        Left = 80
+        Height = 16
+        Top = 157
+        Width = 74
+        MaxValue = 9999
+        MinValue = 1
+        OnChange = ImageSzChange
+        OnExit = ImageSzChange
+        TabOrder = 3
+        Value = 1
+      end
+      object TSec: TFloatSpinEdit
+        Left = 164
+        Height = 16
+        Top = 157
+        Width = 74
+        DecimalPlaces = 4
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 13
+        Value = 0
+      end
+      object Dim5Edit: TSpinEdit
+        Left = 80
+        Height = 16
+        Top = 191
+        Width = 74
+        MaxValue = 35000
+        MinValue = 1
+        OnChange = ImageSzChange
+        OnExit = ImageSzChange
+        TabOrder = 4
+        Value = 1
+      end
+      object Dim6Edit: TSpinEdit
+        Left = 80
+        Height = 16
+        Top = 223
+        Width = 74
+        MaxValue = 35000
+        MinValue = 1
+        OnChange = ImageSzChange
+        OnExit = ImageSzChange
+        TabOrder = 5
+        Value = 1
+      end
+      object Dim7Edit: TSpinEdit
+        Left = 80
+        Height = 16
+        Top = 258
+        Width = 74
+        MaxValue = 35000
+        MinValue = 1
+        OnChange = ImageSzChange
+        OnExit = ImageSzChange
+        TabOrder = 9
+        Value = 1
+      end
+      object PixDim5: TFloatSpinEdit
+        Left = 164
+        Height = 16
+        Top = 191
+        Width = 74
+        DecimalPlaces = 4
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 6
+        Value = 0
+      end
+      object PixDim6: TFloatSpinEdit
+        Left = 164
+        Height = 16
+        Top = 223
+        Width = 74
+        DecimalPlaces = 4
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 7
+        Value = 0
+      end
+      object PixDim7: TFloatSpinEdit
+        Left = 164
+        Height = 16
+        Top = 258
+        Width = 74
+        DecimalPlaces = 4
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 8
+        Value = 0
+      end
+    end
+    object TabSheet4: TTabSheet
+      Caption = 'Reorient'
+      ClientHeight = 356
+      ClientWidth = 528
+      object Label24: TLabel
+        Left = 10
+        Height = 18
+        Top = 184
+        Width = 9
+        Caption = 'X'
+        ParentColor = False
+      end
+      object Label36: TLabel
+        Left = 10
+        Height = 18
+        Top = 218
+        Width = 9
+        Caption = 'Y'
+        ParentColor = False
+      end
+      object Label37: TLabel
+        Left = 10
+        Height = 18
+        Top = 251
+        Width = 8
+        Caption = 'Z'
+        ParentColor = False
+      end
+      object Label39: TLabel
+        Left = 10
+        Height = 18
+        Top = 123
+        Width = 61
+        Caption = 'Q Offsets'
+        ParentColor = False
+      end
+      object Label40: TLabel
+        Left = 10
+        Height = 18
+        Top = 86
+        Width = 76
+        Caption = 'Quaternions'
+        ParentColor = False
+      end
+      object Label46: TLabel
+        Left = 10
+        Height = 18
+        Top = 46
+        Width = 109
+        Caption = 'qFactor [1 or -1]'
+        ParentColor = False
+      end
+      object Label38: TLabel
+        Left = 4
+        Height = 18
+        Top = 9
+        Width = 150
+        Caption = 'Quaternion parameters '
+        ParentColor = False
+      end
+      object Label47: TLabel
+        Left = 4
+        Height = 18
+        Top = 157
+        Width = 118
+        Caption = 'Affine parameters '
+        ParentColor = False
+      end
+      object QFormDrop: TComboBox
+        Left = 150
+        Height = 20
+        Top = 5
+        Width = 260
+        ItemHeight = 0
+        Items.Strings = (
+          'None'
+          'Scanner Position'
+          'Coregistrationon'
+          'Normalized Tal'
+          'Normalzied mni152ach'
+          'Normalzied mni152'
+        )
+        OnSelect = HeaderMagicDropSelect
+        Style = csDropDownList
+        TabOrder = 19
+      end
+      object SFormDrop: TComboBox
+        Left = 145
+        Height = 20
+        Top = 150
+        Width = 204
+        ItemHeight = 0
+        Items.Strings = (
+          'None'
+          'Scanner Position'
+          'Coregistrationon'
+          'Normalized Tal'
+          'Normalzied mni152ach'
+          'Normalzied mni152'
+        )
+        OnSelect = HeaderMagicDropSelect
+        Style = csDropDownList
+        TabOrder = 20
+      end
+      object srow_x0Edit: TFloatSpinEdit
+        Left = 34
+        Height = 16
+        Top = 188
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 7
+        Value = 1
+      end
+      object srow_x1Edit: TFloatSpinEdit
+        Left = 142
+        Height = 16
+        Top = 188
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 8
+        Value = 1
+      end
+      object srow_x2Edit: TFloatSpinEdit
+        Left = 254
+        Height = 16
+        Top = 188
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 9
+        Value = 1
+      end
+      object srow_y0Edit: TFloatSpinEdit
+        Left = 34
+        Height = 16
+        Top = 222
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 11
+        Value = 1
+      end
+      object srow_y1Edit: TFloatSpinEdit
+        Left = 142
+        Height = 16
+        Top = 222
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 12
+        Value = 1
+      end
+      object srow_y2Edit: TFloatSpinEdit
+        Left = 254
+        Height = 16
+        Top = 222
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 13
+        Value = 1
+      end
+      object srow_z0Edit: TFloatSpinEdit
+        Left = 34
+        Height = 16
+        Top = 255
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 15
+        Value = 1
+      end
+      object srow_z1Edit: TFloatSpinEdit
+        Left = 142
+        Height = 16
+        Top = 255
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 16
+        Value = 1
+      end
+      object srow_z2Edit: TFloatSpinEdit
+        Left = 254
+        Height = 16
+        Top = 255
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 17
+        Value = 1
+      end
+      object srow_x3Edit: TFloatSpinEdit
+        Left = 366
+        Height = 16
+        Top = 188
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 10
+        Value = 1
+      end
+      object srow_y3Edit: TFloatSpinEdit
+        Left = 366
+        Height = 16
+        Top = 222
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 14
+        Value = 1
+      end
+      object srow_z3Edit: TFloatSpinEdit
+        Left = 366
+        Height = 16
+        Top = 255
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 9999
+        MinValue = -9999
+        TabOrder = 18
+        Value = 1
+      end
+      object quatern_bEdit: TFloatSpinEdit
+        Left = 94
+        Height = 16
+        Top = 84
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 100
+        MinValue = 0
+        TabOrder = 1
+        Value = 1
+      end
+      object quatern_cEdit: TFloatSpinEdit
+        Left = 212
+        Height = 16
+        Top = 84
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 100
+        MinValue = 0
+        TabOrder = 2
+        Value = 1
+      end
+      object quatern_dEdit: TFloatSpinEdit
+        Left = 332
+        Height = 16
+        Top = 84
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 100
+        MinValue = 0
+        TabOrder = 3
+        Value = 1
+      end
+      object qoffset_xEdit: TFloatSpinEdit
+        Left = 94
+        Height = 16
+        Top = 117
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 100
+        MinValue = 0
+        TabOrder = 4
+        Value = 1
+      end
+      object qoffset_yEdit: TFloatSpinEdit
+        Left = 212
+        Height = 16
+        Top = 117
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 100
+        MinValue = 0
+        TabOrder = 5
+        Value = 1
+      end
+      object qoffset_zEdit: TFloatSpinEdit
+        Left = 332
+        Height = 16
+        Top = 117
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 100
+        MinValue = 0
+        TabOrder = 6
+        Value = 1
+      end
+      object QFacEdit: TFloatSpinEdit
+        Left = 140
+        Height = 16
+        Top = 46
+        Width = 100
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 1
+        MinValue = -1
+        TabOrder = 0
+        Value = 1
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'Image Intensity'
+      ClientHeight = 338
+      ClientWidth = 526
+      object Label12: TLabel
+        Left = 24
+        Height = 17
+        Top = 163
+        Width = 58
+        Caption = 'Maximum'
+        ParentColor = False
+      end
+      object Label13: TLabel
+        Left = 24
+        Height = 17
+        Top = 129
+        Width = 54
+        Caption = 'Minimum'
+        ParentColor = False
+      end
+      object Label23: TLabel
+        Left = 24
+        Height = 17
+        Top = 28
+        Width = 37
+        Caption = 'Slope'
+        ParentColor = False
+      end
+      object Label22: TLabel
+        Left = 24
+        Height = 17
+        Top = 64
+        Width = 52
+        Caption = 'Intercept'
+        ParentColor = False
+      end
+      object Label30: TLabel
+        Left = 6
+        Height = 17
+        Top = 4
+        Width = 113
+        Caption = 'Calibration Scaling'
+        ParentColor = False
+      end
+      object Label33: TLabel
+        Left = 6
+        Height = 17
+        Top = 103
+        Width = 192
+        Caption = 'Display Range (calibrated units)'
+        ParentColor = False
+      end
+      object cmax: TFloatSpinEdit
+        Left = 94
+        Height = 16
+        Top = 165
+        Width = 110
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 3
+        Value = 0
+      end
+      object cmin: TFloatSpinEdit
+        Left = 94
+        Height = 16
+        Top = 129
+        Width = 110
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 2
+        Value = 0
+      end
+      object Scale: TFloatSpinEdit
+        Left = 94
+        Height = 16
+        Top = 28
+        Width = 110
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 0
+        Value = 0
+      end
+      object Intercept: TFloatSpinEdit
+        Left = 94
+        Height = 16
+        Top = 64
+        Width = 110
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 1
+        Value = 0
+      end
+    end
+    object TabSheet1: TTabSheet
+      Caption = 'Statistics'
+      ClientHeight = 356
+      ClientWidth = 528
+      object Label35: TLabel
+        Left = 8
+        Height = 18
+        Top = 14
+        Width = 57
+        Caption = 'Intention'
+        ParentColor = False
+      end
+      object Label25: TLabel
+        Left = 24
+        Height = 18
+        Top = 46
+        Width = 78
+        Caption = 'Parameter 1'
+        ParentColor = False
+      end
+      object Label27: TLabel
+        Left = 24
+        Height = 18
+        Top = 83
+        Width = 78
+        Caption = 'Parameter 2'
+        ParentColor = False
+      end
+      object Label28: TLabel
+        Left = 24
+        Height = 18
+        Top = 118
+        Width = 78
+        Caption = 'Parameter 3'
+        ParentColor = False
+      end
+      object IntentCodeDrop: TComboBox
+        Left = 76
+        Height = 20
+        Top = 8
+        Width = 218
+        DropDownCount = 44
+        ItemHeight = 0
+        Items.Strings = (
+          'Not statistics'
+          'Correlation coefficient '
+          'T-testation coefficient '
+          'F-test'
+          'Z-score'
+          'Chi-squared'
+          'Beta distri'
+          'Binomial distribution'
+          'Gamma distribution'
+          'Gamma distribution'
+          'Normal distribution'
+          'Noncentral F statistic'
+          'Noncentral chi-squared'
+          'Logistic distributiond statistic'
+          'Laplace distribution'
+          'Uniform distribution'
+          'Noncentral t statistic'
+          'Weibull distribution'
+          'Chi distribution'
+          'Inverse Gaussian '
+          'Extreme value type I'
+          'p-value value type I'
+          'ln(p-value)'
+          'log10(p-val'
+          'Estimatevalue)'
+          'Labels'
+          'NeuroN'
+          'Generic M'
+          'Symmetric Matrix'
+          'Displacement Field/Vector'
+          'Vectorcement Field/Vector'
+          'Points'
+          'Triangle (mesh)'
+          'Quaternion'
+        )
+        Style = csDropDownList
+        TabOrder = 3
+      end
+      object intent_p1Edit: TFloatSpinEdit
+        Left = 110
+        Height = 16
+        Top = 46
+        Width = 138
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 0
+        Value = 0
+      end
+      object intent_p2Edit: TFloatSpinEdit
+        Left = 110
+        Height = 16
+        Top = 83
+        Width = 138
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 1
+        Value = 0
+      end
+      object intent_p3Edit: TFloatSpinEdit
+        Left = 110
+        Height = 16
+        Top = 119
+        Width = 138
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 99999999
+        MinValue = -99999999
+        TabOrder = 2
+        Value = 0
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'fMRI'
+      ClientHeight = 356
+      ClientWidth = 528
+      object Label11: TLabel
+        Left = 12
+        Height = 18
+        Top = 145
+        Width = 69
+        Caption = 'Slice Order'
+        ParentColor = False
+      end
+      object Label16: TLabel
+        Left = 12
+        Height = 18
+        Top = 8
+        Width = 75
+        Caption = 'Time Offset'
+        ParentColor = False
+      end
+      object Label17: TLabel
+        Left = 14
+        Height = 18
+        Top = 39
+        Width = 86
+        Caption = 'Slice duration'
+        ParentColor = False
+      end
+      object Label32: TLabel
+        Left = 12
+        Height = 18
+        Top = 74
+        Width = 66
+        Caption = 'Slice Start'
+        ParentColor = False
+      end
+      object Label20: TLabel
+        Left = 12
+        Height = 18
+        Top = 105
+        Width = 57
+        Caption = 'Slice End'
+        ParentColor = False
+      end
+      object Label31: TLabel
+        Left = 12
+        Height = 18
+        Top = 178
+        Width = 134
+        Caption = 'Frequency Dimension'
+        ParentColor = False
+      end
+      object Label43: TLabel
+        Left = 12
+        Height = 18
+        Top = 214
+        Width = 106
+        Caption = 'Phase Dimension'
+        ParentColor = False
+      end
+      object Label45: TLabel
+        Left = 12
+        Height = 18
+        Top = 250
+        Width = 98
+        Caption = 'Slice Dimension'
+        ParentColor = False
+      end
+      object SliceCodeDrop: TComboBox
+        Left = 87
+        Height = 20
+        Top = 137
+        Width = 274
+        ItemHeight = 0
+        Items.Strings = (
+          'Unknown'
+          'Sequential Increasing (1 2 3 4)'
+          'Sequential Decreasing (4 3 2 1)'
+          'Interleaved Increasing (1 3 2 4)'
+          'Interleaved Decreasing (4 2 3 1)'
+          'Interleaved Increasing2 (2 4 1 3)'
+          'Interleaved Decreasing2 (3 1 4 2)'
+        )
+        OnSelect = ImageSzChange
+        Style = csDropDownList
+        TabOrder = 4
+      end
+      object FreqDimDrop: TComboBox
+        Left = 146
+        Height = 20
+        Top = 174
+        Width = 215
+        ItemHeight = 0
+        Items.Strings = (
+          'Unknown'
+          'I'
+          'J'
+          'K'
+        )
+        OnSelect = ImageSzChange
+        Style = csDropDownList
+        TabOrder = 5
+      end
+      object PhaseDimDrop: TComboBox
+        Left = 146
+        Height = 20
+        Top = 210
+        Width = 215
+        ItemHeight = 0
+        Items.Strings = (
+          'Unknown'
+          'I'
+          'J'
+          'K'
+        )
+        OnSelect = ImageSzChange
+        Style = csDropDownList
+        TabOrder = 6
+      end
+      object SliceDimDrop: TComboBox
+        Left = 146
+        Height = 20
+        Top = 246
+        Width = 215
+        ItemHeight = 0
+        Items.Strings = (
+          'Unknown'
+          'I'
+          'J'
+          'K'
+        )
+        OnSelect = ImageSzChange
+        Style = csDropDownList
+        TabOrder = 7
+      end
+      object slice_startEdit: TSpinEdit
+        Left = 120
+        Height = 16
+        Top = 73
+        Width = 112
+        TabOrder = 2
+        Value = 1
+      end
+      object Slice_durationEdit: TFloatSpinEdit
+        Left = 120
+        Height = 16
+        Top = 38
+        Width = 112
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 100
+        MinValue = 0
+        TabOrder = 1
+        Value = 1
+      end
+      object toffsetEdit: TFloatSpinEdit
+        Left = 120
+        Height = 16
+        Top = 7
+        Width = 112
+        DecimalPlaces = 5
+        Increment = 1
+        MaxValue = 100
+        MinValue = 0
+        TabOrder = 0
+        Value = 1
+      end
+      object slice_endEdit: TSpinEdit
+        Left = 120
+        Height = 16
+        Top = 104
+        Width = 112
+        TabOrder = 3
+        Value = 1
+      end
+    end
+    object TabUnused: TTabSheet
+      Caption = 'Optional'
+      ClientHeight = 356
+      ClientWidth = 528
+      object Label34: TLabel
+        Left = 3
+        Height = 18
+        Top = 43
+        Width = 66
+        Caption = 'Data Type'
+        ParentColor = False
+      end
+      object Label5: TLabel
+        Left = 3
+        Height = 18
+        Top = 8
+        Width = 57
+        Caption = 'Intention'
+        ParentColor = False
+      end
+      object Label6: TLabel
+        Left = 268
+        Height = 18
+        Top = 116
+        Width = 49
+        Caption = 'Extents'
+        ParentColor = False
+      end
+      object Label9: TLabel
+        Left = 268
+        Height = 18
+        Top = 76
+        Width = 76
+        Caption = 'Sesion Error'
+        ParentColor = False
+      end
+      object Label10: TLabel
+        Left = 268
+        Height = 18
+        Top = 148
+        Width = 89
+        Caption = 'Regular [114]'
+        ParentColor = False
+      end
+      object Label14: TLabel
+        Left = 268
+        Height = 18
+        Top = 8
+        Width = 35
+        Caption = 'G Min'
+        ParentColor = False
+      end
+      object Label15: TLabel
+        Left = 268
+        Height = 18
+        Top = 43
+        Width = 38
+        Caption = 'G Max'
+        ParentColor = False
+      end
+      object Label18: TLabel
+        Left = 3
+        Height = 18
+        Top = 148
+        Width = 50
+        Caption = 'Aux File'
+        ParentColor = False
+      end
+      object Label19: TLabel
+        Left = 3
+        Height = 18
+        Top = 111
+        Width = 58
+        Caption = 'DB Name'
+        ParentColor = False
+      end
+      object Label26: TLabel
+        Left = 3
+        Height = 18
+        Top = 76
+        Width = 38
+        Caption = 'Notes'
+        ParentColor = False
+      end
+      object intent_nameEdit: TEdit
+        Left = 76
+        Height = 22
+        Top = 6
+        Width = 152
+        MaxLength = 16
+        TabOrder = 0
+        Text = 'intent_name'
+      end
+      object data_typeEdit: TEdit
+        Left = 76
+        Height = 22
+        Top = 41
+        Width = 152
+        MaxLength = 10
+        TabOrder = 1
+        Text = 'data_type'
+      end
+      object CommentEdit: TEdit
+        Left = 76
+        Height = 22
+        Top = 74
+        Width = 152
+        MaxLength = 80
+        TabOrder = 2
+        Text = 'CommentEdit'
+      end
+      object db_: TEdit
+        Left = 76
+        Height = 22
+        Top = 109
+        Width = 152
+        MaxLength = 18
+        TabOrder = 3
+        Text = 'db_'
+      end
+      object aux: TEdit
+        Left = 76
+        Height = 22
+        Top = 148
+        Width = 152
+        MaxLength = 24
+        TabOrder = 4
+        Text = 'aux'
+      end
+      object gmax: TSpinEdit
+        Left = 366
+        Height = 16
+        Top = 44
+        Width = 66
+        TabOrder = 6
+        Value = 1
+      end
+      object gmin: TSpinEdit
+        Left = 366
+        Height = 16
+        Top = 9
+        Width = 66
+        TabOrder = 5
+        Value = 1
+      end
+      object ses: TSpinEdit
+        Left = 366
+        Height = 16
+        Top = 77
+        Width = 66
+        TabOrder = 7
+        Value = 1
+      end
+      object ext: TSpinEdit
+        Left = 366
+        Height = 16
+        Top = 117
+        Width = 66
+        TabOrder = 8
+        Value = 1
+      end
+      object reg: TSpinEdit
+        Left = 366
+        Height = 16
+        Top = 151
+        Width = 66
+        MaxValue = 255
+        TabOrder = 9
+        Value = 1
+      end
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 15
+    Top = 403
+    Width = 542
+    Panels = <    
+      item
+        Width = 140
+      end    
+      item
+        Width = 50
+      end>
+    SimplePanel = False
+  end
+  object MainMenu1: TMainMenu
+    left = 424
+    top = 72
+    object File1: TMenuItem
+      Caption = '&File'
+      object Open1: TMenuItem
+        Caption = 'Open header'
+        ShortCut = 16463
+        OnClick = Open1Click
+      end
+      object Save1: TMenuItem
+        Caption = 'Save header'
+        ShortCut = 16467
+        OnClick = Save1Click
+      end
+      object Exit1: TMenuItem
+        Caption = 'Close window'
+        ShortCut = 16471
+        OnClick = Exit1Click
+      end
+    end
+    object Page1: TMenuItem
+      Caption = '&Tab'
+      object Dimensions1: TMenuItem
+        Caption = 'Dimensions'
+        ShortCut = 16449
+        OnClick = TabMenuClick
+      end
+      object Rotations1: TMenuItem
+        Tag = 1
+        Caption = 'Reorient'
+        ShortCut = 16450
+        OnClick = TabMenuClick
+      end
+      object ImageIntensity1: TMenuItem
+        Tag = 2
+        Caption = 'Image Intensity'
+        ShortCut = 16457
+        OnClick = TabMenuClick
+      end
+      object Statistics1: TMenuItem
+        Tag = 3
+        Caption = 'Statistics'
+        ShortCut = 16452
+        OnClick = TabMenuClick
+      end
+      object FunctionalMRI1: TMenuItem
+        Tag = 4
+        Caption = 'Functional MRI'
+        ShortCut = 16453
+        OnClick = TabMenuClick
+      end
+      object Optional1: TMenuItem
+        Tag = 5
+        Caption = 'Optional'
+        ShortCut = 16454
+        OnClick = TabMenuClick
+      end
+    end
+    object Help1: TMenuItem
+      Caption = '&Help'
+      object About1: TMenuItem
+        Caption = 'About...'
+        OnClick = About1Click
+      end
+    end
+  end
+  object OpenHdrDlg: TOpenDialog
+    FilterIndex = 0
+    Options = [ofFileMustExist]
+    left = 456
+    top = 72
+  end
+  object SaveHdrDlg: TSaveDialog
+    OnClose = SaveHdrDlgClose
+    Width = 52
+    Filter = 'NIfTI (*.hdr;*.nii)|*.hdr; *.nii|NIfTI separate header (*.hdr)|*.hdr|NIfTI embedded header|*.nii'
+    FilterIndex = 0
+    left = 496
+    top = 72
+  end
+end

@@ -5,18 +5,10 @@
 //  Created by IDOR on 06/06/13.
 //
 //
-#ifdef WINDOWS
-#include <windows.h>
-#include <direct.h>
-#define snprintf sprintf_s
-#endif
-
-#include "vardb.h"
 #include "svmPlugIn.h"
-#include <sys/stat.h>
-#include <fstream>
 
 #ifdef WINDOWS
+#include <direct.h>
 #define DLLExport extern "C" __declspec(dllexport) int 
 #else
 #define DLLExport extern "C" int 
@@ -35,8 +27,9 @@ void SVMProcessing::initializeVars(studyParams &vdb)
    hasPredicted = 0;
    svmFeatureSelection = vdb.readedIni.GetLongValue("FRIEND", "SVMFeatureSelection", 0);
    cummulativeTraining = vdb.readedIni.GetLongValue("FRIEND", "SVMCummulativeTraining", 0);
+   adaptTraining = vdb.readedIni.GetLongValue("FRIEND", "AdaptingSVM", 0);
 
-   snprintf(svmDir, buffSize, "%s%s%c", vdb.outputDir, "svm", PATHSEPCHAR);
+   sprintf(svmDir, "%s%s%c", vdb.outputDir, "svm", PATHSEPCHAR);
    
    sprintf(svmTrainingFile, "%s%s%s%s", svmDir, "training", vdb.trainFeatureSuffix, ".txt");
 
@@ -106,13 +99,35 @@ void SVMProcessing::initializeVars(studyParams &vdb)
    accuracyResults.setRank(vdb.interval.conditionNames.size());
    for (int t = 0; t < vdb.interval.conditionNames.size(); t++)
 	   accuracyResults.setClassName(t + 1, vdb.interval.conditionNames[t]);
+
+   if (adaptTraining)
+	   adaptativeTraining.initialize(svmModelPredictFile);
+
+   sprintf(logFileName, "%slogfile%s_performance.txt", vdb.logDir, vdb.trainFeatureSuffix);
+   sprintf(projectionsFilename, "%sprojections%s.txt", svmDir, vdb.trainFeatureSuffix);
+   projectionsFile = 0;
+   svmLog = 0;
 }
 
 // deallocates the memory used
 void SVMProcessing::cleanUp()
 {
-   if (model!=NULL)
-      unloadModel(model);
+	fprintf(stderr, "Unloading model, if any loaded.\n");
+   if (model!=NULL) unloadModel(model);
+
+   fprintf(stderr, "Closing log file, if open.\n");
+   if (svmLog)
+   {
+	   fclose(svmLog);
+	   svmLog = 0;
+   }
+
+   if (projectionsFile)
+   {
+	   fclose(projectionsFile);
+	   svmLog = 0;
+   }
+   fprintf(stderr, "Clean up finished.\n");
 }
 
 // handles the training
@@ -236,19 +251,63 @@ void SVMProcessing::train()
    }
 }
 
+// initalize the logging
+void SVMProcessing::initializeLog()
+{
+	svmLog = fopen(logFileName, "wt+");
+	if (svmLog)
+	{
+		fprintf(svmLog, "SUBJECT     : %s\n", vdbPtr->subject);
+		fprintf(svmLog, "Design File : %s\n", vdbPtr->designFile);
+		fprintf(svmLog, "Model File  : %s\n", svmModelPredictFile);
+	}
+	projectionsFile = fopen(projectionsFilename, "wt+");
+}
+
+// write in the log
+void SVMProcessing::writeLog(char *msg)
+{
+	if (svmLog)
+	{
+		fprintf(svmLog, "%s", msg);
+		//fflush(svmLog);
+	}
+}
+
 // handles the testing
 void SVMProcessing::test(int index, char *volumeFile, float &classnum, float &projection)
 {
-   // getting the training mask name
+	char msg[500], result[10];
+	if (svmLog == 0) initializeLog();
+
+	int idxInterval = vdbPtr->interval.returnInterval(index);
+	if (index == vdbPtr->interval.intervals[idxInterval].start)
+	{
+		sprintf(msg, "\nBeginning of interval %d\n", (idxInterval+1));
+		writeLog(msg);
+	}
+	// getting the training mask name
    char featuresTestMask[BUFF_SIZE];
-   sprintf(featuresTestMask, "%s%s.nii.gz",  vdbPtr->featuresSuffix, vdbPtr->testFeatureSuffix);
+   sprintf(featuresTestMask, "%s%s.nii",  vdbPtr->featuresSuffix, vdbPtr->testFeatureSuffix);
+
+   // correcting the file name
+   fileExists(featuresTestMask);
 
    if (model == NULL) model=svm_load_model(svmModelPredictFile);
    if (model == NULL) fprintf(stderr, "model file %s not loaded.\n", svmModelPredictFile);
    else
    {
-      fprintf(stderr, "volumeFile tested : %s with mask : %s\n", volumeFile, featuresTestMask);
+      //fprintf(stderr, "volumeFile tested : %s with mask : %s\n", volumeFile, featuresTestMask);
       predict(model, volumeFile, featuresTestMask, classnum, projection);
+	  if (adaptTraining)
+	  {
+		  fprintf(stderr, "Adapting projection.\n");
+		  adaptativeTraining.adaptResult(classnum, projection);
+	  }
+
+	  if (projectionsFile)
+		  fprintf(projectionsFile, "%f\n", projection);
+
 	  hasPredicted = 1;
 
 	  int actualClass = vdbPtr->getClass(index);
@@ -258,6 +317,22 @@ void SVMProcessing::test(int index, char *volumeFile, float &classnum, float &pr
 	  {
 		  if (index >= vdbPtr->interval.intervals[idxInterval].start + vdbPtr->offset)
 			  accuracyResults.reportResult(actualClass, predicted);
+
+		  if (actualClass == predicted) sprintf(result, "OK");
+		  else sprintf(result, "NOK");
+
+		  sprintf(msg, "Classification : %s %d %s : %f\n", vdbPtr->interval.conditionNames[predicted - 1].c_str(), index, result, projection);
+		  writeLog(msg);
+	  }
+
+	  if (index == vdbPtr->interval.intervals[idxInterval].end)
+	  {
+		  if (accuracyResults.examples()) sprintf(result, "%.2f", accuracyResults.hits());
+		  else sprintf(result, "0.00");
+		  strcat(result, "%");
+
+		  sprintf(msg, "Ending of interval %d. Accuracy so far %d in %d (%s)\n", (idxInterval + 1), accuracyResults.correctExamples(), accuracyResults.examples(), result);
+		  writeLog(msg);
 	  }
 
 	  if (projection < 0) projection = projection / minDistance;
@@ -289,8 +364,20 @@ DLLExport finalSVM(studyParams &vdb, void *&userData)
 		  sprintf(confusionMatrixFile, "%s%s%s.txt", svmProcessingVar->svmDir, "confusionMatrix", vdb.trainFeatureSuffix);
 		  svmProcessingVar->accuracyResults.saveMatrixReport(confusionMatrixFile);
 	  }
-
       svmProcessingVar->cleanUp();
+	  if (fileExists(svmProcessingVar->projectionsFilename))
+	  {
+		  stringstream CmdLn;
+		  char pngFile[BUFF_SIZE];
+
+		  // generating the projections graph png of the actual run
+		  changeFileExt(svmProcessingVar->projectionsFilename, ".png", pngFile);
+		  fprintf(stderr, "Generating svm projection graphics of the current run performance\n");
+		  CmdLn << "fsl_tsplot -i " << svmProcessingVar->projectionsFilename << " -t \"SVM projections\" -u 1 --start=1 --finish=1 -a Projections -w 640 -h 144 -o " << pngFile;
+
+		  fsl_tsplot((char *)CmdLn.str().c_str());
+
+	  }
       delete svmProcessingVar;
       userData = NULL;
    }

@@ -28,21 +28,21 @@ public:
    char preprocVolumePrefix[BUFF_SIZE], mcSuffix[BUFF_SIZE], featuresSuffix[BUFF_SIZE], featuresAllSuffix[BUFF_SIZE], featuresAllTrainSuffix[BUFF_SIZE], featuresTrainSuffix[BUFF_SIZE], trainFeatureSuffix[BUFF_SIZE], testFeatureSuffix[BUFF_SIZE], rawVolumePrefix[BUFF_SIZE];
    
    // filename variables
-   char subjectSpaceMask[BUFF_SIZE], parFile[BUFF_SIZE], rmsFile[BUFF_SIZE], fsfFile[BUFF_SIZE], activationFile[BUFF_SIZE], predictionFile[BUFF_SIZE], predictionFileAux[BUFF_SIZE], baseImage[BUFF_SIZE], matrixFile[BUFF_SIZE], maskFile[BUFF_SIZE], baseFunctional[BUFF_SIZE], contrastFile[BUFF_SIZE], train4DFile[BUFF_SIZE], trainGLM4DFile[BUFF_SIZE], glmMatrixFile[BUFF_SIZE], motionRefVolume[BUFF_SIZE], designFile[BUFF_SIZE], glmTOutput[BUFF_SIZE], actualBaseline[BUFF_SIZE];
+   char subjectSpaceMask[BUFF_SIZE], parFile[BUFF_SIZE], rmsFile[BUFF_SIZE], fsfFile[BUFF_SIZE], activationFile[BUFF_SIZE], predictionFile[BUFF_SIZE], predictionFileAux[BUFF_SIZE], baseImage[BUFF_SIZE], matrixFile[BUFF_SIZE], maskFile[BUFF_SIZE], baseFunctional[BUFF_SIZE], contrastFile[BUFF_SIZE], train4DFile[BUFF_SIZE], trainGLM4DFile[BUFF_SIZE], glmMatrixFile[BUFF_SIZE], motionRefVolume[BUFF_SIZE], designFile[BUFF_SIZE], glmTOutput[BUFF_SIZE], glmZOutput[BUFF_SIZE], actualBaseline[BUFF_SIZE];
    
    // parameter variables
    char baselineCondition[BUFF_SIZE];
    
    int actualImg, actualInterval;
 
-   int offset, clusterSize, includeMotionParameters, referenceFirstVolSequence, byCutOff, conditionContrasts, averageMeanOffset, performSUSAN, slidingWindowSize, runSize;
+   int offset, clusterSize, includeMotionParameters, referenceFirstVolSequence, thresholdType, conditionContrasts, averageMeanOffset, performSUSAN, slidingWindowSize, runSize;
    
    int performNeurofeedback, useWholeSubjectSpaceMask, referenceWholeVolume, storePredictions, feedBackType, numberWidth;
    int invX, invY, invZ;
    
    char mniTemplate[BUFF_SIZE], mniMask[BUFF_SIZE];
    
-   double tTestCutOff, FWHM, trainingPercentage, percentileHigherVoxels;
+   double tTestCutOff, pvalueCutOff, FWHM, trainingPercentage, percentileHigherVoxels;
    
    char mcflirtParams[BUFF_SIZE], betParameters[30];
 
@@ -105,6 +105,9 @@ public:
    // 3 - motion corrected, gaussian filtered, baseline mean subtracted
    void getVolume(char *outfile, char *number, int type);
    void getVolume(char *outfile, int number, int type);
+
+   // creates the necessary directories
+   void createDirectories();
 
    // reads a config file
    void readConfigFile(char *configFile);

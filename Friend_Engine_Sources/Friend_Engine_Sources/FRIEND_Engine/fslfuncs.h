@@ -48,6 +48,9 @@ int estimateActivation(int ini, int end, int slidingWindowSize, char *suffix, ch
 // loads the data struture of a volume in memory
 FSLIO * fslioopen(char *file);
 
+// filters a volume based on a min cluster size and a minimum value
+void clusterSizeFiltering(char *fileName, char *outputName, int minClusterSize, float minValue, int connectionType=6);
+
 // frees the allocated memory
 void fslioclose(FSLIO *src);
 

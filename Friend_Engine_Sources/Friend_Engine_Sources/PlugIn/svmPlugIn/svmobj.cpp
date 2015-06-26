@@ -5,8 +5,8 @@
 #include <errno.h>
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
 #include "parser.h"
-#include "svmobj.h"
 #include "svmfuncs.h"
+#include "svmobj.h"
 
 void print_null(const char *s) {}
 
@@ -48,6 +48,34 @@ void exit_with_help1()
 void exit_input_error1(int line_num)
 {
 	fprintf(stderr,"Wrong input format at line %d\n", line_num);
+}
+
+void AdaptingSVM::initialize(char *modelFileName)
+{
+	struct svm_model *model;
+	if (model = svm_load_model(modelFileName))
+	{
+		initialize(model);
+		svm_free_and_destroy_model(&model);
+	}
+}
+
+void AdaptingSVM::initialize(struct svm_model *model)
+{
+	positiveClass = model->label[0];
+	negativeClass = model->label[1];
+	incrementalMean.initialize();
+}
+
+void AdaptingSVM::adaptResult(float &classNumber, float &projection, int adapt)
+{
+	incrementalMean.addValue(projection);
+	if (adapt)
+	{
+		projection -= incrementalMean.mean;
+		if (projection >= 0) classNumber = positiveClass;
+		else classNumber = negativeClass;
+	}
 }
 
 // reads a line of a svm samples file

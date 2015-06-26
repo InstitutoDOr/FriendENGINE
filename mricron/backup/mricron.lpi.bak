@@ -1,0 +1,1298 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="\"/>
+    <Version Value="7"/>
+    <General>
+      <Flags>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <TargetFileExt Value=""/>
+      <Title Value="MRIcron"/>
+      <Icon Value="0"/>
+      <ActiveEditorIndexAtStart Value="9"/>
+    </General>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="141">
+      <Unit0>
+        <Filename Value="mricron.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="mricron"/>
+        <CursorPos X="27" Y="13"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="200"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="unit1.pas"/>
+        <ComponentName Value="Form1"/>
+        <UnitName Value="Unit1"/>
+        <CursorPos X="7" Y="19"/>
+        <TopLine Value="16"/>
+        <UsageCount Value="12"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="nifti_hdr_view.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="HdrForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="nifti_hdr_view"/>
+        <CursorPos X="36" Y="602"/>
+        <TopLine Value="576"/>
+        <EditorIndex Value="6"/>
+        <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="define_types.pas"/>
+        <UnitName Value="define_types"/>
+        <CursorPos X="23" Y="420"/>
+        <TopLine Value="410"/>
+        <UsageCount Value="93"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="GraphicsMathLibrary.pas"/>
+        <UnitName Value="GraphicsMathLibrary"/>
+        <CursorPos X="38" Y="349"/>
+        <TopLine Value="326"/>
+        <UsageCount Value="6"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="about.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AboutForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="about"/>
+        <CursorPos X="65" Y="40"/>
+        <TopLine Value="4"/>
+        <UsageCount Value="200"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="text.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="TextForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="text"/>
+        <CursorPos X="1" Y="61"/>
+        <TopLine Value="36"/>
+        <UsageCount Value="200"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="..\lcl\include\customform.inc"/>
+        <CursorPos X="31" Y="325"/>
+        <TopLine Value="315"/>
+        <UsageCount Value="1"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="render.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="RenderForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="render"/>
+        <CursorPos X="10" Y="709"/>
+        <TopLine Value="697"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="ROIfilt.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FilterROIform"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="ROIfilt"/>
+        <CursorPos X="58" Y="13"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="200"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="smoothVOI.pas"/>
+        <ComponentName Value="SmoothVOIForm"/>
+        <HasResources Value="True"/>
+        <UnitName Value="smoothVOI"/>
+        <CursorPos X="31" Y="303"/>
+        <TopLine Value="382"/>
+        <UsageCount Value="1"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="nifti_img_view.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ImgForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="nifti_img_view"/>
+        <CursorPos X="50" Y="1395"/>
+        <TopLine Value="1384"/>
+        <EditorIndex Value="0"/>
+        <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="nifti_img.pas"/>
+        <UnitName Value="nifti_img"/>
+        <CursorPos X="8" Y="1751"/>
+        <TopLine Value="1739"/>
+        <EditorIndex Value="9"/>
+        <UsageCount Value="100"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="cutout.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="CutoutForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="cutout"/>
+        <CursorPos X="29" Y="166"/>
+        <TopLine Value="161"/>
+        <UsageCount Value="200"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="MultiSlice.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="MultiSliceForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="MultiSlice"/>
+        <CursorPos X="46" Y="851"/>
+        <TopLine Value="847"/>
+        <UsageCount Value="200"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="autoroi.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AutoROIForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="autoroi"/>
+        <CursorPos X="68" Y="537"/>
+        <TopLine Value="517"/>
+        <UsageCount Value="200"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="spread.pas"/>
+        <ComponentName Value="SpreadForm"/>
+        <HasResources Value="True"/>
+        <UnitName Value="spread"/>
+        <CursorPos X="47" Y="93"/>
+        <TopLine Value="83"/>
+        <UsageCount Value="192"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="design.pas"/>
+        <ComponentName Value="DesignForm"/>
+        <HasResources Value="True"/>
+        <UnitName Value="design"/>
+        <CursorPos X="45" Y="167"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="192"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="histoform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="HistogramForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="histoform"/>
+        <CursorPos X="1" Y="76"/>
+        <TopLine Value="40"/>
+        <UsageCount Value="200"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="nifti_img_view.lrs"/>
+        <CursorPos X="1" Y="1000"/>
+        <TopLine Value="2"/>
+        <UsageCount Value="5"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="logistic.pas"/>
+        <UnitName Value="logistic"/>
+        <CursorPos X="1" Y="1100"/>
+        <TopLine Value="1075"/>
+        <UsageCount Value="22"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="ReadInt.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ReadIntForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="ReadInt"/>
+        <CursorPos X="77" Y="2"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="8"/>
+        <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="..\lcl\grids.pas"/>
+        <UnitName Value="Grids"/>
+        <CursorPos X="1" Y="5925"/>
+        <TopLine Value="5919"/>
+        <UsageCount Value="6"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="..\lcl\include\graphic.inc"/>
+        <CursorPos X="1" Y="104"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="1"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="nifti_img_view.lfm"/>
+        <CursorPos X="7" Y="513"/>
+        <TopLine Value="499"/>
+        <UsageCount Value="10"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="nifti_hdr.pas"/>
+        <UnitName Value="nifti_hdr"/>
+        <CursorPos X="5" Y="188"/>
+        <TopLine Value="172"/>
+        <UsageCount Value="85"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="gzio2.pas"/>
+        <UnitName Value="gzio2"/>
+        <CursorPos X="11" Y="282"/>
+        <TopLine Value="278"/>
+        <UsageCount Value="37"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="stat.pas"/>
+        <UnitName Value="stat"/>
+        <CursorPos X="10" Y="329"/>
+        <TopLine Value="318"/>
+        <UsageCount Value="14"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="..\lcl\forms.pp"/>
+        <UnitName Value="Forms"/>
+        <CursorPos X="1" Y="806"/>
+        <TopLine Value="799"/>
+        <UsageCount Value="6"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="..\lcl\lmessages.pp"/>
+        <UnitName Value="LMessages"/>
+        <CursorPos X="1" Y="600"/>
+        <TopLine Value="588"/>
+        <UsageCount Value="6"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="cropedges.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="CropEdgeForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="CropEdges"/>
+        <CursorPos X="3" Y="83"/>
+        <TopLine Value="81"/>
+        <UsageCount Value="200"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="bet.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="BETForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="bet"/>
+        <CursorPos X="59" Y="55"/>
+        <TopLine Value="54"/>
+        <UsageCount Value="200"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="mni.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="MNIForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="mni"/>
+        <CursorPos X="3" Y="53"/>
+        <TopLine Value="20"/>
+        <UsageCount Value="200"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="RenderThds.pas"/>
+        <UnitName Value="RenderThds"/>
+        <CursorPos X="20" Y="4"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="13"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="..\examples\bounty\qgraphics.pas"/>
+        <UnitName Value="qgraphics"/>
+        <CursorPos X="15" Y="38"/>
+        <TopLine Value="30"/>
+        <UsageCount Value="1"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="wgraphics.pas"/>
+        <UnitName Value="wgraphics"/>
+        <CursorPos X="1" Y="9"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="14"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="ugraphics.pas"/>
+        <UnitName Value="ugraphics"/>
+        <CursorPos X="15" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="85"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="mricron_w\nifti_img.pas"/>
+        <UnitName Value="nifti_img"/>
+        <CursorPos X="26" Y="82"/>
+        <TopLine Value="70"/>
+        <UsageCount Value="1"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="..\examples\bounty\fx8.pas"/>
+        <UnitName Value="fx8"/>
+        <CursorPos X="68" Y="121"/>
+        <TopLine Value="114"/>
+        <UsageCount Value="1"/>
+      </Unit38>
+      <Unit39>
+        <Filename Value="fx8.pas"/>
+        <UnitName Value="fx8"/>
+        <CursorPos X="20" Y="246"/>
+        <TopLine Value="220"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit39>
+      <Unit40>
+        <Filename Value="MultiSlice.lfm"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="1"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="MultiSlice.lrs"/>
+        <CursorPos X="17" Y="3"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="8"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="smoothVOI.lfm"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="1"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="voismooth.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="voismoothform"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="voismooth"/>
+        <CursorPos X="36" Y="391"/>
+        <TopLine Value="385"/>
+        <UsageCount Value="200"/>
+      </Unit43>
+      <Unit44>
+        <Filename Value="..\components\rtticontrols\rttictrls.pas"/>
+        <UnitName Value="RTTICtrls"/>
+        <CursorPos X="56" Y="37"/>
+        <TopLine Value="20"/>
+        <UsageCount Value="2"/>
+      </Unit44>
+      <Unit45>
+        <Filename Value="..\lcl\fileutil.pas"/>
+        <UnitName Value="FileUtil"/>
+        <CursorPos X="35" Y="124"/>
+        <TopLine Value="105"/>
+        <UsageCount Value="2"/>
+      </Unit45>
+      <Unit46>
+        <Filename Value="prefs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PrefForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="prefs"/>
+        <CursorPos X="46" Y="58"/>
+        <TopLine Value="43"/>
+        <EditorIndex Value="7"/>
+        <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit46>
+      <Unit47>
+        <Filename Value="dcm2nii\dcm2niigui.lrs"/>
+        <CursorPos X="23" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="1"/>
+      </Unit47>
+      <Unit48>
+        <Filename Value="C:\Documents and Settings\Chris Rorden\Application Data\Opera\Opera\profile\cache4\temporary_download\JclSysInfo.pas"/>
+        <UnitName Value="JclSysInfo"/>
+        <CursorPos X="36" Y="36"/>
+        <TopLine Value="29"/>
+        <UsageCount Value="7"/>
+      </Unit48>
+      <Unit49>
+        <Filename Value="rgbroutines.pas"/>
+        <UnitName Value="RGBRoutines"/>
+        <CursorPos X="49" Y="4"/>
+        <TopLine Value="49"/>
+        <UsageCount Value="6"/>
+      </Unit49>
+      <Unit50>
+        <Filename Value="junk.pas"/>
+        <UnitName Value="junk"/>
+        <CursorPos X="1" Y="46"/>
+        <TopLine Value="33"/>
+        <UsageCount Value="3"/>
+      </Unit50>
+      <Unit51>
+        <Filename Value="rgbtypes.pas"/>
+        <UnitName Value="RGBTypes"/>
+        <CursorPos X="44" Y="5"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="6"/>
+      </Unit51>
+      <Unit52>
+        <Filename Value="usr\local\share\lazarus\components\rtticontrols\runtimetypeinfocontrols.pas"/>
+        <UnitName Value="RunTimeTypeInfoControls"/>
+        <CursorPos X="23" Y="4"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="2"/>
+      </Unit52>
+      <Unit53>
+        <Filename Value="usr\local\share\lazarus\tools\svn2revisioninc.pas"/>
+        <UnitName Value="Svn2RevisionInc"/>
+        <CursorPos X="40" Y="49"/>
+        <TopLine Value="34"/>
+        <UsageCount Value="2"/>
+      </Unit53>
+      <Unit54>
+        <Filename Value="userdir.pas"/>
+        <UnitName Value="userdir"/>
+        <CursorPos X="10" Y="6"/>
+        <TopLine Value="62"/>
+        <UsageCount Value="6"/>
+      </Unit54>
+      <Unit55>
+        <Filename Value="perisettings.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PSForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="perisettings"/>
+        <CursorPos X="38" Y="96"/>
+        <TopLine Value="81"/>
+        <UsageCount Value="224"/>
+      </Unit55>
+      <Unit56>
+        <Filename Value="graphx.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Graph4DForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="graphx"/>
+        <CursorPos X="29" Y="1055"/>
+        <TopLine Value="1043"/>
+        <UsageCount Value="224"/>
+      </Unit56>
+      <Unit57>
+        <Filename Value="metagraph.pas"/>
+        <UnitName Value="metagraph"/>
+        <CursorPos X="19" Y="45"/>
+        <TopLine Value="40"/>
+        <UsageCount Value="8"/>
+      </Unit57>
+      <Unit58>
+        <Filename Value="render2.pas"/>
+        <UnitName Value="render"/>
+        <CursorPos X="1" Y="1066"/>
+        <TopLine Value="1045"/>
+        <UsageCount Value="2"/>
+      </Unit58>
+      <Unit59>
+        <Filename Value="RenderThds2.pas"/>
+        <UnitName Value="RenderThds2"/>
+        <CursorPos X="1" Y="333"/>
+        <TopLine Value="308"/>
+        <UsageCount Value="2"/>
+      </Unit59>
+      <Unit60>
+        <Filename Value="rgb\rgbgraphics.pas"/>
+        <UnitName Value="RGBGraphics"/>
+        <CursorPos X="5" Y="255"/>
+        <TopLine Value="241"/>
+        <UsageCount Value="2"/>
+      </Unit60>
+      <Unit61>
+        <Filename Value="C:\Desktop\rgbgraphics.pas"/>
+        <UnitName Value="RGBGraphics"/>
+        <CursorPos X="1" Y="165"/>
+        <TopLine Value="151"/>
+        <UsageCount Value="2"/>
+      </Unit61>
+      <Unit62>
+        <Filename Value="rgb\rgbtypes.pas"/>
+        <UnitName Value="RGBTypes"/>
+        <CursorPos X="131" Y="4"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="2"/>
+      </Unit62>
+      <Unit63>
+        <Filename Value="C:\Desktop\rgbtypes.pas"/>
+        <UnitName Value="RGBTypes"/>
+        <CursorPos X="5" Y="59"/>
+        <TopLine Value="45"/>
+        <UsageCount Value="2"/>
+      </Unit63>
+      <Unit64>
+        <Filename Value="..\share\mango.txt"/>
+        <CursorPos X="1" Y="5"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="2"/>
+      </Unit64>
+      <Unit65>
+        <Filename Value="..\share\tempura.txt"/>
+        <CursorPos X="1" Y="3"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="2"/>
+      </Unit65>
+      <Unit66>
+        <Filename Value="rgb\rgbroutines.pas"/>
+        <UnitName Value="RGBRoutines"/>
+        <CursorPos X="1" Y="46"/>
+        <TopLine Value="26"/>
+        <UsageCount Value="2"/>
+      </Unit66>
+      <Unit67>
+        <Filename Value="..\share\mexico.txt"/>
+        <CursorPos X="4" Y="23"/>
+        <TopLine Value="20"/>
+        <UsageCount Value="2"/>
+      </Unit67>
+      <Unit68>
+        <Filename Value="usr\local\share\lazarus\components\rtticontrols\rttictrls.pas"/>
+        <UnitName Value="RTTICtrls"/>
+        <CursorPos X="31" Y="33"/>
+        <TopLine Value="18"/>
+        <UsageCount Value="2"/>
+      </Unit68>
+      <Unit69>
+        <Filename Value="usr\local\share\lazarus\lcl\fileutil.pas"/>
+        <UnitName Value="FileUtil"/>
+        <CursorPos X="43" Y="10"/>
+        <TopLine Value="4"/>
+        <UsageCount Value="3"/>
+      </Unit69>
+      <Unit70>
+        <Filename Value="cpucount.pas"/>
+        <UnitName Value="cpucount"/>
+        <CursorPos X="24" Y="5"/>
+        <TopLine Value="55"/>
+        <UsageCount Value="2"/>
+      </Unit70>
+      <Unit71>
+        <Filename Value="..\share\xview.pas"/>
+        <UnitName Value="nifti_img_view"/>
+        <CursorPos X="20" Y="3617"/>
+        <TopLine Value="3594"/>
+        <UsageCount Value="2"/>
+      </Unit71>
+      <Unit72>
+        <Filename Value="..\share\xhdr.pas"/>
+        <UnitName Value="nifti_hdr"/>
+        <CursorPos X="1" Y="174"/>
+        <TopLine Value="160"/>
+        <UsageCount Value="2"/>
+      </Unit72>
+      <Unit73>
+        <Filename Value="rgb\rgbcarbonroutines.pas"/>
+        <UnitName Value="RGBCarbonRoutines"/>
+        <CursorPos X="36" Y="23"/>
+        <TopLine Value="9"/>
+        <UsageCount Value="2"/>
+      </Unit73>
+      <Unit74>
+        <Filename Value="rgb\rgbgtkroutines.pas"/>
+        <UnitName Value="RGBGTKRoutines"/>
+        <CursorPos X="4" Y="36"/>
+        <TopLine Value="28"/>
+        <UsageCount Value="4"/>
+      </Unit74>
+      <Unit75>
+        <Filename Value="rgb\lazrgbgraphics.pas"/>
+        <UnitName Value="LazRGBGraphics"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="2"/>
+      </Unit75>
+      <Unit76>
+        <Filename Value="rgb\rgbutils.pas"/>
+        <UnitName Value="RGBUtils"/>
+        <CursorPos X="66" Y="47"/>
+        <TopLine Value="20"/>
+        <UsageCount Value="2"/>
+      </Unit76>
+      <Unit77>
+        <Filename Value="rgbw\RGBGraphics.pas"/>
+        <UnitName Value="RGBGraphics"/>
+        <CursorPos X="29" Y="186"/>
+        <TopLine Value="172"/>
+        <UsageCount Value="2"/>
+      </Unit77>
+      <Unit78>
+        <Filename Value="irender.pas"/>
+        <UnitName Value="render"/>
+        <CursorPos X="1" Y="1328"/>
+        <TopLine Value="1310"/>
+        <UsageCount Value="7"/>
+      </Unit78>
+      <Unit79>
+        <Filename Value="render_composite.pas"/>
+        <UnitName Value="render_composite"/>
+        <CursorPos X="66" Y="838"/>
+        <TopLine Value="824"/>
+        <EditorIndex Value="3"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit79>
+      <Unit80>
+        <Filename Value="periplot.pas"/>
+        <UnitName Value="periplot"/>
+        <CursorPos X="20" Y="544"/>
+        <TopLine Value="532"/>
+        <UsageCount Value="9"/>
+      </Unit80>
+      <Unit81>
+        <Filename Value="periutils.pas"/>
+        <UnitName Value="periutils"/>
+        <CursorPos X="1" Y="183"/>
+        <TopLine Value="159"/>
+        <UsageCount Value="11"/>
+      </Unit81>
+      <Unit82>
+        <Filename Value="reslice.pas"/>
+        <UnitName Value="reslice"/>
+        <CursorPos X="46" Y="211"/>
+        <TopLine Value="202"/>
+        <UsageCount Value="7"/>
+      </Unit82>
+      <Unit83>
+        <Filename Value="fpmath\fmath.pas"/>
+        <UnitName Value="fmath"/>
+        <CursorPos X="30" Y="852"/>
+        <TopLine Value="761"/>
+        <UsageCount Value="3"/>
+      </Unit83>
+      <Unit84>
+        <Filename Value="hrf.pas"/>
+        <UnitName Value="hrf"/>
+        <CursorPos X="29" Y="151"/>
+        <TopLine Value="135"/>
+        <UsageCount Value="4"/>
+      </Unit84>
+      <Unit85>
+        <Filename Value="fpmath\regmult.pas"/>
+        <UnitName Value="regmult"/>
+        <CursorPos X="1" Y="115"/>
+        <TopLine Value="119"/>
+        <UsageCount Value="4"/>
+      </Unit85>
+      <Unit86>
+        <Filename Value="clustering.pas"/>
+        <UnitName Value="clustering"/>
+        <CursorPos X="6" Y="183"/>
+        <TopLine Value="161"/>
+        <UsageCount Value="11"/>
+      </Unit86>
+      <Unit87>
+        <Filename Value="ReadFloat.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ReadFloatForm"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="ReadFloat"/>
+        <CursorPos X="38" Y="53"/>
+        <TopLine Value="38"/>
+        <UsageCount Value="195"/>
+      </Unit87>
+      <Unit88>
+        <Filename Value="npm\gzio2.pas"/>
+        <UnitName Value="gzio2"/>
+        <CursorPos X="13" Y="797"/>
+        <TopLine Value="756"/>
+        <UsageCount Value="3"/>
+      </Unit88>
+      <Unit89>
+        <Filename Value="common\nifti_hdr.pas"/>
+        <UnitName Value="nifti_hdr"/>
+        <CursorPos X="1" Y="36"/>
+        <TopLine Value="22"/>
+        <UsageCount Value="26"/>
+      </Unit89>
+      <Unit90>
+        <Filename Value="common\define_types.pas"/>
+        <UnitName Value="define_types"/>
+        <CursorPos X="36" Y="147"/>
+        <TopLine Value="147"/>
+        <EditorIndex Value="5"/>
+        <UsageCount Value="68"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit90>
+      <Unit91>
+        <Filename Value="common\cpucount.pas"/>
+        <UnitName Value="cpucount"/>
+        <CursorPos X="46" Y="12"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="5"/>
+      </Unit91>
+      <Unit92>
+        <Filename Value="common\userdir.pas"/>
+        <UnitName Value="userdir"/>
+        <CursorPos X="14" Y="43"/>
+        <TopLine Value="35"/>
+        <UsageCount Value="12"/>
+      </Unit92>
+      <Unit93>
+        <Filename Value="C:\lazarus\lcl\dialogs.pp"/>
+        <UnitName Value="Dialogs"/>
+        <CursorPos X="43" Y="481"/>
+        <TopLine Value="466"/>
+        <UsageCount Value="4"/>
+      </Unit93>
+      <Unit94>
+        <Filename Value="dicomhdr.pas"/>
+        <UnitName Value="dicomhdr"/>
+        <CursorPos X="50" Y="493"/>
+        <TopLine Value="464"/>
+        <UsageCount Value="4"/>
+      </Unit94>
+      <Unit95>
+        <Filename Value="rgbnew\rgbgtkroutines.pas"/>
+        <UnitName Value="RGBGTKRoutines"/>
+        <CursorPos X="1" Y="79"/>
+        <TopLine Value="67"/>
+        <UsageCount Value="3"/>
+      </Unit95>
+      <Unit96>
+        <Filename Value="render.lfm"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="3"/>
+      </Unit96>
+      <Unit97>
+        <Filename Value="common\GraphicsMathLibrary.pas"/>
+        <UnitName Value="GraphicsMathLibrary"/>
+        <CursorPos X="15" Y="60"/>
+        <TopLine Value="45"/>
+        <UsageCount Value="9"/>
+      </Unit97>
+      <Unit98>
+        <Filename Value="reslice_img.pas"/>
+        <UnitName Value="reslice_img"/>
+        <CursorPos X="46" Y="6"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="12"/>
+      </Unit98>
+      <Unit99>
+        <Filename Value="ortho_reorient.pas"/>
+        <UnitName Value="ortho_reorient"/>
+        <CursorPos X="81" Y="6"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="12"/>
+      </Unit99>
+      <Unit100>
+        <Filename Value="common\dicomhdr.pas"/>
+        <UnitName Value="dicomhdr"/>
+        <CursorPos X="26" Y="11"/>
+        <TopLine Value="6"/>
+        <UsageCount Value="31"/>
+      </Unit100>
+      <Unit101>
+        <Filename Value="C:\lazarus\components\cgi\cgimodules.pas"/>
+        <UnitName Value="cgiModules"/>
+        <CursorPos X="53" Y="19"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="4"/>
+      </Unit101>
+      <Unit102>
+        <Filename Value="reslice_fsl.pas"/>
+        <UnitName Value="reslice_fsl"/>
+        <CursorPos X="27" Y="38"/>
+        <TopLine Value="25"/>
+        <UsageCount Value="14"/>
+      </Unit102>
+      <Unit103>
+        <Filename Value="..\mricrogl\sourcex\mricrogl.lpr"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="3"/>
+      </Unit103>
+      <Unit104>
+        <Filename Value="..\gl\Source\Base\OpenGL1x.pas"/>
+        <UnitName Value="OpenGL1x"/>
+        <CursorPos X="10" Y="5142"/>
+        <TopLine Value="5131"/>
+        <UsageCount Value="3"/>
+      </Unit104>
+      <Unit105>
+        <Filename Value="imgutil.pas"/>
+        <UnitName Value="imgutil"/>
+        <CursorPos X="87" Y="11"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="8"/>
+      </Unit105>
+      <Unit106>
+        <Filename Value="batch.pas"/>
+        <UnitName Value="batch"/>
+        <CursorPos X="98" Y="2"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="13"/>
+      </Unit106>
+      <Unit107>
+        <Filename Value="fdr.pas"/>
+        <UnitName Value="fdr"/>
+        <CursorPos X="51" Y="73"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="4"/>
+      </Unit107>
+      <Unit108>
+        <Filename Value="statclustertable.pas"/>
+        <UnitName Value="statclustertable"/>
+        <CursorPos X="83" Y="113"/>
+        <TopLine Value="103"/>
+        <UsageCount Value="11"/>
+      </Unit108>
+      <Unit109>
+        <Filename Value="reorient.pas"/>
+        <UnitName Value="reorient"/>
+        <CursorPos X="35" Y="56"/>
+        <TopLine Value="54"/>
+        <UsageCount Value="9"/>
+      </Unit109>
+      <Unit110>
+        <Filename Value="C:\lazarus\fpc\2.2.2\source\rtl\objpas\sysutils\osutilsh.inc"/>
+        <CursorPos X="10" Y="38"/>
+        <TopLine Value="31"/>
+        <UsageCount Value="7"/>
+      </Unit110>
+      <Unit111>
+        <Filename Value="npm\part.pas"/>
+        <UnitName Value="part"/>
+        <CursorPos X="11" Y="31"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="7"/>
+      </Unit111>
+      <Unit112>
+        <Filename Value="graphx.lrs"/>
+        <CursorPos X="1" Y="153"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="5"/>
+      </Unit112>
+      <Unit113>
+        <Filename Value="landmarks.lfm"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="5"/>
+      </Unit113>
+      <Unit114>
+        <Filename Value="landmarks.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AnatForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="landmarks"/>
+        <CursorPos X="50" Y="175"/>
+        <TopLine Value="166"/>
+        <UsageCount Value="141"/>
+      </Unit114>
+      <Unit115>
+        <Filename Value="prefs.lfm"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="4"/>
+      </Unit115>
+      <Unit116>
+        <Filename Value="C:\usr\share\fpcsrc\rtl\unix\baseunix.pp"/>
+        <UnitName Value="BaseUnix"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="4"/>
+      </Unit116>
+      <Unit117>
+        <Filename Value="common\isgui.inc"/>
+        <CursorPos X="10" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="18"/>
+      </Unit117>
+      <Unit118>
+        <Filename Value="batchstatselect.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="batchstatselect"/>
+        <CursorPos X="43" Y="6"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="130"/>
+      </Unit118>
+      <Unit119>
+        <Filename Value="yokeipc.pas"/>
+        <UnitName Value="yokeipc"/>
+        <CursorPos X="29" Y="105"/>
+        <TopLine Value="3"/>
+        <UsageCount Value="4"/>
+      </Unit119>
+      <Unit120>
+        <Filename Value="yokesharemem.pas"/>
+        <UnitName Value="yokesharemem"/>
+        <CursorPos X="14" Y="58"/>
+        <TopLine Value="53"/>
+        <UsageCount Value="9"/>
+      </Unit120>
+      <Unit121>
+        <Filename Value="winmemmap.pas"/>
+        <UnitName Value="winmemmap"/>
+        <CursorPos X="56" Y="9"/>
+        <TopLine Value="2"/>
+        <UsageCount Value="5"/>
+      </Unit121>
+      <Unit122>
+        <Filename Value="C:\usr\lib\lazarus\lcl\interfaces\gtk\interfaces.pp"/>
+        <UnitName Value="Interfaces"/>
+        <CursorPos X="17" Y="13"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="4"/>
+      </Unit122>
+      <Unit123>
+        <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\defines.inc"/>
+        <CursorPos X="64" Y="301"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="5"/>
+      </Unit123>
+      <Unit124>
+        <Filename Value="common\dialogsx.pas"/>
+        <UnitName Value="dialogsx"/>
+        <CursorPos X="38" Y="119"/>
+        <TopLine Value="118"/>
+        <UsageCount Value="14"/>
+      </Unit124>
+      <Unit125>
+        <Filename Value="..\mricrogl\source\common\nifti_hdr.pas"/>
+        <UnitName Value="nifti_hdr"/>
+        <CursorPos X="26" Y="49"/>
+        <TopLine Value="47"/>
+        <UsageCount Value="4"/>
+      </Unit125>
+      <Unit126>
+        <Filename Value="C:\usr\share\fpcsrc\packages\fcl-process\src\process.pp"/>
+        <UnitName Value="process"/>
+        <CursorPos X="70" Y="25"/>
+        <TopLine Value="25"/>
+        <UsageCount Value="5"/>
+      </Unit126>
+      <Unit127>
+        <Filename Value="otsu.pas"/>
+        <UnitName Value="otsu"/>
+        <CursorPos X="9" Y="6"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="14"/>
+      </Unit127>
+      <Unit128>
+        <Filename Value="C:\Developer\lazarus\lcl\interfaces\carbon\carbonobject.inc"/>
+        <CursorPos X="1" Y="228"/>
+        <TopLine Value="206"/>
+        <UsageCount Value="6"/>
+      </Unit128>
+      <Unit129>
+        <Filename Value="otsu2.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="otsu2"/>
+        <CursorPos X="13" Y="98"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="107"/>
+      </Unit129>
+      <Unit130>
+        <Filename Value="CarbonOpenDoc.pas"/>
+        <UnitName Value="CarbonOpenDoc"/>
+        <CursorPos X="42" Y="38"/>
+        <TopLine Value="33"/>
+        <UsageCount Value="7"/>
+      </Unit130>
+      <Unit131>
+        <Filename Value="fastsmooth.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fastsmooth"/>
+        <CursorPos X="17" Y="28"/>
+        <TopLine Value="16"/>
+        <UsageCount Value="107"/>
+      </Unit131>
+      <Unit132>
+        <Filename Value="common\gzio2.pas"/>
+        <UnitName Value="gzio2"/>
+        <CursorPos X="81" Y="119"/>
+        <TopLine Value="111"/>
+        <UsageCount Value="40"/>
+      </Unit132>
+      <Unit133>
+        <Filename Value="otsuml.pas"/>
+        <UnitName Value="otsuml"/>
+        <CursorPos X="11" Y="15"/>
+        <TopLine Value="275"/>
+        <UsageCount Value="6"/>
+      </Unit133>
+      <Unit134>
+        <Filename Value="nii_label.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="nii_label"/>
+        <CursorPos X="1" Y="34"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="88"/>
+      </Unit134>
+      <Unit135>
+        <Filename Value="crop.pas"/>
+        <UnitName Value="crop"/>
+        <CursorPos X="113" Y="9"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="6"/>
+      </Unit135>
+      <Unit136>
+        <Filename Value="..\raycast\gzio2.pas"/>
+        <UnitName Value="gzio2"/>
+        <CursorPos X="1" Y="1180"/>
+        <TopLine Value="1175"/>
+        <UsageCount Value="6"/>
+      </Unit136>
+      <Unit137>
+        <Filename Value="common\nifti_types.pas"/>
+        <UnitName Value="nifti_types"/>
+        <CursorPos X="3" Y="118"/>
+        <TopLine Value="109"/>
+        <EditorIndex Value="10"/>
+        <UsageCount Value="40"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit137>
+      <Unit138>
+        <Filename Value="common\nifti_foreign.pas"/>
+        <UnitName Value="nifti_foreign"/>
+        <CursorPos X="7" Y="886"/>
+        <TopLine Value="885"/>
+        <EditorIndex Value="4"/>
+        <UsageCount Value="40"/>
+        <Loaded Value="True"/>
+        <SyntaxHighlighter Value="Delphi"/>
+      </Unit138>
+      <Unit139>
+        <Filename Value="..\..\..\usr\local\share\fpcsrc\rtl\objpas\sysutils\sysstrh.inc"/>
+        <CursorPos X="38" Y="170"/>
+        <TopLine Value="157"/>
+        <UsageCount Value="25"/>
+      </Unit139>
+      <Unit140>
+        <Filename Value="..\..\..\Developer\lazarus\lcl\interfaces\carbon\carbonobject.inc"/>
+        <CursorPos X="42" Y="678"/>
+        <TopLine Value="668"/>
+        <UsageCount Value="25"/>
+      </Unit140>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="4670" Column="27" TopLine="4644"/>
+      </Position1>
+      <Position2>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="4690" Column="20" TopLine="4665"/>
+      </Position2>
+      <Position3>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="4884" Column="20" TopLine="4858"/>
+      </Position3>
+      <Position4>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="5051" Column="28" TopLine="5025"/>
+      </Position4>
+      <Position5>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="240" Column="28" TopLine="225"/>
+      </Position5>
+      <Position6>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="830" Column="28" TopLine="804"/>
+      </Position6>
+      <Position7>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="841" Column="37" TopLine="816"/>
+      </Position7>
+      <Position8>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1029" Column="28" TopLine="1003"/>
+      </Position8>
+      <Position9>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1392" Column="35" TopLine="1384"/>
+      </Position9>
+      <Position10>
+        <Filename Value="nifti_hdr_view.pas"/>
+        <Caret Line="171" Column="31" TopLine="156"/>
+      </Position10>
+      <Position11>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1392" Column="35" TopLine="1384"/>
+      </Position11>
+      <Position12>
+        <Filename Value="nifti_img.pas"/>
+        <Caret Line="2" Column="121" TopLine="1"/>
+      </Position12>
+      <Position13>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="111" Column="31" TopLine="107"/>
+      </Position13>
+      <Position14>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="3" Column="51" TopLine="1"/>
+      </Position14>
+      <Position15>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1638" Column="9" TopLine="1620"/>
+      </Position15>
+      <Position16>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="3654" Column="56" TopLine="3637"/>
+      </Position16>
+      <Position17>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="3702" Column="54" TopLine="3680"/>
+      </Position17>
+      <Position18>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="3750" Column="52" TopLine="3733"/>
+      </Position18>
+      <Position19>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1638" Column="9" TopLine="1627"/>
+      </Position19>
+      <Position20>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="3654" Column="56" TopLine="3636"/>
+      </Position20>
+      <Position21>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="3702" Column="54" TopLine="3685"/>
+      </Position21>
+      <Position22>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="3750" Column="52" TopLine="3733"/>
+      </Position22>
+      <Position23>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="33" Column="44" TopLine="30"/>
+      </Position23>
+      <Position24>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1395" Column="50" TopLine="1385"/>
+      </Position24>
+      <Position25>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1398" Column="47" TopLine="1385"/>
+      </Position25>
+      <Position26>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1402" Column="57" TopLine="1385"/>
+      </Position26>
+      <Position27>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="1720" Column="50" TopLine="1703"/>
+      </Position27>
+      <Position28>
+        <Filename Value="nifti_img_view.pas"/>
+        <Caret Line="2512" Column="50" TopLine="2494"/>
+      </Position28>
+      <Position29>
+        <Filename Value="render.pas"/>
+        <Caret Line="370" Column="56" TopLine="362"/>
+      </Position29>
+      <Position30>
+        <Filename Value="nifti_img.pas"/>
+        <Caret Line="3" Column="144" TopLine="1"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="8"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="mricron"/>
+    </Target>
+    <SearchPaths>
+      <Libraries Value="rgb\;fpmath\"/>
+      <OtherUnitFiles Value="rgb\;fpmath\;common\"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <SmartLinkUnit Value="True"/>
+      <Optimizations>
+        <OptimizationLevel Value="2"/>
+      </Optimizations>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <UseLineInfoUnit Value="False"/>
+        <StripSymbols Value="True"/>
+      </Debugging>
+      <LinkSmart Value="True"/>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+    <Other>
+      <WriteFPCLogo Value="False"/>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

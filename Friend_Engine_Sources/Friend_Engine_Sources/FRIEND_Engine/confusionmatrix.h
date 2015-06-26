@@ -39,6 +39,9 @@ class ConfusionMatrix
    // making the = operator works
    const ConfusionMatrix& operator=(const ConfusionMatrix& source);
 
+   // returns the number of examples correctly classified
+   int correctExamples();
+
    // add the result information of a sample test
    void reportResult(int target, int acquired);
    
