@@ -1,0 +1,14 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace />
+  <MonoDevelop.Ide.Workbench ActiveDocument="..\Medieval\Assets\Scripts\movimentaPrimeiroBloco.cs">
+    <Files>
+      <File FileName="..\Medieval\Assets\Scripts\movimentaPrimeiroBloco.cs" Line="117" Column="21" />
+      <File FileName="Assets\Scripts\motorScript.cs" Line="51" Column="1" />
+      <File FileName="..\Medieval\Assets\Scripts\FriendEngineComm.cs" Line="700" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
