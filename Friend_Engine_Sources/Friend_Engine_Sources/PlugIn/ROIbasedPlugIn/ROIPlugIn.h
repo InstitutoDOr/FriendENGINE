@@ -30,7 +30,7 @@ public:
    // initializes the object variables
    int initialization(studyParams &vdb);
    // calculates the feedback value
-   int processVolume(studyParams &vdb, int index, float &classnum, float &projection);
+   int processVolume(studyParams &vdb, int index, float &classnum, float &feedbackValue);
    // just calculate the percent signal change value
    float PSC(float value, float base);
 };

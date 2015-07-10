@@ -21,21 +21,14 @@ else:
 PIPELINE = int(option);
  
 if (PIPELINE > 1):
+   # changing the mask type
+   engine.setVariable('ActivationLevelMaskType', '1');   
+   # changing the mask
+   engine.setVariable('ActivationLevelMask', 'glmdirtstats_features_RUN01_bin');   
    # changing the directory of the volumes
    engine.setVariable('Prefix', 'outputdirRUN0' + option + os.path.sep + 'DRIN-');   
    # changing the current suffix
-   engine.setVariable('ModelRunSuffix', 'RUN01');   
-   # changing the current suffix
    engine.setVariable('CurrentRunSuffix', 'RUN0' + option);   
-
-   # not using all the subject mask
-   engine.setVariable('UseWholeSubjectSpaceMask', '0');   
-   
-   # changing the threshold Type
-   engine.setVariable('ByCutOff', '2');   
-
-   # changing the p-value cut off
-   engine.setVariable('pvalueCutOff', '0.005');   
    
 # initiating processing
-engine.startTheEngine(2, PIPELINE!=1);
+engine.startTheEngine(1, PIPELINE!=1);

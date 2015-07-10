@@ -18,13 +18,17 @@
 // initializes the object variables. This function brings the mni mask to subject space
 int MotorRoiProcessing::initialization(studyParams &vdb)
 {
+   // getting roi intensities
    firstRoi = vdb.readedIni.GetLongValue("FRIEND", "firstROI");
    secondRoi = vdb.readedIni.GetLongValue("FRIEND", "secondROI");
-   strcpy(vdb.mniMask, vdb.readedIni.GetValue("FRIEND", "ActivationLevelMask"));
-   strcpy(vdb.mniTemplate, vdb.readedIni.GetValue("FRIEND", "ActivationLevelMaskReference"));
+
+
+   strcpy(vdb.mniMask, vdb.readedIni.GetValue("FRIEND", "MNIMask"));
+   strcpy(vdb.mniTemplate, vdb.readedIni.GetValue("FRIEND", "MNITemplate"));
    fprintf(stderr, "mnimask = %s\n", vdb.mniMask);
    fprintf(stderr, "mnitemp = %s\n", vdb.mniTemplate);
    targetValue = vdb.readedIni.GetDoubleValue("FRIEND", "ActivationLevel");
+   // if exists the two files, bring  the mnimask to native space 
    if ((fileExists(vdb.mniMask)) && (fileExists(vdb.mniTemplate)))
    {
       char outputFile[500], prefix[500]="_RFI2", name[500];
@@ -41,6 +45,8 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
       
       // loads the reference mask
       meanCalculation.loadReference(outputFile);
+
+	  // Theses indexes are the indexes relative to the roi intensities in the meanCalculation object mean array
 	  firstRoiIndex  = meanCalculation.roiIndex(firstRoi);
 	  secondRoiIndex = meanCalculation.roiIndex(secondRoi);
    }
@@ -50,22 +56,22 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
 }
 
 // calculates the feedback value
-int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classnum, float &projection)
+int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classnum, float &feedbackValue)
 {
    char processedFile[200];
    int idxInterval = vdb.interval.returnInterval(index);
    float firstRoiMean, secondRoiMean;
-   float firstProjection, secondProjection;
+   float firstRoiFeedbackValue, secondRoiFeedbackValue;
 
    volume<float> v;
-   // gets the motion corrected and gaussian file
+   // gets the motion corrected and gaussian smoothed file
    vdb.getMCGVolumeName(processedFile, index);
    read_volume(v, string(processedFile));
 
-   // if in baseline condition, calculates the mean volume, one by one
    classnum = vdb.getClass(index);
-   projection = 0;
+   feedbackValue = 0;
 
+   // if in baseline condition, calculates the mean volume
    if (vdb.interval.isBaselineCondition(index))
    {
       if (vdb.interval.intervals[idxInterval].start == index) meanbaseline = v;
@@ -76,22 +82,24 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
          meanbaseline /= (vdb.interval.intervals[idxInterval].end-vdb.interval.intervals[idxInterval].start+1);
          meanCalculation.calculateMeans(meanbaseline);
          
-         // calculates the mean roi value of the mean volume. We just need this value
+         // calculates the mean roi values of the mean volume. We just need this values
 		 firstBaselineValue = meanCalculation.roiMean(firstRoiIndex);
 		 secondBaselineValue = meanCalculation.roiMean(secondRoiIndex);
 	  }
    }
-   else // task condition. Taking the mean of the volume and calculating the PSC
+   else // task condition. Taking the means of the rois in volume and calculating the PSC
    {
       meanCalculation.calculateMeans(v);
 	  firstRoiMean = meanCalculation.roiMean(firstRoiIndex);
 	  secondRoiMean = meanCalculation.roiMean(secondRoiIndex);
 
-	  firstProjection = PSC(firstRoiMean, firstBaselineValue) / targetValue;
-	  secondProjection = PSC(secondRoiMean, secondBaselineValue) / targetValue;
-      projection = firstProjection;
+	  firstRoiFeedbackValue = PSC(firstRoiMean, firstBaselineValue) / targetValue;
+	  secondRoiFeedbackValue = PSC(secondRoiMean, secondBaselineValue) / targetValue;
+	  feedbackValue = firstRoiFeedbackValue;
+
+	  // the first roi feedback value goes directly through the normal channel, but the second roi need another route
 	  char secondRoiString[100];
-	  sprintf(secondRoiString, "%f", secondProjection);
+	  sprintf(secondRoiString, "%f", secondRoiFeedbackValue);
 	  fprintf(stderr, "%s\n", secondRoiString);
 
 	  Session *session = (Session *)vdb.sessionPointer;
@@ -100,7 +108,7 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
       // enforcing 0..1 range
       //if (projection > 1) projection = 1;
       //else if (projection < 0) projection = 0;
-      fprintf(stderr, "Projection value = %f\n", projection);
+	  fprintf(stderr, "Feedback value = %f\n", feedbackValue);
    }
    return 0;
 }

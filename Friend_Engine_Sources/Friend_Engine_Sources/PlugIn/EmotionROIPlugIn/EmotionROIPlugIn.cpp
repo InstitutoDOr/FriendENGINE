@@ -215,7 +215,7 @@ void emotionRoiProcessing::loadVolume(studyParams &vdb, volume<float> &v, int in
 }
 
 // calculates the feedback value
-int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &classnum, float &projection)
+int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &classnum, float &feedbackValue)
 {
    int idxInterval = vdb.interval.returnInterval(index);
    double positivePSC, negativePSC;
@@ -226,7 +226,7 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
    loadVolume(vdb, v, index);
    // if in baseline condition, calculates the mean volume, one by one
    classnum = vdb.getClass(index);
-   projection = 0;
+   feedbackValue = 0;
 
    double intervalSize = (double)(vdb.interval.intervals[idxInterval].end - vdb.interval.intervals[idxInterval].start + 1);
 
@@ -254,7 +254,7 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
 	  // negative emotion Feedback
 	  if (classnum == 1)
 	  {
-		  projection = negativePSC / negativeTargetValue;
+		  feedbackValue = negativePSC / negativeTargetValue;
 		  if (vdb.interval.intervals[idxInterval].start == index) negativePSCMean = negativePSC / intervalSize;
 		  else  negativePSCMean += negativePSC / intervalSize;
 
@@ -272,7 +272,7 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
 	  }
 	  else if (classnum == 3)
 	  {
-		  projection = positivePSC / positiveTargetValue;
+		  feedbackValue = positivePSC / positiveTargetValue;
 		  if (vdb.interval.intervals[idxInterval].start == index) positivePSCMean = positivePSC / intervalSize;
 		  else  positivePSCMean += positivePSC / intervalSize;
 
@@ -288,7 +288,7 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
 		  double valueLevel = positiveActivationLevel.mean * (1 + levelMultiplyer);
 		  if (valueLevel > 0) positiveTargetValue = valueLevel;
 	  }
-      fprintf(stderr, "Projection value = %f\n", projection);
+      fprintf(stderr, "Feedback value = %f\n", feedbackValue);
    }
    return 0;
 }
@@ -313,14 +313,15 @@ DLLExport finalizeEmotionROIProcessing(studyParams &vdb, void *&userData)
 {
 	emotionRoiProcessing *roiVar = (emotionRoiProcessing *)userData;
    delete roiVar;
+   userData = NULL;
    return 0;
 }
 
 // plugin function for calculationg feedback value
-DLLExport processEmotionROI(studyParams &vdb, int index, float &classnum, float &projection, void * &userData)
+DLLExport processEmotionROI(studyParams &vdb, int index, float &classnum, float &feedbackValue, void * &userData)
 {
 	emotionRoiProcessing *roiVar = (emotionRoiProcessing *)userData;
-   roiVar->processVolume(vdb, index, classnum, projection);
+   roiVar->processVolume(vdb, index, classnum, feedbackValue);
    return 0;
 }
 

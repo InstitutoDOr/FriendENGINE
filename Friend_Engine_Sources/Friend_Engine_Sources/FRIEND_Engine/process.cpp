@@ -68,6 +68,7 @@ int isGoodDesign(char *fileName)
 		}
 		else result = 1;
 	}
+	else if (real_X.Ncols() == 1) result = 1;
 
 	eigenvals.Release();
 	return result;
@@ -175,7 +176,7 @@ void FriendProcess::glm()
 	   CmdLn << "fsl_glm -i " << vdb.trainGLM4DFile << " -d " << vdb.glmMatrixFile << " -c " << vdb.contrastFile << " -m " << auxString << " -o " << vdb.glmDir << "betas" << vdb.trainFeatureSuffix << " --out_t=" << vdb.glmTOutput << " --out_z=" << vdb.glmZOutput << " --out_p=" << vdb.glmDir << "pvalues" << vdb.trainFeatureSuffix;
 	   fsl_glm((char *)CmdLn.str().c_str());
    }
-   else fprintf(stderr, "Problems in design matrix. Erro in GLM.\n");
+   else fprintf(stderr, "Problems in design matrix. Error in GLM.\n");
    
    vdb.rGLM=true;
 }
@@ -377,8 +378,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 	{
 		// in DICOM
 		sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".dcm");
-		if (!fileFound)
-		   fprintf(stderr, "Searching file : %s\n", inFile);
+		//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
 		if (fileExists(inFile))
 		{
 			// executes the dcm2nii tool
@@ -392,8 +392,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		{
 			// in Analyze. The engine converts it to nifti and inverts the axis, if needed
 			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".img");
-			if (!fileFound)
-			   fprintf(stderr, "Searching file : %s\n", inFile);
+			//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
 			if (fileExists(inFile))
 			{
 				if (isReadable(inFile))
@@ -423,8 +422,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 
 			// in NIFTI. The engine converts it to nifti and inerts the axis, if needed
 			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".nii");
-			if (!fileFound)
-			   fprintf(stderr, "Searching file : %s\n", inFile);
+			//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
 			if (fileExists(inFile))
 			{
 				if (isReadable(inFile))
@@ -864,10 +862,10 @@ void FriendProcess::prepRealTime()
    char arqAxial[BUFF_SIZE] = { }, CmdLn[BUFF_SIZE] = { }, betAnat[BUFF_SIZE] = { };
    size_t buffSize = BUFF_SIZE-1;
    
-   vdb.createDirectories();
-
    if (!vdb.rPrepVars)
 	   prepRealtimeVars();
+
+   vdb.createDirectories();
 
    pHandler.callInitFunction(vdb);
 

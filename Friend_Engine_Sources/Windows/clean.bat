@@ -66,18 +66,28 @@ rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\svm /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\preproc /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\preproc_RUN01 /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\preproc_RUN02 /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\preproc_RUN03 /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\preproc_RUN04 /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\activations_RUN01 /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\activations_RUN02 /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\activations_RUN03 /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\activations_RUN04 /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\copied_RUN01 /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\copied_RUN02 /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\copied_RUN03 /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\copied_RUN04 /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\activations_RUN01 /s /q
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\activations_RUN02 /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\activations_RUN03 /s /q
+rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\activations_RUN04 /s /q
 
 del ..\Friend_Engine_Sources\TestData\SUBJ002\MNI2RFI_RFI2.mat
 del ..\Friend_Engine_Sources\TestData\SUBJ002\RFI2MNI_RFI2.mat
 del ..\Friend_Engine_Sources\TestData\SUBJ002\RFI2MNI_RFI2.nii
 del ..\Friend_Engine_Sources\TestData\SUBJ002\study_params_RUN01.txt
 del ..\Friend_Engine_Sources\TestData\SUBJ002\study_params_RUN02.txt
+del ..\Friend_Engine_Sources\TestData\SUBJ002\study_params_RUN03.txt
+del ..\Friend_Engine_Sources\TestData\SUBJ002\study_params_RUN04.txt
 
 
 echo Removing fsl.dll files

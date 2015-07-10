@@ -264,7 +264,7 @@ void studyParams::createDirectories()
 	mkdir(studyDir, 0777); // notice that 777 is different than 0777
 #endif
 
-	fprintf(stderr, "Creating study dir\n");
+	fprintf(stderr, "Creating subject dir\n");
 #ifdef WIN32
 	_mkdir(outputDir);
 #else
