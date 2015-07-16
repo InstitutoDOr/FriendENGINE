@@ -68,7 +68,7 @@ void PluginHandler::loadFunctions(char *library, char *trainFunc, char *testFunc
    handler = (HMODULE) LoadLibraryA(tempLibrary);
 #else
 #ifdef LINUX
-   sprintf(tempLibrary, "%s/%s.so", libraryPath, libraryComplete); 
+   sprintf(tempLibrary, "%s.so", libraryComplete); 
    handler = dlopen(tempLibrary, RTLD_LAZY);
 #else
    sprintf(tempLibrary, "%s.dylib", libraryComplete);
