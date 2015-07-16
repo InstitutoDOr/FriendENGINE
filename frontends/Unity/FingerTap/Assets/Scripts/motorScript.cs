@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.IO;
 using System;
 
 public class motorScript : MonoBehaviour {
@@ -162,7 +163,7 @@ public class motorScript : MonoBehaviour {
 
 		comm.addConfigurationPair ("MNIMask", "studydirhmat_spm_final.nii");
 		comm.addConfigurationPair ("MNITemplate", "studydirMNI152_T1_1mm_brain.nii.gz");
-		comm.addConfigurationPair ("Prefix", "outputdirRUN01\\DRIN-");
+		comm.addConfigurationPair ("Prefix", "outputdirRUN01" + Path.DirectorySeparatorChar + "DRIN-");
 		comm.addConfigurationPair ("ActivationLevel", "0.01");
 		comm.addConfigurationPair ("CurrentRunSuffix", "RUN01");
 
