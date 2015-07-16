@@ -375,7 +375,7 @@ void DesignObject::generateContrasts(bool conditionContrasts, bool temporalDeriv
                 contrasts[contrastInd].contrastVector = (float  *) malloc(arrayContrastSize * sizeof(float));
 
 				// zeroing the contrast vector
-				for (int j = 0; j < arrayContrastSize; j++) contrasts[contrastInd].contrastVector[j] = 0;
+				for (int k = 0; k < arrayContrastSize; k++) contrasts[contrastInd].contrastVector[k] = 0;
 
 				arrayContrastInd = 0;
                 for (int s=1; s <= conditionNamesWithoutBaseline.size(); s++)
