@@ -39,5 +39,6 @@ engine.setVariable('CurrentRunSuffix', 'RUN0' + option);
 engine.doTrain = False;
 engine.doGLM = False;
 engine.doFeatureSelection = False;
+engine.additionalFeedbacks = 1;
 
 engine.startTheEngine(3, True);

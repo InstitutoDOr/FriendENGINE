@@ -18,6 +18,7 @@ class Engine(object):
       self.doTrain = True;
       self.doGLM = True;
       self.doFeatureSelection = True;
+      self.additionalFeedbacks = 0;
    
    # time stamp
    def timestamp(self):
@@ -160,6 +161,9 @@ class Engine(object):
 
       classe = self.readsocket(responseThread);
       percentage = self.readsocket(responseThread);
+      if (self.additionalFeedbacks > 0):
+         for x in xrange(0, self.additionalFeedbacks):
+             response = self.readsocket(responseThread);             
 	  # reading acknowledge
       response = self.readsocket(responseThread);
       responseThread.close();
