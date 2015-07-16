@@ -19,7 +19,13 @@ else:
    option = "1";
 
 PIPELINE = int(option);
- 
+
+# changing the MNI mask
+engine.setVariable('MNIMask', 'studydirhmat_spm_PM.nii.gz');   
+
+# changing the MNI template
+engine.setVariable('MNITemplate', 'studydirMNI152_T1_1mm_brain.nii.gz');
+
 if (PIPELINE > 1):
    # changing the mask type
    engine.setVariable('ActivationLevelMaskType', '1');   

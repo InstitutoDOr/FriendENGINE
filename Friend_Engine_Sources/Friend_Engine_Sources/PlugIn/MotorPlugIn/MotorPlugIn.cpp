@@ -41,7 +41,7 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
       
       fprintf(stderr, "Calculating the native template %s\n", outputFile);
       // bringing mni mask to subject space
-      MniToSubject(vdb.maskFile, vdb.mniMask, vdb.mniTemplate, outputFile, prefix);
+	  MniToSubject(vdb.rfiFile, vdb.mniMask, vdb.mniTemplate, outputFile, prefix);
       
       // loads the reference mask
       meanCalculation.loadReference(outputFile);
