@@ -24,21 +24,28 @@ int emotionRoiProcessing::initialization(studyParams &vdb)
 	}
 
    char roiMask[BUFF_SIZE];
+   // these two following values are configured by the frontend via the SET command
    strcpy(roiMask, vdb.readedIni.GetValue("FRIEND", "ActivationLevelMask"));
    int masktype = vdb.readedIni.GetLongValue("FRIEND", "ActivationLevelMaskType");
+   
+   // reading the target values. If not defined, reading a default value ActivationLevel
    targetValue = vdb.readedIni.GetDoubleValue("FRIEND", "ActivationLevel");
-   int sigmoidSize = vdb.readedIni.GetDoubleValue("FRIEND", "SigmoidCalculationSize", 10);
-   levelMultiplyer = vdb.readedIni.GetDoubleValue("FRIEND", "LevelMultiplyer", 0.25);
    negativeTargetValue = vdb.readedIni.GetDoubleValue("FRIEND", "NegativeActivationLevel", targetValue);
    positiveTargetValue = vdb.readedIni.GetDoubleValue("FRIEND", "PositiveActivationLevel", targetValue);
+
+   // size of the last values that     
+   int sigmoidSize = vdb.readedIni.GetDoubleValue("FRIEND", "SigmoidCalculationSize", 10);
+   levelMultiplyer = vdb.readedIni.GetDoubleValue("FRIEND", "LevelMultiplyer", 0.25);
 
    fprintf(stderr, "mnimask = %s\n", roiMask);
    fprintf(stderr, "masktype = %d\n", masktype);
    if ((fileExists(roiMask)) && (masktype == 1))
    {
-	   // loads the reference mask
+	   // loads the roi mask 
 	   fprintf(stderr, "Loading native space mask %s\n", roiMask);
 	   meanCalculation.loadReference(roiMask);
+
+	   // getting the index of the rois in the meanCalculation object array based on the intesities of the rois.
 	   positiveIndex = meanCalculation.roiIndex(3); // 3 in the intensity value of positive emotion ROI
 	   negativeIndex = meanCalculation.roiIndex(1); // 1 in the intensity value of negative emotion ROI
 	   fprintf(stderr, "Positive Index %d\n", positiveIndex);
@@ -46,6 +53,8 @@ int emotionRoiProcessing::initialization(studyParams &vdb)
    }
    positiveBaseline=0;
    negativeBaseline=0;
+
+   // currently we ar wnot using these two values
    positiveBlocksAboveTarget = 0;
    negativeBlocksAboveTarget = 0;
 
@@ -79,12 +88,12 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 	// generating the means file
 	volume<float> v;
 
-	// preparing timeseries variable
+	// preparing timeseries variable. Two timeseries one for each roi
 	timeseries.resize(meanCalculation.roiCount());
 	for (int i = 0; i < timeseries.size(); i++)
 		timeseries[i].resize(vdb.interval.maxIndex());
 
-	// calculating the means
+	// calculating the means of each roi, passing through all volumes ofthe current run
 	for (int i = 0; i < vdb.interval.maxIndex(); i++)
 	{
 		loadVolume(vdb, v, i+1);
@@ -94,27 +103,32 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 			timeseries[j][i] = meanCalculation.roiMean(j);
 	}
 
-	// z normalized
+	// z normalizing the timeseries
 	for (int j = 0; j < timeseries.size(); j++)	znormalise(timeseries[j]);
 
 	// saving the result to file
 	sprintf(meanFile, "%s%s_%s%s.txt", vdb.outputDir, vdb.subject, "means", vdb.trainFeatureSuffix);
 	fstream Output(meanFile, fstream::in | fstream::out | fstream::trunc);
+	// actually saving the data
 	for (int i = 0; i < vdb.interval.maxIndex(); i++)
 	{
 		for (int j = 0; j < timeseries.size(); j++)
 			Output << timeseries[j][i] << '\t';
 		Output << '\n';
 	}
+	// closing the file
 	Output.close();
 
-	// generating the roi means graph png
+	// generating the roi means graph png of the calculated timeseries.
 	fprintf(stderr, "Generating roi means graphic\n");
 	changeFileExt(meanFile, ".png", pngFile);
+
+	// First part of the command
 	CmdLn << "fsl_tsplot -i " << meanFile << " -t \"z-normalised roi means plot\" -u 1 --start=1 --finish=" << meanCalculation.roiCount() << " -a ";
 
 	vector<int> roiValues;
 	meanCalculation.getRoiValues(roiValues);
+
 	// Building the labels with the intensities of the roi volume file
 	int counter=0;
 	CmdLn << '\"';
@@ -125,36 +139,41 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 		if (counter < meanCalculation.roiCount())
 			CmdLn << ',';
 	}
-	// completing the command
+
+	// completing the command and executing it
 	CmdLn << '\"';
 	CmdLn << " -w 640 -h 144 -o " << pngFile;
 	fsl_tsplot((char *)CmdLn.str().c_str());
 
 
+
+	// bringing the reference roi mask in MNI space to native space
+	// preparing the name of the outputfile
 	extractFileName(vdb.mniMask, name);
 	for (int t = 0; t<strlen(name); t++)
 	if (name[t] == '.') name[t] = '_';
 
 	sprintf(outputFile, "%s%s%s.nii", vdb.inputDir, name, vdb.trainFeatureSuffix);
 
+	// Executing the command
 	MniToSubject(vdb.maskFile, vdb.mniMask, vdb.mniTemplate, outputFile, prefix);
 
-	// saving a composite file just to assure the side of the roi volume
+	// saving a composite file just to assure the side of the roi volume. No real use in computation
 	sprintf(compositeFile, "%s%s%s.nii", vdb.inputDir, "compositeFile", vdb.trainFeatureSuffix);
 	uniteVolumes(vdb.rfiFile, outputFile, compositeFile);
 
+	// Now create the best voxels roi mask
+
 	// read Region extract map file and percentage
+	RegionExtraction extractor;
 	correlationExtractPercent = vdb.readedIni.GetDoubleValue("FRIEND", "PercentageOfBestVoxelsPerROI") / 100.0;
 	strcpy(regionExtractMapFile, vdb.readedIni.GetValue("FRIEND", "ROIExtractionMapFile"));
-
-
-	RegionExtraction extractor;
-
 
 	// reading the mappings
 	std::map<int, int> mappings;
 	extractor.readMappings(regionExtractMapFile, mappings);
 
+	// Defining the output file name. This name wiil be used in the Unity frontend via the SET command
 	sprintf(roiVolumeFile, "%s%s%s%s", vdb.outputDir, "ROIsMap", vdb.trainFeatureSuffix, ".nii");
 
 	// Execute segmentation
@@ -173,6 +192,7 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 			processVolume(vdb, i, classnum, projection);
 		}
 
+		// savign a file with the roi means of the recently calculated roi mask
 		char negativeCurveFile[BUFF_SIZE], positiveCurveFile[BUFF_SIZE];
 		sprintf(negativeCurveFile, "%s%c%s%s.txt", vdb.outputDir, PATHSEPCHAR, "negative_curve", vdb.trainFeatureSuffix);
 		sprintf(positiveCurveFile, "%s%c%s%s.txt", vdb.outputDir, PATHSEPCHAR, "positive_curve", vdb.trainFeatureSuffix);
@@ -180,6 +200,7 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 		positiveActivationLevel.saveCurves(positiveCurveFile);
 		negativeActivationLevel.saveCurves(negativeCurveFile);
 
+		// saving the values in the configuration file
 		vdb.readedIni.SetDoubleValue("FRIEND", "NegativeActivationLevel", negativeActivationLevel.mean);
 		vdb.readedIni.SetDoubleValue("FRIEND", "PositiveActivationLevel", positiveActivationLevel.mean);
 		vdb.readedIni.SaveFile(vdb.configFileNameRead);
@@ -190,31 +211,27 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 void emotionRoiProcessing::loadVolume(studyParams &vdb, volume<float> &v, int index)
 {
 	char processedFile[200], prefix[BUFF_SIZE], tempVolume[BUFF_SIZE];
-	if (0)
-	{
-		// gets the motion corrected and gaussian file
-		vdb.getMCGVolumeName(processedFile, index);
-		read_volume(v, string(processedFile));
-	}
-	else
-	{
-		// making the activation volume for viewing
-		vdb.getFinalVolumeFormat(prefix);
-		vdb.setActivationFile(index);
-		estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
 
-		// gets the motion corrected and gaussian file and calculates the mean with the last n volumes (n = sliding window size)
-		sprintf(tempVolume, "%s%s", vdb.outputDir, "temp.nii");
-		vdb.getMCGVolumeFormat(prefix);
-		estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);
+	// making the activation volume for viewing by applying the FRIEND pipeline sliding window mean. 
+	// This file will not be used in the current processing
+	vdb.getFinalVolumeFormat(prefix);
+	vdb.setActivationFile(index);
+	estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
+
+	// gets the motion corrected and gaussian file and calculates the FRIEND pipeline sliding window mean
+	sprintf(tempVolume, "%s%s", vdb.outputDir, "temp.nii");
+	vdb.getMCGVolumeFormat(prefix);
+	estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);
+
+	// if the file exists, read the volume and delete it.
+	if (fileExists(tempVolume))
+	{
 		read_volume(v, string(tempVolume));
-		if (fileExists(tempVolume))
-			remove(tempVolume);
+		remove(tempVolume);
 	}
-
 }
 
-// calculates the feedback value
+// calculates the feedback value depending of the current block 
 int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &classnum, float &feedbackValue)
 {
    int idxInterval = vdb.interval.returnInterval(index);
@@ -230,6 +247,7 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
 
    double intervalSize = (double)(vdb.interval.intervals[idxInterval].end - vdb.interval.intervals[idxInterval].start + 1);
 
+   // in the baseline condition, just calculate the mean volume
    if (vdb.interval.isBaselineCondition(index))
    {
       if (vdb.interval.intervals[idxInterval].start == index) meanbaseline = v;
@@ -248,43 +266,57 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
    else // task condition. Taking the mean of the volume and calculating the PSC
    {
       meanCalculation.calculateMeans(v);
-	  positivePSC = PSC(meanCalculation.roiMean(positiveIndex), positiveBaseline);
-	  negativePSC = PSC(meanCalculation.roiMean(negativeIndex), negativeBaseline);
 
 	  // negative emotion Feedback
 	  if (classnum == 1)
 	  {
+		  // Calculates the PSC value
+		  negativePSC = PSC(meanCalculation.roiMean(negativeIndex), negativeBaseline);
+		  // Calculates the percentage relative to the target
 		  feedbackValue = negativePSC / negativeTargetValue;
-		  if (vdb.interval.intervals[idxInterval].start == index) negativePSCMean = negativePSC / intervalSize;
-		  else  negativePSCMean += negativePSC / intervalSize;
 
-		  if (vdb.interval.intervals[idxInterval].end == index)
-		  {
-			  if (negativePSCMean >= negativeTargetValue)
-				  negativeBlocksAboveTarget++;
-		  }
+		  /////////////////////////The calculations are not used right now////////////////////////////////////////
+		  //if (vdb.interval.intervals[idxInterval].start == index) negativePSCMean = negativePSC / intervalSize;
+		  //else  negativePSCMean += negativePSC / intervalSize;
+          //
+		  //if (vdb.interval.intervals[idxInterval].end == index)
+		  //{
+		  //	  if (negativePSCMean >= negativeTargetValue)
+		  //		  negativeBlocksAboveTarget++;
+		  //}
+		  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+		  // only add positive PSC values to the sigmoid calculation
 		  if (negativePSC > 0)
 			  negativeActivationLevel.addValue(negativePSC, 1);
 
+		  // updating the target value for next volume
 		  double valueLevel = negativeActivationLevel.mean * (1 + levelMultiplyer);
 		  if (valueLevel > 0) negativeTargetValue = valueLevel;
 	  }
 	  else if (classnum == 3)
 	  {
+		  // Calculates the PSC value
+		  positivePSC = PSC(meanCalculation.roiMean(positiveIndex), positiveBaseline);
+		  // Calculates the percentage relative to the target
 		  feedbackValue = positivePSC / positiveTargetValue;
-		  if (vdb.interval.intervals[idxInterval].start == index) positivePSCMean = positivePSC / intervalSize;
-		  else  positivePSCMean += positivePSC / intervalSize;
 
-		  if (vdb.interval.intervals[idxInterval].end == index)
-		  {
-			  if (positivePSCMean >= positiveTargetValue)
-				  positiveBlocksAboveTarget++;
-		  }
+		  /////////////////////////The calculations are not used right now////////////////////////////////////////
+		  //if (vdb.interval.intervals[idxInterval].start == index) positivePSCMean = positivePSC / intervalSize;
+		  //else  positivePSCMean += positivePSC / intervalSize;
+		  //
+		  //if (vdb.interval.intervals[idxInterval].end == index)
+		  //{
+		  //	  if (positivePSCMean >= positiveTargetValue)
+		  //		  positiveBlocksAboveTarget++;
+		  //}
+		  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+		  // only add positive PSC values to the sigmoid calculation
 		  if (positivePSC > 0)
 			  positiveActivationLevel.addValue(positivePSC, 1);
 
+		  // updating the target value for next volume
 		  double valueLevel = positiveActivationLevel.mean * (1 + levelMultiplyer);
 		  if (valueLevel > 0) positiveTargetValue = valueLevel;
 	  }
