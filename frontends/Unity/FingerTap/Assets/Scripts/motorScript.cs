@@ -22,12 +22,6 @@ public class motorScript : MonoBehaviour {
 	private float incr = 5;
 
 	private AssemblyCSharp.MotorComm comm;
-	private int[] triggerIndex = new int[] {16, 53, 90, 127, 164, 201, 238, 275};
-	private int blockLength = 22;
-
-	private String HostData = "127.0.0.1";
-	private Int32 Port = 5678;
-	private float TR = 1.2f;
 
 
 	void resetState()
@@ -45,81 +39,72 @@ public class motorScript : MonoBehaviour {
 		moveHand(rightTarget, ref rightPercentage, rightStart, rightEnd, incr);
 	}
 
+	bool isOdd(int value)
+	{
+		return value % 2 != 0;
+	}
+
 	IEnumerator stateManager()
 	{
 		if (comm.state() == 0)
 			texto.text = "RELAX"; 
 
 		comm.coreCommunication();
-		if (comm.state() == 15)
+
+		if ((isOdd(comm.actualBlock)) && (comm.isBlockStart()))
 		{
 			texto.text = "RELAX";
 			resetState();
-			if (comm.volume() >= triggerIndex[comm.phase()]) comm.setState(16);
 		}
-		
-		if (comm.state() == 16) 
+		else if ((!isOdd(comm.actualBlock)))
 		{
-			if (comm.phase() > 7) comm.setState(100);
-			else
+			if (comm.state() < 100)
 			{
-				texto.text = "FINGERTAP ONE HAND ONLY";
-				comm.setState(17);
+				if (comm.isBlockStart()) texto.text = "FINGERTAP ONE HAND ONLY";
+				if ((comm.firstRoiMean != 0) || (comm.secondRoiMean != 0))
+				{
+					if (comm.firstRoiMean > comm.secondRoiMean) 
+					{
+						leftHandAnimate = true;
+						rightHandAnimate = false;
+						leftPercentage = (float) comm.firstRoiMean;
+						
+						leftMove = true;
+						rightMove = false;
+					}
+					else
+					{
+						leftHandAnimate = false;
+						rightHandAnimate = true;
+						rightPercentage = (float) comm.secondRoiMean;
+						
+						leftMove = false;
+						rightMove = true;
+					}
+					if (!rightMove) 
+					{
+						rightPercentage = 0.2f;
+						moveHand(rightTarget, ref rightPercentage, rightStart, rightEnd, incr);
+					}
+					
+					if (!leftMove) 
+					{
+						leftPercentage = 0.2f;
+						moveHand(leftTarget, ref leftPercentage, leftStart, leftEnd, incr);
+					}
+				}
 			}
 		}
-		
-		if (comm.state() == 17)
-		{
-			if ((comm.firstRoiMean != 0) || (comm.secondRoiMean != 0))
-			{
-				if (comm.firstRoiMean > comm.secondRoiMean) 
-				{
-					leftHandAnimate = true;
-					rightHandAnimate = false;
-					leftPercentage = (float) comm.firstRoiMean;
-					
-					leftMove = true;
-					rightMove = false;
-				}
-				else
-				{
-					leftHandAnimate = false;
-					rightHandAnimate = true;
-					rightPercentage = (float) comm.secondRoiMean;
-					
-					leftMove = false;
-					rightMove = true;
-				}
-				if (!rightMove) 
-				{
-					rightPercentage = 0.2f;
-					moveHand(rightTarget, ref rightPercentage, rightStart, rightEnd, incr);
-				}
-				
-				if (!leftMove) 
-				{
-					leftPercentage = 0.2f;
-					moveHand(leftTarget, ref leftPercentage, leftStart, leftEnd, incr);
-				}
-			}
-			
-			if (comm.volume () >= triggerIndex[comm.phase()]+blockLength) 
-			{
-				comm.setPhase(comm.phase() + 1);
-				comm.setState(15);
-			}
-		}
-
-		if (comm.state () == 100) 
+		if (comm.state () >= 100) 
 		{
 			StopCoroutine("stateManager");
 			texto.text = "END";
 			
 			resetState ();
 		}
-		comm.handleGraphInformation();
 		yield return null;
 	}
+
 	// Use this for initialization
 	void Start () {
 		leftStart = new Vector3 (999.752f, 0.96305f, 1000.09f );
@@ -133,15 +118,6 @@ public class motorScript : MonoBehaviour {
 
 		leftHand = GameObject.Find("Hand_L");
 		rightHand = GameObject.Find("Hand_R");
-
-		tryInterval = TR  / 5f;
-		timeCounter = 0;
-
-		armTryInterval = TR / 5f;
-		armTimeCounter = 0;
-
-		handTryInterval = TR / 10f;
-		handTimeCounter = 0;
 
 		leftHandClose = false;
 		rightHandClose = false;
@@ -159,15 +135,17 @@ public class motorScript : MonoBehaviour {
 		rightTarget.transform.position = rightStart;
 
 		comm = new AssemblyCSharp.MotorComm();
-		comm.setupConnection(HostData, Port);
+		comm.setupExperiment();
 
-		comm.addConfigurationPair ("MNIMask", "studydirhmat_spm_final.nii");
-		comm.addConfigurationPair ("MNITemplate", "studydirMNI152_T1_1mm_brain.nii.gz");
-		comm.addConfigurationPair ("Prefix", "outputdirRUN01" + Path.DirectorySeparatorChar + "DRIN-");
-		comm.addConfigurationPair ("ActivationLevel", "0.01");
-		comm.addConfigurationPair ("CurrentRunSuffix", "RUN01");
-
-		comm.setRunsize (296);
+		comm.TR = 1.0f;
+		tryInterval = comm.TR  / 5f;
+		timeCounter = 0;
+		
+		armTryInterval = comm.TR / 5f;
+		armTimeCounter = 0;
+		
+		handTryInterval = comm.TR / 10f;
+		handTimeCounter = 0;
 	}
 
 	void toggleHand(GameObject handObj, ref bool HandClose)
@@ -204,10 +182,20 @@ public class motorScript : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
+		if ( Input.GetKey(KeyCode.Space ) ) 
+			comm.initRun ();
+		
+		if (comm.experimentStarted())
+			comm.updateVolume();
+		else 
+			if (comm.checkParallelPort())
+				comm.initRun();
+
 		timeCounter -= Time.deltaTime;
 		if (timeCounter <= 0) 
 		{
-			StartCoroutine("stateManager");
+			if (comm.experimentStarted())
+			   StartCoroutine("stateManager");
 			timeCounter = tryInterval;
 		};
 

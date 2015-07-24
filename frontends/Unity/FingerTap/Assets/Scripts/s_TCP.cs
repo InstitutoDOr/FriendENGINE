@@ -46,7 +46,7 @@ public class s_TCP : MonoBehaviour {
 			return "";
 		try {
 			return theReader.ReadLine ();
-		} catch (Exception e) {
+		} catch  {
 			return "";
 		}
 	}

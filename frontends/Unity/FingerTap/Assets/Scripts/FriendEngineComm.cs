@@ -8,7 +8,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 using System;
+using System.IO;
 using System.Collections.Generic;
+// serial port library
+using System.IO.Ports;
+using UnityEngine;
 
 namespace AssemblyCSharp
 {
@@ -31,7 +35,13 @@ namespace AssemblyCSharp
 			
 		     }
 
-		     protected s_TCP mainThread, responseThread;
+			 public int maxVolumeIndex = 0;
+			 public int[] startBlockIndexes;
+
+		     public float runStart = 0; // begining of the Run 
+		     public bool timeBaseVolumeIndex = false;
+			 public int lastVolumeRead;
+			 protected s_TCP mainThread, responseThread;
 			 protected String HostData;
 		     protected String checkingValue;
 			 protected Int32 Port;
@@ -41,12 +51,18 @@ namespace AssemblyCSharp
 		     protected Int32 actualCommState = 0;
 		     protected Int32 operation = 0;
 		     protected string sessionID;
-		     protected int actualVolume;
 		     protected String actualCommand;
 			 protected String actualVariable;
 			 protected String actualValue;
 		     protected int runSize;
-		     List<configurationPair> pairs;
+			 public bool useCommPort=false;
+
+			 public int actualVolume = 0;
+			 public int actualQueryVolume = 0;
+			 public int actualBlock = 0;
+			 public double actualClass;
+
+			 List<configurationPair> pairs;
 
 		     public String lastSessionComandResponse;
 		     public String lastGraphResponse;
@@ -56,10 +72,27 @@ namespace AssemblyCSharp
 		     public double[] feedbackValues; 
 		     public int FeedbackFailed;
 		     public int feedbackRun = 1;
+		     public int designType = 1;
+		     public int feedbackDelay = 1;
+			 public int feedbackType = 1;
+		     public float TR = 2.0f;
+			 protected int blockType = 1;
+
+		     protected string designFile = "";
+		     protected string subject = "";
+		     protected string studyDir = "";
 
 		     public Int32 doTRAIN = 0;
 		     public Int32 doGLM = 0;
 		     public Int32 doFEATURESELECTION = 0;
+
+			 public String engineIP = "127.0.0.1";
+			 public Int32 enginePort = 5678;
+			 public string modelSuffix = "";
+			 public string currentSuffix = "";
+
+			 private StreamWriter logStream;
+			 private SerialPort sp;
 
 		   
 			 public FriendEngineComm ()
@@ -74,13 +107,205 @@ namespace AssemblyCSharp
 
 			       pairs = new List<configurationPair>();
 			 }
-		     
+
+	         public string timeStamp ()
+	         {
+		        DateTime date = DateTime.Now;
+		        return date.ToShortDateString() + " at " + date.ToLongTimeString();
+	         }
+
+	         public void logLine(string line)
+	         {
+		        if (logStream != null)
+		           logStream.WriteLine (timeStamp () + " : " + line);
+	         }
+
+		     public void createLogFile()
+			 {
+			    if (studyDir != "")
+			    {
+				   string logFile = studyDir + Path.DirectorySeparatorChar + subject + Path.DirectorySeparatorChar + "log" + Path.DirectorySeparatorChar + "Unity_Engine_" + currentSuffix +  ".log";
+				   System.IO.Directory.CreateDirectory (studyDir + Path.DirectorySeparatorChar + subject + Path.DirectorySeparatorChar + "log");
+				   logStream = new StreamWriter (logFile);
+			    }
+			    else logStream = null;
+			 }
+
+		     public virtual void doSetup()
+		     {
+			 }
+
+		     public void setupExperiment()
+		     {
+			     runStart = 0;
+			     actualBlock = 0;
+			     actualVolume = 0;
+			     readConfigFile();
+			     // creating logStream
+			     createLogFile();
+				 // was in Port COM1 with a baud rate of 9600.
+			     doSetup ();
+				 if (useCommPort)
+				 {
+					try
+					{
+						sp = new SerialPort( "COM1"
+						                    , 19200
+						                    , Parity.None
+						                    , 8
+						                    , StopBits.One);
+						
+						// Open the port for communications
+						sp.Open();
+						
+						// Set read time out to 50 ms.
+						// This value might be too high actually.
+						sp.ReadTimeout = 50;
+					}
+					catch 
+					{
+						useCommPort = false;
+					}
+				 }
+		   	     setupConnection(engineIP, enginePort);
+				 writeDebugLog();
+		         saveConfigFile();
+		     }
+
+		     public virtual void doReadConfig(string line)
+		     {
+				if (line != null) {
+					string [] values = line.Split('=');
+					switch (values [0].ToUpper ()) {
+						
+					case "STUDYDIR":
+						studyDir = values [1];
+						break;
+						
+					case "SUBJECT":
+						subject = values [1];
+						break;
+						
+					case "TR":
+						TR = float.Parse (values [1]);
+						break;
+						
+					case "BLOCKTYPE":
+						blockType = int.Parse (values [1]);
+						break;
+						
+					case "FEEDBACKTYPE":
+						feedbackType = int.Parse (values [1]);
+						break;
+						
+					case "USECOMMPORT":
+						useCommPort = int.Parse (values [1]) == 1;
+						break;
+						
+					case "MAXVOLUMEINDEX":
+						maxVolumeIndex = int.Parse (values [1]);
+						break;
+						
+					case "ENGINEIP":
+						engineIP = values [1];
+						break;
+						
+					case "ENGINEPORT":
+						enginePort = Int32.Parse (values [1]);
+						break;
+						
+					case "MODELSUFFIX":
+						modelSuffix = values [1];
+						break;
+						
+					case "CURRENTSUFFIX":
+						currentSuffix = values [1];
+						break;
+						
+					case "DESIGNTYPE":
+						designType = int.Parse (values [1]);
+						break;
+						
+					case "FEEDBACKDELAY":
+						feedbackDelay = int.Parse (values [1]);
+						break;
+					}
+				}
+		     }
+
+		     public void readConfigFile()
+		     {
+			    //string configFileName = Application.dataPath + Path.DirectorySeparatorChar + "experiment.ini";
+			    string[] args = Environment.GetCommandLineArgs();
+			    if (args.Length < 2) return;
+			
+			    string configFileName = args [1];
+			    if (!System.IO.File.Exists(configFileName)) return;
+
+			    if (args.Length > 2)
+				   subject = args [2];
+			    StreamReader inFile = new StreamReader (configFileName);
+			
+			    string line;
+			    do {
+				   line = inFile.ReadLine ();
+				   doReadConfig(line);
+			    } while (line != null);
+			    inFile.Close ();
+			
+		     }
+
+		     public virtual void doSaveConfig(StreamWriter outFile)
+		     {
+				outFile.WriteLine("StudyDir=" + studyDir);
+				outFile.WriteLine("Subject=" + subject);
+				outFile.WriteLine("TR=" + TR.ToString());
+				outFile.WriteLine("UseCommPort=" + useCommPort.ToString());
+				outFile.WriteLine("MaxVolumeIndex=" + maxVolumeIndex.ToString());
+				outFile.WriteLine("EngineIP=" + engineIP);
+				outFile.WriteLine("EnginePort=" + enginePort.ToString());
+				outFile.WriteLine("ModelSuffix=" + modelSuffix.ToString());
+				outFile.WriteLine("CurrentSufix=" + currentSuffix.ToString());
+				outFile.WriteLine("DesignType=" + designType.ToString());
+				outFile.WriteLine("FeedBackDelay=" + feedbackDelay.ToString());
+				outFile.WriteLine("DesignFile=" + designFile);
+				outFile.WriteLine("BlockType=" + blockType.ToString());
+				outFile.WriteLine("FeedBackType=" + feedbackType.ToString());
+			 }
+
+		     public void saveConfigFile()
+		     {
+				if (studyDir == "") return;
+				string configFileName = studyDir + Path.DirectorySeparatorChar + subject + Path.DirectorySeparatorChar + currentSuffix +  ".ini";
+				StreamWriter outFile = new StreamWriter (configFileName);
+				
+			    doSaveConfig(outFile);
+				outFile.Close ();
+		     }
+
+             public virtual void writeDebugLog()
+		     {
+				Debug.Log("Parameters : ");
+				Debug.Log("TR               : " + TR.ToString());
+				Debug.Log("Use Comm Port    : " + useCommPort.ToString());
+				Debug.Log("Max Volume Index : " + maxVolumeIndex.ToString());
+				Debug.Log("Engine IP        : " + engineIP);
+				Debug.Log("Engine Port      : " + enginePort.ToString());
+				Debug.Log("Model Suffix     : " + modelSuffix.ToString());
+				Debug.Log("Current Sufix    : " + currentSuffix.ToString());
+				Debug.Log("Design Type      : " + designType.ToString());
+				Debug.Log("FeedBack Delay   : " + feedbackDelay.ToString());
+				Debug.Log("Design File      : " + designFile);
+				Debug.Log("block Type       : " + blockType.ToString());
+				Debug.Log("Feedback Type    : " + feedbackType.ToString());
+			 }
+
+
 		     public void addConfigurationPair(String studyTag, String valueParam)
 		     {
 			     configurationPair pair = new configurationPair(studyTag, valueParam);
 			     pairs.Add(pair);
 		     }
-
 
 		     public void setupConnection(String host, Int32 port)	
 		     {
@@ -102,6 +327,7 @@ namespace AssemblyCSharp
 				   feedbackValues = new double[size];
 				   feedbackClasses = new double[size];
 			       runSize = size;
+			       maxVolumeIndex = size;
 			 }
 
 		     public void connect()	{
@@ -140,7 +366,7 @@ namespace AssemblyCSharp
 
 		     public void getGraphParams(int volume)
 			 {
-			     actualVolume = volume;
+			     actualQueryVolume = volume;
 			     operation = 5;
 			     actualState = 1;
 			     handleGetGraphParams();
@@ -148,7 +374,7 @@ namespace AssemblyCSharp
 
 		     public void getFeedBack(int volume)
 			 {
-			     actualVolume = volume;
+			     actualQueryVolume = volume;
 			     operation = 6;
 			     actualState = 1;
 			     if (volume > runSize)
@@ -266,7 +492,7 @@ namespace AssemblyCSharp
 			    mainThread.writeSocket ("no");
 			 }
 
-		     protected virtual void handlePlugInSetup() 
+		     protected void handlePlugInSetup() 
 		     {
 			     String response; 
 			     if (actualState == 1) {
@@ -354,7 +580,7 @@ namespace AssemblyCSharp
 					if (response == "OK")
 					{
 						responseThread.writeSocket("GRAPHPARS");
-						responseThread.writeSocket(actualVolume.ToString());
+						responseThread.writeSocket(actualQueryVolume.ToString());
 					    actualState = 3;
 					}
 				    else if (response != "") 
@@ -404,8 +630,8 @@ namespace AssemblyCSharp
 			     if (!mainThread.Connected ()) 
 		   	     {
 				    operation = 0;
-				    feedbackValues[actualVolume-1] = 0;
-				    feedbackClasses[actualVolume-1] = 0;
+				    feedbackValues[actualQueryVolume-1] = 0;
+				    feedbackClasses[actualQueryVolume-1] = 0;
 				    return;
 			     }
 
@@ -422,7 +648,7 @@ namespace AssemblyCSharp
 					if (response == "OK") 
 					{
 						responseThread.writeSocket ("TEST");
-						responseThread.writeSocket (actualVolume.ToString());
+						responseThread.writeSocket (actualQueryVolume.ToString());
 					    actualState = 3;
 					} 
 				    else if (response != "") 
@@ -439,7 +665,7 @@ namespace AssemblyCSharp
 					if (lastFeedBackClass != "") 
 					{
 					   actualState = 4;
-					   feedbackClasses[actualVolume-1] = double.Parse(lastFeedBackClass);
+					   feedbackClasses[actualQueryVolume-1] = double.Parse(lastFeedBackClass);
 					}
 				    else if ((lastFeedBackClass == "") && (!responseThread.Connected()))
 					 {
@@ -454,7 +680,7 @@ namespace AssemblyCSharp
 					if (lastFeedBack != "") 
 					{
 					   actualState = 5;
-					   feedbackValues[actualVolume-1] = double.Parse(lastFeedBack);
+					   feedbackValues[actualQueryVolume-1] = double.Parse(lastFeedBack);
 					}
 				    else if ((lastFeedBack == "") && (!responseThread.Connected()))
 					 {
@@ -547,8 +773,6 @@ namespace AssemblyCSharp
 				    if (lastGraphResponse == "END") 
 				    {
 					   actualCommState = 100;
-					   posprocessing();
-					   endSession();
 				    }
 			   };
 			 }
@@ -602,7 +826,11 @@ namespace AssemblyCSharp
 			    actualPhase = value;
 			 } 
 
-		     public void coreCommunication()
+		     public virtual void logProgress()
+		     {
+			 }
+
+		     public virtual void coreCommunication()
 		     {
 			    // connecting and creating a new session
 			    if (actualCommState == 0) 
@@ -678,32 +906,154 @@ namespace AssemblyCSharp
 				   if (stateManager() == 0)
 					   actualCommState = 10;
 			    }
-			
-			    // getting the first graph parameter
-			    if (actualCommState == 10)
+
+			    if (!timeBaseVolumeIndex)
 			    {
-				   actualVolume = 1;
-				   getGraphParams(actualVolume);
-				   actualCommState = 11;
-			    }
-			
-			    // waiting the end of graph call
-			    if (actualCommState == 11)
-			    {
-				   if (stateManager() == 0)
-					  actualCommState = 12;
-			    }
-			
-			    // starting the first path
-			    if (actualCommState == 12)
-			    {
-				   if (lastGraphResponse == "GRAPHPARS") actualCommState = 10;
-				   else
-				   {
-					   actualCommState = 15;
-					   actualPhase = 0;
-				   }
-			    }
+				    // getting the first graph parameter
+				    if (actualCommState == 10)
+				    {
+					   actualVolume = 1;
+					   getGraphParams(actualVolume);
+					   actualCommState = 11;
+				    }
+				
+				    // waiting the end of graph call
+				    if (actualCommState == 11)
+				    {
+					   if (stateManager() == 0)
+						  actualCommState = 12;
+				    }
+				
+				    if (actualCommState == 12)
+				    {
+					   if (lastGraphResponse == "GRAPHPARS") actualCommState = 10;
+					   else
+					   {
+						   actualCommState = 15;
+						   actualPhase = 0;
+					   }
+				    }
+				    handleGraphInformation();
+				}
+			    else  
+				{
+					// getting the first graph parameter
+					if (actualCommState == 10)
+					{
+					    if (!experimentStarted()) return;
+						if (feedbackRun!=0)
+						{
+							if ((actualVolume > lastVolumeRead) && (actualVolume > feedbackDelay))
+							{
+								getFeedBack(actualVolume-feedbackDelay);
+								actualCommState = 11;
+							}
+						}
+					    else 
+						{
+						   if (actualVolume > maxVolumeIndex) actualCommState = 100;
+						   else 
+						   {
+								if (actualVolume > lastVolumeRead)
+								{
+								   logProgress();
+								   lastVolumeRead = actualVolume;
+								}
+						   }
+						}
+				    }
+					
+					// waiting the end of graph call
+					if (actualCommState == 11)
+					{
+						if (stateManager() == 0)
+							actualCommState = 12;
+					}
+					
+					// starting the first path
+					if (actualCommState == 12)
+					{
+						lastVolumeRead = actualVolume;
+						if (lastVolumeRead == maxVolumeIndex) actualCommState = 100;
+						else actualCommState = 10;
+				    }
+				}
+			    if (actualCommState == 100)
+				{
+				   stopRun();
+				   posprocessing();
+				   endSession();
+				}
+		}
+
+		public bool checkParallelPort()
+		{
+			if (useCommPort)
+			{
+				try 
+				{
+					byte tempB = (byte)sp.ReadByte ();
+					return true;
+				} catch 
+				{
+					return false;
+				}
+			}
+			return false;
+		}
+
+		public void initRun()
+		{
+			if (runStart == 0)
+			{
+				runStart = Time.time;
+				actualVolume = 1;
+				actualBlock = 1;
+				logLine("Start of the run");
+			}
+		}
+
+		public void stopRun()
+		{
+			if (studyDir != "")
+			{
+				logLine("End of the run");
+				string inFile = Application.dataPath + Path.DirectorySeparatorChar + "output_log.txt";
+				string outFile = studyDir + Path.DirectorySeparatorChar + subject + Path.DirectorySeparatorChar + "log" + Path.DirectorySeparatorChar + "Unity_" + currentSuffix +  ".log";
+				System.IO.File.Delete(outFile);
+				System.IO.File.Copy (inFile, outFile);
+			}
+		}
+
+		public bool isBlockStart()
+		{
+			return (actualVolume == startBlockIndexes [actualBlock - 1]);
+		}
+
+		public bool experimentStarted()
+		{
+			return (runStart > 0);
+		}
+
+		public void updateVolume()
+		{
+			if (runStart > 0) 
+			{
+				if (actualVolume > maxVolumeIndex) return;
+				float elapsedTime = Time.time-runStart;
+				if (elapsedTime > (actualVolume * TR)) actualVolume ++;
+
+				// actualBlock starts with 1
+				if (actualBlock < startBlockIndexes.Length)
+					if (actualVolume >= startBlockIndexes[actualBlock]) actualBlock ++;
+			} 
+		}
+
+		void OnDestroy() {
+			if (useCommPort)
+				sp.Close();
+			if (logStream != null)
+				logStream.Close();
 		}
 	}
 }

@@ -53,7 +53,7 @@ void exit_input_error1(int line_num)
 void AdaptingSVM::initialize(char *modelFileName)
 {
 	struct svm_model *model;
-	if (model = svm_load_model(modelFileName))
+	if ((model = svm_load_model(modelFileName)))
 	{
 		initialize(model);
 		svm_free_and_destroy_model(&model);
