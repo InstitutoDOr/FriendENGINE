@@ -168,7 +168,8 @@ bool	friendEngine::serverChild ( int	socketFd )
 
 
    iniTime = time(NULL); 
-   
+
+   fprintf(stderr, "Current dir = %s\n", workingDir);
    if (strlen(workingDir) < 2)
    {
 	   getcwd(workingDir, 500);

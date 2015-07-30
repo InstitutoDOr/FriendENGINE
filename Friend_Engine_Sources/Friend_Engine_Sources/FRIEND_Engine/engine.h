@@ -19,7 +19,7 @@ class	friendEngine
       // This is the entry point function. It starts a server that listen in `port` port and calls a function to handle a FRONTEND request (in a threading way or not, depending on variable noThread)
 		bool		server ( BYTE * );
 		int		childSocketFd;
-      char     workingDir[500];
+        char     workingDir[500];
 		volatile int	lock;
 #ifndef __GNUC__
 		friendEngine () { childSocketFd = 0; lock = 0; };

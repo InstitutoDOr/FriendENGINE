@@ -189,13 +189,14 @@ void FriendProcess::featureSelection()
    if (fileExists(vdb.glmTOutput))
    {
 	   // generate file with the maximum T for each voxel in the contrasts made
+	   fprintf(stderr, "Generating the all contrasts colapsed mask.\n");
 	   CmdLn << "fslmaths " << vdb.glmTOutput << " -Tmax " << vdb.featuresAllTrainSuffix;
 	   fslmaths((char *)CmdLn.str().c_str());
    }
    else
    {
 	   // reporting error an creating a fake glm t output
-	   fprintf(stderr, "Error occurred in glm calculation. Feature selection derived from it is invalid.");
+	   fprintf(stderr, "Error occurred in glm calculation. Feature selection derived from it is invalid.\n");
 
 	   CmdLn << "fslmaths " << vdb.maskFile << " -mul 0 " << vdb.featuresAllTrainSuffix;
 	   fslmaths((char *)CmdLn.str().c_str());
@@ -210,6 +211,7 @@ void FriendProcess::featureSelection()
    {
       char name[BUFF_SIZE], prefix[30]="_RFI2";
       
+	  fprintf(stderr, "Bringing MNI mask to native space.\n");
       extractFileName(vdb.mniMask, name);
       for (int t=0;t<strlen(name);t++)
       if (name[t] == '.') name[t] = '_';
@@ -220,11 +222,12 @@ void FriendProcess::featureSelection()
       MniToSubject(vdb.maskFile, vdb.mniMask, vdb.mniTemplate, vdb.subjectSpaceMask, prefix);
    }
    
-   if (vdb.useWholeSubjectSpaceMask)
+   if ((vdb.useWholeSubjectSpaceMask) && (fileExists(vdb.subjectSpaceMask)))
    { // just use all mni mask (in native space)
       char outputFile[BUFF_SIZE];
       sprintf(outputFile, "%s.nii%s", vdb.featuresTrainSuffix, extension);
-      copyFile(vdb.subjectSpaceMask, outputFile);
+	  fprintf(stderr, "Using all subject mask by copying the file %s to %s.\n", vdb.maskFile, outputFile);
+	  copyFile(vdb.subjectSpaceMask, outputFile);
    }
    else
    {
@@ -233,6 +236,7 @@ void FriendProcess::featureSelection()
 		   case 0: // threshold by percentage
 		   {
 			   /// select a percentage of higher voxels
+			   fprintf(stderr, "Selecting the best GLM voxels by percentage.\n");
 			   volume<float> features;
 			   string featuresFile = vdb.featuresAllSuffix;
 			   featuresFile += vdb.trainFeatureSuffix;
@@ -249,6 +253,7 @@ void FriendProcess::featureSelection()
 
 		   case 1: { // threshold by t-value
 			   // do threshold
+			   fprintf(stderr, "Selecting the best GLM voxels by value.\n");
 			   CmdLn.str("");
 			   CmdLn << "fslmaths " << vdb.featuresAllTrainSuffix << " -thr " << vdb.tTestCutOff << " " << vdb.featuresTrainSuffix;
 			   fslmaths((char *)CmdLn.str().c_str());
@@ -257,6 +262,7 @@ void FriendProcess::featureSelection()
 
 		   case 2: { // threshold by p-value
 			   // do threshold
+			   fprintf(stderr, "Selecting the best GLM voxels by p-value.\n");
 			   CmdLn.str("");
 			   CmdLn << "fslmaths " << vdb.glmDir << "pvalues" << vdb.trainFeatureSuffix << " -uthr " << vdb.pvalueCutOff << " -bin -mul " << vdb.featuresAllTrainSuffix << " " << vdb.featuresTrainSuffix;
 			   fslmaths((char *)CmdLn.str().c_str());
@@ -270,10 +276,10 @@ void FriendProcess::featureSelection()
 	   fslmaths((char *)CmdLn.str().c_str());
 
 	   // creates the intersection between the subjectmask and the thresholded mask
-	   if (fileExists(vdb.subjectSpaceMask))
+	   if (fileExists(vdb.maskFile))
 	   {
 		   CmdLn.str("");
-		   CmdLn << "fslmaths " << vdb.featuresTrainSuffix << " -mas " << vdb.subjectSpaceMask << " " << vdb.featuresTrainSuffix;
+		   CmdLn << "fslmaths " << vdb.featuresTrainSuffix << " -mas " << vdb.maskFile << " " << vdb.featuresTrainSuffix;
 		   fslmaths((char *)CmdLn.str().c_str());
 	   }
 

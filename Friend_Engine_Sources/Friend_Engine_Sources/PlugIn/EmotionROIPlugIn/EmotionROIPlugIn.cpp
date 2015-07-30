@@ -85,67 +85,76 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 	char prefix[30] = "_RFI2";
 	vector<vector<double>> timeseries;
 
-	// generating the means file
-	volume<float> v;
-
-	// preparing timeseries variable. Two timeseries one for each roi
-	timeseries.resize(meanCalculation.roiCount());
-	for (int i = 0; i < timeseries.size(); i++)
-		timeseries[i].resize(vdb.interval.maxIndex());
-
-	// calculating the means of each roi, passing through all volumes ofthe current run
-	for (int i = 0; i < vdb.interval.maxIndex(); i++)
+	if ((!fileExists(vdb.mniMask)) || (!fileExists(vdb.mniTemplate)))
 	{
-		loadVolume(vdb, v, i+1);
-		meanCalculation.calculateMeans(v);
-
-		for (int j = 0; j < meanCalculation.roiCount(); j++)
-			timeseries[j][i] = meanCalculation.roiMean(j);
+		if (!fileExists(vdb.mniTemplate)) fprintf(stderr, "Mni template file %s not found \n", vdb.mniTemplate);
+		if (!fileExists(vdb.mniMask)) fprintf(stderr, "Mni mask file %s not found \n", vdb.mniMask);
+		return;
 	}
-
-	// z normalizing the timeseries
-	for (int j = 0; j < timeseries.size(); j++)	znormalise(timeseries[j]);
-
-	// saving the result to file
-	sprintf(meanFile, "%s%s_%s%s.txt", vdb.outputDir, vdb.subject, "means", vdb.trainFeatureSuffix);
-	fstream Output(meanFile, fstream::in | fstream::out | fstream::trunc);
-	// actually saving the data
-	for (int i = 0; i < vdb.interval.maxIndex(); i++)
-	{
-		for (int j = 0; j < timeseries.size(); j++)
-			Output << timeseries[j][i] << '\t';
-		Output << '\n';
-	}
-	// closing the file
-	Output.close();
-
-	// generating the roi means graph png of the calculated timeseries.
-	fprintf(stderr, "Generating roi means graphic\n");
-	changeFileExt(meanFile, ".png", pngFile);
-
-	// First part of the command
-	CmdLn << "fsl_tsplot -i " << meanFile << " -t \"z-normalised roi means plot\" -u 1 --start=1 --finish=" << meanCalculation.roiCount() << " -a ";
 
 	vector<int> roiValues;
 	meanCalculation.getRoiValues(roiValues);
 
-	// Building the labels with the intensities of the roi volume file
-	int counter=0;
-	CmdLn << '\"';
-	for (int t = 0; t < roiValues.size(); t++)
+
+	if (roiValues.size() > 0)
 	{
-		CmdLn << "Intensity " << roiValues[t];
-		counter++;
-		if (counter < meanCalculation.roiCount())
-			CmdLn << ',';
+		// generating the means file
+		volume<float> v;
+
+		// preparing timeseries variable. Two timeseries one for each roi
+		timeseries.resize(meanCalculation.roiCount());
+		for (int i = 0; i < timeseries.size(); i++)
+			timeseries[i].resize(vdb.interval.maxIndex());
+
+		// calculating the means of each roi, passing through all volumes ofthe current run
+		for (int i = 0; i < vdb.interval.maxIndex(); i++)
+		{
+			loadVolume(vdb, v, i + 1);
+			meanCalculation.calculateMeans(v);
+
+			for (int j = 0; j < meanCalculation.roiCount(); j++)
+				timeseries[j][i] = meanCalculation.roiMean(j);
+		}
+
+		// z normalizing the timeseries
+		for (int j = 0; j < timeseries.size(); j++)	znormalise(timeseries[j]);
+
+		// saving the result to file
+		sprintf(meanFile, "%s%s_%s%s.txt", vdb.logDir, vdb.subject, "means", vdb.trainFeatureSuffix);
+		fstream Output(meanFile, fstream::in | fstream::out | fstream::trunc);
+		// actually saving the data
+		for (int i = 0; i < vdb.interval.maxIndex(); i++)
+		{
+			for (int j = 0; j < timeseries.size(); j++)
+				Output << timeseries[j][i] << '\t';
+			Output << '\n';
+		}
+		// closing the file
+		Output.close();
+
+		// generating the roi means graph png of the calculated timeseries.
+		fprintf(stderr, "Generating roi means graphic\n");
+		changeFileExt(meanFile, ".png", pngFile);
+
+		// First part of the command
+		CmdLn << "fsl_tsplot -i " << meanFile << " -t \"z-normalised roi means plot\" -u 1 --start=1 --finish=" << meanCalculation.roiCount() << " -a ";
+		// Building the labels with the intensities of the roi volume file
+		int counter = 0;
+		CmdLn << '\"';
+		for (int t = 0; t < roiValues.size(); t++)
+		{
+			CmdLn << "Intensity " << roiValues[t];
+			counter++;
+			if (counter < meanCalculation.roiCount())
+				CmdLn << ',';
+		}
+
+		// completing the command and executing it
+		CmdLn << '\"';
+		CmdLn << " -w 640 -h 144 -o " << pngFile;
+		fsl_tsplot((char *)CmdLn.str().c_str());
+		fprintf(stderr, "Creating mean roi timeseries graph.\n %s \n", CmdLn.str().c_str());
 	}
-
-	// completing the command and executing it
-	CmdLn << '\"';
-	CmdLn << " -w 640 -h 144 -o " << pngFile;
-	fsl_tsplot((char *)CmdLn.str().c_str());
-
-
 
 	// bringing the reference roi mask in MNI space to native space
 	// preparing the name of the outputfile
