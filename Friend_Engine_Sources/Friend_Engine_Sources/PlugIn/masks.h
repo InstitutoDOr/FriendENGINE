@@ -186,6 +186,10 @@ public:
     vector< vector<float> > regionVector;
     vector<regionPair> pairs;
     vector< vector<regionRoi> > regions;
+	// vector of region means
+	vector<float> means;
+	// vector of correlations, one for each pair of regions
+	vector<float> correlations;
 
     void _calculateMeans();
     void _calculateCorreations(int idx);
@@ -193,12 +197,9 @@ public:
    
     
 public:
-    // vector of region means
-    vector<float> means;
-   // vector of correlations, one for each pair of regions
-    vector<float> correlations;
-
-    // sets the size of the list of roi maps
+	// initialize the variables
+	void initialize();
+	// sets the size of the list of roi maps
     void setCalculatorMapsSize(int size);
     // loads a roi map in one place in the map list
     void loadVOIS(int map, char *filename);
@@ -232,6 +233,8 @@ public:
     void calculateCorrelations(char *volume, int idx=0);
     // updates the correlation calculation with a new volume
     void calculateCorrelations(volume<float> &volcorr, int idx=0);
+	// the most simply way to load information in this object
+	void RegionCorrelation::loadRoiMask(char *roiMask);
 
     
     RegionCorrelation()

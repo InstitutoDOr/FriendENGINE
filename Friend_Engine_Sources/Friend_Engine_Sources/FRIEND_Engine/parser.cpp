@@ -1,6 +1,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+char* deblank(char* input)
+{
+	char *output = input;
+	int i, j;
+	for (i = 0, j = 0; i<strlen(input); i++, j++)
+	{
+		if (input[i] != ' ')
+			output[j] = input[i];
+		else
+			j--;
+	}
+	output[j] = '\0';
+	return output;
+}
+
 // parsers a string in argc and argv variables
 void parser(const char *CmdLn, int &argc, char** &argv, char separator)
 {

@@ -256,7 +256,7 @@ void RegionExtraction::regionBestVoxels(RoiMeanCalculation &reference, volume<fl
    int cutIndex = (int) (roi.size() * percentage + 0.5);
    
    // recording the result in `output`
-   for (int j=0; j<=cutIndex;j++)
+   for (int j=0; j<cutIndex;j++)
    {
       output.value(roi[j].x, roi[j].y, roi[j].z) = roi[j].roiValue;
    }
@@ -463,6 +463,29 @@ void WeightedMean::saveCurves(char *file)
 	output.close();
 }
 
+// initialize the variables
+void RegionCorrelation::initialize()
+{
+	numRegions=0;
+	numPairs=0;
+	runSize=0;
+	finals=0;
+	correlationType=1;
+	windowSize=10;
+	actualSize=0;
+	cachedMovingWindow=true;
+
+	calculatorMaps.resize(0);
+	regionVector.resize(0);
+	regions.resize(0);
+
+	pairs.resize(0);
+	// vector of region means
+	means.resize(0);
+	correlations.resize(0);
+
+}
+
 // sets the size of the list of roi maps
 void RegionCorrelation::setCalculatorMapsSize(int size)
 {
@@ -641,6 +664,36 @@ void RegionCorrelation::loadRegions(char *filename, char *referenceDirectory)
       }
    }
    
+}
+
+// the most simply way to load information in this object
+void RegionCorrelation::loadRoiMask(char *roiMask)
+{
+	RoiMeanCalculation mask;
+	vector<int>rois, values;
+
+	if (fileExists(roiMask))
+	{ 
+		mask.loadReference(roiMask);
+
+		mask.getRoiValues(values);
+		// at least two different rois should exist
+		if (values.size() > 1)
+		{
+			rois.resize(1);
+
+			// first roi value 
+			rois[0] = values[0];
+			addRegion(rois);
+
+			// second roi value 
+			rois[0] = values[1];
+			addRegion(rois);
+
+			addPair(1, 2);
+			loadRegionMap(roiMask);
+		}
+	}
 }
 
 // zeroes the region mean vector
@@ -833,7 +886,7 @@ void RegionCorrelation::_calculateCorreations(int idx)
            if (cachedMovingWindow)
            {
                if (windowSize > actualSize) value = 0;
-               else value = correlation(regionVector[pairs[t].regionA-1], regionVector[pairs[t].regionB-1], windowSize);
+			   else value = correlation(regionVector[pairs[t].regionA - 1], regionVector[pairs[t].regionB - 1], windowSize);
            }
            else value = correlation(regionVector[pairs[t].regionA-1], regionVector[pairs[t].regionB-1], finals);
 

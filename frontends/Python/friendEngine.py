@@ -80,6 +80,22 @@ class Engine(object):
       return response;   
    
    # function to set the plug-in information
+   def setConnectivityPlugIn(self):
+      # sending the PLUGIN command and parameters
+      self.mainThread.send('PLUGIN\n');
+      self.mainThread.send('libConnectivity\n');
+      self.mainThread.send('buildROIs\n');
+      self.mainThread.send('calculateFeedback\n');
+      self.mainThread.send('initializeFunctionalConectivity\n');
+      self.mainThread.send('finalizeFunctionalConectivity\n');
+      self.mainThread.send('no\n');
+      self.mainThread.send('no\n');
+
+      # getting the acknowledge
+      response = self.readsocket(self.mainThread);
+      return response;   
+	  
+   # function to set the plug-in information
    def setSVMPlugIn(self):
       # sending the PLUGIN command and parameters
       self.mainThread.send('PLUGIN\n');
@@ -123,6 +139,8 @@ class Engine(object):
       if (plugInType==3):
          return self.setMotorPlugIn();
 
+      if (plugInType==4):
+         return self.setConnectivityPlugIn();
 
    # get the status of a command   
    def getResponse(self, *arg):
@@ -221,14 +239,14 @@ class Engine(object):
    def processPhase(self, feedbackRun):
       if (self.phase == 1):
          # sending PREPROC command
-         print("sending PREPROC command");
+         # print("sending PREPROC command");
          self.mainThread.send('NBPREPROC\n');
          response = self.readsocket(self.mainThread);
          self.phase = 15;
 
       if (self.phase == 15):
          # sees if PREPROC terminates
-         print("Querying PREPROC termination status.");
+         # print("Querying PREPROC termination status.");
          response=self.getResponse('PREPROC\n');
          print("Response received = %s" % (response));
          if (response == 'OK'):

@@ -891,7 +891,7 @@ void FriendProcess::prepRealTime()
    // bet Functional
    if (!fileExists(vdb.maskFile))
    {
-	   snprintf(CmdLn, buffSize, "bet %s %s %s", vdb.rfiFile, vdb.maskFile, vdb.betParameters);
+	  snprintf(CmdLn, buffSize, "bet %s %s %s", vdb.rfiFile, vdb.maskFile, vdb.betParameters);
       bet(CmdLn);
 
       snprintf(CmdLn, buffSize, "bet %s %s %s", vdb.maskFile, vdb.maskFile, vdb.betParameters);

@@ -48,6 +48,22 @@ rmdir libBrainDecoding\libBrainDecoding\debug /s /q
 del   libBrainDecoding\libBrainDecoding.sdf
 del   libBrainDecoding\libBrainDecoding.v12.suo
 
+echo Removing intermediate files and directories of libMDD
+rmdir libMDD\release /s /q
+rmdir libMDD\debug /s /q
+rmdir libMDD\libMDD\Release /s /q
+rmdir libMDD\libMDD\debug /s /q
+del   libMDD\libMDD.sdf
+del   libMDD\libMDD.v12.suo
+
+echo Removing intermediate files and directories of libAttention
+rmdir libAttention\release /s /q
+rmdir libAttention\debug /s /q
+rmdir libAttention\libAttention\Release /s /q
+rmdir libAttention\libAttention\debug /s /q
+del   libAttention\libAttention.sdf
+del   libAttention\libAttention.v12.suo
+
 echo Removing intermediate files and directories of buildAll
 rmdir buildAll\release /s /q
 rmdir buildAll\debug /s /q
@@ -88,6 +104,12 @@ del ..\Friend_Engine_Sources\TestData\SUBJ002\study_params_RUN01.txt
 del ..\Friend_Engine_Sources\TestData\SUBJ002\study_params_RUN02.txt
 del ..\Friend_Engine_Sources\TestData\SUBJ002\study_params_RUN03.txt
 del ..\Friend_Engine_Sources\TestData\SUBJ002\study_params_RUN04.txt
+
+del ..\Friend_Engine_Sources\TestData\SUBJ002\ROIsMap_RUN01.nii
+del ..\Friend_Engine_Sources\TestData\SUBJ002\ROIsMap_RUN02.nii
+del ..\Friend_Engine_Sources\TestData\SUBJ002\ROIsMap_RUN03.nii
+del ..\Friend_Engine_Sources\TestData\SUBJ002\ROIsMap_RUN04.nii
+del ..\\Friend_Engine_Sources\TestData\hmat_spm_final_std.nii
 
 
 echo Removing fsl.dll files

@@ -1202,6 +1202,7 @@ void functionalNormalization(char *mask, char *functional, char *reference, char
       rmdir(matOldName);
 
       
+	  // for now the nearest neighbour is set true no matter what
       cmdLn.str("");
       cmdLn << "flirt -in " << mask << " -ref " << reference << " -out " << output << " -applyxfm -paddingsize 10 -init " << matNewName <<
       " -interp nearestneighbour";
