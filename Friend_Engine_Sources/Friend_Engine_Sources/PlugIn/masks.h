@@ -234,7 +234,7 @@ public:
     // updates the correlation calculation with a new volume
     void calculateCorrelations(volume<float> &volcorr, int idx=0);
 	// the most simply way to load information in this object
-	void RegionCorrelation::loadRoiMask(char *roiMask);
+	void loadRoiMask(char *roiMask);
 
     
     RegionCorrelation()
