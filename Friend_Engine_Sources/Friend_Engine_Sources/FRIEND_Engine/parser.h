@@ -3,3 +3,6 @@ void parser(const char *CmdLn, int &argc, char** &argv, char separator = ' ');
 
 // frees the argv variable
 void freeparser(int &argc, char** &argv);
+
+// just take spaces from a C char array
+char* deblank(char* input);
