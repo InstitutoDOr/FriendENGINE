@@ -371,11 +371,12 @@ BOOL FriendProcess::isReadyNextFile(int index, char *rtPrefix, char *format, cha
 BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefix, char *format, char *inFile)
 {
 	BOOL response = 0, fileChecked = 0, fileFound = 0;
-	char  numberIn[50], numberOut[50], outFile[BUFF_SIZE], volumeName[BUFF_SIZE];
+	char  numberIn[50], numberOut[50], outFile[BUFF_SIZE], volumeName[BUFF_SIZE], dcm2niiExe[BUFF_SIZE];
 
 	// forming the output file
 	sprintf(numberOut, format, indexOut);
 	sprintf(outFile, "%s%s%s", rtPrefix, numberOut, ".nii");
+	sprintf(dcm2niiExe, "%s%cdcm2nii", exePath, PATHSEPCHAR);
 
 	// forming the input file
 	sprintf(numberIn, format, indexIn);
@@ -385,11 +386,11 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		// in DICOM
 		sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".dcm");
 		//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
-		if (fileExists(inFile))
+		if (fileExists(inFile) && fileExists(dcm2niiExe))
 		{
 			// executes the dcm2nii tool
 			stringstream osc;
-			osc << exePath << PATHSEPCHAR << "dcm2nii -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
+			osc << dcm2niiExe << " -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
 			fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
 			system(osc.str().c_str());
 			fileFound = 1;
@@ -426,7 +427,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 				}
 			}
 
-			// in NIFTI. The engine converts it to nifti and inerts the axis, if needed
+			// in NIFTI. 
 			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".nii");
 			//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
 			if (fileExists(inFile))
@@ -444,7 +445,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		}
 	}
 
-	// verifying if the final file exists. It servers the NIFTI case
+	// verifying if the final file exists.
 	if ((fileExists(outFile)) && (isReadable(outFile)))
 		response = 1;
 	else response = 0;
@@ -572,7 +573,7 @@ void FriendProcess::generateRmsFile(char *dPrefix, int ini, int end, char *outpu
 // runs the real time pipeline at once. Calls the realtimePipelineStep for each volume
 void FriendProcess::runRealtimePipeline()
 {
-    char preprocVolumePrefix[BUFF_SIZE], auxConfigFile[BUFF_SIZE];
+	char preprocVolumePrefix[BUFF_SIZE], auxConfigFile[BUFF_SIZE], dcm2niiServerConfig[BUFF_SIZE];
     char format[30];
     char msg[50];
    
@@ -591,6 +592,8 @@ void FriendProcess::runRealtimePipeline()
 #else
     mkdir(vdb.preprocDir, 0777); // notice that 777 is different than 0777
 #endif
+	sprintf(dcm2niiServerConfig, "%s%c%s", exePath, PATHSEPCHAR, "dcm2niiserver.ini");
+	vdb.readedIni.SaveFile(dcm2niiServerConfig);
 
     // getting the preproc volume prefix
     vdb.getPreprocVolumePrefix(preprocVolumePrefix);

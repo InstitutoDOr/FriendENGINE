@@ -90,7 +90,7 @@ void FunctionalConnectivity::createROIVolume(studyParams &vdb)
 		int region, regionSize;
 
 		// loads the GLM volume
-		load_volume(glmResult, string(vdb.glmTOutput));
+		load_volume(glmResult, string(vdb.featuresAllTrainSuffix));
 
 		outputVolume.reinitialize(glmResult.xsize(), glmResult.ysize(), glmResult.zsize());
 		outputVolume.copyproperties(glmResult);

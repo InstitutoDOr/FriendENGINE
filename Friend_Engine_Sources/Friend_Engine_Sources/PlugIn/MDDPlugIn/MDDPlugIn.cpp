@@ -9,6 +9,7 @@
 #include "MDDPlugIn.h"
 #include "parser.h"
 #include "filefuncs.h"
+#include "fslfuncs.h"
 
 #ifdef WINDOWS
 #define DLLExport extern "C" __declspec(dllexport) int 
@@ -21,14 +22,15 @@ void FunctionalConnectivity::initialize(studyParams &vdb)
 {
    if (!initialized)
    {
-      char regionfile[500], correlationMapFile[500], reportFileName[500];
+	  char regionfile[500], reportMeanFileName[500], reportCorrelationFileName[500], reportFeedbackFileName[500];
       int correlationWindow, calculationWindowSize;
       
       // getting some variables from config information
       strcpy(regionfile, vdb.readedIni.GetValue("FRIEND", "RegionsFile"));
       
       strcpy(correlationMapFile, vdb.readedIni.GetValue("FRIEND", "CorrelationMapFile"));
-   
+	  strcpy(correlationMapFileRef, vdb.readedIni.GetValue("FRIEND", "CorrelationMapFileRef"));
+
       correlationWindow = vdb.readedIni.GetLongValue("FRIEND", "CorrelationWindowSize");
       
       calculationWindowSize = vdb.readedIni.GetLongValue("FRIEND", "CalculationWindowSize", correlationWindow);
@@ -36,10 +38,14 @@ void FunctionalConnectivity::initialize(studyParams &vdb)
       // this is just an example of how you build a plugin and this is a very specific calculation. This is an hard coded assignment.
       strcpy(stabilizationCondition, "INDIGNATION");
       initialize(correlationWindow, vdb.interval.maxIndex(), calculationWindowSize, regionfile, NULL, correlationMapFile);
-      sprintf(reportFileName, "%smeans.txt", vdb.outputDir);
-      
-      outputReport.open(reportFileName, fstream::in | fstream::out | fstream::trunc);
-      
+      sprintf(reportMeanFileName, "%s%s_Means%s.txt", vdb.outputDir, vdb.subject, vdb.trainFeatureSuffix);
+	  sprintf(reportCorrelationFileName, "%s%s_Correlations%s.txt", vdb.outputDir, vdb.subject, vdb.trainFeatureSuffix);
+	  sprintf(reportFeedbackFileName, "%s%s_Feedback%s.txt", vdb.outputDir, vdb.subject, vdb.trainFeatureSuffix);
+
+	  outputMeanReport.open(reportMeanFileName, fstream::in | fstream::out | fstream::trunc);
+	  outputCorrelationReport.open(reportCorrelationFileName, fstream::in | fstream::out | fstream::trunc);
+	  outputFeedbackReport.open(reportFeedbackFileName, fstream::in | fstream::out | fstream::trunc);
+
       initialized = 1;
    }
 }
@@ -89,10 +95,11 @@ void FunctionalConnectivity::processVolume(studyParams &vdb, int index, float &c
     for (int t=0; t < connectivityCalculator.numRegions; t++)
     {
        double value = connectivityCalculator.means[t];
-       outputReport << connectivityCalculator.means[t] << " ";
+       outputMeanReport << connectivityCalculator.means[t] << " ";
        zNormRegionMeans[t].addValue(value);
        zNormRegionMeanValues[t] = zNormRegionMeans[t].zValue(value);
     }
+	outputMeanReport << "\n";
    
     // calculate mean correlation
     double correlationMean=0;
@@ -103,9 +110,10 @@ void FunctionalConnectivity::processVolume(studyParams &vdb, int index, float &c
     correlationMean /= connectivityCalculator.numPairs;
    
    // saving the results in a file, for debug purposes
-    outputReport << correlationMean <<  correlationStats.mean <<correlationStats.deviation << "\n";
-    outputReport.flush();
-   
+	outputCorrelationReport << correlationMean << "\n";
+    outputMeanReport.flush();
+	outputCorrelationReport.flush();
+
     // calculate weigted mean
     correlationWeightedMean.addValue(correlationMean);
 
@@ -143,6 +151,7 @@ void FunctionalConnectivity::processVolume(studyParams &vdb, int index, float &c
            projection = (correlationMean-minCorrelationBaseline)  / (maxCorrelationBaseline-minCorrelationBaseline);
 
        }
+	   outputFeedbackReport << index << " - " << projection << "\n";
     }
    
     // enforcing value limits 0 and 1
@@ -216,7 +225,9 @@ DLLExport calculateFeedback(studyParams &vdb, int index, float &classnum, float 
 DLLExport finalizeFunctionalConectivity(studyParams &vdb, void *&userData)
 {
    FunctionalConnectivity *fcconn = (FunctionalConnectivity *) userData;
-   fcconn->outputReport.close();
+   fcconn->outputMeanReport.close();
+   fcconn->outputCorrelationReport.close();
+   fcconn->outputFeedbackReport.close();
    delete fcconn;
    return 1;
 }
@@ -224,7 +235,26 @@ DLLExport finalizeFunctionalConectivity(studyParams &vdb, void *&userData)
 // plug in volume function
 DLLExport volumeFunctionalConectivity(studyParams &vdb, int index, char *volume, void *&userData)
 {
-   //if (index==1)
-   //   sprintf(vdb.motionRefVolume, "%s", volume);
+	if (index == 1)
+	{
+		FunctionalConnectivity *fcconn = (FunctionalConnectivity *)userData;
+		strcpy(vdb.motionRefVolume, volume);
+
+		stringstream CmdLn;
+
+		CmdLn << "bet " << volume << " " << vdb.inputDir << "RFI_sks" << vdb.trainFeatureSuffix << " " << vdb.betParameters;
+		bet((char *)CmdLn.str().c_str());
+
+		sprintf(vdb.maskFile, "%sRFI_sks%s", vdb.inputDir, vdb.trainFeatureSuffix);
+
+		if (fileExists(fcconn->correlationMapFile))
+		{
+			char outputFile[500];
+
+			changeFileExt(fcconn->correlationMapFile, vdb.trainFeatureSuffix, outputFile);
+			functionalNormalization(fcconn->correlationMapFile, fcconn->correlationMapFileRef, vdb.maskFile, outputFile, true);
+			fcconn->connectivityCalculator.loadRegionMap(outputFile);
+		}
+	}
    return 1;
 }

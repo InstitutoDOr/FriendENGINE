@@ -20,7 +20,6 @@
 // handles all the necessary steps for functional connectivity calculation
 class FunctionalConnectivity
 {
-   RegionCorrelation connectivityCalculator;
    WeightedMean correlationWeightedMean;
    vector<IncrementalStats> zNormRegionMeans;
    vector<double> zNormRegionMeanValues;
@@ -33,7 +32,9 @@ class FunctionalConnectivity
    char stabilizationCondition[100];
    
 public:
-   fstream outputReport;
+   RegionCorrelation connectivityCalculator;
+   char	correlationMapFile[500], correlationMapFileRef[500];
+   fstream outputMeanReport, outputCorrelationReport, outputFeedbackReport;
    void processVolume(studyParams &vdb, int index, float &classnum, float &projection);
    // function that creates a roi map from glm and a previously defined roi in mni
    void createROIVolume(studyParams &vdb);

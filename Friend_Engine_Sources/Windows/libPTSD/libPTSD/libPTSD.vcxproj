@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{512A099A-6D5B-49C5-B22E-30B34703C506}</ProjectGuid>
-    <RootNamespace>libMDD</RootNamespace>
+    <RootNamespace>libPTSD</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -67,7 +67,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <OutputFile>..\..\Application\libMDD.dll</OutputFile>
+      <OutputFile>..\..\Application\libPTSD.dll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -89,24 +89,17 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <OutputFile>..\..\Application\libMDD.dll</OutputFile>
+      <OutputFile>..\..\Application\libPTSD.dll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\fsl\avwutils\fslmaths.cc" />
-    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cc" />
     <ClCompile Include="..\..\..\..\fsl\flirt\convert_xfm.cc" />
     <ClCompile Include="..\..\..\..\fsl\flirt\flirt.cc" />
     <ClCompile Include="..\..\..\..\fsl\flirt\globaloptions.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\Globaloptionsmc.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\Loga.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\mcflirt.cc" />
-    <ClCompile Include="..\..\..\..\fsl\meshclass\mesh.cpp" />
-    <ClCompile Include="..\..\..\..\fsl\meshclass\mpoint.cpp" />
-    <ClCompile Include="..\..\..\..\fsl\meshclass\point.cpp" />
-    <ClCompile Include="..\..\..\..\fsl\meshclass\profile.cpp" />
-    <ClCompile Include="..\..\..\..\fsl\meshclass\pt_special.cpp" />
-    <ClCompile Include="..\..\..\..\fsl\meshclass\triangle.cpp" />
     <ClCompile Include="..\..\..\..\fsl\zlib\adler32.c" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibinternal.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibmisc.cpp" />
@@ -121,7 +114,8 @@
     <ClCompile Include="..\..\..\..\fsl\newmat\cholesky.cpp" />
     <ClCompile Include="..\..\..\..\fsl\newimage\complexvolume.cc" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\confusionmatrix.cpp" />
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\MDDPlugIn\MDDPlugIn.cpp" />
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\session.cpp" />
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\PTSDPlugIn\PTSDPlugIn.cpp" />
     <ClCompile Include="..\..\..\..\fsl\cprob\const.c" />
     <ClCompile Include="..\..\..\..\fsl\newimage\costfns.cc" />
     <ClCompile Include="..\..\..\..\fsl\zlib\crc32.c" />
@@ -202,6 +196,7 @@
     <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\parser.cpp" />
     <ClCompile Include="..\..\..\..\fsl\cprob\pdtr.c" />
     <ClCompile Include="..\..\..\..\fsl\cprob\polevl.c" />
+    <ClCompile Include="..\..\..\..\fsl\miscmaths\quick.cc" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\socket.cxx" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\socket2.cpp" />
     <ClCompile Include="..\..\..\..\fsl\newmat\solution.cpp" />
@@ -224,7 +219,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\fsl\flirt\globaloptions.h" />
-    <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\MDDPlugIn\MDDPlugIn.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\masks.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\vardb.h" />
   </ItemGroup>
