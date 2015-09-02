@@ -47,10 +47,16 @@ public class motorScript : MonoBehaviour {
 	IEnumerator stateManager()
 	{
 		if (comm.state() == 0)
-			texto.text = "RELAX"; 
+			texto.text = "Please wait. Preprocessing steps are running!"; 
 
 		comm.coreCommunication();
 
+		if ((comm.state() == 8) && (!comm.experimentStarted()))
+		{
+			texto.text = "Press space to start simulation";
+		}
+		if (!comm.experimentStarted())
+			yield return null;
 		if ((isOdd(comm.actualBlock)) && (comm.isBlockStart()))
 		{
 			texto.text = "RELAX";
@@ -194,8 +200,7 @@ public class motorScript : MonoBehaviour {
 		timeCounter -= Time.deltaTime;
 		if (timeCounter <= 0) 
 		{
-			if (comm.experimentStarted())
-			   StartCoroutine("stateManager");
+ 		    StartCoroutine("stateManager");
 			timeCounter = tryInterval;
 		};
 

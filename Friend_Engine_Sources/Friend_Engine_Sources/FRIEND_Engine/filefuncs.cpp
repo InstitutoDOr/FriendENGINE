@@ -312,6 +312,7 @@ void changeFileExt(char *filename, const char* newExt, char *output)
         end[0]=0;
         strcat(output, newExt);
     }
+	else strcat(output, newExt);
 }
 
 // including a last path delimiter

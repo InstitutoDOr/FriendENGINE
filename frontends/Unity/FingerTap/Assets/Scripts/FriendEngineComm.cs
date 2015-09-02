@@ -892,7 +892,7 @@ namespace AssemblyCSharp
 			    }
 			
 			    // initiate feedback processing
-			    if (actualCommState == 8) 
+			    if ((actualCommState == 8) && (experimentStarted()))
 			    {
 				   // sending FEEDBACK command
 				   if (feedbackRun == 1) issueCommand("NBFEEDBACK");
@@ -1027,7 +1027,10 @@ namespace AssemblyCSharp
 
 		public bool isBlockStart()
 		{
-			return (actualVolume == startBlockIndexes [actualBlock - 1]);
+			if ((actualBlock > 0) && (actualBlock < startBlockIndexes.Length))
+				return (actualVolume == startBlockIndexes [actualBlock - 1]);
+			else
+				return false;
 		}
 
 		public bool experimentStarted()
