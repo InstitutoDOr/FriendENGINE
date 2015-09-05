@@ -62,6 +62,9 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
    int idxInterval = vdb.interval.returnInterval(index);
    float firstRoiMean, secondRoiMean;
    float firstRoiFeedbackValue, secondRoiFeedbackValue;
+   // the first roi feedback value goes directly through the normal channel, but the second roi need another route
+   char secondRoiString[100];
+   Session *session = (Session *)vdb.sessionPointer;
 
    volume<float> v;
    // gets the motion corrected and gaussian smoothed file
@@ -86,6 +89,10 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 		 firstBaselineValue = meanCalculation.roiMean(firstRoiIndex);
 		 secondBaselineValue = meanCalculation.roiMean(secondRoiIndex);
 	  }
+
+	  sprintf(secondRoiString, "0.0");
+	  fprintf(stderr, "%s\n", secondRoiString);
+	  session->processAdditionalFeedBackInfo(index, secondRoiString);
    }
    else // task condition. Taking the means of the rois in volume and calculating the PSC
    {
@@ -97,12 +104,8 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 	  secondRoiFeedbackValue = PSC(secondRoiMean, secondBaselineValue) / targetValue;
 	  feedbackValue = firstRoiFeedbackValue;
 
-	  // the first roi feedback value goes directly through the normal channel, but the second roi need another route
-	  char secondRoiString[100];
 	  sprintf(secondRoiString, "%f", secondRoiFeedbackValue);
 	  fprintf(stderr, "%s\n", secondRoiString);
-
-	  Session *session = (Session *)vdb.sessionPointer;
 	  session->processAdditionalFeedBackInfo(index, secondRoiString);
 
       // enforcing 0..1 range
