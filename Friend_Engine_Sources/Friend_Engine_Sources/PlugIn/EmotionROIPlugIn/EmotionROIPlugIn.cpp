@@ -83,7 +83,7 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 	double correlationExtractPercent;
 	stringstream CmdLn;
 	char prefix[30] = "_RFI2";
-	vector<vector<double>> timeseries;
+	vector<vector<double> > timeseries;
 
 	if ((!fileExists(vdb.mniMask)) || (!fileExists(vdb.mniTemplate)))
 	{
