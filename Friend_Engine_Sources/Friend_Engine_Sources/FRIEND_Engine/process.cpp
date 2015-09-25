@@ -15,7 +15,7 @@ using namespace NEWIMAGE;
 #define chdir _chdir
 char extension[]="";
 #else
-char extension[]=".gz";
+char extension[]="";
 
 #endif
 

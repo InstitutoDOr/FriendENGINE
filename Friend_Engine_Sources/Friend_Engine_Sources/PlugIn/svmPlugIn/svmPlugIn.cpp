@@ -224,7 +224,9 @@ void SVMProcessing::train()
    // Generating weight map volume
    fprintf(stderr, "Generating weight map volumes\n");
    
-   sprintf(svmMask, "%s.nii.gz", vdbPtr->featuresTrainSuffix);
+   sprintf(svmMask, "%s.nii", vdbPtr->featuresTrainSuffix);
+
+   fileExists(svmMask);
 
    fprintf(stderr, "using %s \n", svmMask);
    model=svm_load_model(svmModelFile);
