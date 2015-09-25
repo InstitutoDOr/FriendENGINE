@@ -612,6 +612,12 @@ void FriendProcess::runRealtimePipeline()
     while (vdb.actualImg <= vdb.runSize)
     {
         realtimePipelineStep(preprocVolumePrefix, format, vdb.actualBaseline);
+		// getting the termination sttus. If termination evoked, get out of here.
+		if (vdb.sessionPointer) 
+		{
+			int status = vdb.sessionPointer->getTerminateState();
+			if (status) break;
+		}
     }
     fslioclose(vdb.runReferencePtr);
    

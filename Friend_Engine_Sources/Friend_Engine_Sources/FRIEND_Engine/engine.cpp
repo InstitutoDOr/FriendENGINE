@@ -250,6 +250,38 @@ bool	friendEngine::serverChild ( int	socketFd )
 		 }
 		 else
 		 if (strcmp(command, "ENDSESSION") == 0)
+		 {
+			// reading sessionID
+			socks.readLine(sessionID, 200);
+			stripReturns(sessionID);
+
+			// getting the session pointer. Have to replace for a function for thread reasons
+			std::map<string, Session *>::iterator it;
+			it = sessionList.find(string(sessionID));
+
+			// have to replace it for a function for thread reasons
+			process.setSessionPointer(NULL);
+			if (it != sessionList.end())
+			{
+				Session *session = sessionList[string(sessionID)];
+
+				delete session;
+				sessionList.erase(it);
+				fprintf(stderr, "Session %s deleted.\n", sessionID);
+			}
+
+			fprintf(stderr, "Sending last ack.\n");
+			sprintf(command, "OK\n");
+			socks.writeString(command);
+
+			process.wrapUpRun();
+			fprintf(stderr, "Process object finalized.\n");
+			fflush(stderr);
+			//freopen("CON", "w", stderr);
+			break;
+		 }
+		 else
+		 if (strcmp(command, "STOPSESSION") == 0)
          {
             // reading sessionID
             socks.readLine(sessionID, 200);
@@ -259,25 +291,17 @@ bool	friendEngine::serverChild ( int	socketFd )
             std::map<string, Session *>::iterator it;
             it = sessionList.find(string(sessionID));
             
-            // have to replace it for a function for thread reasons
-            process.setSessionPointer(NULL);
             if (it != sessionList.end())
             {
                Session *session = sessionList[string(sessionID)];
-
-               delete session;
-               sessionList.erase(it);
-			   fprintf(stderr, "Session %s deleted.\n", sessionID);
+			   session->terminate();
+			   fprintf(stderr, "Session %s is stopping.\n", sessionID);
             }
+			else  fprintf(stderr, "Error occured while stopping session %s.\n", sessionID);
 
-			fprintf(stderr, "Sending last ack.\n", sessionID);
+			fprintf(stderr, "Sending ack.\n");
 			sprintf(command, "OK\n");
 			socks.writeString(command);
-
-			process.wrapUpRun();
-			fprintf(stderr, "Process object finalized.\n", sessionID);
-			fflush(stderr);
-			//freopen("CON", "w", stderr);
             break;
          }
          else

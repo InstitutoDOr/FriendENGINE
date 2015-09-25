@@ -198,6 +198,18 @@ class Engine(object):
       response = self.readsocket(self.mainThread);
       return response;
    
+   def stopSession(self):
+      responseThread = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
+      responseThread.connect(self.connectionInfo);
+      responseThread.send('STOPSESSION\n');
+      responseThread.send(self.sessionID+'\n');
+      response = self.readsocket(responseThread);
+      responseThread.close();
+      self.doTrain = False;
+      self.doGLM = False;
+      self.doFeatureSelection = False;
+      return response;
+	  
    def printMotionParameters(self, motionparams):
       if (len(motionparams) == 9):
          print("%s : Volume = %s"  % (self.timestamp(), motionparams[1]));
@@ -291,5 +303,4 @@ class Engine(object):
       self.actualVolume = 1;
       while (self.phase < 100):
          self.processPhase(feedbackRun);
-         time.sleep(self.TR / 7);
-   
+         time.sleep(self.TR / 7);   

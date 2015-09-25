@@ -1,10 +1,10 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace />
-  <MonoDevelop.Ide.Workbench ActiveDocument="..\..\..\..\..\FingerTap\Assets\Scripts\motorScript.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="..\..\..\..\..\FingerTap\Assets\Scripts\s_TCP.cs">
     <Files>
-      <File FileName="..\..\..\..\..\FingerTap\Assets\Scripts\motorScript.cs" Line="161" Column="5" />
-      <File FileName="..\..\..\..\..\FingerTap\Assets\Scripts\FriendEngineComm.cs" Line="710" Column="24" />
-      <File FileName="..\..\..\..\..\FingerTap\Assets\Scripts\MotorComm.cs" Line="28" Column="9" />
+      <File FileName="..\..\..\..\..\FingerTap\Assets\Scripts\MotorComm.cs" Line="1" Column="1" />
+      <File FileName="..\..\..\..\..\FingerTap\Assets\Scripts\motorScript.cs" Line="161" Column="1" />
+      <File FileName="..\..\..\..\..\FingerTap\Assets\Scripts\s_TCP.cs" Line="35" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

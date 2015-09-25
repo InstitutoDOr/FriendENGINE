@@ -13,10 +13,5 @@ function friendObj = processEndRun(friendObj)
       fprintf(friendObj.mainThread, 'TRAIN');
       fgetl(friendObj.mainThread);
    end;
-   
-   fprintf(friendObj.mainThread, 'ENDSESSION');
-   fprintf(friendObj.mainThread, '%s', friendObj.sessionID);
-   fgetl(friendObj.mainThread);
-   fclose(friendObj.mainThread);
-   friendObj.phase = 100;
+   endSession(friendObj);
 end

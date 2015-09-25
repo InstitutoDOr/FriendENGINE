@@ -48,6 +48,16 @@ void Session::processGraphMessage(const char *msg)
    freeparser(count, parts);
 }
 
+void Session::terminate()
+{
+	terminationStatus = 1;
+}
+
+int Session::getTerminateState()
+{
+	return terminationStatus;
+}
+
 void Session::processFeedback(int index, float returnedClass, float returnedPercentage)
 {
 	int newItem = 0;

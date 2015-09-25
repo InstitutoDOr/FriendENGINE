@@ -43,6 +43,7 @@ class Session
    char ip[200];
    int port;
    int runSize;
+   int terminationStatus;
    
    vector<GraphParams> graphParamsList;
    vector<FeedBackResponse> feedbacksList;
@@ -63,8 +64,10 @@ public:
    void setCommandResponse(string command, int status);
    void setVDBPointer(void *vdb);
    void *getVDBPointer();
+   void terminate();
+   int getTerminateState();
    
-   Session () {getFeedbackResponses = 0;};
+   Session() { getFeedbackResponses = 0; terminationStatus = 0; };
 };
 
 #endif /* defined(____session__) */
