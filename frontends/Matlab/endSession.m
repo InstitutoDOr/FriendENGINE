@@ -4,4 +4,4 @@ function friendObj = endSession(friendObj)
    fgetl(friendObj.mainThread);
    fclose(friendObj.mainThread);
    friendObj.phase = 100;
-end;
+end
