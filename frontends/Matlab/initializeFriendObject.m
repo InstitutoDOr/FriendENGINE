@@ -27,6 +27,7 @@ function friendObj = initializeFriendObject(host, port)
     timeOut = 10;
     friendObj.mainThread = tcpip(host, port);
     set(friendObj.mainThread, 'TimeOut', timeOut);
+	friendObj.mainThread.OutputBufferSize = 10000; % may need to be larger
 
     friendObj.responseThread = tcpip(host, port);
     set(friendObj.responseThread, 'TimeOut', timeOut);    

@@ -1195,11 +1195,20 @@ void functionalNormalization(char *mask, char *functional, char *reference, char
       mcflirt((char *)cmdLn.str().c_str());
       
       // copying the .mat file
-      changeFileExt(output, ".mat", matNewName);
+	  // from file
       sprintf(matOldName, "%s%s%c%s", output, ".mat", PATHSEPCHAR, "MAT_0000");
+	  // to file
+	  changeFileExt(output, ".txt", matNewName);
       rename(matOldName, matNewName);
-      sprintf(matOldName, "%s%s", output, ".mat");
+
+	  // deleting directory
+	  sprintf(matOldName, "%s%s", output, ".mat");
       rmdir(matOldName);
+
+	  // renaming from .txt to .mat. WE only can do that after deleting the directory
+	  changeFileExt(output, ".txt", matOldName);
+	  changeFileExt(output, ".mat", matNewName);
+	  rename(matOldName, matNewName);
 
       
 	  // for now the nearest neighbour is set true no matter what

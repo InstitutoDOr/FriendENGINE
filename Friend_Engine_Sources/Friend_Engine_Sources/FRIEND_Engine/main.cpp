@@ -15,8 +15,6 @@
 // receive the commands from the FRONTEND. The core functionality is in the
 // FRIEND Engine object
 
-void MniToSubject(char *betRFI, char *mniTemplate, char *mniStandard, char* output, char *prefix);
-
 int main(int argc, char* argv[])
 {
    friendEngine app;
