@@ -68,6 +68,7 @@ public:
    
    // session variable
    Session *sessionPointer;
+   FILE *outputLog;
 
    // returns the final volume file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
    void getFinalVolumeFormat(char *format);
@@ -144,10 +145,19 @@ public:
    
    // initializating control variables
    void initializeStates();
-   
-   studyParams () { mcflirtParams[0]='\0'; strcpy(mcflirtParams, "-plots -mats -rmsabs"); betParameters[0]='\0'; strcpy(betParameters, "-f 0.3 -o"); sessionPointer = NULL; };
 
-    virtual ~studyParams() { };
+   // create log file
+   void initializeLogFile();
+
+   // closes the log file
+   void closeLogFile();
+
+   // writes the message in the log file
+   void writeLog(int inScreen, const char * format, ...);
+
+   studyParams() { mcflirtParams[0] = '\0'; strcpy(mcflirtParams, "-plots -mats -rmsabs"); betParameters[0] = '\0'; strcpy(betParameters, "-f 0.3 -o"); sessionPointer = NULL; outputLog = NULL; };
+
+   virtual ~studyParams() { closeLogFile(); };
     
     
 };

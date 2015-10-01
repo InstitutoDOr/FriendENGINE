@@ -50,6 +50,15 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
 	  firstRoiIndex  = meanCalculation.roiIndex(firstRoi);
 	  secondRoiIndex = meanCalculation.roiIndex(secondRoi);
    }
+   else
+   {
+	   if (!fileExists(vdb.mniMask))
+		   fprintf(stderr, "File not found %s.\n", vdb.mniMask);
+
+	   if (!fileExists(vdb.mniTemplate))
+		   fprintf(stderr, "File not found %s.\n", vdb.mniTemplate);
+   };
+
    firstBaselineValue=0;
    secondBaselineValue = 0;
    return 0;

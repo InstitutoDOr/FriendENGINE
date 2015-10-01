@@ -580,54 +580,58 @@ void FriendProcess::runRealtimePipeline()
 	sprintf(auxConfigFile, "%sstudy_params%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
 	vdb.readedIni.SaveFile(auxConfigFile);
 	fprintf(stderr, "processing pipeline begin\n");
-    if (!vdb.rPrepVars) prepRealtimeVars();
-    vdb.actualBaseline[0]=0;
-    vdb.actualImg = 1;
-    vdb.actualInterval = 0;
-    vdb.getFormat(format);
-    
-    removeDirectory(vdb.preprocDir);
-#ifdef WIN32
-    _mkdir(vdb.preprocDir);
-#else
-    mkdir(vdb.preprocDir, 0777); // notice that 777 is different than 0777
-#endif
-	sprintf(dcm2niiServerConfig, "%s%c%s", exePath, PATHSEPCHAR, "dcm2niiserver.ini");
-	vdb.readedIni.SaveFile(dcm2niiServerConfig);
 
-    // getting the preproc volume prefix
-    vdb.getPreprocVolumePrefix(preprocVolumePrefix);
-   
-    // setting the reference volume
-    sprintf(vdb.motionRefVolume, "%s", vdb.rfiFile);
-   
-    // getting the FSLIO pointer of the reference volume for fslwapdimRT calls
-    vdb.runReferencePtr = fslioopen(vdb.motionRefVolume);
-   
-    // reading the design file
-    vdb.interval.readDesignFile(vdb.designFile);
-	vdb.interval.generateContrasts(vdb.conditionContrasts, 0);
-   
-    // looping
-    while (vdb.actualImg <= vdb.runSize)
-    {
-        realtimePipelineStep(preprocVolumePrefix, format, vdb.actualBaseline);
-		// getting the termination sttus. If termination evoked, get out of here.
-		if (vdb.sessionPointer) 
+	if (vdb.interval.intervals.size())
+	{
+		if (!vdb.rPrepVars) prepRealtimeVars();
+		vdb.actualBaseline[0] = 0;
+		vdb.actualImg = 1;
+		vdb.actualInterval = 0;
+		vdb.getFormat(format);
+
+		removeDirectory(vdb.preprocDir);
+#ifdef WIN32
+		_mkdir(vdb.preprocDir);
+#else
+		mkdir(vdb.preprocDir, 0777); // notice that 777 is different than 0777
+#endif
+		sprintf(dcm2niiServerConfig, "%s%c%s", exePath, PATHSEPCHAR, "dcm2niiserver.ini");
+		vdb.readedIni.SaveFile(dcm2niiServerConfig);
+
+		// getting the preproc volume prefix
+		vdb.getPreprocVolumePrefix(preprocVolumePrefix);
+
+		// setting the reference volume
+		sprintf(vdb.motionRefVolume, "%s", vdb.rfiFile);
+
+		// getting the FSLIO pointer of the reference volume for fslwapdimRT calls
+		vdb.runReferencePtr = fslioopen(vdb.motionRefVolume);
+
+		// reading the design file
+		vdb.interval.readDesignFile(vdb.designFile);
+		vdb.interval.generateContrasts(vdb.conditionContrasts, 0);
+
+		// looping
+		while (vdb.actualImg <= vdb.runSize)
 		{
-			int status = vdb.sessionPointer->getTerminateState();
-			if (status) break;
+			realtimePipelineStep(preprocVolumePrefix, format, vdb.actualBaseline);
+			// getting the termination sttus. If termination evoked, get out of here.
+			if (vdb.sessionPointer)
+			{
+				int status = vdb.sessionPointer->getTerminateState();
+				if (status) break;
+			}
 		}
-    }
-    fslioclose(vdb.runReferencePtr);
-   
-    // issuing the end of run response
-    if (vdb.sessionPointer == NULL)
-    {
-       sprintf(msg, "%s", "ENDGRAPH\n");
-       vdb.socks.writeString(msg);
-    }
-	vdb.rPipeline = true;
+		fslioclose(vdb.runReferencePtr);
+
+		// issuing the end of run response
+		if (vdb.sessionPointer == NULL)
+		{
+			sprintf(msg, "%s", "ENDGRAPH\n");
+			vdb.socks.writeString(msg);
+		}
+		vdb.rPipeline = true;
+	}
 	fprintf(stderr, "processing pipeline end\n");
 }
 

@@ -36,6 +36,32 @@ void replaceAll(string& str, const string& from, const string& to) {
 	str.swap(wsRet); // faster than str = wsRet;
 }
 
+// create log file
+void studyParams::initializeLogFile()
+{
+	char logName[500];
+	sprintf(logName, "%s%c%s%s.txt", logDir, PATHSEPCHAR, "outputLog", trainFeatureSuffix);
+	outputLog = fopen(logName, "wt+");
+}
+
+// closes the log file
+void studyParams::closeLogFile()
+{
+	if (outputLog)
+		fclose(outputLog);
+}
+
+// writes the message in the log file
+void studyParams::writeLog(int inScreen, const char * format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	vfprintf(outputLog, format, args);
+	if (inScreen)
+		vfprintf(stderr, format, args);
+	va_end(args);
+}
+
 // returns the class of a volume index. It calls the respective DesignObject function
 int studyParams::getClass(int idx)
 {
