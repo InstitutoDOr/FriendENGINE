@@ -120,7 +120,7 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
       //if (projection > 1) projection = 1;
       //else if (projection < 0) projection = 0;
 	  fprintf(stderr, "Feedback value = %f\n", feedbackValue);
-	  fprintf(stderr, "Feedback value = %f\n", secondRoiString);
+	  fprintf(stderr, "Feedback value = %s\n", secondRoiString);
    }
    return 0;
 }
