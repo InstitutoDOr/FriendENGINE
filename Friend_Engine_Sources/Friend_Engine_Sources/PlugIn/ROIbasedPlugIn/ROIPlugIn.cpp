@@ -54,6 +54,14 @@ int roiProcessing::initialization(studyParams &vdb)
 		fprintf(stderr, "Loading native space mask %s\n", vdb.mniMask);
 		meanCalculation.loadReference(vdb.mniMask);
 	}    
+	else
+	{
+		if (!fileExists(vdb.mniMask))
+			fprintf(stderr, "!!!!!!!   File not found %s.\n", vdb.mniMask);
+
+		if (!fileExists(vdb.mniTemplate))
+			fprintf(stderr, "!!!!!!!   File not found %s.\n", vdb.mniTemplate);
+	};
 	lastBaselineValue = 0;
     return 0;
 }

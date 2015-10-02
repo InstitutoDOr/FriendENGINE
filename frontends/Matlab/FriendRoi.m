@@ -138,7 +138,7 @@ configureVariable(friendObj, 'MNIMask', 'studydirhmat_spm_PM.nii.gz');
 configureVariable(friendObj, 'MNITemplate', 'studydirMNI152_T1_1mm_brain.nii.gz');
 
 % sending plugin information
-setPluginInformation(friendObj);
+friendObj = setPluginInformation(friendObj, 1);
 
 friendObj.phase = 1;
 friendObj.pipelineType = 1;
@@ -221,7 +221,7 @@ configureVariable(friendObj, 'ActivationLevelMask', 'glmdirtstats_features_RUN01
 configureVariable(friendObj, 'Prefix', fullfile('outputdirRUN02', 'DRIN-'));
 
 % sending plugin information
-setPluginInformation(friendObj);
+friendObj = setPluginInformation(friendObj, 1);
 
 global timerObj;
 start(timerObj);

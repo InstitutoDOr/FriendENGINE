@@ -7,6 +7,7 @@ function friendObj = initializeFriendObject(host, port)
     friendObj.translationx = [];
     friendObj.translationy = [];
     friendObj.translationz = [];
+    friendObj.feedbackValues = [];
     friendObj.rms = [];
     friendObj.percentage = 0;
     friendObj.class = 0.0;
@@ -14,6 +15,7 @@ function friendObj = initializeFriendObject(host, port)
     friendObj.phase = 0;
     friendObj.pipelineType = 1;
     friendObj.feedbackRun = 1;
+    friendObj.additionalFeedbacks = 0;
     
     friendObj.doGLM = 1;
     friendObj.doFEATURESELECTION = 1;

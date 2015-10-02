@@ -53,10 +53,10 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
    else
    {
 	   if (!fileExists(vdb.mniMask))
-		   fprintf(stderr, "File not found %s.\n", vdb.mniMask);
+		   fprintf(stderr, "!!!!!!!   File not found %s.\n", vdb.mniMask);
 
 	   if (!fileExists(vdb.mniTemplate))
-		   fprintf(stderr, "File not found %s.\n", vdb.mniTemplate);
+		   fprintf(stderr, "!!!!!!!   File not found %s.\n", vdb.mniTemplate);
    };
 
    firstBaselineValue=0;
@@ -114,13 +114,13 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 	  feedbackValue = firstRoiFeedbackValue;
 
 	  sprintf(secondRoiString, "%f", secondRoiFeedbackValue);
-	  fprintf(stderr, "%s\n", secondRoiString);
 	  session->processAdditionalFeedBackInfo(index, secondRoiString);
 
       // enforcing 0..1 range
       //if (projection > 1) projection = 1;
       //else if (projection < 0) projection = 0;
 	  fprintf(stderr, "Feedback value = %f\n", feedbackValue);
+	  fprintf(stderr, "Feedback value = %f\n", secondRoiString);
    }
    return 0;
 }
