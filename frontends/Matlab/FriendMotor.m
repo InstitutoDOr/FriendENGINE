@@ -1,4 +1,4 @@
-function varargout = Friend(varargin)
+function varargout = FriendMotor(varargin)
 % FRIEND MATLAB code for Friend.fig
 %      FRIEND, by itself, creates a new FRIEND or raises the existing
 %      singleton*.

@@ -127,8 +127,8 @@ int PluginHandler::callInitFunction(studyParams &vdb)
    {
 	   if (userData == NULL)
          return initFunction(vdb, userData);
-   }
-   else return 0;
+   };
+   return 0;
 }
 
 int PluginHandler::callVolumeFunction(studyParams &vdb, int index, char *fileName)
