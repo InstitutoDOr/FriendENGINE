@@ -99,7 +99,7 @@ if strcmp(get(hObject,'Visible'),'off')
     timerObj = timer;
     timerObj.ExecutionMode = 'fixedDelay';
     timerObj.TimerFcn = @timerFunction;
-    timerObj.Period = 2/10; % one tenth of the TR
+    timerObj.Period = 1; 
 end;
 
 
