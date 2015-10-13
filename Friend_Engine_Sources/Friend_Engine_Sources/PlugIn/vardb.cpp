@@ -213,6 +213,9 @@ void studyParams::readConfig(CSimpleIniA &ini)
 void studyParams::readConfigVars()
   {
 	randomRun = 0;
+	volumesToSkip = 1;
+
+	volumesToSkip = readedIni.GetDoubleValue("FRIEND", "VolumesAllowedToSkip", volumesToSkip);
 	strcpy(subject, readedIni.GetValue("FRIEND", "SUBJECT"));
    
    strcpy(raiFile, readedIni.GetValue("FRIEND", "RAI"));

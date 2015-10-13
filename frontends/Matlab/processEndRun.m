@@ -1,4 +1,6 @@
 function friendObj = processEndRun(friendObj)
+    % setting timeout to 5 minutes due to complicated processes
+    set(friendObj.responseThread, 'TimeOut', 300);
     if (friendObj.doGLM == 1)
        fprintf(friendObj.mainThread, 'GLM');
        fgetl(friendObj.mainThread);

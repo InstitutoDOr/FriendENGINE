@@ -32,6 +32,7 @@ if (friendObj.phase == 25)
     % retrieving Graph Parameters
     response=getResponse(friendObj, 'GRAPHPARS', friendObj.actualVolume);
     if (strcmp(response, 'END') == 1)
+       friendObj.phase = 100;
        friendObj=processEndRun(friendObj);
        return;
     end;

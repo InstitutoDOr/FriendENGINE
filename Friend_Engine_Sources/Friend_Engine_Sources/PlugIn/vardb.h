@@ -30,6 +30,8 @@ public:
    // filename variables
    char subjectSpaceMask[BUFF_SIZE], parFile[BUFF_SIZE], rmsFile[BUFF_SIZE], fsfFile[BUFF_SIZE], activationFile[BUFF_SIZE], predictionFile[BUFF_SIZE], predictionFileAux[BUFF_SIZE], baseImage[BUFF_SIZE], matrixFile[BUFF_SIZE], maskFile[BUFF_SIZE], baseFunctional[BUFF_SIZE], contrastFile[BUFF_SIZE], train4DFile[BUFF_SIZE], trainGLM4DFile[BUFF_SIZE], glmMatrixFile[BUFF_SIZE], motionRefVolume[BUFF_SIZE], designFile[BUFF_SIZE], glmTOutput[BUFF_SIZE], glmZOutput[BUFF_SIZE], actualBaseline[BUFF_SIZE];
    
+   // number of volumes to skip, in case of problems in the transference process
+   int volumesToSkip;
    // parameter variables
    char baselineCondition[BUFF_SIZE];
    

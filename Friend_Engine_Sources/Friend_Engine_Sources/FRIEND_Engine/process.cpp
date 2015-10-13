@@ -360,10 +360,12 @@ BOOL FriendProcess::isBaselineCondition(char * condition)
 // verifies if the next file is ready to be read by FRIEND and transforms it in nifti accordingly
 BOOL FriendProcess::isReadyNextFile(int index, char *rtPrefix, char *format, char *inFile)
 {
-	BOOL result = isReadyNextFileCore(index, index, rtPrefix, format, inFile);
-	if (!result)
-		// trying to resolve Philips DRINdumper tool skipping volume problem
-		result = isReadyNextFileCore(index+1, index, rtPrefix, format, inFile);
+	BOOL result;
+	for (int i = 0; i <= vdb.volumesToSkip; i++)
+	{
+		result = isReadyNextFileCore(index + i, index, rtPrefix, format, inFile);
+		if (result) break;
+	}
 	return result;
 }
 
