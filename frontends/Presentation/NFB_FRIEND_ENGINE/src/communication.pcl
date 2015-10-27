@@ -1,4 +1,4 @@
-string address = "10.36.0.185";
+string address = "127.0.0.1";
 int port_num   = 5678;
 int time_out   = 500;
 
@@ -56,6 +56,8 @@ end;
 sub string getParameters( int vol )
 begin
 	string ret = "";
+	string ack = "";
+
 	if responseThread.open( address, port_num, time_out ) then
 		
 		responseThread.send( "SESSION\n" );
@@ -68,6 +70,7 @@ begin
 			responseThread.send( string( vol ) + "\n" );
 			
 			ret = responseThread.receive_delimited( "\n" );
+			ack = responseThread.receive_delimited( "\n" );
 		else
 			logfile.add_event_entry( "SESSION_ID_NOT_CONFIRMED_" + sess_id );
 		end;
@@ -83,7 +86,22 @@ begin
 end;
 
 
-## get a graph vars 
+## ends a session
+sub string endSession
+begin
+	mainThread.send( "ENDSESSION\n" );
+	mainThread.send( sess_id + "\n" );
+
+	string resp = mainThread.receive_delimited( "\n" );
+
+	logfile.add_event_entry( "mainThread_SESSION_END_RESPONSE_" + resp );
+		
+	mainThread.close();
+	
+	return resp;
+end;
+
+## get feedback value
 sub double getFeedbackValue( int vol, string& feed_ok )
 begin
 	double percentage = 0.0;
@@ -149,6 +167,21 @@ begin
 	string ack = mainThread.receive_delimited( "\n" );
 	
 	logfile.add_event_entry( "PLUGIN_INFO_SEND" );
+	
+	return ack;
+end;
+
+## sending plugin information
+sub string configureVariable(string variable, string value)
+begin	
+
+	mainThread.send( "SET\n" );
+	mainThread.send( variable + "\n" );
+	mainThread.send( value + "\n" );
+
+	string ack = mainThread.receive_delimited( "\n" );
+	
+	logfile.add_event_entry( "CONFIGURE_VARIABLE_SEND" );
 	
 	return ack;
 end;

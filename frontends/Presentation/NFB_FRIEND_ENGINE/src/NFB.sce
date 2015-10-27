@@ -33,6 +33,7 @@ trial {
 	time = 0;
 } trialRest;
 
+trial { trial_duration = 1000; } wait_trial;
 
 #STARTING PCL
 begin_pcl;
@@ -72,6 +73,19 @@ t.redraw();
 pic.present();
 
 sess_id = createSession();
+
+t.set_caption( "Configuring engine ..." );
+t.redraw();
+pic.present();
+
+# changing the MNI mask
+configureVariable("ActivationLevelMask", "studydirhmat_spm_PM.nii.gz");   
+
+# changing the MNI template
+configureVariable("ActivationLevelMaskReference", "studydirMNI152_T1_1mm_brain.nii.gz");
+
+# changing the MNI mask type
+configureVariable("ActivationLevelMaskType", "2");
 
 t.set_caption( "Sending plugin information ..." );
 t.redraw();

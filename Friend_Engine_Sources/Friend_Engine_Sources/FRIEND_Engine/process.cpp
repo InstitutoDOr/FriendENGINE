@@ -74,7 +74,7 @@ int isGoodDesign(char *fileName)
 	return result;
 }
 
-// preprare files and run fsl_glm on processed volumes
+// prepare files and run fsl_glm on processed volumes
 void FriendProcess::glm()
 {
    char prefix[BUFF_SIZE], Pref[BUFF_SIZE];
@@ -301,7 +301,7 @@ void FriendProcess::featureSelection()
    vdb.rFeatureSel = true;
 }
 
-// call plugin train function
+// call plug-in train function
 void FriendProcess::train()
 {
    if (!vdb.rPrepVars) prepRealtimeVars();
@@ -309,7 +309,7 @@ void FriendProcess::train()
       vdb.rTrain=true;
 }
 
-// call plugin test function
+// call plug-in test function
 void FriendProcess::test(int index, float &classNum, float &projection)
 {
    if (!vdb.rPrepVars) prepRealtimeVars();
@@ -347,7 +347,7 @@ void FriendProcess::baselineCalculation(int intervalIndex, char *baseline)
    sprintf(number, "%d",(vdb.interval.intervals[intervalIndex].end-vdb.interval.intervals[intervalIndex].start+1-vdb.averageMeanOffset));
    osc << " -div " << number << " " << baseline << '\0';
 
-   // runs fslmaths
+   // run fslmaths
    fslmaths((char *)osc.str().c_str());
 };
 
@@ -586,6 +586,7 @@ void FriendProcess::runRealtimePipeline()
 	if (vdb.interval.intervals.size())
 	{
 		if (!vdb.rPrepVars) prepRealtimeVars();
+		if ((!fileExists(vdb.raiFile)) || (!fileExists(vdb.rfiFile))) return;
 		vdb.actualBaseline[0] = 0;
 		vdb.actualImg = 1;
 		vdb.actualInterval = 0;
@@ -600,7 +601,7 @@ void FriendProcess::runRealtimePipeline()
 		sprintf(dcm2niiServerConfig, "%s%c%s", exePath, PATHSEPCHAR, "dcm2niiserver.ini");
 		vdb.readedIni.SaveFile(dcm2niiServerConfig);
 
-		// getting the preproc volume prefix
+		// getting the preprocessing volume prefix
 		vdb.getPreprocVolumePrefix(preprocVolumePrefix);
 
 		// setting the reference volume
@@ -617,7 +618,7 @@ void FriendProcess::runRealtimePipeline()
 		while (vdb.actualImg <= vdb.runSize)
 		{
 			realtimePipelineStep(preprocVolumePrefix, format, vdb.actualBaseline);
-			// getting the termination sttus. If termination evoked, get out of here.
+			// getting the termination status. If termination evoked, get out of here.
 			if (vdb.sessionPointer)
 			{
 				int status = vdb.sessionPointer->getTerminateState();
@@ -747,24 +748,27 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
       // ending of the block ?
       if (vdb.actualImg > vdb.interval.intervals[vdb.actualInterval].end)
       {
-         // Baseline Calculation, if this is a baseline block
-         if (isBaselineCondition(vdb.interval.intervals[vdb.actualInterval].condition)) 
-         {
-            fprintf(stderr, "Baseline mean calculation\n");
-            sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", (vdb.actualInterval+1), "mean.nii");
-            baselineCalculation(vdb.actualInterval, vdb.actualBaseline);
-         }
-         // going to the next interval
-         vdb.actualInterval++;
-      };
+		  if (!vdb.skipMeanSubtraction)
+		  {
+			  // Baseline Calculation, if this is a baseline block
+			  if (isBaselineCondition(vdb.interval.intervals[vdb.actualInterval].condition))
+			  {
+				  fprintf(stderr, "Baseline mean calculation\n");
+				  sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", (vdb.actualInterval + 1), "mean.nii");
+				  baselineCalculation(vdb.actualInterval, vdb.actualBaseline);
+			  }
+		  }
+		  // going to the next interval
+		  vdb.actualInterval++;
+	  };
 
-      // sctual subtraction
+      // actual subtraction
       if (vdb.actualBaseline[0] != 0)
       {
          sprintf(CmdLn, "fslmaths %s -sub %s %s", mcfile, vdb.actualBaseline, outFile);
          fslmaths(CmdLn);
       }
-      else // if no baseline mean already calculated, zeroes volume. Note zeroing the supposed subtracted volume
+      else // if no baseline mean already calculated, zeros volume. Note zeroing the supposed subtracted volume
       {
          sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcfile, outFile);
          fslmaths(CmdLn);
@@ -793,13 +797,13 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
    }
 }
 
-// initializating control variables
+// initializing control variables
 void FriendProcess::initializeStates()
 {
    vdb.initializeStates();
 }
 
-// initializating all other variables
+// initializing all other variables
 void FriendProcess::prepRealtimeVars()
 {
    if (!vdb.rPrepVars) 
@@ -886,6 +890,7 @@ void FriendProcess::prepRealTime()
    if (!vdb.rPrepVars)
 	   prepRealtimeVars();
 
+   if ((!fileExists(vdb.raiFile)) || (!fileExists(vdb.rfiFile))) return;
    vdb.createDirectories();
 
    pHandler.callInitFunction(vdb);

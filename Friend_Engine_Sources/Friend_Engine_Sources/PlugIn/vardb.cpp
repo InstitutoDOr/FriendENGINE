@@ -214,8 +214,11 @@ void studyParams::readConfigVars()
   {
 	randomRun = 0;
 	volumesToSkip = 1;
+	skipMeanSubtraction = 0;
 
 	volumesToSkip = readedIni.GetDoubleValue("FRIEND", "VolumesAllowedToSkip", volumesToSkip);
+	skipMeanSubtraction = readedIni.GetDoubleValue("FRIEND", "skipMeanSubtraction", skipMeanSubtraction);
+
 	strcpy(subject, readedIni.GetValue("FRIEND", "SUBJECT"));
    
    strcpy(raiFile, readedIni.GetValue("FRIEND", "RAI"));

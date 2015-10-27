@@ -32,6 +32,10 @@ public:
    
    // number of volumes to skip, in case of problems in the transference process
    int volumesToSkip;
+
+   // if we do not need to do mean subtraction step
+   int skipMeanSubtraction;
+
    // parameter variables
    char baselineCondition[BUFF_SIZE];
    

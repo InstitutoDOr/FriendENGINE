@@ -391,10 +391,10 @@ bool	friendEngine::serverChild ( int	socketFd )
             break;
          }
          else
-         // executting GLM. Possibly this with turn in a plugin function
+         // executing GLM. Possibly this with turn in a plug-in function
          if (strcmp(command, "GLM") == 0)
          {
-            fprintf(stderr, "Executting Glm.\n");
+            fprintf(stderr, "Executing Glm.\n");
             process.prepRealtimeVars();
             process.glm();
 
@@ -402,7 +402,7 @@ bool	friendEngine::serverChild ( int	socketFd )
             socks.writeString(command); 
          }
          else
-         // executting GLM. Possibly this with turn in a plugin function
+         // executing GLM. Possibly this with turn in a plug-in function
          if (strcmp(command, "NBGLM") == 0)
          {
             process.setPhaseStatus("GLM", 0);
@@ -411,44 +411,44 @@ bool	friendEngine::serverChild ( int	socketFd )
             sprintf(command, "OK\n");
             socks.writeString(command);
             
-            // executting glm
-            fprintf(stderr, "Executting Glm.\n");
+            // executing glm
+            fprintf(stderr, "Executing Glm.\n");
             process.prepRealtimeVars();
             process.glm();
             
             process.setPhaseStatus("GLM", 1);
          }
          else
-         // executting training. Here if there isn't a function defined through a PLUGIN call, nothing happens
+         // executing training. Here if there isn't a function defined through a PLUGIN call, nothing happens
          if (strcmp(command, "TRAIN") == 0)
          {
             process.prepRealtimeVars();
-            fprintf(stderr, "Executting TRAIN function.\n");
+            fprintf(stderr, "Executing TRAIN function.\n");
             process.train();
 
             sprintf(command, "OK\n");
             socks.writeString(command); 
          }
          else
-         // executting training. Here if there isn't a function defined through a PLUGIN call, nothing happens
+         // executing training. Here if there isn't a function defined through a PLUGIN call, nothing happens
          if (strcmp(command, "NBTRAIN") == 0)
          {
             process.setPhaseStatus("TRAIN", 0);
             process.prepRealtimeVars();
-            fprintf(stderr, "Executting TRAIN function.\n");
+            fprintf(stderr, "Executing TRAIN function.\n");
             process.train();
             
             process.setPhaseStatus("TRAIN", 1);
          }
          else
-         // executting testing. Here if there isn't a function defined through a PLUGIN call, nothing happens
+         // executing testing. Here if there isn't a function defined through a PLUGIN call, nothing happens
          if (strcmp(command, "TEST") == 0)
          {
             int index=0;
             char number[30];
             float classNum, projection;
 
-            fprintf(stderr, "Executting test function.\n");
+            fprintf(stderr, "Executing test function.\n");
             socks.readLine(number, 10);
             stripReturns(number);
             index = atoi(number);
@@ -463,17 +463,17 @@ bool	friendEngine::serverChild ( int	socketFd )
             socks.writeString(command);
          }
          else
-         // executting the feature selection step. In future, we will turn this in a plugin function
+         // executing the feature selection step. In future, we will turn this in a plug-in function
          if (strcmp(command, "FEATURESELECTION") == 0)
          {
-            fprintf(stderr, "Executting Feature Selection.\n");
+            fprintf(stderr, "Executing Feature Selection.\n");
             process.featureSelection();
 
             sprintf(command, "OK\n");
             socks.writeString(command); 
          }
          else
-         // executting the feature selection step. In future, we will turn this in a plugin function
+         // executing the feature selection step. In future, we will turn this in a plug-in function
          if (strcmp(command, "NBFEATURESELECTION") == 0)
          {
             process.setPhaseStatus("FEATURESELECTION", 0);
@@ -483,7 +483,7 @@ bool	friendEngine::serverChild ( int	socketFd )
             socks.writeString(command);
             
             // running feature selection
-            fprintf(stderr, "Executting Feature Selection.\n");
+            fprintf(stderr, "Executing Feature Selection.\n");
             process.featureSelection();
             
             process.setPhaseStatus("FEATURESELECTION", 1);
@@ -531,7 +531,7 @@ bool	friendEngine::serverChild ( int	socketFd )
             sprintf(command, "OK\n");
             socks.writeString(command);
             
-            // processing pileine
+            // processing pipeline
             process.runRealtimePipeline();
             process.setPhaseStatus("PIPELINE", 1);
          }
