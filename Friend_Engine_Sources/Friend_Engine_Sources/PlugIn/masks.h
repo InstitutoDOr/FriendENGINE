@@ -122,6 +122,7 @@ public:
    IncrementalStats incStats;
    float window;
    float mean;
+   float maxValue, minValue;
    int usedPoints;
    
    // initializing variables
@@ -139,11 +140,19 @@ public:
    // calculates the mean
    float meanExtract(int index);
    
-   // initialize mean coeficients
+   // initialize mean coefficients
    void initializeCoefs(int type = 1);
    
    // updates the state of variables with another value
    void addValue(float value, int calculateMean = 1);
+
+   // calculates min and max value based only in the last values
+   void calculateLimits(int lastValues);
+
+   // converts value to a percentage inside the min-max range
+   // Use the slack variable if you want to avoid ceiling effect
+   float scaleValue(float value, float slack = 0);
+   float scaleValue(float value, float slack, int lastValues);
 
    // saves the curve and the mean curve in a file, separated by ;
    void saveCurves(char *file);

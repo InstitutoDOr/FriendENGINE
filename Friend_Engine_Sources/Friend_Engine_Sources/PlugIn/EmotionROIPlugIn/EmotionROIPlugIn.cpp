@@ -201,7 +201,7 @@ void emotionRoiProcessing::createROIVolume(studyParams &vdb)
 			processVolume(vdb, i, classnum, projection);
 		}
 
-		// savign a file with the roi means of the recently calculated roi mask
+		// saving a file with the roi means of the recently calculated roi mask
 		char negativeCurveFile[BUFF_SIZE], positiveCurveFile[BUFF_SIZE];
 		sprintf(negativeCurveFile, "%s%c%s%s.txt", vdb.outputDir, PATHSEPCHAR, "negative_curve", vdb.trainFeatureSuffix);
 		sprintf(positiveCurveFile, "%s%c%s%s.txt", vdb.outputDir, PATHSEPCHAR, "positive_curve", vdb.trainFeatureSuffix);
@@ -340,7 +340,7 @@ float emotionRoiProcessing::PSC(float value, float base)
    return (base) ? ((value-base) / base) : 0;
 }
 
-// plugin function for initializating the roi processing object
+// plug-in function for initializing the roi processing object
 DLLExport initializeEmotionROIProcessing(studyParams &vdb, void *&userData)
 {
 	emotionRoiProcessing *roiVar = new emotionRoiProcessing;
@@ -349,7 +349,7 @@ DLLExport initializeEmotionROIProcessing(studyParams &vdb, void *&userData)
    return 0;
 }
 
-// plugin function for finalizing the object
+// plug-in function for finalizing the object
 DLLExport finalizeEmotionROIProcessing(studyParams &vdb, void *&userData)
 {
 	emotionRoiProcessing *roiVar = (emotionRoiProcessing *)userData;
@@ -358,7 +358,7 @@ DLLExport finalizeEmotionROIProcessing(studyParams &vdb, void *&userData)
    return 0;
 }
 
-// plugin function for calculationg feedback value
+// plug-in function for calculating feedback value
 DLLExport processEmotionROI(studyParams &vdb, int index, float &classnum, float &feedbackValue, void * &userData)
 {
 	emotionRoiProcessing *roiVar = (emotionRoiProcessing *)userData;
@@ -366,7 +366,7 @@ DLLExport processEmotionROI(studyParams &vdb, int index, float &classnum, float 
    return 0;
 }
 
-// plugin function for building the ROI mask
+// plug-in function for building the ROI mask
 DLLExport buildEmotionROI(studyParams &vdb, void * &userData)
 {
 	emotionRoiProcessing *roiVar = (emotionRoiProcessing *)userData;

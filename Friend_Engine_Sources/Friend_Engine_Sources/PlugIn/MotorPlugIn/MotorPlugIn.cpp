@@ -25,11 +25,15 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
 
    strcpy(vdb.mniMask, vdb.readedIni.GetValue("FRIEND", "MNIMask"));
    strcpy(vdb.mniTemplate, vdb.readedIni.GetValue("FRIEND", "MNITemplate"));
+   int masktype = vdb.readedIni.GetLongValue("FRIEND", "ActivationLevelMaskType");
+
    fprintf(stderr, "mnimask = %s\n", vdb.mniMask);
    fprintf(stderr, "mnitemp = %s\n", vdb.mniTemplate);
+   fprintf(stderr, "masktype = %d\n", masktype);
+
    targetValue = vdb.readedIni.GetDoubleValue("FRIEND", "ActivationLevel");
    // if exists the two files, bring  the mnimask to native space 
-   if ((fileExists(vdb.mniMask)) && (fileExists(vdb.mniTemplate)))
+   if ((fileExists(vdb.mniMask)) && (fileExists(vdb.mniTemplate)) && (masktype == 2))
    {
       char outputFile[500], prefix[500]="_RFI2", name[500];
       
@@ -49,6 +53,16 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
 	  // Theses indexes are the indexes relative to the roi intensities in the meanCalculation object mean array
 	  firstRoiIndex  = meanCalculation.roiIndex(firstRoi);
 	  secondRoiIndex = meanCalculation.roiIndex(secondRoi);
+   }
+   else if ((fileExists(vdb.mniMask)) && (masktype == 1))
+   {
+	   // loads the reference mask
+	   fprintf(stderr, "Loading native space mask %s\n", vdb.mniMask);
+	   meanCalculation.loadReference(vdb.mniMask);
+
+	   // Theses indexes are the indexes relative to the roi intensities in the meanCalculation object mean array
+	   firstRoiIndex = meanCalculation.roiIndex(firstRoi);
+	   secondRoiIndex = meanCalculation.roiIndex(secondRoi);
    }
    else
    {

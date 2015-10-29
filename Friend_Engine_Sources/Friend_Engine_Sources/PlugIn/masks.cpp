@@ -430,13 +430,66 @@ float WeightedMean::meanExtract(int index)
     return mean;
 };
 
-// initialize mean coeficients
+// initialize mean coefficients
 void WeightedMean::initializeCoefs(int type)
 {
    if (type == 1) sigmoid(meanCoefs.size(), meanCoefs);
    else
    for(int t=0; t < meanCoefs.size(); t++) meanCoefs[t] = 1;
 };
+
+void WeightedMean::calculateLimits(int lastValues)
+{
+	int first = vectorData.size() - lastValues;
+	if (first < 0) first = 0;
+	for (int i = first; i < vectorData.size(); i++)
+	{
+		if (i == first)
+		{
+			minValue = vectorData[i];
+			maxValue = vectorData[i];
+		}
+		else
+		{
+			if (minValue > vectorData[i]) minValue = vectorData[i];
+			if (maxValue < vectorData[i]) maxValue = vectorData[i];
+		}
+	};
+}
+
+// converts value to a percentage inside the min-max range. 
+// Use the slack variable if you want to avoid ceiling effect
+float WeightedMean::scaleValue(float value, float slack)
+{
+	float tempMax = maxValue, tempMin = minValue;
+	if (slack)
+	{
+		tempMax *= (1 + slack);
+		tempMin *= (1 - slack);
+	};
+
+	float range = tempMax - tempMin;
+	if (range == 0) return 0;
+	else return (value - tempMin) / (range);
+}
+
+// converts value to a percentage inside the min-max range. 
+// Use the slack variable if you want to avoid ceiling effect
+// This function calls the calculate limits to resolve things in one call
+float WeightedMean::scaleValue(float value, float slack, int lastValues)
+{
+	calculateLimits(lastValues);
+	float tempMax = maxValue, tempMin = minValue;
+	if (slack)
+	{
+		tempMax *= (1 + slack);
+		tempMin *= (1 - slack);
+	};
+
+	float range = tempMax - tempMin;
+	if (range == 0) return 0;
+	else return (value - tempMin) / (range);
+}
 
 // updates the state of variables with another value
 void WeightedMean::addValue(float value, int calculateMean)
