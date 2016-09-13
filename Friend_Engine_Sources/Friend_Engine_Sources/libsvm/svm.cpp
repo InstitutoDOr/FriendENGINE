@@ -8,7 +8,16 @@
 #include <limits.h>
 #include <locale.h>
 #include "svm.h"
+
+#ifdef CUDAON
+#include "cuda.h"
+#include <cuda_runtime.h>
+#include <cublas_v2.h>
+#include "device_launch_parameters.h"
+#endif
+
 int libsvm_version = LIBSVM_VERSION;
+
 typedef float Qfloat;
 typedef signed char schar;
 #ifndef min
@@ -44,7 +53,7 @@ static void print_string_stdout(const char *s)
 	fflush(stdout);
 }
 static void (*svm_print_string) (const char *) = &print_string_stdout;
-#if 1
+#if 0
 static void info(const char *fmt,...)
 {
 	char buf[BUFSIZ];
@@ -74,7 +83,7 @@ public:
 	// return some position p where [p,len) need to be filled
 	// (p >= len if nothing needs to be filled)
 	int get_data(const int index, Qfloat **data, int len);
-	void swap_index(int i, int j);	
+	void swap_index(int i, int j);
 private:
 	int l;
 	long int size;
@@ -201,7 +210,11 @@ public:
 
 class Kernel: public QMatrix {
 public:
+#ifdef CUDAON
+	Kernel(int l, svm_node * const * x, const svm_parameter& param, const svm_problem &prob);
+#else
 	Kernel(int l, svm_node * const * x, const svm_parameter& param);
+#endif
 	virtual ~Kernel();
 
 	static double k_function(const svm_node *x, const svm_node *y,
@@ -210,17 +223,26 @@ public:
 	virtual double *get_QD() const = 0;
 	virtual void swap_index(int i, int j) const	// no so const...
 	{
-		swap(x[i],x[j]);
+#ifdef CUDAON
+		swap(xCuda[i], xCuda[j]);
+#else
+		swap(x[i], x[j]);
+#endif
 		if(x_square) swap(x_square[i],x_square[j]);
 	}
 protected:
-
 	double (Kernel::*kernel_function)(int i, int j) const;
+
 
 private:
 	const svm_node **x;
 	double *x_square;
 
+#ifdef CUDAON
+	float **xCuda;
+	cublasHandle_t handle;
+	int vectorSize;
+#endif
 	// svm_parameter
 	const int kernel_type;
 	const int degree;
@@ -228,29 +250,42 @@ private:
 	const double coef0;
 
 	static double dot(const svm_node *px, const svm_node *py);
+#ifdef CUDAON
+	static double dotCuda(float *px, float *py, const cublasHandle_t &handle, int vectorSize);
+#endif
+
 	double kernel_linear(int i, int j) const
 	{
+#ifdef CUDAON
+		return dotCuda(xCuda[i], xCuda[j], handle, vectorSize);
+#else
 		return dot(x[i],x[j]);
+#endif
 	}
+
 	double kernel_poly(int i, int j) const
 	{
 		return powi(gamma*dot(x[i],x[j])+coef0,degree);
 	}
+
 	double kernel_rbf(int i, int j) const
 	{
 		return exp(-gamma*(x_square[i]+x_square[j]-2*dot(x[i],x[j])));
 	}
+
 	double kernel_sigmoid(int i, int j) const
 	{
 		return tanh(gamma*dot(x[i],x[j])+coef0);
 	}
+
 	double kernel_precomputed(int i, int j) const
 	{
 		return x[i][(int)(x[j][0].value)].value;
 	}
 };
 
-Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
+#ifdef CUDAON
+Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param, const svm_problem &prob)
 :kernel_type(param.kernel_type), degree(param.degree),
  gamma(param.gamma), coef0(param.coef0)
 {
@@ -273,7 +308,10 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
 			break;
 	}
 
-	clone(x,x_,l);
+	x = 0;
+	xCuda = prob.xCuda;
+	vectorSize = prob.vectorSize;
+	handle = *((cublasHandle_t *) prob.handle);
 
 	if(kernel_type == RBF)
 	{
@@ -284,12 +322,57 @@ Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
 	else
 		x_square = 0;
 }
+#else
+Kernel::Kernel(int l, svm_node * const * x_, const svm_parameter& param)
+	:kernel_type(param.kernel_type), degree(param.degree),
+	gamma(param.gamma), coef0(param.coef0)
+{
+	switch (kernel_type)
+	{
+	case LINEAR:
+		kernel_function = &Kernel::kernel_linear;
+		break;
+	case POLY:
+		kernel_function = &Kernel::kernel_poly;
+		break;
+	case RBF:
+		kernel_function = &Kernel::kernel_rbf;
+		break;
+	case SIGMOID:
+		kernel_function = &Kernel::kernel_sigmoid;
+		break;
+	case PRECOMPUTED:
+		kernel_function = &Kernel::kernel_precomputed;
+		break;
+	}
+
+	clone(x, x_, l);
+
+	if (kernel_type == RBF)
+	{
+		x_square = new double[l];
+		for (int i = 0; i<l; i++)
+			x_square[i] = dot(x[i], x[i]);
+	}
+	else
+		x_square = 0;
+}
+#endif
 
 Kernel::~Kernel()
 {
 	delete[] x;
 	delete[] x_square;
 }
+
+#ifdef CUDAON
+double Kernel::dotCuda(float *px, float *py, const cublasHandle_t &handle, int vectorSize)
+{
+	float sum = 0;
+	cublasSdot(handle, vectorSize, px, 1, py, 1, &sum); 
+	return sum;
+}
+#endif
 
 double Kernel::dot(const svm_node *px, const svm_node *py)
 {
@@ -444,7 +527,7 @@ protected:
 	virtual double calculate_rho();
 	virtual void do_shrinking();
 private:
-	bool be_shrunk(int i, double Gmax1, double Gmax2);	
+	bool be_shrunk(int i, double Gmax1, double Gmax2);
 };
 
 void Solver::swap_index(int i, int j)
@@ -833,7 +916,7 @@ int Solver::select_working_set(int &out_i, int &out_j)
 					Gmax2 = G[j];
 				if (grad_diff > 0)
 				{
-					double obj_diff; 
+					double obj_diff;
 					double quad_coef = QD[i]+QD[j]-2.0*y[i]*Q_i[j];
 					if (quad_coef > 0)
 						obj_diff = -(grad_diff*grad_diff)/quad_coef;
@@ -857,7 +940,7 @@ int Solver::select_working_set(int &out_i, int &out_j)
 					Gmax2 = -G[j];
 				if (grad_diff > 0)
 				{
-					double obj_diff; 
+					double obj_diff;
 					double quad_coef = QD[i]+QD[j]+2.0*y[i]*Q_i[j];
 					if (quad_coef > 0)
 						obj_diff = -(grad_diff*grad_diff)/quad_coef;
@@ -874,7 +957,7 @@ int Solver::select_working_set(int &out_i, int &out_j)
 		}
 	}
 
-	if(Gmax+Gmax2 < eps)
+	if(Gmax+Gmax2 < eps || Gmin_idx == -1)
 		return 1;
 
 	out_i = Gmax_idx;
@@ -1085,7 +1168,7 @@ int Solver_NU::select_working_set(int &out_i, int &out_j)
 					Gmaxp2 = G[j];
 				if (grad_diff > 0)
 				{
-					double obj_diff; 
+					double obj_diff;
 					double quad_coef = QD[ip]+QD[j]-2*Q_ip[j];
 					if (quad_coef > 0)
 						obj_diff = -(grad_diff*grad_diff)/quad_coef;
@@ -1109,7 +1192,7 @@ int Solver_NU::select_working_set(int &out_i, int &out_j)
 					Gmaxn2 = -G[j];
 				if (grad_diff > 0)
 				{
-					double obj_diff; 
+					double obj_diff;
 					double quad_coef = QD[in]+QD[j]-2*Q_in[j];
 					if (quad_coef > 0)
 						obj_diff = -(grad_diff*grad_diff)/quad_coef;
@@ -1126,7 +1209,7 @@ int Solver_NU::select_working_set(int &out_i, int &out_j)
 		}
 	}
 
-	if(max(Gmaxp+Gmaxp2,Gmaxn+Gmaxn2) < eps)
+	if(max(Gmaxp+Gmaxp2,Gmaxn+Gmaxn2) < eps || Gmin_idx == -1)
 		return 1;
 
 	if (y[Gmin_idx] == +1)
@@ -1266,8 +1349,13 @@ double Solver_NU::calculate_rho()
 class SVC_Q: public Kernel
 { 
 public:
+#ifdef CUDAON
 	SVC_Q(const svm_problem& prob, const svm_parameter& param, const schar *y_)
-	:Kernel(prob.l, prob.x, param)
+	:Kernel(prob.l, prob.x, param, prob)
+#else
+	SVC_Q(const svm_problem& prob, const svm_parameter& param, const schar *y_)
+	: Kernel(prob.l, prob.x, param)
+#endif
 	{
 		clone(y,y_,prob.l);
 		cache = new Cache(prob.l,(long int)(param.cache_size*(1<<20)));
@@ -1282,6 +1370,7 @@ public:
 		int start, j;
 		if((start = cache->get_data(i,&data,len)) < len)
 		{
+            #pragma omp parallel for private(j) schedule(guided) 
 			for(j=start;j<len;j++)
 				data[j] = (Qfloat)(y[i]*y[j]*(this->*kernel_function)(i,j));
 		}
@@ -1316,10 +1405,15 @@ private:
 class ONE_CLASS_Q: public Kernel
 {
 public:
+#ifdef CUDAON
 	ONE_CLASS_Q(const svm_problem& prob, const svm_parameter& param)
-	:Kernel(prob.l, prob.x, param)
+	:Kernel(prob.l, prob.x, param, prob)
+#else
+	ONE_CLASS_Q(const svm_problem& prob, const svm_parameter& param)
+	: Kernel(prob.l, prob.x, param)
+#endif
 	{
-		cache = new Cache(prob.l,(long int)(param.cache_size*(1<<20)));
+		cache = new Cache(prob.l, (long int)(param.cache_size*(1 << 20)));
 		QD = new double[prob.l];
 		for(int i=0;i<prob.l;i++)
 			QD[i] = (this->*kernel_function)(i,i);
@@ -1362,8 +1456,13 @@ private:
 class SVR_Q: public Kernel
 { 
 public:
+#ifdef CUDAON
 	SVR_Q(const svm_problem& prob, const svm_parameter& param)
-	:Kernel(prob.l, prob.x, param)
+	:Kernel(prob.l, prob.x, param, prob)
+#else
+	SVR_Q(const svm_problem& prob, const svm_parameter& param)
+		: Kernel(prob.l, prob.x, param)
+#endif
 	{
 		l = prob.l;
 		cache = new Cache(l,(long int)(param.cache_size*(1<<20)));
@@ -1641,7 +1740,7 @@ static void solve_nu_svr(
 struct decision_function
 {
 	double *alpha;
-	double rho;	
+	double rho;
 };
 
 static decision_function svm_train_one(
@@ -1722,7 +1821,7 @@ static void sigmoid_train(
 	double *t=Malloc(double,l);
 	double fApB,p,q,h11,h22,h21,g1,g2,det,dA,dB,gd,stepsize;
 	double newA,newB,newf,d1,d2;
-	int iter; 
+	int iter;
 	
 	// Initial Point and Initial Fun Value
 	A=0.0; B=log((prior0+1.0)/(prior1+1.0));
@@ -1961,7 +2060,7 @@ static void svm_binary_svc_probability(
 			struct svm_model *submodel = svm_train(&subprob,&subparam);
 			for(j=begin;j<end;j++)
 			{
-				svm_predict_values(submodel,prob->x[perm[j]],&(dec_values[perm[j]])); 
+				svm_predict_values(submodel,prob->x[perm[j]],&(dec_values[perm[j]]));
 				// ensure +1 -1 order; reason not using CV subroutine
 				dec_values[perm[j]] *= submodel->label[0];
 			}		
@@ -2018,7 +2117,7 @@ static void svm_group_classes(const svm_problem *prob, int *nr_class_ret, int **
 	int nr_class = 0;
 	int *label = Malloc(int,max_nr_class);
 	int *count = Malloc(int,max_nr_class);
-	int *data_label = Malloc(int,l);	
+	int *data_label = Malloc(int,l);
 	int i;
 
 	for(i=0;i<l;i++)
@@ -2048,6 +2147,24 @@ static void svm_group_classes(const svm_problem *prob, int *nr_class_ret, int **
 		}
 	}
 
+	//
+	// Labels are ordered by their first occurrence in the training set. 
+	// However, for two-class sets with -1/+1 labels and -1 appears first, 
+	// we swap labels to ensure that internally the binary SVM has positive data corresponding to the +1 instances.
+	//
+	if (nr_class == 2 && label[0] == -1 && label[1] == 1)
+	{
+		swap(label[0],label[1]);
+		swap(count[0],count[1]);
+		for(i=0;i<l;i++)
+		{
+			if(data_label[i] == 0)
+				data_label[i] = 1;
+			else
+				data_label[i] = 0;
+		}
+	}
+
 	int *start = Malloc(int,nr_class);
 	start[0] = 0;
 	for(i=1;i<nr_class;i++)
@@ -2068,9 +2185,6 @@ static void svm_group_classes(const svm_problem *prob, int *nr_class_ret, int **
 	free(data_label);
 }
 
-//
-// Interface functions
-//
 svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 {
 	svm_model *model = Malloc(svm_model,1);
@@ -2135,10 +2249,20 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		if(nr_class == 1) 
 			info("WARNING: training data in only one class. See README for details.\n");
 		
-		svm_node **x = Malloc(svm_node *,l);
+#ifdef CUDAON
+		float **xCuda = Malloc(float*, l);
+#else
+		svm_node **x = Malloc(svm_node *, l);
+#endif
 		int i;
-		for(i=0;i<l;i++)
+		for (i = 0; i < l; i++)
+		{
+#ifdef CUDAON
+			xCuda[i] = prob->xCuda[perm[i]];
+#else
 			x[i] = prob->x[perm[i]];
+#endif
+		}
 
 		// calculate weighted C
 
@@ -2176,21 +2300,37 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 			for(int j=i+1;j<nr_class;j++)
 			{
 				svm_problem sub_prob;
+#ifdef CUDAON
+				sub_prob.handle = prob->handle;
+				sub_prob.vectorSize = prob->vectorSize;
+#endif
 				int si = start[i], sj = start[j];
 				int ci = count[i], cj = count[j];
 				sub_prob.l = ci+cj;
+#ifdef CUDAON
+				sub_prob.xCuda = Malloc(float *, sub_prob.l);
+#else
 				sub_prob.x = Malloc(svm_node *,sub_prob.l);
+#endif
 				sub_prob.y = Malloc(double,sub_prob.l);
 				int k;
 				for(k=0;k<ci;k++)
 				{
+#ifdef CUDAON
+					sub_prob.xCuda[k] = xCuda[si+k];
+#else
 					sub_prob.x[k] = x[si+k];
+#endif
 					sub_prob.y[k] = +1;
 				}
 				for(k=0;k<cj;k++)
 				{
-					sub_prob.x[ci+k] = x[sj+k];
-					sub_prob.y[ci+k] = -1;
+#ifdef CUDAON
+					sub_prob.xCuda[ci+k] = xCuda[sj+k];
+#else
+					sub_prob.x[ci + k] = x[sj + k];
+#endif
+					sub_prob.y[ci + k] = -1;
 				}
 
 				if(param->probability)
@@ -2203,7 +2343,11 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 				for(k=0;k<cj;k++)
 					if(!nonzero[sj+k] && fabs(f[p].alpha[ci+k]) > 0)
 						nonzero[sj+k] = true;
+#ifdef CUDAON
+				free(sub_prob.xCuda);
+#else
 				free(sub_prob.x);
+#endif
 				free(sub_prob.y);
 				++p;
 			}
@@ -2261,7 +2405,10 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		for(i=0;i<l;i++)
 			if(nonzero[i])
 			{
+#ifdef CUDAON
+#else
 				model->SV[p] = x[i];
+#endif
 				model->sv_indices[p++] = perm[i] + 1;
 			}
 
@@ -2305,7 +2452,11 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		free(count);
 		free(perm);
 		free(start);
+#ifdef CUDAON
+		free(xCuda);
+#else
 		free(x);
+#endif
 		free(weighted_C);
 		free(nonzero);
 		for(i=0;i<nr_class*(nr_class-1)/2;i++)
@@ -2321,11 +2472,16 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, int nr_fold, double *target)
 {
 	int i;
-	int *fold_start = Malloc(int,nr_fold+1);
+	int *fold_start;
 	int l = prob->l;
 	int *perm = Malloc(int,l);
 	int nr_class;
-
+	if (nr_fold > l)
+	{
+		nr_fold = l;
+		fprintf(stderr,"WARNING: # folds > # data. Will use # folds = # data instead (i.e., leave-one-out cross validation)\n");
+	}
+	fold_start = Malloc(int,nr_fold+1);
 	// stratified cv may not give leave-one-out rate
 	// Each class to l folds -> some folds may have zero elements
 	if((param->svm_type == C_SVC ||
@@ -2371,9 +2527,9 @@ void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, i
 		fold_start[0]=0;
 		for (i=1;i<=nr_fold;i++)
 			fold_start[i] = fold_start[i-1]+fold_count[i-1];
-		free(start);	
+		free(start);
 		free(label);
-		free(count);	
+		free(count);
 		free(index);
 		free(fold_count);
 	}
@@ -2420,7 +2576,7 @@ void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, i
 			double *prob_estimates=Malloc(double,svm_get_nr_class(submodel));
 			for(j=begin;j<end;j++)
 				target[perm[j]] = svm_predict_probability(submodel,prob->x[perm[j]],prob_estimates);
-			free(prob_estimates);			
+			free(prob_estimates);
 		}
 		else
 			for(j=begin;j<end;j++)
@@ -2430,7 +2586,7 @@ void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, i
 		free(subprob.y);
 	}		
 	free(fold_start);
-	free(perm);	
+	free(perm);
 }
 
 
@@ -2484,6 +2640,8 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 	{
 		double *sv_coef = model->sv_coef[0];
 		double sum = 0;
+
+#pragma omp parallel for private(i) reduction(+:sum) schedule(guided) 
 		for(i=0;i<model->l;i++)
 			sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
 		sum -= model->rho[0];
@@ -2500,7 +2658,9 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		int l = model->l;
 		
 		double *kvalue = Malloc(double,l);
-		for(i=0;i<l;i++)
+
+#pragma omp parallel for private(i) schedule(guided) 
+		for (i = 0; i<l; i++)
 			kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
 
 		int *start = Malloc(int,nr_class);
@@ -2598,7 +2758,7 @@ double svm_predict_probability(
 		for(i=0;i<nr_class;i++)
 			free(pairwise_prob[i]);
 		free(dec_values);
-		free(pairwise_prob);	     
+		free(pairwise_prob);
 		return model->label[prob_max_idx];
 	}
 	else 
@@ -2620,7 +2780,10 @@ int svm_save_model(const char *model_file_name, const svm_model *model)
 	FILE *fp = fopen(model_file_name,"w");
 	if(fp==NULL) return -1;
 
-	char *old_locale = strdup(setlocale(LC_ALL, NULL));
+	char *old_locale = setlocale(LC_ALL, NULL);
+	if (old_locale) {
+		old_locale = strdup(old_locale);
+	}
 	setlocale(LC_ALL, "C");
 
 	const svm_parameter& param = model->param;
@@ -2730,35 +2893,25 @@ static char* readline(FILE *input)
 	return line;
 }
 
-svm_model *svm_load_model(const char *model_file_name)
+//
+// FSCANF helps to handle fscanf failures.
+// Its do-while block avoids the ambiguity when
+// if (...)
+//    FSCANF();
+// is used
+//
+#define FSCANF(_stream, _format, _var) do{ if (fscanf(_stream, _format, _var) != 1) return false; }while(0)
+bool read_model_header(FILE *fp, svm_model* model)
 {
-	FILE *fp = fopen(model_file_name,"rb");
-	if(fp==NULL) return NULL;
-
-	char *old_locale = strdup(setlocale(LC_ALL, NULL));
-	setlocale(LC_ALL, "C");
-
-	// read parameters
-
-	svm_model *model = Malloc(svm_model,1);
 	svm_parameter& param = model->param;
-	model->rho = NULL;
-	model->probA = NULL;
-	model->probB = NULL;
-	model->label = NULL;
-	model->nSV = NULL;
-	model->SV = NULL;
-	model->sv_coef = NULL;
-	model->sv_indices = NULL;
-
 	char cmd[81];
 	while(1)
 	{
-		fscanf(fp,"%80s",cmd);
+		FSCANF(fp,"%80s",cmd);
 
 		if(strcmp(cmd,"svm_type")==0)
 		{
-			fscanf(fp,"%80s",cmd);
+			FSCANF(fp,"%80s",cmd);
 			int i;
 			for(i=0;svm_type_table[i];i++)
 			{
@@ -2771,19 +2924,12 @@ svm_model *svm_load_model(const char *model_file_name)
 			if(svm_type_table[i] == NULL)
 			{
 				fprintf(stderr,"unknown svm type.\n");
-				
-				setlocale(LC_ALL, old_locale);
-				free(old_locale);
-				free(model->rho);
-				free(model->label);
-				free(model->nSV);
-				free(model);
-				return NULL;
+				return false;
 			}
 		}
 		else if(strcmp(cmd,"kernel_type")==0)
 		{		
-			fscanf(fp,"%80s",cmd);
+			FSCANF(fp,"%80s",cmd);
 			int i;
 			for(i=0;kernel_type_table[i];i++)
 			{
@@ -2795,85 +2941,109 @@ svm_model *svm_load_model(const char *model_file_name)
 			}
 			if(kernel_type_table[i] == NULL)
 			{
-				fprintf(stderr,"unknown kernel function.\n");
-				
-				setlocale(LC_ALL, old_locale);
-				free(old_locale);
-				free(model->rho);
-				free(model->label);
-				free(model->nSV);
-				free(model);
-				return NULL;
+				fprintf(stderr,"unknown kernel function.\n");	
+				return false;
 			}
 		}
 		else if(strcmp(cmd,"degree")==0)
-			fscanf(fp,"%d",&param.degree);
+			FSCANF(fp,"%d",&param.degree);
 		else if(strcmp(cmd,"gamma")==0)
-			fscanf(fp,"%lf",&param.gamma);
+			FSCANF(fp,"%lf",&param.gamma);
 		else if(strcmp(cmd,"coef0")==0)
-			fscanf(fp,"%lf",&param.coef0);
+			FSCANF(fp,"%lf",&param.coef0);
 		else if(strcmp(cmd,"nr_class")==0)
-			fscanf(fp,"%d",&model->nr_class);
+			FSCANF(fp,"%d",&model->nr_class);
 		else if(strcmp(cmd,"total_sv")==0)
-			fscanf(fp,"%d",&model->l);
+			FSCANF(fp,"%d",&model->l);
 		else if(strcmp(cmd,"rho")==0)
 		{
 			int n = model->nr_class * (model->nr_class-1)/2;
 			model->rho = Malloc(double,n);
 			for(int i=0;i<n;i++)
-				fscanf(fp,"%lf",&model->rho[i]);
+				FSCANF(fp,"%lf",&model->rho[i]);
 		}
 		else if(strcmp(cmd,"label")==0)
 		{
 			int n = model->nr_class;
 			model->label = Malloc(int,n);
 			for(int i=0;i<n;i++)
-				fscanf(fp,"%d",&model->label[i]);
+				FSCANF(fp,"%d",&model->label[i]);
 		}
 		else if(strcmp(cmd,"probA")==0)
 		{
 			int n = model->nr_class * (model->nr_class-1)/2;
 			model->probA = Malloc(double,n);
 			for(int i=0;i<n;i++)
-				fscanf(fp,"%lf",&model->probA[i]);
+				FSCANF(fp,"%lf",&model->probA[i]);
 		}
 		else if(strcmp(cmd,"probB")==0)
 		{
 			int n = model->nr_class * (model->nr_class-1)/2;
 			model->probB = Malloc(double,n);
 			for(int i=0;i<n;i++)
-				fscanf(fp,"%lf",&model->probB[i]);
+				FSCANF(fp,"%lf",&model->probB[i]);
 		}
 		else if(strcmp(cmd,"nr_sv")==0)
 		{
 			int n = model->nr_class;
 			model->nSV = Malloc(int,n);
 			for(int i=0;i<n;i++)
-				fscanf(fp,"%d",&model->nSV[i]);
+				FSCANF(fp,"%d",&model->nSV[i]);
 		}
 		else if(strcmp(cmd,"SV")==0)
 		{
 			while(1)
 			{
 				int c = getc(fp);
-				if(c==EOF || c=='\n') break;	
+				if(c==EOF || c=='\n') break;
 			}
 			break;
 		}
 		else
 		{
 			fprintf(stderr,"unknown text in model file: [%s]\n",cmd);
-			
-			setlocale(LC_ALL, old_locale);
-			free(old_locale);
-			free(model->rho);
-			free(model->label);
-			free(model->nSV);
-			free(model);
-			return NULL;
+			return false;
 		}
 	}
 
+	return true;
+
+}
+
+svm_model *svm_load_model(const char *model_file_name)
+{
+	FILE *fp = fopen(model_file_name,"rb");
+	if(fp==NULL) return NULL;
+
+	char *old_locale = setlocale(LC_ALL, NULL);
+	if (old_locale) {
+		old_locale = strdup(old_locale);
+	}
+	setlocale(LC_ALL, "C");
+
+	// read parameters
+
+	svm_model *model = Malloc(svm_model,1);
+	model->rho = NULL;
+	model->probA = NULL;
+	model->probB = NULL;
+	model->sv_indices = NULL;
+	model->label = NULL;
+	model->nSV = NULL;
+	
+	// read header
+	if (!read_model_header(fp, model))
+	{
+		fprintf(stderr, "ERROR: fscanf failed to read model\n");
+		setlocale(LC_ALL, old_locale);
+		free(old_locale);
+		free(model->rho);
+		free(model->label);
+		free(model->nSV);
+		free(model);
+		return NULL;
+	}
+	
 	// read sv_coef and SV
 
 	int elements = 0;
@@ -2979,7 +3149,7 @@ void svm_free_model_content(svm_model* model_ptr)
 	free(model_ptr->sv_indices);
 	model_ptr->sv_indices = NULL;
 
-  	free(model_ptr->nSV);
+	free(model_ptr->nSV);
 	model_ptr->nSV = NULL;
 }
 

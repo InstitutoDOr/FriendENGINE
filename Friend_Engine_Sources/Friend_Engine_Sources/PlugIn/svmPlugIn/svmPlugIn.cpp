@@ -84,14 +84,14 @@ void SVMProcessing::initializeVars(studyParams &vdb)
    else sprintf(svmModelPredictFile, "%s%s%s%s", svmDir, vdb.subject, vdb.testFeatureSuffix, ".model");
 
    sprintf(svmWeightNormFile, "%s%s%s%s",  svmDir, "weights_norm", vdb.trainFeatureSuffix, ".nii");
-           
+		   
    sprintf(svmWeightFile, "%s%s%s%s",  svmDir, "weights", vdb.trainFeatureSuffix, ".nii");
-           
-    // creating the svm directory
+		   
+	// creating the svm directory
 #ifdef WIN32
-           _mkdir(svmDir);
+		   _mkdir(svmDir);
 #else
-           mkdir(svmDir, 0777); // notice that 777 is different than 0777
+		   mkdir(svmDir, 0777); // notice that 777 is different than 0777
 #endif
    model = NULL;
    vdbPtr = &vdb;
@@ -232,9 +232,9 @@ void SVMProcessing::train()
    model=svm_load_model(svmModelFile);
    if (model != NULL)
    {
-      generateWeightVolume(model, svmMask, 1, svmWeightNormFile);
-      generateWeightVolume(model, svmMask, 0, svmWeightFile);
-      unloadModel(model);
+	  generateWeightVolume(model, svmMask, 1, svmWeightNormFile);
+	  generateWeightVolume(model, svmMask, 0, svmWeightFile);
+	  unloadModel(model);
    }
 
    if (cummulativeTraining)
@@ -299,8 +299,8 @@ void SVMProcessing::test(int index, char *volumeFile, float &classnum, float &pr
    if (model == NULL) fprintf(stderr, "model file %s not loaded.\n", svmModelPredictFile);
    else
    {
-      //fprintf(stderr, "volumeFile tested : %s with mask : %s\n", volumeFile, featuresTestMask);
-      predict(model, volumeFile, featuresTestMask, classnum, projection);
+	  //fprintf(stderr, "volumeFile tested : %s with mask : %s\n", volumeFile, featuresTestMask);
+	  predict(model, volumeFile, featuresTestMask, classnum, projection);
 	  if (adaptTraining)
 	  {
 		  fprintf(stderr, "Adapting projection.\n");
@@ -359,29 +359,30 @@ DLLExport finalSVM(studyParams &vdb, void *&userData)
 {
    if (userData != NULL)
    {
-      SVMProcessing *svmProcessingVar = (SVMProcessing *) userData;
+	  SVMProcessing *svmProcessingVar = (SVMProcessing *) userData;
+	  svmProcessingVar->cleanUp();
 	  if (svmProcessingVar->hasPredicted)
 	  {
 		  char confusionMatrixFile[500];
 		  sprintf(confusionMatrixFile, "%s%s%s.txt", svmProcessingVar->svmDir, "confusionMatrix", vdb.trainFeatureSuffix);
 		  svmProcessingVar->accuracyResults.saveMatrixReport(confusionMatrixFile);
+
+		  if (fileExists(svmProcessingVar->projectionsFilename))
+		  {
+			  stringstream CmdLn;
+			  char pngFile[BUFF_SIZE];
+
+			  // generating the projections graph png of the actual run
+			  changeFileExt(svmProcessingVar->projectionsFilename, ".png", pngFile);
+			  fprintf(stderr, "Generating svm projection graphics of the current run performance\n");
+			  CmdLn << "fsl_tsplot -i " << svmProcessingVar->projectionsFilename << " -t \"SVM projections\" -u 1 --start=1 --finish=1 -a Projections -w 640 -h 144 -o " << pngFile;
+
+			  fsl_tsplot((char *)CmdLn.str().c_str());
+
+		  }
 	  }
-      svmProcessingVar->cleanUp();
-	  if (fileExists(svmProcessingVar->projectionsFilename))
-	  {
-		  stringstream CmdLn;
-		  char pngFile[BUFF_SIZE];
-
-		  // generating the projections graph png of the actual run
-		  changeFileExt(svmProcessingVar->projectionsFilename, ".png", pngFile);
-		  fprintf(stderr, "Generating svm projection graphics of the current run performance\n");
-		  CmdLn << "fsl_tsplot -i " << svmProcessingVar->projectionsFilename << " -t \"SVM projections\" -u 1 --start=1 --finish=1 -a Projections -w 640 -h 144 -o " << pngFile;
-
-		  fsl_tsplot((char *)CmdLn.str().c_str());
-
-	  }
-      delete svmProcessingVar;
-      userData = NULL;
+	  delete svmProcessingVar;
+	  userData = NULL;
    }
    return 0;
 }

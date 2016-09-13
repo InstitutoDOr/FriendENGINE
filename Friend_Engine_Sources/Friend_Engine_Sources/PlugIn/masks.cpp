@@ -269,7 +269,6 @@ void RegionExtraction::regionsExtraction(char *refVol, char *valueVol4D, char *v
    reference.loadReference(refVol);
    vector< vector<roiPoint> >rois;
    vector<int> indexes;
-   std::map<int,int>::iterator it;
    
    volume<float>values;
    volume4D<float>values4D;
@@ -479,16 +478,7 @@ float WeightedMean::scaleValue(float value, float slack)
 float WeightedMean::scaleValue(float value, float slack, int lastValues)
 {
 	calculateLimits(lastValues);
-	float tempMax = maxValue, tempMin = minValue;
-	if (slack)
-	{
-		tempMax *= (1 + slack);
-		tempMin *= (1 - slack);
-	};
-
-	float range = tempMax - tempMin;
-	if (range == 0) return 0;
-	else return (value - tempMin) / (range);
+	return scaleValue(value, slack);
 }
 
 // updates the state of variables with another value
@@ -752,8 +742,8 @@ void RegionCorrelation::loadRoiMask(char *roiMask)
 // zeroes the region mean vector
 void RegionCorrelation::zeroVectors()
 {
-   for (int t; t<numRegions; t++)
-      for (int j; j<runSize; j++)
+   for (int t=0; t<numRegions; t++)
+      for (int j=0; j<runSize; j++)
           regionVector[t][j] = 0;
 }
 

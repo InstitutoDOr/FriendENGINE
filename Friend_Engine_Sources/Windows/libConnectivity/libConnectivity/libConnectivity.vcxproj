@@ -114,6 +114,7 @@
     <ClCompile Include="..\..\..\..\fsl\newmat\cholesky.cpp" />
     <ClCompile Include="..\..\..\..\fsl\newimage\complexvolume.cc" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\confusionmatrix.cpp" />
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\connectivityPlugIn\connectivityPlugIn.cpp" />
     <ClCompile Include="..\..\..\..\fsl\cprob\const.c" />
     <ClCompile Include="..\..\..\..\fsl\newimage\costfns.cc" />

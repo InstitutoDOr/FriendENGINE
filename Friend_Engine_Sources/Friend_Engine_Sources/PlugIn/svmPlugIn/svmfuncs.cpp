@@ -10,6 +10,7 @@
 #include "utils/fsl_isfinite.h"
 #include "libprob.h"
 #include "parser.h"
+#include "svmobj.h"
 #include <string>
 
 using namespace MISCMATHS;
@@ -74,23 +75,6 @@ void calculateWeightVector(const svm_model *model, vector <double> &weightVector
 			p++;
 		}
 	}
-}
-
-// get a svm score based on a vector sample. This functions returns the prediction class as a return value
-double svmSamplePredict(const svm_model *model, const svm_node *sample, double &score)
-{
-   int nr_class = model->nr_class;
-   double *dec_values;
-   if(model->param.svm_type == ONE_CLASS ||
-	   model->param.svm_type == EPSILON_SVR ||
-	   model->param.svm_type == NU_SVR)
-   dec_values = Malloc(double, 1);
-   else dec_values = Malloc(double, nr_class*(nr_class-1)/2);
-   
-   double classPrediction = svm_predict_values(model, sample, dec_values);
-   score = dec_values[0];
-   free(dec_values);
-   return classPrediction;
 }
 
 // loads a model file in memory
@@ -171,13 +155,12 @@ void saveSVMFile(const char *volume4DFileName, const char *maskFileName, const c
 	}
 }
 
-// functions that transforms a volume into a svm sample vector
 void _volume2Sample(svm_model *model, volume<float> &volSample, volume<float> &mask, int sampleSize, float minValue, svm_node * &sample)
 {	
 	sample=(struct svm_node *) malloc((sampleSize+1)*sizeof(struct svm_node));
     
 	int i=0;
-   for(int z=0; z < volSample.zsize();z++)
+    for(int z=0; z < volSample.zsize();z++)
       for(int y=0; y < volSample.ysize();y++)
 	     for(int x=0; x < volSample.xsize();x++)
          if (mask.value(x,y,z) > minValue)
@@ -239,7 +222,7 @@ void array2Volume(const char *maskFile, float minValue, vector <double> &weightV
     }
 
 	weightVolume.reinitialize(mask.xsize(), mask.ysize(), mask.zsize(), 0, true);
-   weightVolume.copyproperties(mask);
+    weightVolume.copyproperties(mask);
 	int i = 0;
 	for(int z=0;z < mask.zsize();z++)
 	   for(int y=0;y < mask.ysize();y++)
@@ -281,5 +264,3 @@ void generateWeightVolume(svm_model *model, const char *maskFileName, int vector
     string outname = outputFileName;
     save_volume(weightVolume, outname);
 }
-
-

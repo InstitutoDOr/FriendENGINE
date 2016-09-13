@@ -22,7 +22,7 @@ char extension[]="";
 // set socket data for response
 void FriendProcess::setSocketfd(int Sock)
 {
-    vdb.setSocketfd(Sock);
+	vdb.setSocketfd(Sock);
 }
 
 // config file functions
@@ -139,27 +139,27 @@ void FriendProcess::glm()
    // generating the design matrix file
    if (vdb.interval.conditionNames.size() > 0)
    {
-      fprintf(stderr, "Generating conditions files.\n");
-      vdb.interval.generateConditionsBoxCar(vdb.glmDir);
-      fprintf(stderr, "Generating FSF file.\n");
+	  fprintf(stderr, "Generating conditions files.\n");
+	  vdb.interval.generateConditionsBoxCar(vdb.glmDir);
+	  fprintf(stderr, "Generating FSF file.\n");
 
-      strcpy(vdb.interval.glmDir, vdb.glmDir);
-      vdb.interval.generateFSFFile(vdb.fsfFile, vdb.runSize, vdb.includeMotionParameters, 0);
+	  strcpy(vdb.interval.glmDir, vdb.glmDir);
+	  vdb.interval.generateFSFFile(vdb.fsfFile, vdb.runSize, vdb.includeMotionParameters, 0);
 
-      fprintf(stderr, "Running feat_model.\n");
-      CmdLn.str("");
-      CmdLn << "feat_model " << vdb.glmDir << vdb.subject << vdb.trainFeatureSuffix;
-      if (vdb.includeMotionParameters) CmdLn << " " << vdb.parFile;
-      chdir(vdb.glmDir);
-      feat_model((char *)CmdLn.str().c_str());
+	  fprintf(stderr, "Running feat_model.\n");
+	  CmdLn.str("");
+	  CmdLn << "feat_model " << vdb.glmDir << vdb.subject << vdb.trainFeatureSuffix;
+	  if (vdb.includeMotionParameters) CmdLn << " " << vdb.parFile;
+	  chdir(vdb.glmDir);
+	  feat_model((char *)CmdLn.str().c_str());
 
-      remove(vdb.contrastFile);
-      sprintf(auxString, "%s%s%s%s", vdb.glmDir, vdb.subject, vdb.trainFeatureSuffix, ".con");
-      rename(auxString, vdb.contrastFile);
+	  remove(vdb.contrastFile);
+	  sprintf(auxString, "%s%s%s%s", vdb.glmDir, vdb.subject, vdb.trainFeatureSuffix, ".con");
+	  rename(auxString, vdb.contrastFile);
 
-      remove(vdb.glmMatrixFile);
-      sprintf(auxString, "%s%s%s%s", vdb.glmDir, vdb.subject, vdb.trainFeatureSuffix, ".mat");
-      rename(auxString, vdb.glmMatrixFile);
+	  remove(vdb.glmMatrixFile);
+	  sprintf(auxString, "%s%s%s%s", vdb.glmDir, vdb.subject, vdb.trainFeatureSuffix, ".mat");
+	  rename(auxString, vdb.glmMatrixFile);
    }
 
    sprintf(auxString, "%s%s", vdb.inputDir, "RFI_binmask.nii");
@@ -209,25 +209,28 @@ void FriendProcess::featureSelection()
    // generates the mni mask in subject space
    if (fileExists(vdb.mniMask) && fileExists(vdb.mniTemplate))
    {
-      char name[BUFF_SIZE], prefix[30]="_RFI2";
-      
+	  char name[BUFF_SIZE], prefix[30]="_RFI2";
+	  
 	  fprintf(stderr, "Bringing MNI mask to native space.\n");
-      extractFileName(vdb.mniMask, name);
-      for (int t=0;t<strlen(name);t++)
-      if (name[t] == '.') name[t] = '_';
-      
-      sprintf(vdb.subjectSpaceMask, "%s%s%s.nii", vdb.inputDir, name, vdb.trainFeatureSuffix);
-      
-      // brings the mni mask to subject space
-      MniToSubject(vdb.maskFile, vdb.mniMask, vdb.mniTemplate, vdb.subjectSpaceMask, prefix);
+	  extractFileName(vdb.mniMask, name);
+	  for (int t=0;t<strlen(name);t++)
+	  if (name[t] == '.') name[t] = '_';
+	  
+	  sprintf(vdb.subjectSpaceMask, "%s%s%s.nii", vdb.inputDir, name, vdb.trainFeatureSuffix);
+	  
+	  // brings the mni mask to subject space
+	  MniToSubject(vdb.maskFile, vdb.mniMask, vdb.mniTemplate, vdb.subjectSpaceMask, prefix);
    }
    
    if ((vdb.useWholeSubjectSpaceMask) && (fileExists(vdb.subjectSpaceMask)))
    { // just use all mni mask (in native space)
-      char outputFile[BUFF_SIZE];
-      sprintf(outputFile, "%s.nii%s", vdb.featuresTrainSuffix, extension);
-	  fprintf(stderr, "Using all subject mask by copying the file %s to %s.\n", vdb.maskFile, outputFile);
-	  copyFile(vdb.subjectSpaceMask, outputFile);
+	  char outputFile[BUFF_SIZE];
+	  sprintf(outputFile, "%s.nii", vdb.featuresTrainSuffix);
+	  fprintf(stderr, "Using all subject mask by copying the file %s to %s.\n", vdb.subjectSpaceMask, outputFile);
+
+	  CmdLn.str("");
+	  CmdLn << "fslmaths " << vdb.subjectSpaceMask << " " << outputFile;
+	  fslmaths((char *)CmdLn.str().c_str());
    }
    else
    {
@@ -276,10 +279,10 @@ void FriendProcess::featureSelection()
 	   fslmaths((char *)CmdLn.str().c_str());
 
 	   // creates the intersection between the subjectmask and the thresholded mask
-	   if (fileExists(vdb.maskFile))
+	   if (fileExists(vdb.subjectSpaceMask))
 	   {
 		   CmdLn.str("");
-		   CmdLn << "fslmaths " << vdb.featuresTrainSuffix << " -mas " << vdb.maskFile << " " << vdb.featuresTrainSuffix;
+		   CmdLn << "fslmaths " << vdb.featuresTrainSuffix << " -mas " << vdb.subjectSpaceMask << " " << vdb.featuresTrainSuffix;
 		   fslmaths((char *)CmdLn.str().c_str());
 	   }
 
@@ -306,7 +309,7 @@ void FriendProcess::train()
 {
    if (!vdb.rPrepVars) prepRealtimeVars();
    if (pHandler.callTrainFunction(vdb))
-      vdb.rTrain=true;
+	  vdb.rTrain=true;
 }
 
 // call plug-in test function
@@ -336,11 +339,11 @@ void FriendProcess::baselineCalculation(int intervalIndex, char *baseline)
    // iterating to add the filenames to command
    for(int t=vdb.averageMeanOffset; t<= (vdb.interval.intervals[intervalIndex].end-vdb.interval.intervals[intervalIndex].start); t++)
    {
-      sprintf(number, format,(vdb.interval.intervals[intervalIndex].start + t));
-      // if the second file, adds the `-add` token
-      if (t > vdb.averageMeanOffset) osc << " -add ";
-      // adds the file in command line
-      osc << " " << Pref << number << suf;
+	  sprintf(number, format,(vdb.interval.intervals[intervalIndex].start + t));
+	  // if the second file, adds the `-add` token
+	  if (t > vdb.averageMeanOffset) osc << " -add ";
+	  // adds the file in command line
+	  osc << " " << Pref << number << suf;
    };
 
    // generates the -div N part
@@ -521,15 +524,15 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 
    // verifying if the final file exists. It servers the NIFTI case
    if ((fileExists(outFile)) && (isFSLReadable(outFile)))
-        response = 1;
+		response = 1;
    else response = 0;
    
    if (response)
    {
 	  strcpy(volumeName, outFile);
-      pHandler.callVolumeFunction(vdb, indexIn, volumeName);
+	  pHandler.callVolumeFunction(vdb, indexIn, volumeName);
    }
-      
+	  
    return response;
 }
 */
@@ -542,13 +545,13 @@ void FriendProcess::generateConfoundFile(char *dPrefix, int ini, int end, char *
    fstream Output(output, fstream::in | fstream::out | fstream::trunc);
    for (int t=ini; t<=end;t++)
    {
-       sprintf(number, format, t);
-       sprintf(parFileName, "%s%s%s", dPrefix, number, "_mc.nii.par");
-       fstream parFile(parFileName, fstream::in);
-       
-       float rx, ry, rz, tx, ty, tz;
-       parFile >> rx >> ry >> rz >> tx >> ty >> tz;
-       Output << rx << " " << ry << " " << rz <<  " " << tx << " " << ty << " " << tz << '\n';
+	   sprintf(number, format, t);
+	   sprintf(parFileName, "%s%s%s", dPrefix, number, "_mc.nii.par");
+	   fstream parFile(parFileName, fstream::in);
+	   
+	   float rx, ry, rz, tx, ty, tz;
+	   parFile >> rx >> ry >> rz >> tx >> ty >> tz;
+	   Output << rx << " " << ry << " " << rz <<  " " << tx << " " << ty << " " << tz << '\n';
    }
    Output.close();
 }
@@ -561,13 +564,13 @@ void FriendProcess::generateRmsFile(char *dPrefix, int ini, int end, char *outpu
    fstream Output(output, fstream::in | fstream::out | fstream::trunc);
    for (int t=ini; t<=end;t++)
    {
-       sprintf(number, format, t);
-       sprintf(rmsFilename, "%s%s%s", dPrefix, number, "_mc.nii_abs.rms");
-       fstream rmsFile(rmsFilename, fstream::in);
-       
-       float rms;
-       rmsFile >> rms;
-       Output << rms << '\n';
+	   sprintf(number, format, t);
+	   sprintf(rmsFilename, "%s%s%s", dPrefix, number, "_mc.nii_abs.rms");
+	   fstream rmsFile(rmsFilename, fstream::in);
+	   
+	   float rms;
+	   rmsFile >> rms;
+	   Output << rms << '\n';
    }
    Output.close();
 }
@@ -576,8 +579,8 @@ void FriendProcess::generateRmsFile(char *dPrefix, int ini, int end, char *outpu
 void FriendProcess::runRealtimePipeline()
 {
 	char preprocVolumePrefix[BUFF_SIZE], auxConfigFile[BUFF_SIZE], dcm2niiServerConfig[BUFF_SIZE];
-    char format[30];
-    char msg[50];
+	char format[30];
+	char msg[50];
    
 	sprintf(auxConfigFile, "%sstudy_params%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
 	vdb.readedIni.SaveFile(auxConfigFile);
@@ -642,51 +645,51 @@ void FriendProcess::runRealtimePipeline()
 // send Graph params to FRONTEND process. Maybe latter changing to JSON
 void FriendProcess::sendGraphParams(char *mcfile, char *number)
 {
-    fstream gfile;
+	fstream gfile;
    
-    char parFile[BUFF_SIZE], rmsFile[BUFF_SIZE];
-    sprintf(parFile,  "%s%s", mcfile, ".par");
-    sprintf(rmsFile,  "%s%s", mcfile, "_abs.rms");
+	char parFile[BUFF_SIZE], rmsFile[BUFF_SIZE];
+	sprintf(parFile,  "%s%s", mcfile, ".par");
+	sprintf(rmsFile,  "%s%s", mcfile, "_abs.rms");
    
-    float value;
-    stringstream msg;
+	float value;
+	stringstream msg;
    
-    gfile.open(parFile, fstream::in | fstream::out);
-    msg << "GRAPHPARS;" << number << ";";
-    gfile >> value;
-    msg << value << ";";
+	gfile.open(parFile, fstream::in | fstream::out);
+	msg << "GRAPHPARS;" << number << ";";
+	gfile >> value;
+	msg << value << ";";
    
-    gfile >> value;
-    msg << value << ";";
+	gfile >> value;
+	msg << value << ";";
    
-    gfile >> value;
-    msg << value << ";";
+	gfile >> value;
+	msg << value << ";";
    
-     gfile >> value;
-    msg << value << ";";
+	 gfile >> value;
+	msg << value << ";";
    
-    gfile >> value;
-    msg << value << ";";
+	gfile >> value;
+	msg << value << ";";
    
-    gfile >> value;
-    msg << value << ";";
+	gfile >> value;
+	msg << value << ";";
    
-    gfile.close();
-    gfile.open(rmsFile, fstream::in | fstream::out);
+	gfile.close();
+	gfile.open(rmsFile, fstream::in | fstream::out);
    
-    gfile >> value;
-    msg << value << '\n';
-    gfile.close();
+	gfile >> value;
+	msg << value << '\n';
+	gfile.close();
    
-    if (vdb.sessionPointer == NULL)
-    {
-       fprintf(stderr, "sending : %s\n", msg.str().c_str());
-       vdb.socks.writeString(msg.str().c_str());
-    }
-    else
-    {
-       vdb.sessionPointer->processGraphMessage(msg.str().c_str());
-    }
+	if (vdb.sessionPointer == NULL)
+	{
+	   fprintf(stderr, "sending : %s\n", msg.str().c_str());
+	   vdb.socks.writeString(msg.str().c_str());
+	}
+	else
+	{
+	   vdb.sessionPointer->processGraphMessage(msg.str().c_str());
+	}
 }
 
 // theoretically loading the default plugin library and functions
@@ -725,29 +728,29 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
    char mcfile[BUFF_SIZE], mcgfile[BUFF_SIZE], inFile[BUFF_SIZE], outFile[BUFF_SIZE], CmdLn[BUFF_SIZE], matOldName[BUFF_SIZE], matNewName[BUFF_SIZE], number[50];
    if (isReadyNextFile(vdb.actualImg, rtPrefix, format, inFile))
    {
-      fprintf(stderr, "Processing file = %s\n", inFile);
-      sprintf(number, format, vdb.actualImg);
-      sprintf(inFile, "%s%s", rtPrefix, number);
-      vdb.getMCVolumeName(mcfile, number);
-      vdb.getMCGVolumeName(mcgfile, number);
-      vdb.getFinalVolumeName(outFile, number);
-      sprintf(CmdLn, "mcflirt -in %s -reffile %s -out %s %s", inFile, vdb.motionRefVolume, mcfile, vdb.mcflirtParams);
+	  fprintf(stderr, "Processing file = %s\n", inFile);
+	  sprintf(number, format, vdb.actualImg);
+	  sprintf(inFile, "%s%s", rtPrefix, number);
+	  vdb.getMCVolumeName(mcfile, number);
+	  vdb.getMCGVolumeName(mcgfile, number);
+	  vdb.getFinalVolumeName(outFile, number);
+	  sprintf(CmdLn, "mcflirt -in %s -reffile %s -out %s %s", inFile, vdb.motionRefVolume, mcfile, vdb.mcflirtParams);
 
 
-      // mcFlirt
-      mcflirt(CmdLn);
-      
-      // copying the .mat file
-      sprintf(matOldName, "%s%s%c%s", mcfile, ".mat", PATHSEPCHAR, "MAT_0000");
-      sprintf(matNewName,  "%s%s%s", rtPrefix, number, "_mc.mat");
-      rename(matOldName, matNewName);
-      sprintf(matOldName, "%s%s", mcfile, ".mat");
-      rmdir(matOldName);
+	  // mcFlirt
+	  mcflirt(CmdLn);
+	  
+	  // copying the .mat file
+	  sprintf(matOldName, "%s%s%c%s", mcfile, ".mat", PATHSEPCHAR, "MAT_0000");
+	  sprintf(matNewName,  "%s%s%s", rtPrefix, number, "_mc.mat");
+	  rename(matOldName, matNewName);
+	  sprintf(matOldName, "%s%s", mcfile, ".mat");
+	  rmdir(matOldName);
 
-      // subtraction process
-      // ending of the block ?
-      if (vdb.actualImg > vdb.interval.intervals[vdb.actualInterval].end)
-      {
+	  // subtraction process
+	  // ending of the block ?
+	  if (vdb.actualImg > vdb.interval.intervals[vdb.actualInterval].end)
+	  {
 		  if (!vdb.skipMeanSubtraction)
 		  {
 			  // Baseline Calculation, if this is a baseline block
@@ -762,38 +765,38 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 		  vdb.actualInterval++;
 	  };
 
-      // actual subtraction
-      if (vdb.actualBaseline[0] != 0)
-      {
-         sprintf(CmdLn, "fslmaths %s -sub %s %s", mcfile, vdb.actualBaseline, outFile);
-         fslmaths(CmdLn);
-      }
-      else // if no baseline mean already calculated, zeros volume. Note zeroing the supposed subtracted volume
-      {
-         sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcfile, outFile);
-         fslmaths(CmdLn);
-      }
+	  // actual subtraction
+	  if (vdb.actualBaseline[0] != 0)
+	  {
+		 sprintf(CmdLn, "fslmaths %s -sub %s %s", mcfile, vdb.actualBaseline, outFile);
+		 fslmaths(CmdLn);
+	  }
+	  else // if no baseline mean already calculated, zeros volume. Note zeroing the supposed subtracted volume
+	  {
+		 sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcfile, outFile);
+		 fslmaths(CmdLn);
+	  }
 
-      // gaussian filtering the subtracted volume
-      sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float) vdb.FWHM/2.3548, outFile);
-      fslmaths(CmdLn);
+	  // gaussian filtering the subtracted volume
+	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float) vdb.FWHM/2.3548, outFile);
+	  fslmaths(CmdLn);
 
-      // gaussian filtering the motion corrected volume
-      sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcfile, (float) vdb.FWHM/2.3548, mcgfile);
-      fslmaths(CmdLn);
+	  // gaussian filtering the motion corrected volume
+	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcfile, (float) vdb.FWHM/2.3548, mcgfile);
+	  fslmaths(CmdLn);
 
-      // send graph params to FRONT END
-      sendGraphParams(mcfile, number);
-      pHandler.callAfterPreprocessingFunction(vdb, vdb.actualImg, outFile);
-      
-      if (vdb.sessionPointer != NULL)
-         if (vdb.sessionPointer->getFeedbackResponses)
-         {
-            float classNum, feedBackResponse;
-            test(vdb.actualImg, classNum, feedBackResponse);
-            vdb.sessionPointer->processFeedback(vdb.actualImg, classNum, feedBackResponse);
-         }
-      vdb.actualImg++;
+	  // send graph params to FRONT END
+	  sendGraphParams(mcfile, number);
+	  pHandler.callAfterPreprocessingFunction(vdb, vdb.actualImg, outFile);
+	  
+	  if (vdb.sessionPointer != NULL)
+		 if (vdb.sessionPointer->getFeedbackResponses)
+		 {
+			float classNum, feedBackResponse;
+			test(vdb.actualImg, classNum, feedBackResponse);
+			vdb.sessionPointer->processFeedback(vdb.actualImg, classNum, feedBackResponse);
+		 }
+	  vdb.actualImg++;
    }
 }
 
@@ -808,8 +811,8 @@ void FriendProcess::prepRealtimeVars()
 {
    if (!vdb.rPrepVars) 
    {
-      vdb.prepRealtimeVars();
-      vdb.rPrepVars=1;
+	  vdb.prepRealtimeVars();
+	  vdb.rPrepVars=1;
    }
 }
 
@@ -829,13 +832,13 @@ void FriendProcess::cleanUp()
 void FriendProcess::wrapUpRun()
 {
    char newpreprocDir[BUFF_SIZE], tempVolume[BUFF_SIZE];
-      
+	  
    // renaming the preproc directory
    sprintf(newpreprocDir, "%s%s%s",  vdb.outputDir, "preproc", vdb.trainFeatureSuffix);
    if (vdb.rPipeline)
    {
-      if (fileExists(newpreprocDir)) removeDirectory(newpreprocDir);
-      rename(vdb.preprocDir, newpreprocDir);
+	  if (fileExists(newpreprocDir)) removeDirectory(newpreprocDir);
+	  rename(vdb.preprocDir, newpreprocDir);
 
 	  // copying source dir into subject directory
 	  char destDir[BUFF_SIZE], sourceDir[BUFF_SIZE];
@@ -852,7 +855,7 @@ void FriendProcess::setSessionPointer(Session *sessionPtr)
 {
    vdb.sessionPointer = sessionPtr;
    if (sessionPtr != NULL)
-      sessionPtr->setVDBPointer(&vdb);
+	  sessionPtr->setVDBPointer(&vdb);
 }
 
 int FriendProcess::isConfigRead()
@@ -864,21 +867,21 @@ int FriendProcess::isConfigRead()
 void FriendProcess::setFeedbackCalculation(int automaticCalculations)
 {
    if (vdb.sessionPointer != NULL)
-      vdb.sessionPointer->getFeedbackResponses = automaticCalculations;
+	  vdb.sessionPointer->getFeedbackResponses = automaticCalculations;
 }
 
 // sets the status phase 0 : begin 1 : end
 void FriendProcess::setPhaseStatus(string phase, int status)
 {
    if (vdb.sessionPointer != NULL)
-      vdb.sessionPointer->setCommandResponse(phase, status);
+	  vdb.sessionPointer->setCommandResponse(phase, status);
 }
 
 // gets the status phase
 void FriendProcess::getPhaseStatus(string phase, char *response)
 {
    if (vdb.sessionPointer != NULL)
-      vdb.sessionPointer->getCommandResponse(phase, response);
+	  vdb.sessionPointer->getCommandResponse(phase, response);
 }
 
 // steps before realtime processing
@@ -897,40 +900,40 @@ void FriendProcess::prepRealTime()
 
    if (!fileExists(vdb.baseImage))
    {
-      // Anatomic Processing
-      snprintf(arqAxial, buffSize, "%s%s", vdb.inputDir, "RAI_ax.nii");
-      resampleVolume(vdb.raiFile, arqAxial, 1, 1, 1, vdb.TR, 0);
+	  // Anatomic Processing
+	  snprintf(arqAxial, buffSize, "%s%s", vdb.inputDir, "RAI_ax.nii");
+	  resampleVolume(vdb.raiFile, arqAxial, 1, 1, 1, vdb.TR, 0);
 	  axial(arqAxial, arqAxial);
 	  centralizeVolume(arqAxial, vdb.baseImage);
    }
 
    // creating a resampled anatomic with the same voxel dim as the functional, for registering the pipelines outcomes with this volume for presenting in FRONT END. Actually the FRIEND engine does not do this corregistering
    if (!fileExists(vdb.baseFunctional))
-      equalVoxelDim(vdb.baseImage, vdb.rfiFile, vdb.baseFunctional, vdb.TR, 0);
+	  equalVoxelDim(vdb.baseImage, vdb.rfiFile, vdb.baseFunctional, vdb.TR, 0);
 
    // bet Functional
    if (!fileExists(vdb.maskFile))
    {
 	  snprintf(CmdLn, buffSize, "bet %s %s %s", vdb.rfiFile, vdb.maskFile, vdb.betParameters);
-      bet(CmdLn);
+	  bet(CmdLn);
 
-      snprintf(CmdLn, buffSize, "bet %s %s %s", vdb.maskFile, vdb.maskFile, vdb.betParameters);
-      bet(CmdLn);
+	  snprintf(CmdLn, buffSize, "bet %s %s %s", vdb.maskFile, vdb.maskFile, vdb.betParameters);
+	  bet(CmdLn);
    }
  
    // Coregistering RFI to RAI
    if (!fileExists(vdb.matrixFile))
    {
-      snprintf(betAnat, buffSize, "%s%s", vdb.inputDir, "RAI_ax_cube_sks.nii");
+	  snprintf(betAnat, buffSize, "%s%s", vdb.inputDir, "RAI_ax_cube_sks.nii");
 
-      snprintf(CmdLn, buffSize, "bet %s %s", vdb.baseImage, betAnat);
-      bet(CmdLn);
+	  snprintf(CmdLn, buffSize, "bet %s %s", vdb.baseImage, betAnat);
+	  bet(CmdLn);
 
-      snprintf(CmdLn, buffSize, "bet %s %s", betAnat, betAnat);
-      bet(CmdLn);
+	  snprintf(CmdLn, buffSize, "bet %s %s", betAnat, betAnat);
+	  bet(CmdLn);
 
-      snprintf(CmdLn, buffSize, "flirt -ref %s -in %s -dof 7 -omat %s", betAnat, vdb.maskFile, vdb.matrixFile);
-      flirt(CmdLn);
+	  snprintf(CmdLn, buffSize, "flirt -ref %s -in %s -dof 7 -omat %s", betAnat, vdb.maskFile, vdb.matrixFile);
+	  flirt(CmdLn);
    }
    vdb.rPreProc=true;
 }

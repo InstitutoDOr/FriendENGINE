@@ -61,3 +61,12 @@ class SVMObj
      
 };
 
+// get a svm score based on a vector sample. this functions returns the prediction class as a return value.
+double svmSamplePredict(const svm_model *model, const svm_node *sample, double &score);
+void initParam(struct svm_parameter &params);
+void initProblem(struct svm_problem &problem, int rows, int cols, int allocateX = 1);
+
+// deallocates problem previously initialized
+void deallocateProblem(struct svm_problem &problem);
+
+

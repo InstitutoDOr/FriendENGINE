@@ -173,6 +173,7 @@
     <ClCompile Include="..\..\..\..\fsl\utils\log.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\Loga.cc" />
     <ClCompile Include="..\..\..\..\fsl\flirt\makerot.cc" />
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\EmotionROIPlugIn\EmotionROIPlugIn.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\masks.cpp" />
     <ClCompile Include="..\..\..\..\fsl\utils\matches.cc" />

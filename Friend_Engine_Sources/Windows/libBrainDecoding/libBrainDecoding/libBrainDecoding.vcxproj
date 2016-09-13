@@ -64,7 +64,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\Release\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -86,7 +86,7 @@
       <FloatingPointExceptions>true</FloatingPointExceptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\Release\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\..\..\fsl\newimage\lazy.cc" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\linalg.cpp" />
     <ClCompile Include="..\..\..\..\fsl\utils\log.cc" />
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\masks.cpp" />
     <ClCompile Include="..\..\..\..\fsl\utils\matches.cc" />
     <ClCompile Include="..\..\..\..\fsl\miscmaths\minimize.cc" />

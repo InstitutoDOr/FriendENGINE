@@ -33,6 +33,7 @@ class emotionRoiProcessing
    int negativeBlocksAboveTarget, positiveBlocksAboveTarget;
    
 public:
+   int feedbackType, windowSize;
    // load a volume for computation
    void loadVolume(studyParams &vdb, volume<float> &v, int index);
    // initializes the object variables

@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{06397ED9-0E18-42E1-84FB-7B6C0D429F71}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>libMotor</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.;..\..\..\..\..\fsl;..\..\..\..\..\fsl\newmat;..\..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\..\Friend_Engine_Sources\alglib;..\..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\..\fsl\gd;..\..\..\..\..\fsl\libprob;..\..\..\..\..\fsl\zlib;..\..\..\..\Friend_Engine_Sources\libsvm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ws2_32.lib;..\..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\..\..\Application\libMotor.dll</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;_USRDLL;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.;..\..\..\..\..\fsl;..\..\..\..\..\fsl\newmat;..\..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\..\Friend_Engine_Sources\alglib;..\..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\..\fsl\gd;..\..\..\..\..\fsl\libprob;..\..\..\..\..\fsl\zlib;..\..\..\..\Friend_Engine_Sources\libsvm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>ws2_32.lib;..\..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib</AdditionalDependencies>
+      <OutputFile>..\..\..\Application\libMotor.dll</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\fsl\avwutils\fslmaths.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\avwutils\fslswapdim.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\bet2\bet2.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\bdtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\btdtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\chdtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\const.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\drand.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\expx2.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\fdtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\gamma.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\gdtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\igam.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\igami.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\incbet.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\incbi.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\kolmogorov.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\mtherr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\nbdtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\ndtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\ndtri.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\pdtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\polevl.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\stdtr.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\unity.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\cprob\xmath.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\flirt\applyxfm4D.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\flirt\avscale.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\flirt\convert_xfm.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\flirt\flirt.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\flirt\globaloptions.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\fslio\fslio.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\mcflirt\Globaloptionsmc.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\mcflirt\Loga.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\mcflirt\mcflirt.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\meshclass\mesh.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\meshclass\mpoint.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\meshclass\point.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\meshclass\profile.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\meshclass\pt_special.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\meshclass\selfintersection.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\meshclass\triangle.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\base2z.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\bfmatrix.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\cspline.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\histogram.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\kernel.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\minimize.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\miscmaths.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\nonlin.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\miscmaths\optimise.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\newimage\complexvolume.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\newimage\costfns.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\newimage\generalio.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\newimage\imfft.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\newimage\lazy.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\newimage\newimage.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\newimage\newimagefns.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\bandmat.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\cholesky.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\evalue.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\fft.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\hholder.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\jacobi.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\myexcept.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newfft.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat1.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat2.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat3.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat4.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat5.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat6.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat7.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat8.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmat9.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmatex.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmatnl.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\newmatrm.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\solution.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\sort.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\submat.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\newmat\svd.cpp" />
+    <ClCompile Include="..\..\..\..\..\fsl\niftiio\nifti1_io.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\utils\check.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\utils\functions.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\utils\log.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\utils\matches.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\utils\opttst.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\utils\parse.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\utils\time_tracer.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\utils\usage.cc" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\adler32.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\crc32.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\deflate.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\gzclose.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\gzlib.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\gzread.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\gzwrite.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\infback.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\inffast.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\inflate.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\inftrees.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\trees.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\zlib\zutil.c" />
+    <ClCompile Include="..\..\..\..\..\fsl\znzlib\znzlib.c" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\alglibinternal.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\alglibmisc.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\ap.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\dataanalysis.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\diffequations.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\fasttransforms.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\integration.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\interpolation.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\linalg.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\optimization.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\solvers.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\specialfunctions.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\alglib\statistics.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\defs.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\filefuncs.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\fslfuncs.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\intervals.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\parser.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\session.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\socket.cxx" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\socket2.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\PlugIn\masks.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\PlugIn\MotorPlugIn\MotorPlugIn.cpp" />
+    <ClCompile Include="..\..\..\..\Friend_Engine_Sources\PlugIn\vardb.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\fsl\cprob\cprob.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\cprob\xmath.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\flirt\globaloptions.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\mcflirt\Globaloptionsmc.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\meshclass\mesh.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\meshclass\meshclass.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\meshclass\mpoint.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\meshclass\point.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\meshclass\profile.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\meshclass\pt_special.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\meshclass\triangle.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\base2z.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\bfmatrix.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\cspline.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\histogram.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\ir.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\kernel.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\minimize.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\miscmaths.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\nonlin.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\miscmaths\optimise.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\complexvolume.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\costfns.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\imfft.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\lazy.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\newimage.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\newimageall.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\newimagefns.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\newimageio.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newimage\positerators.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newmat\newmatap.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newmat\newmatio.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newmat\newmatnl.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newmat\newmatrc.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\newmat\newmatrm.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\utils\options.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\utils\time_tracer.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\utils\tracer_plus.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\crc32.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\deflate.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\gzguts.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\inffast.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\inffixed.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\inflate.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\inftrees.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\trees.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\zlib\zutil.h" />
+    <ClInclude Include="..\..\..\..\..\fsl\znzlib\znzlib.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\alglibinternal.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\alglibmisc.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\ap.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\dataanalysis.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\diffequations.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\fasttransforms.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\integration.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\interpolation.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\linalg.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\optimization.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\solvers.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\specialfunctions.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\alglib\statistics.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\defs.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\filefuncs.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\fslfuncs.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\intervals.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\parser.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\session.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\socket.hpp" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\Friend_Engine\socket2.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\PlugIn\masks.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\PlugIn\MotorPlugIn\MotorPlugIn.h" />
+    <ClInclude Include="..\..\..\..\Friend_Engine_Sources\PlugIn\vardb.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

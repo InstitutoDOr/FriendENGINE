@@ -45,8 +45,21 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
       
       fprintf(stderr, "Calculating the native template %s\n", outputFile);
       // bringing mni mask to subject space
-	  MniToSubject(vdb.rfiFile, vdb.mniMask, vdb.mniTemplate, outputFile, prefix);
-      
+
+	  // bet Functional
+	  if (!fileExists(vdb.maskFile))
+	  {
+		  char CmdLn[1024];
+		  sprintf(CmdLn, "bet %s %s %s", vdb.rfiFile, vdb.maskFile, vdb.betParameters);
+		  bet(CmdLn);
+
+		  sprintf(CmdLn, "bet %s %s %s", vdb.maskFile, vdb.maskFile, vdb.betParameters);
+		  bet(CmdLn);
+	  }
+	  // bringing mni mask to subject space - using betted RFI file (RFI_sks.nii)
+	  // MniToSubject(vdb.rfiFile, vdb.mniMask, vdb.mniTemplate, outputFile, prefix);
+	  MniToSubject(vdb.maskFile, vdb.mniMask, vdb.mniTemplate, outputFile, prefix);
+
       // loads the reference mask
       meanCalculation.loadReference(outputFile);
 

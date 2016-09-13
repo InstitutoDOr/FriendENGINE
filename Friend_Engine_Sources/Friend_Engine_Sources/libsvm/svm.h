@@ -1,7 +1,7 @@
 #ifndef _LIBSVM_H
 #define _LIBSVM_H
 
-#define LIBSVM_VERSION 316
+#define LIBSVM_VERSION 327
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +20,9 @@ struct svm_problem
 	int l;
 	double *y;
 	struct svm_node **x;
+	float **xCuda;
+	int vectorSize;
+	void *handle;
 };
 
 enum { C_SVC, NU_SVC, ONE_CLASS, EPSILON_SVR, NU_SVR };	/* svm_type */
@@ -71,6 +74,7 @@ struct svm_model
 				/* 0 if svm_model is created by svm_train */
 };
 
+struct svm_model *GPU_svm_train(const svm_problem *prob, const svm_parameter *param);
 struct svm_model *svm_train(const struct svm_problem *prob, const struct svm_parameter *param);
 void svm_cross_validation(const struct svm_problem *prob, const struct svm_parameter *param, int nr_fold, double *target);
 

@@ -15,7 +15,7 @@ void ConfusionMatrix::setRank(int rank)
 	classNames.resize(matrixRank);
 }
 
-// sets the number of neutral classes, ignored in the kappa claculation 
+// sets the number of neutral classes, ignored in the kappa calculation 
 void ConfusionMatrix::setNeutralClassCount(int count)
 {
 	neutralClasses = count;

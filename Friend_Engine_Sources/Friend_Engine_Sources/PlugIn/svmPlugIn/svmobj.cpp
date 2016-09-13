@@ -5,7 +5,6 @@
 #include <errno.h>
 #define Malloc(type,n) (type *)malloc((n)*sizeof(type))
 #include "parser.h"
-#include "svmfuncs.h"
 #include "svmobj.h"
 
 void print_null(const char *s) {}
@@ -48,6 +47,23 @@ void exit_with_help1()
 void exit_input_error1(int line_num)
 {
 	fprintf(stderr,"Wrong input format at line %d\n", line_num);
+}
+
+// get a svm score based on a vector sample. This functions returns the prediction class as a return value
+double svmSamplePredict(const svm_model *model, const svm_node *sample, double &score)
+{
+	int nr_class = model->nr_class;
+	double *dec_values;
+	if (model->param.svm_type == ONE_CLASS ||
+		model->param.svm_type == EPSILON_SVR ||
+		model->param.svm_type == NU_SVR)
+		dec_values = Malloc(double, 1);
+	else dec_values = Malloc(double, nr_class*(nr_class - 1) / 2);
+
+	double classPrediction = svm_predict_values(model, sample, dec_values);
+	score = dec_values[0];
+	free(dec_values);
+	return classPrediction;
 }
 
 void AdaptingSVM::initialize(char *modelFileName)
@@ -93,6 +109,69 @@ char* SVMObj::readline(FILE *input)
       if(fgets(line+len,max_line_len-len,input) == NULL) break;
    }
    return line;
+}
+
+void initProblem(struct svm_problem &problem, int rows, int cols, int allocateX)
+{
+	problem.l = rows;
+    problem.y = Malloc(double, problem.l);
+	if (allocateX)
+	{
+		problem.x = Malloc(struct svm_node *, problem.l);
+		for (int i = 0; i < rows; i++)
+		{
+			problem.x[i] = Malloc(struct svm_node, cols + 1);
+			for (int j = 0; j < cols; j++)
+			{
+				problem.x[i][j].index = j + 1;
+				problem.x[i][j].value = 0;
+			}
+			problem.x[i][cols].index = -1;
+			problem.x[i][cols].value = 0;
+		}
+	}
+	else problem.x = NULL;
+
+	problem.xCuda = NULL;
+	problem.vectorSize = 0;
+	problem.handle = NULL;
+}
+
+void deallocateProblem(struct svm_problem &problem)
+{
+	if (problem.y)
+	{
+		free(problem.y);
+		problem.y = NULL;
+	}
+
+	if (problem.x)
+	{
+		for (int i = 0; i < problem.l; i++)	free(problem.x[i]);
+		free(problem.x);
+		problem.x = NULL;
+	}
+}
+
+void initParam(struct svm_parameter &params)
+
+{
+	// default values, putting LINEAR as default
+	params.svm_type = C_SVC;
+	params.kernel_type = LINEAR;
+	params.degree = 3;
+	params.gamma = 0;	// 1/num_features
+	params.coef0 = 0;
+	params.nu = 0.5;
+	params.cache_size = 100;
+	params.C = 1;
+	params.eps = 1e-3;
+	params.p = 0.1;
+	params.shrinking = 1;
+	params.probability = 0;
+	params.nr_weight = 0;
+	params.weight_label = NULL;
+	params.weight = NULL;
 }
 
 // svmtrain transformed in a function
@@ -412,7 +491,7 @@ int SVMObj::predict(const char *cmd)
 
    parser(cmd, argc, argv);
 
-   FILE *input, *output;
+   FILE *input, *output=NULL;
    int i;
    // parse options
    for(i=1;i<argc;i++)
@@ -476,8 +555,10 @@ int SVMObj::predict(const char *cmd)
    svm_free_and_destroy_model(&model);
    free(x);
    free(line);
-   fclose(input);
-   fclose(output);
+   if (input)
+      fclose(input);
+   if (output)
+      fclose(output);
    freeparser(argc, argv);
    return r;
 }

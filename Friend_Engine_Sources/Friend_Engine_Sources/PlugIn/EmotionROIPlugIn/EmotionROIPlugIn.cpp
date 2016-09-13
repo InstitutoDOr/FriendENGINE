@@ -27,7 +27,9 @@ int emotionRoiProcessing::initialization(studyParams &vdb)
    // these two following values are configured by the frontend via the SET command
    strcpy(roiMask, vdb.readedIni.GetValue("FRIEND", "ActivationLevelMask"));
    int masktype = vdb.readedIni.GetLongValue("FRIEND", "ActivationLevelMaskType");
-   
+   feedbackType = vdb.readedIni.GetLongValue("FRIEND", "EmotionROIFeedbackType", 1);
+   windowSize = vdb.readedIni.GetLongValue("FRIEND", "MinMaxWindowSize", 30);
+
    // reading the target values. If not defined, reading a default value ActivationLevel
    targetValue = vdb.readedIni.GetDoubleValue("FRIEND", "ActivationLevel");
    negativeTargetValue = vdb.readedIni.GetDoubleValue("FRIEND", "NegativeActivationLevel", targetValue);
@@ -281,53 +283,81 @@ int emotionRoiProcessing::processVolume(studyParams &vdb, int index, float &clas
 	  {
 		  // Calculates the PSC value
 		  negativePSC = PSC(meanCalculation.roiMean(negativeIndex), negativeBaseline);
-		  // Calculates the percentage relative to the target
-		  feedbackValue = negativePSC / negativeTargetValue;
 
-		  /////////////////////////The calculations are not used right now////////////////////////////////////////
-		  //if (vdb.interval.intervals[idxInterval].start == index) negativePSCMean = negativePSC / intervalSize;
-		  //else  negativePSCMean += negativePSC / intervalSize;
-          //
-		  //if (vdb.interval.intervals[idxInterval].end == index)
-		  //{
-		  //	  if (negativePSCMean >= negativeTargetValue)
-		  //		  negativeBlocksAboveTarget++;
-		  //}
-		  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+		  if (feedbackType == 1)
+		  {
+			  // Calculates the percentage relative to the target
+			  feedbackValue = negativePSC / negativeTargetValue;
 
-		  // only add positive PSC values to the sigmoid calculation
-		  if (negativePSC > 0)
-			  negativeActivationLevel.addValue(negativePSC, 1);
+			  /////////////////////////The calculations are not used right now////////////////////////////////////////
+			  //if (vdb.interval.intervals[idxInterval].start == index) negativePSCMean = negativePSC / intervalSize;
+			  //else  negativePSCMean += negativePSC / intervalSize;
+			  //
+			  //if (vdb.interval.intervals[idxInterval].end == index)
+			  //{
+			  //	  if (negativePSCMean >= negativeTargetValue)
+			  //		  negativeBlocksAboveTarget++;
+			  //}
+			  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		  // updating the target value for next volume
-		  double valueLevel = negativeActivationLevel.mean * (1 + levelMultiplyer);
-		  if (valueLevel > 0) negativeTargetValue = valueLevel;
+			  // only add positive PSC values to the sigmoid calculation
+			  if (negativePSC > 0)
+				  negativeActivationLevel.addValue(negativePSC, 1);
+
+			  // updating the target value for next volume
+			  double valueLevel = negativeActivationLevel.mean * (1 + levelMultiplyer);
+			  if (valueLevel > 0) negativeTargetValue = valueLevel;
+		  }
+		  else if (feedbackType == 2)
+		  {
+			  negativeActivationLevel.addValue(negativePSC, 0);
+			  feedbackValue = negativeActivationLevel.scaleValue(negativePSC, 0, windowSize);
+
+		  }
+		  else if (feedbackType == 3)
+		  {
+			  feedbackValue = negativePSC / negativeTargetValue;
+		  }
 	  }
 	  else if (classnum == 3)
 	  {
 		  // Calculates the PSC value
 		  positivePSC = PSC(meanCalculation.roiMean(positiveIndex), positiveBaseline);
-		  // Calculates the percentage relative to the target
-		  feedbackValue = positivePSC / positiveTargetValue;
 
-		  /////////////////////////The calculations are not used right now////////////////////////////////////////
-		  //if (vdb.interval.intervals[idxInterval].start == index) positivePSCMean = positivePSC / intervalSize;
-		  //else  positivePSCMean += positivePSC / intervalSize;
-		  //
-		  //if (vdb.interval.intervals[idxInterval].end == index)
-		  //{
-		  //	  if (positivePSCMean >= positiveTargetValue)
-		  //		  positiveBlocksAboveTarget++;
-		  //}
-		  ////////////////////////////////////////////////////////////////////////////////////////////////////////
+		  if (feedbackType == 1)
+		  {
+			  // Calculates the percentage relative to the target
+			  feedbackValue = positivePSC / positiveTargetValue;
 
-		  // only add positive PSC values to the sigmoid calculation
-		  if (positivePSC > 0)
-			  positiveActivationLevel.addValue(positivePSC, 1);
+			  /////////////////////////The calculations are not used right now////////////////////////////////////////
+			  //if (vdb.interval.intervals[idxInterval].start == index) positivePSCMean = positivePSC / intervalSize;
+			  //else  positivePSCMean += positivePSC / intervalSize;
+			  //
+			  //if (vdb.interval.intervals[idxInterval].end == index)
+			  //{
+			  //	  if (positivePSCMean >= positiveTargetValue)
+			  //		  positiveBlocksAboveTarget++;
+			  //}
+			  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		  // updating the target value for next volume
-		  double valueLevel = positiveActivationLevel.mean * (1 + levelMultiplyer);
-		  if (valueLevel > 0) positiveTargetValue = valueLevel;
+			  // only add positive PSC values to the sigmoid calculation
+			  if (positivePSC > 0)
+				  positiveActivationLevel.addValue(positivePSC, 1);
+
+			  // updating the target value for next volume
+			  double valueLevel = positiveActivationLevel.mean * (1 + levelMultiplyer);
+			  if (valueLevel > 0) positiveTargetValue = valueLevel;
+		  }
+		  else if (feedbackType == 2)
+		  {
+			  positiveActivationLevel.addValue(positivePSC, 0);
+			  feedbackValue = positiveActivationLevel.scaleValue(positivePSC, 0, windowSize);
+
+		  }
+		  else if (feedbackType == 3)
+		  {
+			  feedbackValue = positivePSC / positiveTargetValue;
+		  }
 	  }
       fprintf(stderr, "Feedback value = %f\n", feedbackValue);
    }

@@ -507,6 +507,9 @@
     <ClCompile Include="..\..\..\..\fsl\zlib\zutil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\cctypes.h">

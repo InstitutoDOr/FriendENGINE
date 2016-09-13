@@ -402,6 +402,9 @@
     <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\vardb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\fsl\cprob\cprob.h">

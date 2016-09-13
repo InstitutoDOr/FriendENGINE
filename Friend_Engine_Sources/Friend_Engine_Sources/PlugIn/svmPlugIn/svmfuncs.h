@@ -17,9 +17,6 @@ void generateProjetionsGraph(char *projectionsFile, char *pngFile);
 // calculates the svm weights of a model, storing the values in a vector object
 void calculateWeightVector(const svm_model *model, vector <double> &weightVector);
 
-// get a svm score based on a vector sample. this functions returns the prediction class as a return value.
-double svmSamplePredict(const svm_model *model, const svm_node *sample, double &score);
-
 // loads a model file in memory
 svm_model* loadModel(char *modelFileName);
 

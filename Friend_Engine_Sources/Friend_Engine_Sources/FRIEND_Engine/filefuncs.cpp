@@ -20,10 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
-
-using namespace std;
-
-void replaceAll(string& str, const string& from, const string& to);
+#include "utils.h"
 
 char exePath[500];
 
