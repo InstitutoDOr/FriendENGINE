@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <complex>
 #include <cassert>
@@ -152,31 +152,24 @@ namespace NEWIMAGE {
       ColumnsX = xsize;
       SizeBound = SlicesZ * RowsY * ColumnsX;
       SliceOffset = RowsY * ColumnsX;
-      if (SizeBound > 0) 
-	  {
-	     if (d != 0) 
-		 {
-	        Data = d;
-	        data_owner = d_owner;
-	     }
-	     else 
-		 {
-            try 
-			{
-	           Data = new T[SizeBound];
-	        } catch(...) { Data=0; }
-	        if (Data==0) 
-		    { 
-			   imthrow("Out of memory",99); 
-		    }
-	        data_owner = true;
-	     }
-      } 
-	  else 
-	  {
-	     Data = 0;
-	     data_owner = false;
+      maskDelimiter=0.5;
+      if (SizeBound > 0) {
+	if (d != 0) {
+	  Data = d;
+	  data_owner = d_owner;
+	}
+	else {
+          try {
+	    Data = new T[SizeBound];
+	  } catch(...) { Data=0; }
+	  if (Data==0) { imthrow("Out of memory",99); }
+	  data_owner = true;
+	}
+      } else {
+	Data = 0;
+	data_owner = false;
       }
+      
       setdefaultproperties();
       return 0;
     }
@@ -347,7 +340,8 @@ namespace NEWIMAGE {
     }
   
   template <class T>
-  volume<T>::volume(const volume<T>& source) : Data(0), data_owner(false)
+  volume<T>::volume(const volume<T>& source) : Data(0), 
+    data_owner(false)
     {
       this->reinitialize(source);
     }
@@ -496,6 +490,7 @@ namespace NEWIMAGE {
   void volume<T>::insert_vec(const ColumnVector&  pvec,
                              const volume<T>&     mask)
   {
+    set_whole_cache_validity(false);
     if (pvec.Nrows() != xsize()*ysize()*zsize()) {
       cout << "pvec.Nrows() = " << pvec.Nrows() << endl;
       cout << "xsize() = " << xsize() << ",  ysize() = " << ysize() << ",  zsize() = " << zsize() << endl;
@@ -517,6 +512,7 @@ namespace NEWIMAGE {
   template <class T>
   void volume<T>::insert_vec(const ColumnVector&  pvec)
   {
+    set_whole_cache_validity(false);
     if (pvec.Nrows() != xsize()*ysize()*zsize()) {
       cout << "pvec.Nrows() = " << pvec.Nrows() << endl;
       cout << "xsize() = " << xsize() << ",  ysize() = " << ysize() << ",  zsize() = " << zsize() << endl;
@@ -537,8 +533,8 @@ namespace NEWIMAGE {
   {
     vector<int> coordinates;
     coordinates.push_back(label%this->xsize());
-    coordinates.push_back( (floor( (double)( label%( this->xsize()*this->ysize() ) ) / this->xsize() )));
-    coordinates.push_back( (floor( (double) label / ( this->xsize()*this->ysize() ) ) ));
+    coordinates.push_back( (floor) ( ( label%( this->xsize()*this->ysize() ) ) / this->xsize() ));
+    coordinates.push_back( (floor) ( label / ( this->xsize()*this->ysize() ) ) );
     return coordinates;
   }
 
@@ -562,7 +558,7 @@ namespace NEWIMAGE {
   template <class T>
   void volume<T>::setROIlimits(const std::vector<int>& lims) const
       { 
-	if (lims.size()!=6) return; 
+	if (lims.size()!=6) imthrow("ROI limits the wrong size (not 6) in volume::setROIlimits",13);
 	setROIlimits(lims[0],lims[1],lims[2],lims[3],lims[4],lims[5]);
       }
  
@@ -951,7 +947,7 @@ namespace NEWIMAGE {
 	  return (*p_userinterp)(*this,x,y,z);
 	}
       case nearestneighbour:
-		  ix = MISCMATHS::round(x); iy = MISCMATHS::round(y); iz = MISCMATHS::round(z);
+	ix=MISCMATHS::round(x); iy=MISCMATHS::round(y); iz=MISCMATHS::round(z);
 	return this->operator()(ix,iy,iz);
       case trilinear:
 	{
@@ -998,7 +994,7 @@ namespace NEWIMAGE {
 	  return (*p_userinterp)(*this,x,y,z);
 	}
       case nearestneighbour:
-		  ix = MISCMATHS::round(x); iy = MISCMATHS::round(y); iz = MISCMATHS::round(z);
+	ix=MISCMATHS::round(x); iy=MISCMATHS::round(y); iz=MISCMATHS::round(z);
 	return value(ix,iy,iz);
       case trilinear:
 	{
@@ -1028,6 +1024,39 @@ namespace NEWIMAGE {
       return 0.0;  // Should never get to here
     }
 
+  template <class T>
+  ColumnVector volume<T>::ExtractRow(int j, int k) const
+  {
+    if (j<0 || j>ysize()-1 || k<0 || k>zsize()-1) imthrow("ExtractRow: index out of range",3);
+    ColumnVector rval(xsize());
+    for (int i=0; i<xsize(); i++) rval(i+1) = (*this)(i,j,k);
+    return(rval);
+  }
+
+  template <class T>
+  ColumnVector volume<T>::ExtractColumn(int i, int k) const
+  {
+    if (i<0 || i>xsize()-1 || k<0 || k>zsize()-1) imthrow("ExtractColumn: index out of range",3);
+    ColumnVector rval(ysize());
+    for (int j=0; j<ysize(); j++) rval(j+1) = (*this)(i,j,k);
+    return(rval);
+  }
+
+  template <class T>
+  void volume<T>::SetRow(int j, int k, const ColumnVector& row)
+  {
+    if (j<0 || j>ysize()-1 || k<0 || k>zsize()-1) imthrow("SetRow: index out of range",3);
+    if (row.Nrows() != xsize()) imthrow("SetRow: mismatched row vector",3);
+    for (int i=0; i<xsize(); i++) (*this)(i,j,k) = row(i+1);    
+  }
+
+  template <class T>
+  void volume<T>::SetColumn(int i, int k, const ColumnVector& col)
+  {
+    if (i<0 || i>xsize()-1 || k<0 || k>zsize()-1) imthrow("SetColumn: index out of range",3);
+    if (col.Nrows() != ysize()) imthrow("SetRow: mismatched row vector",3);
+    for (int j=0; j<ysize(); j++) (*this)(i,j,k) = col(j+1);    
+  }
 
   template <class T>
   const T& volume<T>::extrapolate(int x, int y, int z) const
@@ -1354,7 +1383,6 @@ namespace NEWIMAGE {
     for (unsigned int n=0; n<percentilepvals.size(); n++) {
       unsigned int percentile = 
 	(unsigned int) (((float) numbins) * percentilepvals[n]);
-      if (percentile<0)  percentile=0;
       if (percentile>=numbins)  percentile=numbins-1;
       outputvals[n] = hist[percentile];
     }
@@ -1624,7 +1652,7 @@ namespace NEWIMAGE {
       for (int z=vol.minz(); z<=vol.maxz(); z++) {
 	for (int y=vol.miny(); y<=vol.maxy(); y++) {
 	  for (int x=vol.minx(); x<=vol.maxx(); x++) {
-	    T val = vol.value(x,y,z);
+	    double val = vol.value(x,y,z);
 	    sum += val;
 	    sum2 += val*val;
 	    n++;
@@ -1638,7 +1666,7 @@ namespace NEWIMAGE {
       for (typename volume<T>::fast_const_iterator it=vol.fbegin(),
 	       itend = vol.fend();   it!=itend; ++it) 
 	{
-	  T val = *it;
+	  double val = *it;
 	  sum += val;
 	  sum2 += val*val;
 	  n++;
@@ -1685,7 +1713,7 @@ namespace NEWIMAGE {
 	for (int y=vol.miny(); y<=vol.maxy(); y++) {
 	  for (int x=vol.minx(); x<=vol.maxx(); x++) {
 	    if (mask.value(x,y,z)>(T) 0.5) {
-	      T val = vol.value(x,y,z);
+	      double val = vol.value(x,y,z);
 	      sum += val;
 	      sum2 += val*val;
 	      n++;
@@ -2684,16 +2712,16 @@ namespace NEWIMAGE {
 
   
   template <class T>
-  void volume<T>::swapdimensions(const string& newx, const string& newy, const string& newz)
+  void volume<T>::swapdimensions(const string& newx, const string& newy, const string& newz, const bool keepLRorder)
   {
-    this->swapdimensions(dimarg(newx),dimarg(newy),dimarg(newz));
+    this->swapdimensions(dimarg(newx),dimarg(newy),dimarg(newz), keepLRorder);
   }
 
 
   template <class T>
-  void volume<T>::swapdimensions(int dim1, int dim2, int dim3)
+  void volume<T>::swapdimensions(int dim1, int dim2, int dim3, bool keepLRorder)
   {
-    basic_swapdimensions(dim1,dim2,dim3,true);
+    basic_swapdimensions(dim1,dim2,dim3,keepLRorder);
   }
 
 
@@ -2737,9 +2765,9 @@ namespace NEWIMAGE {
 
     // if a LR flip has happened then for all properties retain the unflipped values
     // therefore the data really has flipped, as otherwise it views identically
-    if (keepLRorder) {
+    if (keepLRorder && (this->swapmat(dim1,dim2,dim3).Determinant() < 0) ) {
       // arbitrarily choose x to flip (if necessary)
-      if (this->swapmat(dim1,dim2,dim3).Determinant() < 0) { dim1*=-1; }  
+      dim1*=-1; 
     }
 
     float dx = swapval(this->xdim(), this->ydim(), this->zdim(), dim1);
@@ -3201,6 +3229,7 @@ namespace NEWIMAGE {
   void volume4D<T>::setdefaultproperties()
   {
     p_TR = 1.0;
+    dim5 = 1;
     Limits.resize(8,0);
     setdefaultlimits();
     // Default ROI is whole volume
@@ -3398,6 +3427,17 @@ namespace NEWIMAGE {
     }
     roivol.copyproperties(*this);
     roivol.deactivateROI();
+    // set sform and qform matrices appropriately (if set)
+    Matrix roi2vol= IdentityMatrix(4);
+    roi2vol(1,4) = this->minx();
+    roi2vol(2,4) = this->miny();
+    roi2vol(3,4) = this->minz();
+    if (this->sform_code()!=NIFTI_XFORM_UNKNOWN) {
+      roivol.set_sform(this->sform_code(),this->sform_mat() * roi2vol);
+    }
+    if (this->qform_code()!=NIFTI_XFORM_UNKNOWN) {
+      roivol.set_qform(this->qform_code(),this->qform_mat() * roi2vol);
+    }
     roivol.set_whole_cache_validity(false);
     return roivol;
   }
@@ -3460,7 +3500,12 @@ namespace NEWIMAGE {
   template <class T>
   void volume4D<T>::setROIlimits(const std::vector<int>& lims) const
       { 
-	if (lims.size()!=8) return; 
+	if (lims.size()==6) {
+	  setROIlimits(lims[0],lims[1],lims[2],this->mint(),
+		       lims[3],lims[4],lims[5],this->maxt());
+	  return;
+	}
+	if (lims.size()!=8) imthrow("ROI limits the wrong size (not 6 or 8) in volume4D::setROIlimits",13);
 	setROIlimits(lims[0],lims[1],lims[2],lims[3],
 		     lims[4],lims[5],lims[6],lims[7]);
       }
@@ -3710,7 +3755,7 @@ namespace NEWIMAGE {
     for (int z=mask.minz(); z<=mask.maxz(); z++) {
       for (int y=mask.miny(); y<=mask.maxy(); y++) {
 	for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	  if (mask(x,y,z)>0) {
+	  if (mask(x,y,z)>mask.maskThreshold()) {
 	    for (int t=this->mint(); t<=this->maxt(); t++) {
 	      matv(t+toff,cidx) = vols[t](x+xoff,y+yoff,z+zoff);
 	    }
@@ -3741,7 +3786,7 @@ namespace NEWIMAGE {
     for (int z=mask.minz(); z<=mask.maxz(); z++) {
       for (int y=mask.miny(); y<=mask.maxy(); y++) {
 	for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	  if (mask(x,y,z)>0) {
+	  if (mask(x,y,z)>mask.maskThreshold()) {
 	    voxelLabels.push_back(x+y*mask.xsize()+z*mask.xsize()*mask.ysize());
 	    for (int t=this->mint(); t<=this->maxt(); t++) {
 	      matv(t+toff,cidx) = vols[t](x+xoff,y+yoff,z+zoff);
@@ -3787,7 +3832,7 @@ namespace NEWIMAGE {
     for (int z=vols[0].minz(); z<=vols[0].maxz(); z++) {
       for (int y=vols[0].miny(); y<=vols[0].maxy(); y++) {
 	for (int x=vols[0].minx(); x<=vols[0].maxx(); x++) {
-	  if (mask(x+xoff,y+yoff,z+zoff)>0) {
+	  if (mask(x+xoff,y+yoff,z+zoff)>mask.maskThreshold()) {
 	    for (int t=this->mint(); t<=this->maxt(); t++) {
 	      vols[t](x,y,z) = (T) newmatrix(t+1,cidx);
 	    }
@@ -3810,7 +3855,7 @@ namespace NEWIMAGE {
   }
   
   template <class T>
-  volume<int> volume4D<T>::vol2matrixkey(volume<T>& mask)
+  volume<int> volume4D<T>::vol2matrixkey(const volume<T>& mask)
   {
     int count=1;
     volume<int> tmp(this->xsize(),this->ysize(),this->zsize());
@@ -4256,13 +4301,23 @@ namespace NEWIMAGE {
   template <class T>
   double volume4D<T>::mean(const volume<T>& mask) const
   { 
-    return sum(mask)/(Max((double) no_mask_voxels(mask),1.0));
+    return sum(mask)/(Max((double)(no_mask_voxels(mask)*tsize()),1.0));
   }
 
   template <class T>
   double volume4D<T>::mean(const volume4D<T>& mask) const
   { 
-    return sum(mask)/(Max((double) no_mask_voxels(mask),1.0));
+    long int no_voxels = no_mask_voxels(mask);
+
+    /* if the 4D mask only has one time point, treat it as a 3D mask */
+    if (mask.tsize() == 1) {
+      no_voxels = no_voxels * tsize();
+    }
+    else if (mask.tsize() != tsize()) {
+      imthrow("mean: 4D mask size does not match volume size", 4);
+    }
+
+    return sum(mask)/(Max((double) no_voxels,1.0));
   }
 
 
@@ -4270,7 +4325,7 @@ namespace NEWIMAGE {
   double volume4D<T>::variance(const volume<T>& mask) const
   { 
     if (no_mask_voxels(mask)>0) {
-      double n=(double) no_mask_voxels(mask);
+      double n(no_mask_voxels(mask)*tsize());
       return (n/Max(1.0,n-1))*(sumsquares(mask)/n - mean(mask)*mean(mask));
     } else {
       cerr << "ERROR:: Empty mask image" << endl;
@@ -4281,8 +4336,19 @@ namespace NEWIMAGE {
   template <class T>
   double volume4D<T>::variance(const volume4D<T>& mask) const
   { 
-    if (no_mask_voxels(mask)>0) {
-      double n=(double) no_mask_voxels(mask);
+
+    long int no_voxels = no_mask_voxels(mask);
+
+    /* if the 4D mask only has one time point, treat it as a 3D mask */
+    if (mask.tsize() == 1) {
+      no_voxels = no_voxels * tsize();
+    }
+    else if (mask.tsize() != tsize()) {
+      imthrow("variance: 4D mask size does not match volume size", 4);
+    }
+
+    if (no_voxels>0) {
+      double n=(double) no_voxels;
       return (n/Max(1.0,n-1))*(sumsquares(mask)/n - mean(mask)*mean(mask));
     } else {
       cerr << "ERROR:: Empty mask image" << endl;
@@ -4501,17 +4567,6 @@ namespace NEWIMAGE {
   template <class T>
   void volume4D<T>::threshold(T lowerth, T upperth, threshtype tt)
   {
-	double low = lowerth;
-
-	/*
-	FILE *f=fopen("c:\\threshold.txt", "w+");
-    fprintf(f, "%f\n", low);
-	low = upperth;
-    fprintf(f, "%f\n", low);
-	fflush(f);
-	fclose(f);
-    */
-
     set_whole_cache_validity(false);
     for (int t=this->mint(); t<=this->maxt(); t++)  { 
       vols[t].threshold(lowerth,upperth,tt); 
@@ -4519,17 +4574,17 @@ namespace NEWIMAGE {
   }
   
   template <class T>
-  void volume4D<T>::swapdimensions(int dim1, int dim2, int dim3)
+  void volume4D<T>::swapdimensions(int dim1, int dim2, int dim3,  bool keepLRorder)
   {
     for (int t=0; t<this->tsize(); t++) {
-      vols[t].swapdimensions(dim1,dim2,dim3);
+      vols[t].swapdimensions(dim1,dim2,dim3, keepLRorder);
     }
   }
 
   template <class T>
-  void volume4D<T>::swapdimensions(const string& newx, const string& newy, const string& newz)
+  void volume4D<T>::swapdimensions(const string& newx, const string& newy, const string& newz, const bool keepLRorder)
   {
-    this->swapdimensions(dimarg(newx),dimarg(newy),dimarg(newz));
+    this->swapdimensions(dimarg(newx),dimarg(newy),dimarg(newz), keepLRorder);
   }
 
 

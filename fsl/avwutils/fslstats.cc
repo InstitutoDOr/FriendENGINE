@@ -180,6 +180,8 @@ int generateNonZeroMask(const volume4D<float> &mask, volume4D<float> &masknz, co
   masknz.reinitialize(mask.xsize(),mask.ysize(),mask.zsize(),input.tsize());
   for (int t=input.mint(); t<=input.maxt(); t++) 
     masknz[t]=((binarise(input[t],0.0f, 0.0f)-1.0f)*-1.0f*mask[t % mask.tsize()]);
+
+  save_volume4D(masknz, "e:/masknz_old.nii");
   return 0;
 }
 

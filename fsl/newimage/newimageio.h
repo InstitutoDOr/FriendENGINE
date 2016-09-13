@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 
 #if !defined(__newimageio_h)
@@ -80,6 +80,7 @@
 #include "complexvolume.h"
 #include "fslio/fslio.h"
 #include "miscmaths/miscmaths.h"
+#include <stdint.h>
 
 using namespace NEWMAT;
 
@@ -89,6 +90,7 @@ string fslbasename(const string& filename);
 int make_basename(string& filename);
 int find_pathname(string& filename);
 bool fsl_imageexists(const string& filename);
+  int  handle_read_error(int errorflag, const string& filename);
 
   // read
 
@@ -159,6 +161,9 @@ int save_volume4D_filetype(const volume4D<T>& source, const string& filename,
 
 // Helper functions
 short closestTemplatedType(const short inputType);
+
+int read_volume_size(const string& filename, 
+		     int64_t& sx, int64_t& sy, int64_t& sz, int64_t& st, int64_t& s5);
 
 short dtype(const char* T);
 short dtype(const short* T);
@@ -446,7 +451,7 @@ template <class T>
 int read_volumeROI(volume<T>& target, const string& filename, 
 		   short& dtype, bool read_img_data,
 		   int x0, int y0, int z0, int x1, int y1, int z1,
-		   bool swap2radiological=false);
+		   bool swap2radiological=true);
 
 
 template <class T>
@@ -459,11 +464,12 @@ int read_volumeROI(volume<T>& target, const string& filename,
 			  x0,y0,z0,x1,y1,z1);
 }
 
-
 template <class T>
 int read_volume(volume<T>& target, const string& filename,short& dtype, bool read_img_data)
 {
-  return read_volumeROI(target,filename,dtype,read_img_data,0,0,0,-1,-1,-1);
+  int retval = read_volumeROI(target,filename,dtype,read_img_data,0,0,0,-1,-1,-1);
+  handle_read_error(retval,filename);
+  return retval;
 }
 
 template <class T>
@@ -471,6 +477,7 @@ int read_volume(volume<T>& target, const string& filename)
 {
   short dtype;
   int retval = read_volume(target,filename,dtype,true);
+  handle_read_error(retval,filename);
   return retval;
 }
 
@@ -479,6 +486,7 @@ int read_volume_hdr_only(volume<T>& target, const string& filename)
 {
   short dtype;
   int retval = read_volume(target,filename,dtype,false);
+  handle_read_error(retval,filename);
   return retval;
 }
 
@@ -489,29 +497,28 @@ int read_volume4DROI(volume4D<T>& target, const string& filename,
 		     int xskip, int yskip, int zskip, int tskip)
 {
   int retval=read_volume4DROI(target,filename,x0,y0,z0,t0,x1,y1,z1,t1);
-  if (retval==0) {
-    if (xskip<1) xskip=1;    
-    if (yskip<1) yskip=1;
-    if (zskip<1) zskip=1;
-    if (tskip<1) tskip=1;
-    int sx=(target.maxx()-target.minx())/xskip + 1;
-    int sy=(target.maxy()-target.miny())/yskip + 1;
-    int sz=(target.maxz()-target.minz())/zskip + 1;
-    int st=(target.maxt()-target.mint())/tskip + 1;
-    volume4D<T> tmpvol(sx,sy,sz,st);
-    int xx=0, yy=0, zz=0, tt=0, x=0, y=0, z=0, t=0;
-    for (t=target.mint(), tt=0; t<=target.maxt(); t+=tskip, tt++) {
-      for (z=target.minz(), zz=0; z<=target.maxz(); z+=zskip, zz++) {
-	for (y=target.miny(), yy=0; y<=target.maxy(); y+=yskip, yy++) {
-	  for (x=target.minx(), xx=0; x<=target.maxx(); x+=xskip, xx++) {
-	    tmpvol(xx,yy,zz,tt) = target(x,y,z,t);
-	  }
+  handle_read_error(retval,filename);
+  if (xskip<1) xskip=1;    
+  if (yskip<1) yskip=1;
+  if (zskip<1) zskip=1;
+  if (tskip<1) tskip=1;
+  int sx=(target.maxx()-target.minx())/xskip + 1;
+  int sy=(target.maxy()-target.miny())/yskip + 1;
+  int sz=(target.maxz()-target.minz())/zskip + 1;
+  int st=(target.maxt()-target.mint())/tskip + 1;
+  volume4D<T> tmpvol(sx,sy,sz,st);
+  int xx=0, yy=0, zz=0, tt=0, x=0, y=0, z=0, t=0;
+  for (t=target.mint(), tt=0; t<=target.maxt(); t+=tskip, tt++) {
+    for (z=target.minz(), zz=0; z<=target.maxz(); z+=zskip, zz++) {
+      for (y=target.miny(), yy=0; y<=target.maxy(); y+=yskip, yy++) {
+	for (x=target.minx(), xx=0; x<=target.maxx(); x+=xskip, xx++) {
+	  tmpvol(xx,yy,zz,tt) = target(x,y,z,t);
 	}
       }
     }
-    tmpvol.copyproperties(target[0]);
-    target = tmpvol;
   }
+  tmpvol.copyproperties(target[0]);
+  target = tmpvol;
   return retval;
 }
 
@@ -521,7 +528,7 @@ int read_volume4DROI(volume4D<T>& target, const string& filename,
 		     short& dtype, bool read_img_data,
 		     int x0, int y0, int z0, int t0, 
 		     int x1, int y1, int z1, int t1,
-		     bool swap2radiological=false);
+		     bool swap2radiological=true);
 
 template <class T>
 int read_volume4DROI(volume4D<T>& target, const string& filename, 
@@ -529,16 +536,19 @@ int read_volume4DROI(volume4D<T>& target, const string& filename,
 		     int x1, int y1, int z1, int t1)
 {
   short dtype;
-  return read_volume4DROI(target,filename,dtype,true,
+  int retval = read_volume4DROI(target,filename,dtype,true,
 			  x0,y0,z0,t0,x1,y1,z1,t1);
+  return retval;
 }
 
 template <class T>
 int read_volume4D(volume4D<T>& target, const string& filename, 
 		  short& dtype, bool read_img_data)
 {
-  return read_volume4DROI(target,filename,dtype,read_img_data,
+  int retval = read_volume4DROI(target,filename,dtype,read_img_data,
 			  0,0,0,0,-1,-1,-1,-1);
+  handle_read_error(retval,filename);
+  return retval;
 }
 
 
@@ -547,6 +557,7 @@ int read_volume4D(volume4D<T>& target, const string& filename)
 {
   short dtype;
   int retval = read_volume4D(target,filename,dtype,true);
+  handle_read_error(retval,filename);
   return retval;
 }
 
@@ -556,6 +567,7 @@ int read_volume4D_hdr_only(volume4D<T>& target, const string& filename)
 {
   short dtype;
   int retval = read_volume4D(target,filename,dtype,false);
+  handle_read_error(retval,filename);
   return retval;
 }
 
@@ -564,13 +576,13 @@ int read_volume4D_hdr_only(volume4D<T>& target, const string& filename)
 
 mat44 newmat2mat44(const Matrix& nmat);
 
-
 template <class T>
-int set_fsl_hdr(const volume<T>& source, FSLIO *OP, int tsize, float tdim, float scalingSlope=1.0) //temp bool while converting
+int set_fsl_hdr(const volume<T>& source, FSLIO *OP, int tsize, float tdim, int dim5, float scalingSlope) //temp bool while converting
 {
   Tracer tr("set_fsl_hdr");
     
-  FslSetDim(OP,source.xsize(),source.ysize(),source.zsize(),tsize);
+ // NB: in newimage tsize contains both dim4 and dim5
+  FslSetDim5(OP,source.xsize(),source.ysize(),source.zsize(),tsize/dim5,dim5); 
   FslSetDataType(OP, dtype(source));
   FslSetVoxDim(OP,source.xdim(), source.ydim(), source.zdim(), tdim);
 
@@ -583,6 +595,26 @@ int set_fsl_hdr(const volume<T>& source, FSLIO *OP, int tsize, float tdim, float
   FslSetCalMinMax(OP,source.getDisplayMinimum(),source.getDisplayMaximum());
   FslSetAuxFile(OP,source.getAuxFile().c_str());
   return 0;
+}
+
+
+template <class T>
+int set_fsl_hdr(const volume<T>& source, FSLIO *OP, int tsize, float tdim) 
+{
+  return set_fsl_hdr(source,OP,tsize,tdim,1,1.0);
+}
+
+template <class T>
+int set_fsl_hdr(const volume<T>& source, FSLIO *OP, int tsize, float tdim, float scalingSlope)
+{
+  return set_fsl_hdr(source,OP,tsize,tdim,1,scalingSlope);
+}
+
+
+template <class T>
+int set_fsl_hdr(const volume<T>& source, FSLIO *OP, int tsize, float tdim, int dim5) 
+{
+  return set_fsl_hdr(source,OP,tsize,tdim,dim5,1.0);
 }
 
 template <class T>
@@ -620,35 +652,30 @@ int save_volume_datatype(const volume<T>& source, const string& filename,short d
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       case DT_UNSIGNED_CHAR:
 	{
 	  volume<char> svol;
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       case DT_SIGNED_INT:
 	{
 	  volume<int> svol;
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       case DT_FLOAT:
 	{
 	  volume<float> svol;
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       case DT_DOUBLE:
 	{
 	  volume<double> svol;
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       default:
 	ostringstream errmsg;
 	errmsg << "Fslread: DT " << datatype <<  " not supported";
@@ -674,35 +701,35 @@ int save_volume4D_datatype(const volume4D<T>& source, const string& filename,sho
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       case DT_UNSIGNED_CHAR:
 	{
 	  volume4D<char> svol;
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       case DT_SIGNED_INT:
 	{
 	  volume4D<int> svol;
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       case DT_FLOAT:
 	{
 	  volume4D<float> svol;
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       case DT_DOUBLE:
 	{
 	  volume4D<double> svol;
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       default:
 	ostringstream errmsg;
 	errmsg << "Fslread: DT " << datatype <<  " not supported";
@@ -826,14 +853,19 @@ template <class T>
 int read_orig_volume(volume<T>& target, const string& filename)
 {
   short dtype;
-  return read_volumeROI(target,filename,dtype,true,
+  int retval = read_volumeROI(target,filename,dtype,true,
 			0,0,0,-1,-1,-1,false);
+  // only handle the most basic error (cannot read file) - all others can be dealt with above
+  if ((retval & 1) == 1) { handle_read_error(retval,filename); }
+  return retval;
 }
 template <class T>
 int read_orig_volume4D(volume4D<T>& target, const string& filename)
 {
   short dtype;
-  return read_volume4DROI(target,filename,dtype,true,0,0,0,0,-1,-1,-1,-1,false);
+  int retval = read_volume4DROI(target,filename,dtype,true,0,0,0,0,-1,-1,-1,-1,false);
+  if ((retval & 1) == 1) { handle_read_error(retval,filename); }
+  return retval;
 }
 
  	 

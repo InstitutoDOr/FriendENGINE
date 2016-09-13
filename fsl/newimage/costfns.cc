@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 // Interpolation functions
 //  Written by Mark Jenkinson  18/2/99
@@ -84,6 +84,28 @@ namespace NEWIMAGE {
 // make SAFE_FLIRT the default now (bounds checking on all interpolations)
 #define SAFE_FLIRT 1
 
+  costfns costfn_type(const string& cname) 
+  {
+    costfns cfn=Unknown;
+    if (cname == "mutualinfo") {
+      cfn = MutualInfo;
+    } else if (cname == "corratio") {
+      cfn = CorrRatio;
+    } else if (cname == "woods") {
+      cfn = Woods;
+    } else if (cname == "normcorr") {
+      cfn = NormCorr;
+    } else if (cname == "normmi") {
+      cfn = NormMI;
+    } else if (cname == "leastsq") {
+      cfn = LeastSq;
+    } else if (cname == "labeldiff") {
+      cfn = LabelDiff;
+    } else if (cname == "bbr") {
+      cfn = BBR;
+    }
+    return cfn;
+  }
 
    /////////////////////////////////////////////////////////////////////////
 
@@ -257,10 +279,14 @@ namespace NEWIMAGE {
 
 
    Costfn::Costfn(const volume<float>& refv, const volume<float>& inputv) :
-     refvol(refv), testvol(inputv), rweight(refv), tweight(inputv),
+     refvol(refv), testvol(inputv), rweight(refv), tweight(inputv), 
+     wmseg(refv), fmap(), fmap_mask(), debugvol(),
      bindex(0), no_bins(0),jointhist(0), marghist1(0), marghist2(0), 
      fjointhist(0), fmarghist1(0), fmarghist2(0), p_count(0), 
      p_costtype(CorrRatio), validweights(false), bin_a0(0), bin_a1(1),
+     bbr_dist(2.0), bbr_offset(0.0), bbr_slope(-0.5), gm_coord_x(0), 
+     gm_coord_y(0), gm_coord_z(0), wm_coord_x(0), wm_coord_y(0), wm_coord_z(0),
+     no_coords(0), vertex_step(1), pe_dir(0), bbr_type("signed"), debug_mode(false), 
      smoothsize(1.0), fuzzyfrac(0.5)
    { 
    }
@@ -268,10 +294,14 @@ namespace NEWIMAGE {
    Costfn::Costfn(const volume<float>& refv, const volume<float>& inputv,
 		  const volume<float>& refweight, 
 		  const volume<float>& inweight) :
-     refvol(refv), testvol(inputv), rweight(refweight), tweight(inweight),
+     refvol(refv), testvol(inputv), rweight(refweight), tweight(inweight), 
+     wmseg(refv), fmap(), fmap_mask(), debugvol(),
      bindex(0), no_bins(0),jointhist(0), marghist1(0), marghist2(0), 
      fjointhist(0), fmarghist1(0), fmarghist2(0), p_count(0), 
      p_costtype(CorrRatio), validweights(true), bin_a0(0), bin_a1(1),
+     bbr_dist(2.0), bbr_offset(0.0), bbr_slope(-0.5), gm_coord_x(0), 
+     gm_coord_y(0), gm_coord_z(0), wm_coord_x(0), wm_coord_y(0), wm_coord_z(0),
+     no_coords(0), vertex_step(1), pe_dir(0), bbr_type("signed"), debug_mode(false), 
      smoothsize(1.0), fuzzyfrac(0.5)
    { 
    }
@@ -284,9 +314,21 @@ namespace NEWIMAGE {
      if (fmarghist1)  delete [] fmarghist1; 
      if (fmarghist2)  delete [] fmarghist2; 
      if (bindex)     delete [] bindex;
+     if (gm_coord_x) delete [] gm_coord_x;
+     if (gm_coord_y) delete [] gm_coord_y;
+     if (gm_coord_z) delete [] gm_coord_z;
+     if (wm_coord_x) delete [] wm_coord_x;
+     if (wm_coord_y) delete [] wm_coord_y;
+     if (wm_coord_z) delete [] wm_coord_z;
    }
 
    // General cost function calls
+
+
+//   // affmat is voxel to voxel and non-linear parameters are arbitrary
+//   float Costfn::cost(const Matrix& affmat, const ColumnVector& nonlin_params) const
+//   {
+//   }
 
    float Costfn::cost(const Matrix& affmat) const // affmat is voxel to voxel
     {
@@ -322,6 +364,9 @@ namespace NEWIMAGE {
 	    retval = this->labeldiff(affmat);
 	  }
 	  break;
+	case BBR:  // Minimise appropriate BBR metric tanh(intensity difference)
+	  retval = this->bbr(affmat);
+	  break;
 	case CorrRatio:  // MAXimise corr
 	  if (smoothsize > 0.0) {
 	    retval = 1.0 - this->corr_ratio_smoothed(affmat);
@@ -354,6 +399,33 @@ namespace NEWIMAGE {
     }
 
 
+  float Costfn::cost(const Matrix& affmat, const ColumnVector& nonlin_params) const // affmat is voxel to voxel
+    {
+//       if (validweights) {
+// 	return this->cost(affmat,nonlin_params,rweight,tweight);
+//       }
+
+      float retval = 0.0;
+      switch (p_costtype)
+	{
+	case BBR:  // Minimise appropriate BBR metric tanh(intensity difference)
+	  retval = this->bbr(affmat,nonlin_params);
+	  break;
+	default:
+	  cerr << "Invalid cost function type" << endl;
+	  break;
+	}
+      return retval;
+    }
+
+
+//    float Costfn::cost(const Matrix& affmat,   // affmat is voxel to voxel
+// 		      const ColumnVector& nonlin_params,  // arbitrary units
+// 		      const volume<float>& refweight, 
+// 		      const volume<float>& testweight) const
+//    {
+//    }
+
    float Costfn::cost(const Matrix& affmat,   // affmat is voxel to voxel
 		      const volume<float>& refweight, 
 		      const volume<float>& testweight) const
@@ -377,6 +449,9 @@ namespace NEWIMAGE {
        case LabelDiff:  // Minimise label difference (any mismatch is equal)
 	 retval = this->labeldiff_fully_weighted(affmat,refweight,
 							testweight);
+	 break;
+       case BBR:  // Minimise appropriate BBR metric tanh(intensity difference)
+	 retval = this->bbr(affmat);
 	 break;
        case CorrRatio:  // MAXimise corr
 	 retval = 1.0-this->corr_ratio_fully_weighted(affmat,refweight,
@@ -2671,6 +2746,168 @@ namespace NEWIMAGE {
       return lsq;
     }
 
+  ///////////////////////////////////////////////////////////////////////
+
+  float approx1tanh(const float x)
+  {
+    float val=0.0;
+    if (x<-4.0) { val=0.0; } 
+    else if (x<-2.0) { val=0.4 + 0.1*x; }
+    else if (x<2.0) { val=1.0 + 0.4*x; }
+    else if (x<4.0) { val=1.6 + 0.1*x; }
+    else { val=2.0; }
+    return val;
+  }
+
+
+  float Costfn::fmap_extrap(const double& x_vox, const double& y_vox, const double& z_vox, const ColumnVector& v_pe) const
+  {
+    double fmap_max_size=Max(Max(fmap.xsize()*fmap.xdim(),fmap.ysize()*fmap.ydim()),fmap.zsize()*fmap.zdim());
+    for (double dist=0.0; dist<=fmap_max_size; dist+=1.0) {
+      for (int dir=-1; dir<=1; dir+=2) {
+	float x_ref=x_vox+dir*dist*v_pe(1);
+	float y_ref=y_vox+dir*dist*v_pe(2);
+	float z_ref=z_vox+dir*dist*v_pe(3);
+	if (fmap_mask.in_bounds(x_ref,y_ref,z_ref) && fmap_mask.interpolate(x_ref,y_ref,z_ref)>0.95) {
+	  return fmap.interpolate(x_ref,y_ref,z_ref);
+	}
+      }
+    }
+    return 0.0;
+  }
+
+
+
+  int Costfn::vox_coord_calc(ColumnVector& tvc, ColumnVector& rvc, const Matrix& aff, const ColumnVector& nonlin_params, 
+			     const Matrix& iaffbig, const Matrix& mm2vox, const ColumnVector& pe_dir_vec) const
+  {
+    // NOTE! input coordinates rvc are in mm **but get converted to vox** during this call  (tvc output as vox)
+    tvc = iaffbig * rvc;  // vox
+    rvc = mm2vox * rvc;  // vox
+    // tvc is currently the undistorted coords in the EPI (test image)
+    if (pe_dir!=0) {
+      // fmap gives the distance required to shift from undistorted to distorted coords
+      //   and fmap will be in the reference frame
+      // add in the fmap transformations (locked along the EPI PE direction)
+      // multiply fmap by a free parameter - nonlin_params(1)
+      // convert rvc to voxel coords
+      if (fmap_mask.interpolate(rvc(1),rvc(2),rvc(3)) < 0.95) {
+	tvc(abs(pe_dir)) += nonlin_params(1)*fmap_extrap(rvc(1),rvc(2),rvc(3),pe_dir_vec);
+      } else {
+	tvc(abs(pe_dir)) += nonlin_params(1)*fmap.interpolate(rvc(1),rvc(2),rvc(3));
+      }
+    }
+    return 0;
+  }
+
+
+  float Costfn::bbr(const Matrix& aff, const ColumnVector& nonlin_params) const
+  {
+    // use the wmseg image as a dummy image (it will not be changed, as resample_required is set to false)
+    volume<float> dummy;
+    return bbr(aff,nonlin_params,dummy,false);
+  }
+
+  float Costfn::bbr_resamp(const Matrix& aff, const ColumnVector& nonlin_params, volume<float>& resampvol) const
+  {
+    // use the wmseg image as a dummy image (it will not be changed, as resample_required is set to false)
+    return bbr(aff,nonlin_params,resampvol,true);
+  }
+
+  float Costfn::bbr(const Matrix& aff, const ColumnVector& nonlin_params, 
+		    volume<float>& resampvol, bool resampling_required) const
+    {
+      p_count++;
+      // Input GM and WM coordinates are in (flirt) mm coords in the ref space
+      Matrix iaffbig = testvol.sampling_mat().i() * aff.i();  // ref mm to test vox
+      Matrix mm2vox = refvol.sampling_mat().i();  // ref mm to ref vox
+      ColumnVector pe_dir_vec(4);
+      pe_dir_vec(1)=0.0;  pe_dir_vec(2)=1.0;  pe_dir_vec(3)=0.0;  pe_dir_vec(4)=1.0;
+      pe_dir_vec = refvol.sampling_mat().i() * aff * pe_dir_vec;
+      pe_dir_vec /= norm2(pe_dir_vec);   // "unit" vector, but in voxel coords
+
+      double bbrval=0.0, gv=0.0, wv=0.0, qv=0.0, bbrupdate=0.0, bbrwsum=0.0, weight1=1.0, weight2=1.0, w12=1.0;
+      //float echo_spacing = 5e-4;   // in seconds - a reasonable guess for modern scanners
+      //fmapscale = echo_spacing * tsize(pe_dir) / (2.0*M_PI);  // converts rad/s to shift in voxels
+      
+      // rvc = ref voxel coord, tvc = test voxel coord
+      ColumnVector rvc1(4), rvc2(4), tvc1(4), tvc2(4);
+      
+      if (debug_mode) { debugvol = refvol; debugvol.addvolume(refvol); debugvol=0.0f; }
+	  
+      if (!resampling_required) {
+	for (int row=0; row<no_coords; row+=vertex_step) {
+	  // convert to voxel coords (rvc=ref voxel coord, tvc=test vox coord)
+	  rvc1(1)=gm_coord_x[row]; rvc1(2)=gm_coord_y[row]; rvc1(3)=gm_coord_z[row]; rvc1(4)=1;  // mm
+	  rvc2(1)=wm_coord_x[row]; rvc2(2)=wm_coord_y[row]; rvc2(3)=wm_coord_z[row]; rvc2(4)=1;
+	  
+	  vox_coord_calc(tvc1, rvc1, aff, nonlin_params, iaffbig, mm2vox, pe_dir_vec);
+	  vox_coord_calc(tvc2, rvc2, aff, nonlin_params, iaffbig, mm2vox, pe_dir_vec);
+	  
+	  gv = testvol.interpolate(tvc1(1),tvc1(2),tvc1(3));
+	  wv = testvol.interpolate(tvc2(1),tvc2(2),tvc2(3));
+	  
+	  if (validweights) {
+	    weight1 = tweight.interpolate(tvc1(1),tvc1(2),tvc1(3)) * rweight.interpolate(rvc1(1),rvc1(2),rvc1(3));
+	    weight2 = tweight.interpolate(tvc2(1),tvc2(2),tvc2(3)) * rweight.interpolate(rvc2(1),rvc2(2),rvc2(3));
+	    w12 = weight1 * weight2;
+	  } else {
+	    w12=1.0;  // need this if w12 can be reset after this (but not when validweights is on)
+	  }
+	  
+	  
+	  if (fabs(gv+wv)>1e-6) {
+	    qv = 200.0 * (gv-wv) / (gv+wv);
+	  } else {
+	    qv=0.0;
+	  }
+	  
+	  bbrupdate = 1 + tanh(bbr_slope*(qv-bbr_offset));
+	  if (bbr_type=="local_abs") {
+	    bbrval += w12*Min(bbrupdate,2.0-bbrupdate);
+	  } else {
+	    bbrval += w12*bbrupdate;
+	  }
+	  bbrwsum += w12;
+	  if (debug_mode) { 
+	    debugvol(MISCMATHS::round((rvc1(1)+rvc2(1))/2),MISCMATHS::round((rvc1(2)+rvc2(2))/2),MISCMATHS::round((rvc1(3)+rvc2(3))/2),0)=w12*bbrupdate+(1.0-w12); 
+	    debugvol(MISCMATHS::round((rvc1(1)+rvc2(1))/2),MISCMATHS::round((rvc1(2)+rvc2(2))/2),MISCMATHS::round((rvc1(3)+rvc2(3))/2),1)=w12; 
+	  }
+	  
+	  if (std::isnan(bbrval)) { cerr << "WARNING:: Found NaN in BBR cost" << endl; }
+	}
+	
+	bbrval /= bbrwsum;
+	if (bbr_type=="global_abs") {
+	  bbrval = Min(bbrval,2.0-bbrval);
+	}
+	
+	if (std::isnan(bbrval)) { cerr << "WARNING:: Found NaN in BBR cost (2)" << endl; }
+	
+	if (debug_mode) { save_volume4D(debugvol,"debug"); }
+      }
+
+      // optional resampling
+      if (resampling_required) {
+	resampvol=refvol;
+	ColumnVector rvc(4), tvc(4);
+	rvc(4)=1; tvc(4)=1;
+	for (int refx=refvol.minx(); refx<=refvol.maxx(); refx++) {
+	  for (int refy=refvol.miny(); refy<=refvol.maxy(); refy++) {
+	    for (int refz=refvol.minz(); refz<=refvol.maxz(); refz++) {
+	      // convert coords to mm (for the vox_coord_calc function)
+	      rvc(1)=refx*refvol.xdim();
+	      rvc(2)=refy*refvol.ydim();
+	      rvc(3)=refz*refvol.zdim();
+	      vox_coord_calc(tvc, rvc, aff, nonlin_params, iaffbig, mm2vox, pe_dir_vec);
+	      resampvol(refx,refy,refz)=testvol.interpolate(tvc(1),tvc(2),tvc(3));
+	    }
+	  }
+	}
+      }
+
+      return bbrval;
+    }
 
   ///////////////////////////////////////////////////////////////////////
 
@@ -3373,6 +3610,12 @@ namespace NEWIMAGE {
 
   ///////////////////////////////////////////////////////////////////////
 
+  void Costfn::set_debug_mode(bool debug_flag) 
+  {
+    debug_mode = debug_flag;
+  }
+
+
   void Costfn::set_no_bins(int n_bins) 
     {
       no_bins=n_bins;
@@ -3428,6 +3671,154 @@ namespace NEWIMAGE {
   {
     return (intensity*bin_a1 + bin_a0);
   }
+
+  bool Costfn::is_bbr_set(void) const
+  {
+    if (no_coords>0) { return true; }
+    return false;
+  }
+
+  int Costfn::set_bbr_seg(const volume<float>& bbr_seg) 
+    {
+      this->wmseg = bbr_seg;
+      // pre-calculate points on the interface and normals to these
+      int npts=0;
+      volume<float> wmsum, wmsmooth;
+      volume4D<float> wmgrad;
+      ColumnVector coord(4), box3(3);
+      box3=1.0;
+      wmsum=convolve_separable(wmseg,box3,box3,box3);
+      wmsmooth=smooth(wmseg,2.0);  // 2.0mm smoothing sigma (is this good?) - just used for getting gradients/normals
+      gradient(wmsmooth,wmgrad);
+      //save_volume(wmsmooth,"wmsmooth");
+      //save_volume(wmsum,"wmsum");
+      //save_volume4D(wmgrad,"wmgrad");
+      for (int z=wmseg.minz(); z<=wmseg.maxz(); z++) {
+	for (int y=wmseg.miny(); y<=wmseg.maxy(); y++) {
+	  for (int x=wmseg.minx(); x<=wmseg.maxx(); x++) {
+	    // if this point is WM but some neighbours are not
+	    if (wmseg(x,y,z)>0.5) {
+	      if (wmsum(x,y,z)<26.5) { npts++; }
+	    }
+	  }
+	}
+      }
+      //bbr_pts.ReSize(npts,3);
+      //bbr_norms.ReSize(npts,3);
+      no_coords = npts;
+      // cerr << "Number of points on surface for BBR is " << no_coords << endl; // DEBUG DEBUG DEBUG
+      gm_coord_x = new float[npts];
+      gm_coord_y = new float[npts];
+      gm_coord_z = new float[npts];
+      wm_coord_x = new float[npts];
+      wm_coord_y = new float[npts];
+      wm_coord_z = new float[npts];
+      npts=0;
+      for (int z=wmseg.minz(); z<=wmseg.maxz(); z++) {
+	for (int y=wmseg.miny(); y<=wmseg.maxy(); y++) {
+	  for (int x=wmseg.minx(); x<=wmseg.maxx(); x++) {
+	    if (wmseg(x,y,z)>0.5) {
+	      if (wmsum(x,y,z)<26.5) { 
+		coord(1)=x; coord(2)=y; coord(3)=z; coord(4)=1;  // vox coord
+		coord = wmseg.sampling_mat() * coord;  // mm coord
+		//bbr_pts(npts,1)=coord(1);
+		//bbr_pts(npts,2)=coord(2);
+		//bbr_pts(npts,3)=coord(3);
+		// turn gradient into mm gradients
+		float normx=-wmgrad(x,y,z,0)/refvol.xdim();
+		float normy=-wmgrad(x,y,z,1)/refvol.ydim();
+		float normz=-wmgrad(x,y,z,2)/refvol.zdim();
+		float normnorm=std::sqrt(norm2sq(normx,normy,normz));
+		normx /= normnorm;
+		normy /= normnorm;
+		normz /= normnorm;
+		// stored coordinates are in mm
+		gm_coord_x[npts] = coord(1) + normx * bbr_dist; 
+		gm_coord_y[npts] = coord(2) + normy * bbr_dist; 
+		gm_coord_z[npts] = coord(3) + normz * bbr_dist; 
+		wm_coord_x[npts] = coord(1) - normx * bbr_dist;
+		wm_coord_y[npts] = coord(2) - normy * bbr_dist; 
+		wm_coord_z[npts] = coord(3) - normz * bbr_dist; 
+		npts++; 
+	      }
+	    }
+	  }
+	}
+      }
+      if (no_coords==0) {
+	cerr << "ERROR::set_bbr_seg: could not find any boundary points!" << endl;
+	return 1;
+      }
+      return 0;
+    }
+
+  int Costfn::set_bbr_coords(const Matrix& coords, const Matrix& norms) 
+    {
+      //bbr_pts = coords;
+      //bbr_norms = norms;
+      if ( (coords.Nrows()==0) || (norms.Nrows()==0) ||
+	   (coords.Nrows() != norms.Nrows()) ) {
+	cerr << "ERROR::set_bbr_coords: coords and norms are different sizes or zero size" << endl;
+	return 1;
+      }
+      no_coords = coords.Nrows();
+      gm_coord_x = new float[no_coords];
+      gm_coord_y = new float[no_coords];
+      gm_coord_z = new float[no_coords];
+      wm_coord_x = new float[no_coords];
+      wm_coord_y = new float[no_coords];
+      wm_coord_z = new float[no_coords];
+      for (int npts=0; npts<no_coords; npts++) {
+	gm_coord_x[npts] = coords(npts+1,1) + norms(npts+1,1) * bbr_dist; 
+	gm_coord_y[npts] = coords(npts+1,2) + norms(npts+1,2) * bbr_dist; 
+	gm_coord_z[npts] = coords(npts+1,3) + norms(npts+1,3) * bbr_dist; 
+	wm_coord_x[npts] = coords(npts+1,1) - norms(npts+1,1) * bbr_dist;
+	wm_coord_y[npts] = coords(npts+1,2) - norms(npts+1,2) * bbr_dist; 
+	wm_coord_z[npts] = coords(npts+1,3) - norms(npts+1,3) * bbr_dist; 
+      }
+      return 0;
+    }
+
+  int Costfn::set_bbr_step(int step) 
+  {
+    vertex_step = step;
+    return 0;
+  }
+
+  int Costfn::set_bbr_slope(float slope) 
+  {
+    bbr_slope = slope;
+    return 0;
+  }
+
+  int Costfn::set_bbr_type(const string& typenm) 
+  {
+    if ((typenm=="signed") || (typenm=="local_abs") || (typenm=="global_abs")) {
+      bbr_type=typenm;
+    } else {
+      imthrow("Unrecognised BBR type: " + typenm + "\nValid types are: signed, global_abs, local_abs",30);
+    }
+    return 0;
+  }
+
+
+  int Costfn::set_bbr_fmap(const volume<float>& fieldmap, int phase_encode_direction) 
+  {
+    fmap=fieldmap;
+    fmap_mask=fmap*0.0f+1.0f;
+    pe_dir=phase_encode_direction;  // TODO: some sanity checking on this first
+    return 0;
+  }
+
+  int Costfn::set_bbr_fmap(const volume<float>& fieldmap, const volume<float>& fieldmap_mask, int phase_encode_direction)
+  {
+    fmap=fieldmap;
+    fmap_mask=fieldmap_mask;   // TODO: check they are the same dimensions
+    pe_dir=phase_encode_direction;  // TODO: some sanity checking on this first
+    return 0;
+
+  }
+
 
   // Member function interfaces
 
@@ -3510,6 +3901,14 @@ namespace NEWIMAGE {
 					refweight,testweight,
 					aff,this->smoothsize);
    }
+
+
+  float Costfn::bbr(const Matrix& aff) const
+    {
+      ColumnVector unit_value(1);
+      unit_value=1.0;
+      return bbr(aff, unit_value);
+    }
 
 
   float Costfn::woods_fn(const Matrix& aff) const

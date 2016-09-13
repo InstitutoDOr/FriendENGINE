@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #if !defined(__newimage_h)
 #define __newimage_h
@@ -108,7 +108,9 @@ namespace NEWIMAGE {
 			int mint; int maxx; int maxy; int maxz; int maxt; } ;
 
 
-#pragma interface  
+#ifndef __llvm__
+#pragma interface	 /* gcc class implementation */
+#endif
 
   template <class T>
   class volume : public lazymanager {
@@ -116,6 +118,7 @@ namespace NEWIMAGE {
 
     T* Data;
     bool data_owner;
+    mutable double maskDelimiter;
     int SizeBound;
     int SliceOffset;
 
@@ -199,6 +202,7 @@ namespace NEWIMAGE {
     template <class S, class D> friend
     void copybasicproperties(const volume<S>& source, volume<D>& dest);
 
+    void basic_swapdimensions(int dim1, int dim2, int dim3, bool keepLRorder);
     lazy<ColumnVector, volume<T> > lazycog;  // in voxel coordinates
 
 #ifdef EXPOSE_TREACHEROUS
@@ -206,7 +210,6 @@ namespace NEWIMAGE {
 #endif 
     // sampling_mat should now be avoided - use newimagevox2mm_mat instead
     bool RadiologicalFile;
-    void basic_swapdimensions(int dim1, int dim2, int dim3, bool keepLRorder);
     Matrix sampling_mat() const;
     void set_sform(int sform_code, const Matrix& snewmat) const;
     void set_qform(int qform_code, const Matrix& qnewmat) const;
@@ -295,7 +298,7 @@ namespace NEWIMAGE {
     int intent_code() const { return IntentCode; }
     float intent_param(int n) const;
     void set_intent(int intent_code, float p1, float p2, float p3) const;
-
+    inline T maskThreshold() const { return (T)maskDelimiter; }
     T min() const { return minmax().min; }
     T max() const { return minmax().max; }
     int mincoordx() const { return minmax().minx; }
@@ -378,12 +381,15 @@ namespace NEWIMAGE {
     { 
       return((ep_valid[0] || (x>=0 && x<ColumnsX)) && (ep_valid[1] || (y>=0 && y<RowsY)) && (ep_valid[2] || (z>=0 && z<SlicesZ)));
     }
-    bool valid(float x, float y, float z) const
+    bool valid(float x, float y, float z, double tol=1e-8) const
     {
-      int ix=((int) floor(x)); 
-      int iy=((int) floor(y)); 
-      int iz=((int) floor(z));
-      return((ep_valid[0] || (ix>=0 && (ix+1)<ColumnsX)) && (ep_valid[1] || (iy>=0 && (iy+1)<RowsY)) && (ep_valid[2] || (iz>=0 && (iz+1)<SlicesZ)));
+      // int ix=((int) floor(x)); 
+      // int iy=((int) floor(y)); 
+      // int iz=((int) floor(z));
+      return((ep_valid[0] || (x+tol >= 0.0 && x <= ColumnsX-1+tol)) &&
+             (ep_valid[1] || (y+tol >= 0.0 && y <= RowsY-1+tol)) &&
+             (ep_valid[2] || (z+tol >= 0.0 && z <= SlicesZ-1+tol)));
+      // return((ep_valid[0] || (ix>=0 && (ix+1)<ColumnsX)) && (ep_valid[1] || (iy>=0 && (iy+1)<RowsY)) && (ep_valid[2] || (iz>=0 && (iz+1)<SlicesZ)));
     }
     inline T& operator()(int x, int y, int z)
       { set_whole_cache_validity(false); 
@@ -412,7 +418,10 @@ namespace NEWIMAGE {
     inline const T& value(int x, int y, int z) const
       { return *(basicptr(x,y,z)); }
     float interpolatevalue(float x, float y, float z) const;
-
+    ColumnVector ExtractRow(int j, int k) const;
+    ColumnVector ExtractColumn(int i, int k) const;
+    void SetRow(int j, int k, const ColumnVector& row);
+    void SetColumn(int j, int k, const ColumnVector& col);
 
     // SECONDARY FUNCTIONS
     void setextrapolationmethod(extrapolation extrapmethod) const { p_extrapmethod = extrapmethod; }
@@ -426,6 +435,7 @@ namespace NEWIMAGE {
     interpolation getinterpolationmethod() const { return p_interpmethod; }
     void setsplineorder(unsigned int order) const;
     unsigned int getsplineorder() const { return(splineorder); }
+    void forcesplinecoefcalculation() const { splint(); }
     void setextrapolationvalidity(bool xv, bool yv, bool zv) const { ep_valid[0]=xv; ep_valid[1]=yv; ep_valid[2]=zv; }
     std::vector<bool> getextrapolationvalidity() const { return(ep_valid); }
     void defineuserinterpolation(float (*interp)(
@@ -498,8 +508,8 @@ namespace NEWIMAGE {
     void threshold(T lowerth, T upperth, threshtype tt=inclusive);
     void threshold(T thresh) { this->threshold(thresh,this->max(),inclusive); }
     // valid entries for dims are +/- 1, 2, 3 (and for newx, etc they are x, -x, y, -y, z, -z)
-    void swapdimensions(int dim1, int dim2, int dim3);
-    void swapdimensions(const string& newx, const string& newy, const string& newz);
+    void swapdimensions(int dim1, int dim2, int dim3, bool keepLRorder=false);
+    void swapdimensions(const string& newx, const string& newy, const string& newz, const bool keepLRorder=false);
     Matrix swapmat(int dim1, int dim2, int dim3) const;
     Matrix swapmat(const string& newx, const string& newy, const string& newz) const;
 
@@ -540,6 +550,7 @@ namespace NEWIMAGE {
   private:
     std::vector<volume<T> > vols;
     float p_TR;
+    int dim5;
 
     mutable std::vector<int> ROIbox;
     mutable bool activeROI;
@@ -660,7 +671,7 @@ namespace NEWIMAGE {
     void setmatrix(const Matrix& newmatrix, const volume<T>& mask, 
 		   const T pad=0);
     void setmatrix(const Matrix& newmatrix); 
-    volume<int> vol2matrixkey(volume<T>& mask); //returns a volume with numbers in relating to matrix colnumbers
+    volume<int> vol2matrixkey(const volume<T>& mask); //returns a volume with numbers in relating to matrix colnumbers
     ReturnMatrix matrix2volkey(volume<T>& mask);
 
 
@@ -672,6 +683,8 @@ namespace NEWIMAGE {
     inline int zsize() const
       { if (vols.size()>0) return vols[0].zsize(); else return 0; }
     inline int tsize() const { return (int) vols.size(); }
+    inline int size5() const { return dim5; }
+    void setsize5(int d5) { if (d5>=1) dim5 = d5; else dim5=1; }
     inline float xdim() const
       { if (vols.size()>0) return vols[0].xdim(); else return 1.0; }
     inline float ydim() const
@@ -836,8 +849,8 @@ namespace NEWIMAGE {
     void threshold(T lowerth, T upperth, threshtype tt=inclusive);
     void threshold(T thresh) { this->threshold(thresh,this->max(),inclusive); }
     // valid entries for dims are +/- 1, 2, 3 (and for newx, etc they are x, -x, y, -y, z, -z)
-    void swapdimensions(int dim1, int dim2, int dim3);
-    void swapdimensions(const string& newx, const string& newy, const string& newz);
+    void swapdimensions(int dim1, int dim2, int dim3,  bool keepLRorder=false);
+    void swapdimensions(const string& newx, const string& newy, const string& newz, const bool keepLRorder=false);
     Matrix swapmat(int dim1, int dim2, int dim3) const;
     Matrix swapmat(const string& newx, const string& newy, const string& newz) const;
 
@@ -1034,7 +1047,7 @@ namespace NEWIMAGE {
      for (int z=mask.minz(); z<=mask.maxz(); z++) {
        for (int y=mask.miny(); y<=mask.maxy(); y++) {
          for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	   if (mask.value(x,y,z)>(T) 0.5) n++;
+	   if (mask.value(x,y,z)>mask.maskThreshold()) n++;
          }
        }
      }
@@ -1049,7 +1062,7 @@ namespace NEWIMAGE {
        for (int z=mask.minz(); z<=mask.maxz(); z++) {
 	 for (int y=mask.miny(); y<=mask.maxy(); y++) {
 	   for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	     if (mask.value(x,y,z,t)>(T) 0.5) n++;
+	     if (mask.value(x,y,z,t)>mask[0].maskThreshold()) n++;
 	   }
 	 }
        }
@@ -1125,9 +1138,9 @@ namespace NEWIMAGE {
   template <class S1, class S2>
   bool samedim(const volume<S1>& vol1, const volume<S2>& vol2)
   {
-    return(std::abs(vol1.xdim()-vol2.xdim())<1e-6 && 
-           std::abs(vol1.ydim()-vol2.ydim())<1e-6 && 
-           std::abs(vol1.zdim()-vol2.zdim())<1e-6);
+    return(std::abs(vol1.xdim()-vol2.xdim())<1e-3 && 
+           std::abs(vol1.ydim()-vol2.ydim())<1e-3 && 
+           std::abs(vol1.zdim()-vol2.zdim())<1e-3);
   }
 
   template <class S1, class S2>
@@ -1205,6 +1218,7 @@ namespace NEWIMAGE {
   {
     // set up properties (except lazy ones)
     dest.p_TR = source.p_TR;
+    dest.dim5 = source.dim5;
     dest.ROIbox = source.ROIbox;
     dest.enforcelimits(dest.ROIbox);
     dest.activeROI = source.activeROI;
@@ -1239,15 +1253,11 @@ namespace NEWIMAGE {
   {
     // set up properties (except lazy ones)
     dest.setdefaultproperties();
-    if (source.usingROI()) 
-	{
-            dest.setROIlimits(source.ROIlimits(0),source.ROIlimits(1),
+    dest.setROIlimits(source.ROIlimits(0),source.ROIlimits(1),
 		      source.ROIlimits(2),dest.ROIlimits(3),
 		      source.ROIlimits(4),source.ROIlimits(5),
 		      source.ROIlimits(6),dest.ROIlimits(7));
-			dest.activateROI(); 
-	}
-	else dest.deactivateROI();
+    if (source.usingROI()) dest.activateROI(); else dest.deactivateROI();
     if ((dest.usingROI()) && (dest.tsize()>=1) 
 	&& (sameabssize(source,dest[0]))) {
       dest.setROIlimits(source.limits());  

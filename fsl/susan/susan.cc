@@ -141,9 +141,9 @@ int fmrib_main(int argc, char *argv[])
     volume<T> vol1(1,1,1);
 	volume<T> *vol2=new volume<T>(1,1,1);
 
-    if (num_usan==0) susan_convolve(output_vol[t], input_vol[t],kernel,sigmabsq,use_median,num_usan, vol2, vol0, 0, vol1, 0);
-    if (num_usan==1) susan_convolve(output_vol[t], input_vol[t],kernel,sigmabsq,use_median,num_usan,&usan_area[t],usan_vol[0],usan_sigmabsq[0], vol1, 0);
-    if (num_usan==2) susan_convolve(output_vol[t], input_vol[t],kernel,sigmabsq,use_median,num_usan,&usan_area[t],usan_vol[0],usan_sigmabsq[0],usan_vol[1],usan_sigmabsq[1]);
+	if (num_usan == 0) output_vol[t] = susan_convolve(input_vol[t], kernel, sigmabsq, use_median, num_usan, vol2, vol0, 0, vol1, 0);
+	if (num_usan == 1) output_vol[t] = susan_convolve(input_vol[t], kernel, sigmabsq, use_median, num_usan, &usan_area[t], usan_vol[0], usan_sigmabsq[0], vol1, 0);
+	if (num_usan == 2) output_vol[t] = susan_convolve(input_vol[t], kernel, sigmabsq, use_median, num_usan, &usan_area[t], usan_vol[0], usan_sigmabsq[0], usan_vol[1], usan_sigmabsq[1]);
 	delete vol2;
   }
 

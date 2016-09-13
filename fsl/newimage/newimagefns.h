@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 // General image processing functions
 
@@ -324,6 +324,10 @@ namespace NEWIMAGE {
 			     const Matrix& aff, float paddingsize=0.0);
   template <class T>
   void affine_transform(const volume<T>& vin, volume<T>& vout,
+			const Matrix& aff, float paddingsize, bool set_backgnd);
+
+  template <class T>
+  void affine_transform(const volume<T>& vin, volume<T>& vout,
 			const Matrix& aff, interpolation interptype, 
 			float paddingsize=0.0);
   template <class T>
@@ -359,9 +363,7 @@ namespace NEWIMAGE {
 
   //This implements Professor Smith's SUSAN convolve algorithm, note the number of optional parameters
   template <class T, class S>
-    void susan_convolve(volume<T>& result, const volume<T> source, const volume<S>& kernel, const float sigmabsq, const bool use_median, int num_usan,volume<T>* usan_area,volume<T> usan_vol1,const float sigmab1sq,volume<T> usan_vol2,const float sigmab2sq);
-//    void susan_convolve(volume<T>& result, const volume<T> source, const volume<S>& kernel, const float sigmabsq, const bool use_median, int num_usan,volume<T>* usan_area,volume<T> usan_vol1=volume<T>(1,1,1),const float sigmab1sq=0,volume<T> usan_vol2 = volume<T>(1,1,1),const float sigmab2sq=0)
-
+    volume<T> susan_convolve(volume<T> source, const volume<S>& kernel, const float sigmabsq, const bool use_median, int num_usan,volume<T>* usan_area = new volume<T>(1,1,1),volume<T> usan_vol1=volume<T>(1,1,1),const float sigmab1sq=0,volume<T> usan_vol2 = volume<T>(1,1,1),const float sigmab2sq=0);
 
   template <class T, class S> 
     volume4D<T> generic_convolve(const volume4D<T>& source, const volume<S>& kernel, bool seperable=false, bool renormalise=true);
@@ -379,8 +381,13 @@ namespace NEWIMAGE {
 
 
   template <class T, class S>
-  volume<T> morphfilter(const volume<T>& source, const volume<S>& mask,
+  volume<T> morphfilter(const volume<T>& source, const volume<S>& kernel,
 			const string& filtertype);
+
+  template <class T>
+  int dilall(volume<T>& im, volume<T>& mask);
+  template <class T>
+  volume<T> fill_holes(const volume<T>& im, int connectivity=6);
 
   template <class T>
   volume<T> isotropic_resample(const volume<T>& aniso, float scale);
@@ -389,7 +396,13 @@ namespace NEWIMAGE {
   volume<T> subsample_by_2(const volume<T>& refvol, bool centred=true);
   template <class T>
   volume4D<T> subsample_by_2(const volume4D<T>& refvol, bool centred=true);
+  template <class T>
+  int upsample_by_2(volume<T>& highresvol, const volume<T>& lowresvol,
+		    bool centred=true);
+  template <class T>
+  volume<T> upsample_by_2(const volume<T>& lowresvol, bool centred=true);
 
+  // for all blur functions the size of blurring is in mm
   void make_blur_mask(ColumnVector& bmask, const float final_vox_dim, 
 		     const float init_vox_dim);
   template <class T>
@@ -421,10 +434,10 @@ namespace NEWIMAGE {
 		       volume<float>& maskz);
 
   template <class T>
-  volume<float> gradient(const volume<T>& source);
+  volume<float> gradient(const volume<T>& source);  // in voxel coords
 
   template <class T>
-  void gradient(const volume<T>& source,volume4D<float>& grad);
+  void gradient(const volume<T>& source,volume4D<float>& grad);  // in voxel coords
 
   // separate left and right gradients (changes at voxel mid-point)
   template <class T>
@@ -469,7 +482,12 @@ namespace NEWIMAGE {
   volume<float> distancemap(const volume<T>& binaryvol, const volume<T>& mask);
 
   template <class T>
-  volume4D<float> sparseinterpolate(const volume4D<T>& sparsesamps, const volume<T>& mask,
+  volume<float> sparseinterpolate(const volume<T>& sparsesamps, 
+				  const volume<T>& mask,
+				  const string& interpmethod="general");
+  template <class T>
+  volume4D<float> sparseinterpolate(const volume4D<T>& sparsesamps, 
+				    const volume<T>& mask,
 				    const string& interpmethod="general");
   // can have "general" or "nearestneighbour" (or "nn") for interpmethod
 
@@ -798,7 +816,7 @@ namespace NEWIMAGE {
      if (vol4.mint()<0) 
        return variance; 
      volume<float> Mean = meanvol(vol4);
-     variance.reinitialize(vol4.xsize(),vol4.ysize(),vol4.zsize());
+     variance = Mean*0.0f;
      float n=1.0;
      if (vol4.maxt() > vol4.mint()) { n = (float) (vol4.maxt() - vol4.mint() + 1); }
 
@@ -1329,26 +1347,41 @@ template <class T, class S>
       affmask = vout;
       affmask = (T) 1;
       affine_transform_mask(vin,affmask,aff,padding,(T) 0);
+      return(affmask);
     }
 
 
   template <class T>
   void affine_transform(const volume<T>& vin, volume<T>& vout,
-			const Matrix& aff, float paddingsize)
+			const Matrix& aff, float paddingsize, bool set_backgnd)
     {
-      T padval = vin.getpadvalue();
-      extrapolation oldex = vin.getextrapolationmethod();
-
-      vin.setpadvalue(vin.backgroundval());
-      vin.setextrapolationmethod(extraslice);
+      T padval=0;
+      extrapolation oldex;
+      if (set_backgnd) {
+	padval = vin.getpadvalue();
+	oldex = vin.getextrapolationmethod();
+	
+	vin.setpadvalue(vin.backgroundval());
+	vin.setextrapolationmethod(extraslice);
+      }
 
       raw_affine_transform(vin,vout,aff);
       // now mask the output to eliminate streaks formed by the sinc interp...
-      affine_transform_mask(vin,vout,aff,paddingsize,vin.backgroundval());
+      affine_transform_mask(vin,vout,aff,paddingsize,vin.getpadvalue());
 
-      vin.setpadvalue(padval);
-      vin.setextrapolationmethod(oldex);
+      if (set_backgnd) {
+	vin.setpadvalue(padval);
+	vin.setextrapolationmethod(oldex);
+      }
     }
+
+  template <class T>
+  void affine_transform(const volume<T>& vin, volume<T>& vout,
+			const Matrix& aff, float paddingsize)
+  {
+    affine_transform(vin,vout,aff,paddingsize,true);
+  }
+
 
   template <class T>
   void affine_transform(const volume<T>& vin, volume<T>& vout,
@@ -1366,8 +1399,8 @@ template <class T, class S>
   
   ///////////////////////////////////////////////////////////////////////////
   // CONVOLVE
-  template <class T, class S>
-    void susan_convolve(volume<T>& result, const volume<T> source, const volume<S>& kernel, const float sigmabsq, const bool use_median, int num_usan,volume<T>* usan_area,volume<T> usan_vol1,const float sigmab1sq,volume<T> usan_vol2,const float sigmab2sq)
+    template <class T, class S>
+    volume<T> susan_convolve(const volume<T> source, const volume<S>& kernel, const float sigmabsq, const bool use_median, int num_usan,volume<T>* usan_area,volume<T> usan_vol1,const float sigmab1sq,volume<T> usan_vol2,const float sigmab2sq)
     //template <class T, class S, class U, class V, class W>
     //volume<T> susan_convolve(const volume<T>& source, const volume<S>& kernel, const float sigmabsq, const bool use_median, int num_usan,volume<U>* usan_area = new volume<T>(1,1,1),const volume<V>& usan_vol1=volume<T>(1,1,1),const float sigmab1sq=0,const volume<W>& usan_vol2 = volume<T>(1,1,1),const float sigmab2sq=0)
     //Note that the commented out declaration won't work with the optional arguements (since U,V,W need to be defined in call...). Code is provided for possible
@@ -1392,7 +1425,7 @@ template <class T, class S>
   ux=source.maxx();
   ly=source.miny();
   uy=source.maxy();
-//  volume<T> result(source);
+  volume<T> result(source);
   midz=(kernel.maxz() - kernel.minz())/2;
   midy=(kernel.maxy() - kernel.miny())/2;
   midx=(kernel.maxx() - kernel.minx())/2;
@@ -1451,7 +1484,7 @@ template <class T, class S>
       }
   for(int i=0;i<=num_usan;i++) delete[] (lut[i]-lutsize);
   delete[] lut;
-//  return result;
+  return result;
 }
 
   template <class T, class S>
@@ -1599,6 +1632,9 @@ template <class T, class S>
   volume<T> morphfilter(const volume<T>& source, const volume<S>& kernel,
 			const string& filtertype)
     {
+      // implements a whole range of filtering, set by the string filtertype:
+      //  dilateM (mean), dilateD (mode), median, max or dilate, min or erode, 
+      //  erodeS (set to zero if any neighbour is zero)
       extrapolation oldex = source.getextrapolationmethod();
       if ((oldex==boundsassert) || (oldex==boundsexception)) 
 	{ source.setextrapolationmethod(constpad); }
@@ -1685,6 +1721,132 @@ template <class T, class S>
 
 
 
+template <class T>
+double dilateval(const volume<T>& im, const volume<T>& mask, int x, int y, int z) 
+{
+  double sum=0;
+  int n=0;
+  for (int zz=Max(0,z-1); zz<=Min(z+1,im.maxz()); zz++) {
+    for (int yy=Max(0,y-1); yy<=Min(y+1,im.maxy()); yy++) {
+      for (int xx=Max(0,x-1); xx<=Min(x+1,im.maxx()); xx++) {
+	if ((mask(xx,yy,zz)>(T) 0.5) && !((xx==x) && (yy==y) && (zz==z))) {
+	  sum += im(xx,yy,zz);
+	  n++;
+	}
+      }
+    }
+  }
+  return sum/(Max(n,1));
+}
+
+
+template <class T>
+bool ext_edge(const volume<T>& mask, int x, int y, int z) 
+{
+  if (mask(x,y,z)>(T) 0.5) { return false; }
+  for (int zz=Max(0,z-1); zz<=Min(z+1,mask.maxz()); zz++) {
+    for (int yy=Max(0,y-1); yy<=Min(y+1,mask.maxy()); yy++) {
+      for (int xx=Max(0,x-1); xx<=Min(x+1,mask.maxx()); xx++) {
+	if ((mask(xx,yy,zz)>(T) 0.5) && !((xx==x) && (yy==y) && (zz==z))) {
+	  return true;
+	}
+      }
+    }
+  }
+  return false;
+}
+
+
+struct vec3_temp { int x; int y; int z; };
+
+template <class T>
+int dilall(volume<T>& im, volume<T>& mask) 
+{
+  if (!samesize(im,mask)) { cerr << "ERROR::dilall::image are not the same size" << endl; return 1; }
+  deque<vec3_temp> ptlist;
+  vec3_temp v, newv;
+  // initial pass
+  for (int z=0; z<=im.maxz(); z++) {
+    for (int y=0; y<=im.maxy(); y++) {
+      for (int x=0; x<=im.maxx(); x++) {
+	if (ext_edge(mask,x,y,z)) {
+	  v.x=x; v.y=y; v.z=z;
+	  ptlist.push_front(v);
+	}
+      }
+    }
+  }
+  while (!ptlist.empty()) {
+    v = ptlist.back();
+    ptlist.pop_back();
+    if (mask(v.x,v.y,v.z)<=(T) 0.5) {  // only do it if the voxel is still unset
+      im(v.x,v.y,v.z)=dilateval(im,mask,v.x,v.y,v.z);
+      mask(v.x,v.y,v.z)=(T)1;
+      // check neighbours and add them to the list if necessary
+      for (int zz=Max(0,v.z-1); zz<=Min(v.z+1,im.maxz()); zz++) {
+	for (int yy=Max(0,v.y-1); yy<=Min(v.y+1,im.maxy()); yy++) {
+	  for (int xx=Max(0,v.x-1); xx<=Min(v.x+1,im.maxx()); xx++) {
+	    if (ext_edge(mask,xx,yy,zz)) { newv.x=xx; newv.y=yy; newv.z=zz; ptlist.push_front(newv); }
+	  }
+	}
+      }
+    }
+  }
+  return 0;
+} 
+
+
+template <class T>
+volume<T> fill_holes(const volume<T>& im, int connectivity)
+{
+  volume<int> mask;
+  set<int> edgelabs;
+  mask = connected_components((T)1-im,connectivity);
+  // go over edge of FOV and for each each non-zero value there store this
+  // The loops below go over the yz, xz and xy faces of the FOV and double count edges and corners, but this doesn't matter here
+  for (int z=0; z<=im.maxz(); z++) {
+    for (int y=0; y<=im.maxy(); y++) {
+      if (mask(0,y,z)!=0) edgelabs.insert(mask(0,y,z));
+      if (mask(im.maxx(),y,z)!=0) edgelabs.insert(mask(im.maxx(),y,z));
+    }
+  }
+  for (int z=0; z<=im.maxz(); z++) {
+    for (int x=0; x<=im.maxx(); x++) {
+      if (mask(x,0,z)!=0) edgelabs.insert(mask(x,0,z));
+      if (mask(x,im.maxy(),z)!=0) edgelabs.insert(mask(x,im.maxy(),z));
+    }
+  }
+  for (int y=0; y<=im.maxy(); y++) {
+    for (int x=0; x<=im.maxx(); x++) {
+      if (mask(x,y,0)!=0) edgelabs.insert(mask(x,y,0));
+      if (mask(x,y,im.maxz())!=0) edgelabs.insert(mask(x,y,im.maxz()));
+    }
+  }
+
+  // zero any voxel containing a detected edge label value 
+  while (!edgelabs.empty()) {
+    int val=*(edgelabs.begin());
+    for (int z=0; z<=im.maxz(); z++) {
+      for (int y=0; y<=im.maxy(); y++) {
+	for (int x=0; x<=im.maxx(); x++) {
+	  if (mask(x,y,z)==val) mask(x,y,z)=0;
+	}
+      }
+    }
+    edgelabs.erase(val);
+  }
+
+  volume<T> imcopy(im);
+  for (int z=0; z<=im.maxz(); z++) {
+    for (int y=0; y<=im.maxy(); y++) {
+      for (int x=0; x<=im.maxx(); x++) {
+	if (mask(x,y,z)>(T)0.5) imcopy(x,y,z)=1;
+      }
+    }
+  }
+  return imcopy;
+}
+
  ///////////////////////////////////////////////////////////////////////////
   // RESAMPLE
 
@@ -1699,6 +1861,16 @@ template <class T, class S>
       //     from the 4D properties?
       return temp_volume;
   }
+
+  template <class T>
+  volume<T> upsample_by_2(const volume<T>& lowresvol, bool centred) 
+  {
+    volume<T> res;
+    upsample_by_2(res,lowresvol,centred);
+    return res;
+  }
+
+
 
   ///////////////////////////////////////////////////////////////////////////
   // BLURRING
@@ -1917,6 +2089,7 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
   template <class T>
   volume<float> gradient(const volume<T>& source)
     {
+      // in voxel coordinates (not mm)
       volume<float> maskx,masky,maskz;
       make_grad_masks(maskx,masky,maskz);
       volume<float> grad(source);
@@ -2123,20 +2296,18 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
    template <class T>
      volume4D<T> bandpass_temporal_filter(volume4D<T>& source,double hp_sigma, double lp_sigma)
       { 
-	//cout << "hp " << hp_sigma << "lp " << lp_sigma << endl;
-         int backwards = 0;
          int hp_mask_size_PLUS, lp_mask_size_PLUS, hp_mask_size_MINUS, lp_mask_size_MINUS;
          double *hp_exp=NULL, *lp_exp=NULL, *array, *array2;
          volume4D<T> result(source);
 
          if (hp_sigma<=0) hp_mask_size_MINUS=0;
          else hp_mask_size_MINUS=(int)(hp_sigma*3);   /* this isn't a linear filter, so small hard cutoffs at ends don't matter */
-         if (!backwards) hp_mask_size_PLUS=hp_mask_size_MINUS;
-         else hp_mask_size_PLUS=0;
+         hp_mask_size_PLUS=hp_mask_size_MINUS;
          if (lp_sigma<=0) lp_mask_size_MINUS=0;
-         else lp_mask_size_MINUS=(int)(lp_sigma*5)+2; /* this will be small, so we might as well be careful */
-         if (!backwards) lp_mask_size_PLUS=lp_mask_size_MINUS;
-         else lp_mask_size_PLUS=0;
+         else lp_mask_size_MINUS=(int)(lp_sigma*20)+2; /* this will be small, so we might as well be careful */
+         lp_mask_size_PLUS=lp_mask_size_MINUS;
+
+
 
          array=new double[source.tsize()+2*lp_mask_size_MINUS];
 	 array+=lp_mask_size_MINUS;
@@ -2174,6 +2345,8 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
                {
                  int done_c0=0;
                  double c0=0;
+		 double mean(0);
+
                  for(int t=0; t<source.tsize(); t++)
                  {
                     int tt;
@@ -2200,8 +2373,13 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
 	               array2[t] = c0 + array[t] - c;
 	             }
 	             else  array2[t] = array[t];
+		     mean+=array2[t];
 	          }
-                  memcpy(array,array2,sizeof(double)*source.tsize());
+		 //Demean timeseries
+		 mean/=source.tsize();
+                 for(int t=0; t<source.tsize(); t++)
+		   array2[t]-=mean;
+                 memcpy(array,array2,sizeof(double)*source.tsize());
 	       }
 	       /* {{{ apply lowpass filter to 1D array */
                if (lp_sigma>0)
@@ -2215,11 +2393,19 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
                  for(int t=0; t<source.tsize(); t++)
                  { 
                     double total=0;
+		    double sum(0);
                     int tt;
-                    for(tt=t-lp_mask_size_MINUS; tt<=t+lp_mask_size_PLUS; tt++)   total += array[tt] * lp_exp[tt-t];
-                    array2[t] = total;
-                 }
-                  memcpy(array,array2,sizeof(double)*source.tsize());
+                    for(tt=MAX(t-lp_mask_size_MINUS,0); tt<=MIN(t+lp_mask_size_PLUS,source.tsize()-1); tt++) {
+		      total += array[tt] * lp_exp[tt-t];
+		      sum+=lp_exp[tt-t];
+		    }
+		    if (sum>0)
+		      array2[t] = total/sum;
+		    else
+		      array2[t] = total;
+		 }
+		 memcpy(array,array2,sizeof(double)*source.tsize());
+
 	       }
 	  /* {{{ write 1D array back to input 4D data */
                for(int t=0; t<source.tsize(); t++) result.value(x,y,z,t)= (T)array[t];
@@ -2544,6 +2730,8 @@ private:
   vector<rowentry> schedule;
   Matrix octantsign;
 public:
+  // basic constructor takes binaryvol (mask of valid values) 
+  //   + maskvol (non-zero at desired calculated points only)
   distancemapper(const volume<T>& binaryvol, const volume<T>& maskvol);
   ~distancemapper();
   volume<float> distancemap();
@@ -2556,6 +2744,9 @@ private:
   int find_nearest(int x, int y, int z, int& x1, int& y1, int& z1);
   int create_distancemap(volume4D<float>& vout, const volume4D<float>& valim,
 			  const string& interpmethod="none");
+  int basic_create_distancemap(volume4D<float>& vout, 
+			       const volume4D<float>& valim,
+			       const string& interpmethod);
 };
 
 template <class T>
@@ -2684,8 +2875,85 @@ int distancemapper<T>::find_nearest(int x, int y, int z, int& x1, int& y1, int& 
 // if return_distance is false then interpolate the value of the input volume
 //  at the output location rather than store the distance to it
 template <class T>
-int distancemapper<T>::create_distancemap(volume4D<float>& vout, const volume4D<float>& valim,
+int distancemapper<T>::create_distancemap(volume4D<float>& vout, 
+					  const volume4D<float>& valim,
 					  const string& interpmethod)
+{
+  if (interpmethod!="general")
+    return this->basic_create_distancemap(vout,valim,interpmethod);
+  // only get to here for sparseinterpolation
+  float meanvoxsize = pow(valim.xdim()*valim.ydim()*valim.zdim(),1.0/3.0);
+  int nsubsamp=0;
+  if (meanvoxsize<4.0) { nsubsamp=1; }
+  if (meanvoxsize<2.0) { nsubsamp=2; }
+  if (meanvoxsize<1.0) { nsubsamp=3; }
+  // for the straightforward case (>4mm resolution)
+  if (nsubsamp==0) { 
+    return basic_create_distancemap(vout,valim,interpmethod);
+  } 
+  // otherwise run subsamplings, sparseinterp and upsamplings
+  //   this is to fill in the large gaps in the image, since this
+  //   takes a *huge* amount of time otherwise
+  // NB: mask in distancemapper is 1 where the new values are to go
+  //     but in this function we use mask=1 where valid samples are
+  volume4D<float> im8;
+  volume<float> mask8;
+  mask8=1.0f - mask;  // mask is now 1 for all valid sample points
+  im8=valim*mask8;
+  for (int n=1; n<=nsubsamp; n++) {
+    mask8 = subsample_by_2(mask8,false);
+    for (int t=0; t<=valim.maxt(); t++) {
+      im8[t] = divide(subsample_by_2(im8[t],false),mask8,mask8);
+    }
+    mask8.binarise(1e-4);   // include any voxel with any partial overlap
+  } 
+  // run the sparseinterpolate function (at 8mm-ish resolution) 
+  //   - not the method in this object, but a new one
+  im8=NEWIMAGE::sparseinterpolate(im8,mask8);
+  // dilate and invert mask
+  volume<float> kernel(3,3,3);
+  kernel=1.0f;
+  mask8=morphfilter(mask8,kernel,"dilate");
+  mask8 = 1.0f - mask8;  // now the mask is 1 for all the more distant "gaps"
+  // upsample mask and spareinterpolated result
+  volume<float> tmp;
+  for (int n=1; n<=nsubsamp; n++) {
+    for (int t=0; t<=valim.maxt(); t++) {
+      if (n==nsubsamp) {
+	tmp=valim[0];  // get the exact same size back
+	upsample_by_2(tmp,im8[t],false);
+	im8[t]=tmp;
+      } else {
+	im8[t] = upsample_by_2(im8[t],false);
+      }
+    }
+    if (n==nsubsamp) {
+      tmp=mask;  // get the exact same size back
+      upsample_by_2(tmp,mask8,false);
+      mask8=tmp;
+    } else {
+      mask8 = upsample_by_2(mask8,false);
+    }
+  }
+  mask8.binarise(0.5f);
+  // only keep results in zero part of mask as well as the
+  //  original points
+  vout = valim*(1.0f-mask) + im8*mask8;
+  mask8 = mask - mask8;   // only calculate new points in the "gap"
+  // now run basic_create_distancemap at full resolution, but with the
+  //  new mask extra filled-in areas from above
+  distancemapper<float> newdmapper(1.0f - mask8,mask8);
+  volume4D<float> vres(vout);
+  return newdmapper.basic_create_distancemap(vres,vout,interpmethod);
+}
+
+// The following function creates the distancemap or interpolated image
+// from valim (previously the mask of valid voxels = binaryvol and the
+// mask of voxels to calculate = maskvol, must have been specified)
+template <class T>
+int distancemapper<T>::basic_create_distancemap(volume4D<float>& vout, 
+						const volume4D<float>& valim,
+						const string& interpmethod)
 {
   int x1, y1, z1;
   ColumnVector localav;
@@ -2694,7 +2962,8 @@ int distancemapper<T>::create_distancemap(volume4D<float>& vout, const volume4D<
   if (interpmethod=="general") interp=2;
   if (interp>0) { vout = valim; } else { vout = bvol; vout *= 0.0f; }
   if ((interp>0) && (!samesize(bvol,valim[0])))
-    { imthrow("Binary image and interpolant not the same size",21); }
+    {  print_volume_info(bvol,"bvol"); print_volume_info(mask,"mask");   print_volume_info(valim[0],"valim"); 
+       imthrow("Binary image and interpolant not the same size",21); }
   for (int z=vout.minz(); z<=vout.maxz(); z++) {
     for (int y=vout.miny(); y<=vout.maxy(); y++) {
       for (int x=vout.minx(); x<=vout.maxx(); x++) {
@@ -2759,7 +3028,21 @@ volume<float> distancemap(const volume<T>& binaryvol, const volume<T>& mask)
 }
 
 template <class T>
-volume4D<float> sparseinterpolate(const volume4D<T>& sparsesamps, const volume<T>& mask,
+volume<float> sparseinterpolate(const volume<T>& sparsesamps, 
+				const volume<T>& mask,
+				const string& interpmethod)
+{
+  // can have "general" or "nearestneighbour" (or "nn") for interpmethod
+  volume4D<T> sparsesamps4;
+  volume4D<float> result;
+  sparsesamps4 = sparsesamps;
+  result = sparseinterpolate(sparsesamps4,mask,interpmethod);
+  return result[0];
+}
+
+template <class T>
+volume4D<float> sparseinterpolate(const volume4D<T>& sparsesamps, 
+				  const volume<T>& mask,
 				  const string& interpmethod)
 {
   // can have "general" or "nearestneighbour" (or "nn") for interpmethod
@@ -2803,8 +3086,6 @@ void tfce_orig_slow(volume<T>& VolIntn, float H, float E, int NumConn, float min
   return;
 }
 
-
-
 class VecSort{
  public:
   int Sx, Sy, Sz, Sl;
@@ -2814,10 +3095,6 @@ class VecSort{
   }
 };
 
-//
-// minT would normally be 0
-// if deltaT is set to 0 it is reset to max/100
-//
 template <class T>
 void tfce(volume<T>& data, float H, float E, int NumConn, float minT, float deltaT)
 {
@@ -2915,7 +3192,6 @@ void tfce(volume<T>& data, float H, float E, int NumConn, float minT, float delt
   copyconvert(VolEnhn,data);
   return;
 }
-
 
 template <class T>
 void tfce_support(volume<T>& VolIntn, float H, float E, int NumConn, float minT, float deltaT, int Xoi, int Yoi, int Zoi, float threshTFCE)

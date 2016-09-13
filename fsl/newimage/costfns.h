@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 
 #if !defined(__costfns_h)
@@ -77,7 +77,9 @@ using namespace NEWIMAGE;
 namespace NEWIMAGE {
 
   enum costfns { Woods, CorrRatio, MutualInfo, NormCorr, NormMI, LeastSq, LabelDiff,
-		 NormCorrSinc };
+		 NormCorrSinc, BBR, Unknown };
+
+  costfns costfn_type(const string& cname);
 
   class Costfn {
   public:
@@ -85,6 +87,11 @@ namespace NEWIMAGE {
     const volume<float> &testvol;
     const volume<float> &rweight;
     const volume<float> &tweight;
+    volume<float> wmseg;  // WM segmentation (or any useful boundary) for BBR
+    volume<float> fmap;  // fieldmap for BBR
+    volume<float> fmap_mask;  // fieldmap mask for BBR
+    //volume4D<float> nonlin_basis;
+    mutable volume4D<float> debugvol;
   private:
     int *bindex;
     int no_bins;
@@ -100,6 +107,22 @@ namespace NEWIMAGE {
     bool validweights;
     float bin_a0;
     float bin_a1;
+    float bbr_dist;  // in mm
+    float bbr_offset;
+    float bbr_slope;
+    Matrix bbr_pts;  // in mm coords
+    Matrix bbr_norms;  // in mm coords pointing from wm to other
+    float *gm_coord_x;  // in mm coords
+    float *gm_coord_y;
+    float *gm_coord_z;
+    float *wm_coord_x;
+    float *wm_coord_y;
+    float *wm_coord_z;
+    int no_coords;
+    int vertex_step;
+    int pe_dir;  // for fieldmap application
+    string bbr_type;
+    bool debug_mode;
   public: 
     float smoothsize;
     float fuzzyfrac;
@@ -111,12 +134,23 @@ namespace NEWIMAGE {
 	   const volume<float>& refweight, const volume<float>& inweight);
     ~Costfn();
 
+    void set_debug_mode(bool debug_flag=true);
     void set_costfn(const costfns& costtype) { p_costtype = costtype; }
+    costfns get_costfn(void) { return p_costtype; }
     void set_no_bins(int n_bins);
+    int set_bbr_seg(const volume<float>& bbr_seg);
+    int set_bbr_coords(const Matrix& coords, const Matrix& norms);
+    int set_bbr_type(const string& typenm);
+    int set_bbr_step(int step);
+    int set_bbr_slope(float slope);
+    int set_bbr_fmap(const volume<float>& fieldmap, int phase_encode_direction);
+    int set_bbr_fmap(const volume<float>& fieldmap, const volume<float>& fieldmap_mask, int phase_encode_direction);
     int count() const { return p_count; }
 
     // General cost function call
     float cost(const Matrix& affmat) const;    // affmat is voxel to voxel
+    // affmat is voxel to voxel and non-linear parameters are arbitrary
+    float cost(const Matrix& affmat, const ColumnVector& nonlin_params) const;
     // in the following, all warps are mm to mm
     float cost(const volume4D<float>& warp) const;
     float cost_gradient(volume4D<float>& gradvec,
@@ -131,6 +165,10 @@ namespace NEWIMAGE {
     Matrix mappingfn(const Matrix& affmat) const;    // affmat is voxel to voxel
     float get_bin_intensity(int bin_number) const;
     float get_bin_number(float intensity) const;
+    bool is_bbr_set(void) const;
+
+    // a resampling function (since it is logical to keep it with the general cost processing for bbr)
+    float bbr_resamp(const Matrix& aff, const ColumnVector& nonlin_params, volume<float>& resampvol) const;
 
   private:
     // Prevent default behaviours
@@ -158,6 +196,14 @@ namespace NEWIMAGE {
 				      const volume<float>& refweight, 
 				      const volume<float>& testweight) const;
     
+    float bbr(const Matrix& aff) const;
+    float bbr(const Matrix& aff, const ColumnVector& nonlin_params) const;
+    float bbr(const Matrix& aff, const ColumnVector& nonlin_params, 
+	      volume<float>& resampvol, bool resampling_required) const;
+    float fmap_extrap(const double& x_vox, const double& y_vox, const double& z_vox, const ColumnVector& v_pe) const;
+    int vox_coord_calc(ColumnVector& tvc, ColumnVector& rvc, const Matrix& aff, const ColumnVector& nonlin_params, 
+		       const Matrix& iaffbig, const Matrix& mm2vox, const ColumnVector& pe_dir_vec) const;
+
     float woods_fn(const Matrix& aff) const; 
     float woods_fn_smoothed(const Matrix& aff) const; 
     
@@ -188,6 +234,11 @@ namespace NEWIMAGE {
 						const volume<float>& testweight) const;
     
     float cost(const Matrix& affmat,
+	       const volume<float>& refweight, 
+	       const volume<float>& testweight) const;
+
+    float cost(const Matrix& affmat,
+	       const ColumnVector& nonlin_params,
 	       const volume<float>& refweight, 
 	       const volume<float>& testweight) const;
     

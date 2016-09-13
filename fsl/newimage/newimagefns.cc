@@ -349,6 +349,81 @@ template volume<float> isotropic_resample(const volume<float>& aniso, float scal
 template volume<double>isotropic_resample(const volume<double>& aniso, float scale);
 
   template <class T>
+  int upsample_by_2(volume<T>& highresvol, const volume<T>& lowresvol,
+			  bool centred)
+  {
+      // upsamples a volume (lowresvol) to give a new volume (highresvol)
+      // note that this uses the highresvol size if it is OK but will
+      //   throw away any data previous contained therein
+      int sx, sy, sz;
+      sz=lowresvol.zsize();
+      sy=lowresvol.ysize();
+      sx=lowresvol.xsize();
+ 
+      extrapolation oldex = lowresvol.getextrapolationmethod();
+      if ((oldex==boundsassert) || (oldex==boundsexception)) 
+	{ lowresvol.setextrapolationmethod(constpad); }
+
+      if (highresvol.nvoxels()<1) { highresvol.reinitialize(sx*2+1,sy*2+1,sz*2+1); }
+      highresvol.copyproperties(lowresvol);
+      highresvol = lowresvol.backgroundval();
+      highresvol.setdims(lowresvol.xdim() / 2.0, 
+			 lowresvol.ydim() / 2.0,
+			 lowresvol.zdim() / 2.0);
+      // set sform and qform appropriately (if set)
+      // voxel 2 voxel mapping of subsampled vol -> original vol
+      Matrix sub2mat(4,4);
+      sub2mat = IdentityMatrix(4);
+      sub2mat(1,1) = 2.0;
+      sub2mat(2,2) = 2.0;
+      sub2mat(3,3) = 2.0;
+      if (!centred) {
+	sub2mat(1,4) = 0.5;
+	sub2mat(2,4) = 0.5;
+	sub2mat(3,4) = 0.5;
+      }
+      if (lowresvol.sform_code()!=NIFTI_XFORM_UNKNOWN) {
+	highresvol.set_sform(lowresvol.sform_code(),lowresvol.sform_mat() * sub2mat.i());
+      }
+      if (lowresvol.qform_code()!=NIFTI_XFORM_UNKNOWN) {
+	highresvol.set_qform(lowresvol.qform_code(),lowresvol.qform_mat() * sub2mat.i());
+      }
+      highresvol.setROIlimits(lowresvol.minx()*2,lowresvol.miny()*2,
+			      lowresvol.minz()*2,
+			      lowresvol.maxx()*2,lowresvol.maxy()*2,
+			      lowresvol.maxz()*2);
+
+      Matrix high2lowresvox(4,4);
+      high2lowresvox = sub2mat.i();
+      for (int z=0; z<highresvol.zsize(); z++) {
+	for (int y=0; y<highresvol.ysize(); y++) {
+	  for (int x=0; x<highresvol.xsize(); x++) {
+	    // Look up the (voxel) coordinate
+	    ColumnVector highrescoord(4), lowrescoord(4);
+	    highrescoord << x << y << z << 1.0;
+	    lowrescoord = high2lowresvox * highrescoord;
+	    highresvol(x,y,z) = (T) lowresvol.interpolate(lowrescoord(1),
+							  lowrescoord(2),
+							  lowrescoord(3));
+	  }
+	}
+      }
+      lowresvol.setextrapolationmethod(oldex);
+      return 0;
+  }
+
+  template int upsample_by_2(volume<char>& highresvol, 
+				      const volume<char>& lowresvol, bool centred);
+  template int upsample_by_2(volume<short>& highresvol, 
+				      const volume<short>& lowresvol, bool centred);
+  template int upsample_by_2(volume<int>& highresvol, 
+				      const volume<int>& lowresvol, bool centred);
+  template int upsample_by_2(volume<float>& highresvol, 
+				      const volume<float>& lowresvol, bool centred);
+  template int upsample_by_2(volume<double>& highresvol, 
+				      const volume<double>& lowresvol, bool centred);
+
+  template <class T>
   volume<T> subsample_by_2(const volume<T>& refvol, bool centred)
     {
       // subsamples a volume (refvol) by blurring and subsampling to give

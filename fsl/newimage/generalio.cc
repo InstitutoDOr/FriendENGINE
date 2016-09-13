@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "newimageio.h"
 #include "dirf.h"
@@ -76,7 +76,18 @@ using namespace MISCMATHS;
 namespace NEWIMAGE {
 
 
+
 ////////////////////////////////////////////////////////////////////////////
+
+
+int  handle_read_error(int errorflag, const string& filename) {
+  if ((errorflag & 1) == 1) { imthrow("ERROR:: Could not open file " + filename,22); }
+  if ((errorflag & 2) == 2) { imthrow("ERROR:: Illegal NIfTI file! Inconsistent sform and qform information set in " + filename,40); }
+  if ((errorflag & 4) == 4) { imthrow("ERROR:: Illegal NIfTI file! Zero determinant for sform and/or qform set in  " + filename,41); }
+  return errorflag;
+}
+
+
 
 // VOLUME I/O
 template <class T>
@@ -132,7 +143,8 @@ int read_volumeROI(volume<T>& target, const string& filename,
 
   FSLIO *IP1;
   IP1 = NewFslOpen(filename.c_str(), "r");
-  if (IP1==0) { imthrow("Failed to read volume "+filename,22); }
+  int errorflag=FslGetErrorFlag(IP1);
+  if (errorflag==1) { imthrow("Failed to read volume "+filename,22); }
   short sx,sy,sz,st;
   FslGetDim(IP1,&sx,&sy,&sz,&st);
   size_t volsize=sx*sy*sz;
@@ -181,7 +193,7 @@ int read_volumeROI(volume<T>& target, const string& filename,
       target = target.ROI();
     }
 
-  return 0;
+  return errorflag;
 }
 
 template int read_volumeROI(volume<char>& target, const string& filename, 
@@ -205,6 +217,30 @@ template int read_volumeROI(volume<double>& target, const string& filename,
 		   int x0, int y0, int z0, int x1, int y1, int z1,
 		   bool swap2radiological);
 
+
+int read_volume_size(const string& filename, 
+		     int64_t& sx, int64_t& sy, int64_t& sz, int64_t& st, int64_t& s5)
+{
+  // read in sizes only
+  Tracer trcr("read_volume_size");
+
+  FSLIO *IP1;
+  IP1 = NewFslOpen(filename.c_str(), "r");
+  int errorflag=FslGetErrorFlag(IP1);
+  if (errorflag==1) { imthrow("Failed to read volume "+filename,22); }
+
+  short ssx,ssy,ssz,sst,ss5;
+  FslGetDim5(IP1,&ssx,&ssy,&ssz,&sst,&ss5);
+  if (sst<1) sst=1;  // make it robust to dim4=0
+  sst*=ss5;  // in newimage the time dimension is used to store both dim4 and dim5 (so these are not raw)
+  sx=ssx;
+  sy=ssy;
+  sz=ssz;
+  st=sst;
+  s5=ss5;
+  return errorflag;
+}
+
 template <class T>
 int read_volume4DROI(volume4D<T>& target, const string& filename, 
 		     short& dtype, bool read_img_data,
@@ -222,12 +258,15 @@ int read_volume4DROI(volume4D<T>& target, const string& filename,
 
   FSLIO *IP1;
   IP1 = NewFslOpen(filename.c_str(), "r");
-  if (IP1==0) { imthrow("Failed to read volume "+filename,22); }
+  int errorflag=FslGetErrorFlag(IP1);
+  if (errorflag==1) { imthrow("Failed to read volume "+filename,22); }
 
-  short sx,sy,sz,st;
-  FslGetDim(IP1,&sx,&sy,&sz,&st);
-  size_t volsize=sx*sy*sz;
+  short sx,sy,sz,st,s5;
+  FslGetDim5(IP1,&sx,&sy,&sz,&st,&s5);
   if (st<1) st=1;  // make it robust to dim4=0
+  if (s5<1) s5=1;  // make it robust to dim5=0
+  st*=s5;  // in newimage the time dimension is used to store both dim4 and dim5
+  size_t volsize=sx*sy*sz;
   
   // use -1 to signify end point
   if (t1<0) { t1=st-1; }
@@ -292,6 +331,7 @@ int read_volume4DROI(volume4D<T>& target, const string& filename,
   float x,y,z,tr;
   FslGetVoxDim(IP1,&x,&y,&z,&tr);
   target.setdims(x,y,z,tr);
+  target.setsize5(s5);
 
   FslGetDataType(IP1,&dtype);
 
@@ -308,7 +348,7 @@ int read_volume4DROI(volume4D<T>& target, const string& filename,
   // swap to radiological if necessary
   if (swap2radiological && !target[0].RadiologicalFile) target.makeradiological();
 
-  return 0;
+  return errorflag;
 }
 
 template int read_volume4DROI(volume4D<char>& target, const string& filename, 
@@ -379,7 +419,7 @@ int save_basic_volume4D(const volume4D<T>& source, const string& filename,
   // if filetype < 0 then it is ignored, otherwise it overrides everything
   FSLIO *OP = NewFslOpen(filename.c_str(),"wb",filetype);
   if (OP==0) { imthrow("Failed to open volume "+filename+" for writing",23); }
-  set_fsl_hdr(source[0],OP,source.tsize(),source.tdim());
+  set_fsl_hdr(source[0],OP,source.tsize(),source.tdim(),source.size5());
   if (filetype>=0) FslSetFileType(OP,filetype);
   FslWriteHeader(OP);
   if (source.nvoxels()>0) {
@@ -494,7 +534,8 @@ FSLIO* NewFslOpen(const string& filename, const string& permissions,
        (permissions.find('+')!=string::npos) )  { writemode=true; }
 
   FSLIO* OP=FslXOpen(basename.c_str(),permissions.c_str(),filetype);
-  if (OP==NULL) {
+  int errorflag=FslGetErrorFlag(OP);
+  if (errorflag==1) {
     cerr << "ERROR: Could not open image " << basename << endl;
     return NULL;
   }
@@ -671,7 +712,9 @@ int read_complexvolume(volume<float>& realvol, volume<float>& imagvol,
   make_basename(basename);
 
   FSLIO* IP1 = FslOpen(basename.c_str(), "r");
-  if (IP1==NULL) {
+  int errorflag=FslGetErrorFlag(IP1);
+  if (errorflag==1)
+  {
     cerr << "Cannot open volume " << basename << " for reading!\n";
     return(1);
   }
@@ -703,7 +746,7 @@ int read_complexvolume(volume<float>& realvol, volume<float>& imagvol,
     imagvol.RadiologicalFile = true;
   }
   FslClose(IP1);
-  return 0;
+  return errorflag;
 }
 
 
@@ -729,7 +772,8 @@ int read_complexvolume4D(volume4D<float>& realvols, volume4D<float>& imagvols,
   make_basename(basename);
 
   FSLIO* IP1 = FslOpen(basename.c_str(), "r");
-  if (IP1==NULL) {
+  int errorflag=FslGetErrorFlag(IP1);
+  if (errorflag==1) {
     cerr << "Cannot open volume " << basename << " for reading!\n";
     return(1);
   }
@@ -768,7 +812,7 @@ int read_complexvolume4D(volume4D<float>& realvols, volume4D<float>& imagvols,
     imagvols[0].RadiologicalFile = true;
   }
   FslClose(IP1);
-  return 0;
+  return errorflag;
 }
 
 
@@ -833,7 +877,7 @@ int save_complexvolume4D(const volume4D<float>& realvols,
 
   FSLIO* OP=FslOpen(basename.c_str(),"w");
   if (OP==0) return -1;
-  set_fsl_hdr(realvols[0],OP,realvols.tsize(),realvols.tdim());
+  set_fsl_hdr(realvols[0],OP,realvols.tsize(),realvols.tdim(),realvols.size5());
   FslSetDataType(OP, DT_COMPLEX);
 
   FslWriteHeader(OP);

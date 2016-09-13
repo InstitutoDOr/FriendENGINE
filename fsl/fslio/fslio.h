@@ -167,6 +167,7 @@ int   FslGetIgnoreMFQ(void);
 void  FslSetOverrideOutputType(int type);
 int   FslGetOverrideOutputType(void);
 
+
 int  FslGetFileType(const FSLIO *fslio);
 void FslSetFileType(FSLIO *fslio, int filetype);
 int  FslIsSingleFileType(int filetype);
@@ -199,7 +200,9 @@ void   FslCloneHeader(FSLIO *dest, const FSLIO *src);
 size_t FslGetVolSize(FSLIO *fslio);
 
 void FslSetDim(FSLIO *fslio, short x, short y, short z, short v);
+void FslSetDim5(FSLIO *fslio, short x, short y, short z, short v, short u);
 void FslGetDim(FSLIO *fslio, short *x, short *y, short *z, short *v);
+void FslGetDim5(FSLIO *fslio, short *x, short *y, short *z, short *v, short *u);
 void FslSetDimensionality(FSLIO *fslio, size_t dim);
 void FslGetDimensionality(FSLIO *fslio, size_t *dim);
 void FslSetVoxDim(FSLIO *fslio, float x, float y, float z, float tr);
@@ -252,6 +255,7 @@ size_t FslReadTimeSeries(FSLIO *fslio, void *buffer, short xVox, short yVox, sho
   /* miscellaneous helper stuff */
 
 mat33 mat44_to_mat33(mat44 x);
+
 
 
 /* added by KF pending discussion w/ Mark */
