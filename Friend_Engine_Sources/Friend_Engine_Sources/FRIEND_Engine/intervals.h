@@ -18,6 +18,8 @@ typedef struct
 
 using namespace std;
 
+string trim(const std::string &s);
+
 class DesignObject
 {
    public:
@@ -84,6 +86,9 @@ class DesignObject
          // reads a design file
          int readDesignFile(char *designFile);
    
+		 // no Interest Contrast
+		 void noInterestContrastsIndexes(char *noInteresetConditions, vector<int> &indexes);
+
          // populates the contrasts and contrast vectors
          void generateContrasts(bool conditionContrasts = 1, bool temporalDerivatives = 0);
    

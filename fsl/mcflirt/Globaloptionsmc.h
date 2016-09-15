@@ -105,6 +105,7 @@ class Globaloptions {
   int meanvol;
   int sinc_final;
   int nn_final;
+  int spline_final;
   int rmsrelflag;
   int rmsabsflag;
   float scaling;
@@ -174,6 +175,7 @@ inline void Globaloptions::reiniciagOptions()
   no_stages = 3;
   sinc_final = 0;
   nn_final = 0;
+  spline_final = 0;
   rmsrelflag = 0;
   rmsabsflag = 0;
   fudgeflag = 0;

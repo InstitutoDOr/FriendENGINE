@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 // Mathematical optimisation functions
 
@@ -210,7 +210,7 @@ namespace MISCMATHS {
   float optimise1d(ColumnVector &pt, const ColumnVector dir, 
 		  const ColumnVector tol, int &iterations_done, 
 		  float (*func)(const ColumnVector &), int max_iter,
-		  float init_value, float boundguess) 
+		  float &init_value, float boundguess) 
   {
     // Golden Search Routine
     // Must pass in the direction vector in N-space (dir), the initial
@@ -236,8 +236,8 @@ namespace MISCMATHS {
     // set up initial points
     xmid = 0.0;
     x1 = boundguess * unittol;  // initial guess (bound)
-    if (init_value==0.0) ymid = (*func)(xmid*unitdir + pt);
-    else ymid = init_value;
+    if (init_value==0.0) { init_value = (*func)(xmid*unitdir + pt); }
+    ymid = init_value;
     y1 = (*func)(x1*unitdir + pt);
     findinitialbound(x1,xmid,x2,y1,ymid,y2,func,unitdir,pt);
 
@@ -307,8 +307,12 @@ namespace MISCMATHS {
   
   float optimise(ColumnVector &pt, int numopt, const ColumnVector &tol, 
 		 float (*func)(const ColumnVector &), int &iterations_done, 
-		 int max_iter, const ColumnVector& boundguess)
+		 int max_iter, const ColumnVector& boundguess, 
+		 const string type)
   {
+    // Note that numopt can be less than pt.Nrows() - e.g. 6 dof optimisation
+    //  but with a 12 dimensional vector
+
     // Calculate dot product of dir by tol
     //  st (x1-x2)*dir_tol = average number of tolerances between x1 and x2
     ColumnVector inv_tol(tol.Nrows());
@@ -320,22 +324,57 @@ namespace MISCMATHS {
     }
     inv_tol /= (float) tol.Nrows();
 
-    ColumnVector dir(pt.Nrows()), initpt;
+    Matrix dirs(pt.Nrows(),pt.Nrows());
+    dirs = IdentityMatrix(pt.Nrows());
+    ColumnVector dir(pt.Nrows()), initpt, deltaf(pt.Nrows());
+    deltaf=0.0f;
     int lit=0, littot=0, it=0;
-    float fval=0.0, bndguess;
+    float fval=0.0, fval2=0.0, bndguess, finit=0.0, fend=0.0, fextrap=0.0;
     while ((++it)<=max_iter)
       {
 	initpt = pt;
 	bndguess = boundguess(Min(it,boundguess.Nrows()));  // ceiling of nrows
 	for (int n=1; n<=numopt; n++) {
-	  dir = 0.0;
-	  dir(n) = 1.0;
-	  fval = optimise1d(pt,dir,tol,lit,func,100,fval,bndguess);
+	  for (int m=1; m<=pt.Nrows(); m++) { dir(m) = dirs(m,n); }
+	  fval2 = optimise1d(pt,dir,tol,lit,func,100,fval,bndguess);
+	  deltaf(n)=fval2-fval;
+	  if (n==1) { finit = fval; }
+	  fval=fval2;
 	  littot += lit;
 	}
+
 	// check to see if the point has moved more than one average tolerance
 	float avtol = SP((initpt - pt),inv_tol).SumAbsoluteValue();
 	if (avtol < 1.0) break;
+
+	// if continuing then change the directions if using Powell's method
+	if (type=="powell") 
+	  {
+	    // find direction of maximal change
+	    int bestm=1;
+	    for (int m=1; m<=numopt; m++) { 
+	      if (deltaf(m)<deltaf(bestm)) bestm=m; 
+	    }
+	    fend=fval;
+	    fextrap=(*func)(initpt + 2*(pt-initpt));
+	    float df=fabs(deltaf(bestm));
+	    if ( (2 * (finit-2*fend+fextrap) * (finit-fend-df)*(finit-fend-df)) < ( (finit-fextrap)*(finit-fextrap)*df ) ) {
+	      if (fextrap<finit) {
+		cout << "Applying POWELL correction" << endl;
+		cout << "finit, fend, fextrap = " << finit << " , " << fend << " , " << fextrap << endl;
+		// do another minimisation
+		fval2 = optimise1d(pt,pt-initpt,tol,lit,func,100,fval,bndguess);
+		fval=fval2;
+		cout << "fval = " << fval << endl;
+		littot += lit;
+		// replace direction of maximum change with pt-initpt
+		for (int m=1; m<=pt.Nrows(); m++) {
+		  dirs(m,bestm)=pt(m)-initpt(m);
+		}
+	      }
+	    }
+	  }
+	
       }
     // cout << endl << "Major iterations = " << it << endl;
     iterations_done = littot;

@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <string>
 #include <iostream>
@@ -141,7 +141,9 @@ void print_usage(int argc, char *argv[])
        << "        -mm                                    (all coordinates in mm)\n"
        << "        -v                                     (verbose)\n"
        << "        -help\n\n"
-       << " Note that the first three options are compulsory\n";
+       << " Notes:\n"
+       << "  (1) if '-' is used as coordinate filename then coordinates are read from standard input\n"
+       << "  (2) the first three options are compulsory\n";
 }
 
 
@@ -244,9 +246,9 @@ ColumnVector NewimageCoord2NewimageCoord(const FnirtFileReader& fnirtfile, const
 {
   ColumnVector retvec;
   if (fnirtfile.IsValid()) {
-    // in the following affmat=src2middle.mat, fnirtfile=middle2dest_warp.nii.gz
-    retvec = NewimageCoord2NewimageCoord(affmat,
-				     fnirtfile.FieldAsNewimageVolume4D(true),true,srcvol,destvol,srccoord);
+    // in the following affmat=highres2example_func.mat, fnirtfile=highres2standard_warp.nii.gz
+    static volume4D<float> fieldVolume( fnirtfile.FieldAsNewimageVolume4D(true) );
+    retvec = NewimageCoord2NewimageCoord(affmat,fieldVolume,true,srcvol,destvol,srccoord);
   } else {
     retvec = NewimageCoord2NewimageCoord(affmat,srcvol,destvol,srccoord);
   }
@@ -264,10 +266,12 @@ int main(int argc,char *argv[])
     // read volumes
   if (read_volume_hdr_only(srcvol,globalopts.srcfname)<0) {
     cerr << "Cannot read Source volume" << endl;
+    freeparser(argc, argv);
     return -1;
   }
   if (read_volume_hdr_only(destvol,globalopts.destfname)<0) {
     cerr << "Cannot read Destination volume" << endl;
+    freeparser(argc, argv);
     return -1;
   }
     
@@ -285,7 +289,8 @@ int main(int argc,char *argv[])
   }
   if (affmat.Nrows()<4) {
     cerr << "Cannot read transform file" << endl;
-    return -2;
+      freeparser(argc, argv);
+      return -2;
   }
     
   if (globalopts.verbose>3) {
@@ -301,7 +306,7 @@ int main(int argc,char *argv[])
     }
     catch (...) {
       cerr << "An error occured while reading file: " << globalopts.warpfname << endl;
-      return(EXIT_FAILURE);
+      exit(EXIT_FAILURE);
     }
   }
 
@@ -323,49 +328,55 @@ int main(int argc,char *argv[])
     cout << " (in voxels)" << endl; 
   }
   
-  if (globalopts.coordfname.size()>1) {
-    ifstream matfile(globalopts.coordfname.c_str());
-    if (!matfile) { 
-      cerr << "Could not open matrix file " << globalopts.coordfname << endl;
-      return -1;
-    }
-    
-    while (!matfile.eof()) {
-      for (int j=1; j<=3; j++) {
-	matfile >> srccoord(j);
-      }
-      if (globalopts.mm) {  // in mm
-	destcoord = destvol.newimagevox2mm_mat() * NewimageCoord2NewimageCoord(fnirtfile,affmat,srcvol,destvol,srcvol.newimagevox2mm_mat().i() * srccoord); 
-      } else { // in voxels
-	destcoord = destvol.niftivox2newimagevox_mat().i() * NewimageCoord2NewimageCoord(fnirtfile,affmat,srcvol,destvol,srcvol.niftivox2newimagevox_mat() * srccoord); 
-      }
-      cout << destcoord(1) << "  " << destcoord(2) << "  " << destcoord(3) << endl;
-    }
-    
-    matfile.close();
-  } else {
-    cout << "Please type in Source coordinates";
-    if (globalopts.mm) { 
-      cout << " (in mm) :" << endl;
-    } else { 
-      cout << " (in voxels) :" << endl; 
-    }
-    while (!cin.eof()) {
-      for (int j=1; j<=3; j++) {
-	cin >> srccoord(j);
-      }
-      if (oldsrc == srccoord)  return 0;
-      oldsrc = srccoord;
-      if (globalopts.mm) {  // in mm
-	destcoord = destvol.newimagevox2mm_mat() * NewimageCoord2NewimageCoord(fnirtfile,affmat,srcvol,destvol,srcvol.newimagevox2mm_mat().i() * srccoord); 
-      } else { // in voxels
-	destcoord = destvol.niftivox2newimagevox_mat().i() * NewimageCoord2NewimageCoord(fnirtfile,affmat,srcvol,destvol,srcvol.niftivox2newimagevox_mat() * srccoord);
-      }
-      cout << destcoord(1) << "  " << destcoord(2) << "  " << destcoord(3) << endl;
-    }
+  ///
+  bool use_stdin = false;
+  if ( (globalopts.coordfname=="-") || (globalopts.coordfname.size()<1)) {
+    use_stdin = true;
   }
 
+  // set up coordinate reading (from file or stdin) //
+  ifstream matfile(globalopts.coordfname.c_str());
 
+  if (use_stdin) {
+    if (globalopts.verbose>0) {
+      cout << "Please type in input image coordinates";
+      if (globalopts.mm) { 
+	cout << " (in mm) :" << endl;
+      } else { 
+	cout << " (in voxels) :" << endl; 
+      }
+    } 
+  } else {
+    if (!matfile) { 
+      cerr << "Could not open matrix file " << globalopts.coordfname << endl;
+      freeparser(argc, argv);
+      return -1;
+    }
+  }
+  
+  while ( (use_stdin && (!cin.eof())) || ((!use_stdin) && (matfile >> srccoord(1) >> srccoord(2) >> srccoord(3))) ) {
+    if  (use_stdin) {
+      cin >> srccoord(1) >> srccoord(2) >> srccoord(3);
+      // this is in case the pipe continues to input a stream of zeros
+      if (oldsrc == srccoord)  
+      {
+          freeparser(argc, argv);
+          return 0;
+      }
+      oldsrc = srccoord;
+    }
+       
+    if (globalopts.mm) {  // in mm
+      destcoord = destvol.newimagevox2mm_mat() * NewimageCoord2NewimageCoord(fnirtfile,affmat,srcvol,destvol,srcvol.newimagevox2mm_mat().i() * srccoord); 
+    } else { // in voxels
+      destcoord = destvol.niftivox2newimagevox_mat().i() * NewimageCoord2NewimageCoord(fnirtfile,affmat,srcvol,destvol,srcvol.niftivox2newimagevox_mat() * srccoord);
+    }
+    cout << destcoord(1) << "  " << destcoord(2) << "  " << destcoord(3) << endl;
+  }
+  
+  if (!use_stdin) { matfile.close(); }
+
+  freeparser(argc, argv);
   return 0;
 }
 

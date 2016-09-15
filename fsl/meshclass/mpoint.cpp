@@ -178,6 +178,9 @@ const Vec Mpoint::max_triangle() const
 const bool operator ==(const Mpoint &p2, const Mpoint &p1){
   return (fabs(p1.get_coord().X- p2.get_coord().X)<1e-8 && fabs(p1.get_coord().Y - p2.get_coord().Y)<1e-8 && fabs(p1.get_coord().Z - p2.get_coord().Z)<1e-8);
 }
+const bool operator ==(const Mpoint &p1, const Pt &p2){
+  return (fabs(p1.get_coord().X- p2.X)<1e-2 && fabs(p1.get_coord().Y - p2.Y)<1e-2 && fabs(p1.get_coord().Z - p2.Z)<1e-2);
+}
 
 const Vec operator -(const Mpoint&p1, const Mpoint &p2){
   return Vec (p1.get_coord().X - p2.get_coord().X,p1.get_coord().Y - p2.get_coord().Y,p1.get_coord().Z - p2.get_coord().Z );

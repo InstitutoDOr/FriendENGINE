@@ -113,6 +113,9 @@ Option<string> inname(string("-i"), string(""),
 Option<string> maskname(string("-m"), string(""),
 		  string("~<filename>\tinput 3D mask"),
 		  false, requires_argument);
+Option<string> labelname(string("--label"), string(""),
+		  string("input 3D label image (generate separate mean for each integer label value - cannot be used with showall)"),
+		  false, requires_argument);
 Option<string> outmat(string("-o"), string(""),
 		  string("~<filename>\toutput text matrix"),
 		  false, requires_argument);
@@ -155,6 +158,7 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
   options.add(eig);
   options.add(order);
   options.add(bin_mask);
+  options.add(labelname);
   options.add(transpose);
   options.add(verbose);
   options.add(help);
@@ -166,7 +170,7 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
   if ( (help.value()) || (!options.check_compulsory_arguments(true)) )
     {
       options.usage();
-      exit(EXIT_FAILURE);
+	  return(EXIT_FAILURE);
     }
   
 
@@ -175,7 +179,7 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
   volume4D<float> vin;
   read_volume4D(vin,inname.value());
 
-  volume<float> mask;
+  volume<float> mask, label;
   volume4D<float> mask_nonbin;
   if (maskname.set()) {
     read_volume(mask,maskname.value());
@@ -184,8 +188,19 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
     mask = 1.0;
   }
 
+  int nlabs=1;
+  if (labelname.set() && showall.unset()) {
+    read_volume(label,labelname.value());
+    if (verbose.value()) { print_volume_info(label,"label"); }
+    float labmax=label.max();
+    if (labmax>=0.99) {
+      mask *= label;
+    }
+    nlabs=MISCMATHS::round(labmax);
+    if (nlabs<1) nlabs=1;
+  }
 
-  // override the mask if a coordinate is specified
+  // override the mask (and label) if a coordinate is specified
   if (coordval.set()) {
     mask = vin[0];
     mask = 0.0;
@@ -205,97 +220,103 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
     x = v(1);  y = v(2);  z = v(3);
     mask(MISCMATHS::round(x),MISCMATHS::round(y),MISCMATHS::round(z)) = 1.0;
   }
-
+  
   if (!samesize(vin[0],mask)) {
     cerr << "ERROR: Mask and Input volumes have different (x,y,z) size." 
 	 << endl;
     return -1;
   }
-
+  
   mask_nonbin.addvolume(mask);
-  mask.binarise(1e-8);  // arbitrary "0" threshold
-
-  if(eig.value()){
-    Matrix dat, evecs, scales;
-    scales = mask_nonbin.matrix(mask);
-    dat = vin.matrix(mask);
-    if(!bin_mask.value())
-      dat = SP (dat, ones(dat.Nrows(),1) * scales);
-    dat = remmean(dat,1);
-    
-    if (verbose.value()) {
-      cout << "Number of voxels used = " << dat.Ncols() << endl;
-    }
-    
-    SymmetricMatrix Corr;
-    Corr << dat * dat.t() / dat.Ncols();
-    DiagonalMatrix tmpD;
-    EigenValues(Corr,tmpD,evecs);	
-    evecs = fliplr(evecs.Columns(evecs.Ncols()-order.value()+1 , evecs.Ncols())) * std::sqrt((float)dat.Nrows());
-    
-    Matrix res2 = mean(dat,2);
-    res2 = res2.Column(1).t() * evecs.Column(1);
-    
-    if((float)res2.AsScalar()<0)  
-      evecs = -1.0 * evecs;
-    
-    if (transpose.value()) { evecs=evecs.t(); }
-    if (outmat.set()) {
-      write_ascii_matrix(evecs,outmat.value());
-    } else {
-      cout << evecs << endl;
-    }
-    if (transpose.value()) { evecs=evecs.t(); }
+  if (labelname.unset()) { mask.binarise(1e-8); }  // arbitrary "0" threshold
+  
+  Matrix meants;
+  int nt = vin.tsize();
+  int nvox = nlabs;
+  if (showall.value()) {
+    nvox = no_mask_voxels(mask);
+    nt += 3;
   }
-  else{	
-    int nt = vin.tsize();
-    int nvox = 1;
-    if (showall.value()) {
-      nvox = MISCMATHS::round(mask.sum());
-      nt += 3;
-    }
-    Matrix meants(nt,nvox);
-    meants = 0;
-    long int num=0;
+  meants.ReSize(nt,nvox);
+  meants = 0;
+
+  for (int iter=1; iter<=nlabs; iter++) {
+
+    if (eig.value()) {
+      Matrix dat, evecs, scales;
+      scales = mask_nonbin.matrix(mask);
+      dat = vin.matrix(mask);
+      if(!bin_mask.value())
+	dat = SP (dat, ones(dat.Nrows(),1) * scales);
+      dat = remmean(dat,1);
     
-    for (int z=mask.minz(); z<=mask.maxz(); z++) {
-      for (int y=mask.miny(); y<=mask.maxy(); y++) {
-        for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	  if (mask(x,y,z)>0.5) {
-	    num++;
-	    if (showall.value()) {
-	      ColumnVector v(4);
-	      v << x << y << z << 1.0;
-	      v = (vin[0].niftivox2newimagevox_mat()).i() * v;
-	      meants(1,num) = v(1);
-	      meants(2,num) = v(2);
-	      meants(3,num) = v(3);
-	      meants.SubMatrix(4,nt,num,num) = vin.voxelts(x,y,z);
-	    } else {
-	      meants += vin.voxelts(x,y,z);
+      if (verbose.value()) {
+	cout << "Number of voxels used = " << dat.Ncols() << endl;
+      }
+    
+      SymmetricMatrix Corr;
+      Corr << dat * dat.t() / dat.Ncols();
+      DiagonalMatrix tmpD;
+      EigenValues(Corr,tmpD,evecs);	
+      evecs = fliplr(evecs.Columns(evecs.Ncols()-order.value()+1 , evecs.Ncols())) * sqrt(dat.Nrows());
+    
+      Matrix res2 = mean(dat,2);
+      res2 = res2.Column(1).t() * evecs.Column(1);
+    
+      if((float)res2.AsScalar()<0)  
+	evecs = -1.0 * evecs;
+    
+      if (transpose.value()) { evecs=evecs.t(); }
+      if (outmat.set()) {
+	write_ascii_matrix(evecs,outmat.value());
+      } else {
+	cout << evecs << endl;
+      }
+      if (transpose.value()) { evecs=evecs.t(); }
+
+    } else {	
+      // NOT EIG
+      long int num=0;
+    
+      for (int z=mask.minz(); z<=mask.maxz(); z++) {
+	for (int y=mask.miny(); y<=mask.maxy(); y++) {
+	  for (int x=mask.minx(); x<=mask.maxx(); x++) {
+	    if (MISCMATHS::round(mask(x,y,z))==iter) {
+	      num++;
+	      if (showall.value()) {
+		ColumnVector v(4);
+		v << x << y << z << 1.0;
+		v = (vin[0].niftivox2newimagevox_mat()).i() * v;
+		meants(1,num) = v(1);
+		meants(2,num) = v(2);
+		meants(3,num) = v(3);
+		meants.SubMatrix(4,nt,num,num) = vin.voxelts(x,y,z);
+	      } else {
+		meants.SubMatrix(1,nt,iter,iter) = meants.SubMatrix(1,nt,iter,iter) + vin.voxelts(x,y,z);
+	      }
 	    }
 	  }
-        }
+	}
       }
-    }
     
-    if (verbose.value()) {
-      cout << "Number of voxels used = " << num << endl;
-    }
+      if (verbose.value()) {
+	cout << "Number of voxels used = " << num << endl;
+      }
     
-    // normalise for number of valid entries if averaging
-    if (!showall.value()) {
-      if (num>0) meants /= (float) num;
+      // normalise for number of valid entries if averaging
+      if (!showall.value()) {
+	if (num>0) meants.SubMatrix(1,nt,iter,iter) = meants.SubMatrix(1,nt,iter,iter) / ((float) num);
+      }
+
+      // save the result
+      if (transpose.value()) { meants=meants.t(); }
+      if (outmat.set()) {
+	write_ascii_matrix(meants,outmat.value());
+      } else {
+	cout << meants << endl;
+      }
+      if (transpose.value()) { meants=meants.t(); }
     }
-    
-    // save the result
-    if (transpose.value()) { meants=meants.t(); }
-    if (outmat.set()) {
-      write_ascii_matrix(meants,outmat.value());
-    } else {
-      cout << meants << endl;
-    }
-    if (transpose.value()) { meants=meants.t(); }
   }
   freeparser(argc, argv);
   return 0;

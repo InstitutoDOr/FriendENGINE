@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "miscmaths/miscmaths.h"
 #include "newimage/newimageall.h"
@@ -75,9 +75,10 @@
 using namespace NEWIMAGE;
 
 namespace fslstats {
-void print_usage(const string& progname) {
-  cout << "Usage: fslstats [-t] <input> [options]" << endl << endl; 
-  cout << "-t will give a separate output line for each 3D volume of a 4D timeseries" << endl; 
+int print_usage(const string& progname) {
+  cout << "Usage: fslstats [preoptions] <input> [options]" << endl << endl; 
+  cout << "preoption -t will give a separate output line for each 3D volume of a 4D timeseries" << endl;
+  cout << "preoption -K < indexMask > will generate seperate n submasks from indexMask, for indexvalues 1..n where n is the maximum index value in indexMask, and generate statistics for each submask" << endl;
   cout << "Note - options are applied in order, e.g. -M -l 10 -M will report the non-zero mean, apply a threshold and then report the new nonzero mean" << endl << endl;
   cout << "-l <lthresh> : set lower threshold" << endl;
   cout << "-u <uthresh> : set upper threshold" << endl;
@@ -101,9 +102,11 @@ void print_usage(const string& progname) {
   cout << "-a           : use absolute values of all image intensities"<< endl;
   cout << "-n           : treat NaN or Inf as zero for subsequent stats" << endl;
   cout << "-k <mask>    : use the specified image (filename) for masking - overrides lower and upper thresholds" << endl;
+  cout << "-d <image>   : take the difference between the base image and the image specified here" << endl;
   cout << "-h <nbins>   : output a histogram (for the thresholded/masked voxels only) with nbins" << endl; 
   cout << "-H <nbins> <min> <max>   : output a histogram (for the thresholded/masked voxels only) with nbins and histogram limits of min and max" << endl << endl;
   cout << "Note - thresholds are not inclusive ie lthresh<allowed<uthresh" << endl;
+  return 1;
 }
 
 // Some specialised nonzero functions just for speedup
@@ -180,8 +183,6 @@ int generateNonZeroMask(const volume4D<float> &mask, volume4D<float> &masknz, co
   masknz.reinitialize(mask.xsize(),mask.ysize(),mask.zsize(),input.tsize());
   for (int t=input.mint(); t<=input.maxt(); t++) 
     masknz[t]=((binarise(input[t],0.0f, 0.0f)-1.0f)*-1.0f*mask[t % mask.tsize()]);
-
-  save_volume4D(masknz, "e:/masknz_old.nii");
   return 0;
 }
 
@@ -191,26 +192,37 @@ int generate_masks(volume4D<float>& mask, volume4D<float>& masknz, const volume4
   return generateNonZeroMask(mask,masknz,input);
 }
 
-int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode) 
+int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode, const string& indexMaskName) 
 {
   cout.setf(ios::dec); 
   cout.setf(ios::fixed, ios::floatfield); 
   cout.setf(ios::left, ios::adjustfield); 
   cout.precision(6);  
-
-  int nTimepoints(1);
   volume4D<float> vol, inputMaster;
-  if ( timeseriesMode) {
+  volume4D<int> indexMask;
+  if ( timeseriesMode || indexMaskName != "" ) 
     read_volume4D(inputMaster,argv[1]);
-    nTimepoints=inputMaster.tsize();
-  } else 
+  else 
     read_volume4D(vol,argv[1]);
-
-  for ( int timepoint=0; timepoint < nTimepoints ; timepoint++ )
-  {
+  volume4D<float> & indexMaster = (timeseriesMode ) ? vol : inputMaster;
+  if ( indexMaskName != "" ) 
+    read_volume4D(indexMask,indexMaskName);
+  int nTimepoints((timeseriesMode) ? inputMaster.tsize() : 1), nIndices((indexMaskName != "") ? indexMask.max() : 1);
+  for ( int timepoint=0; timepoint < nTimepoints ; timepoint++ ) {
+   for ( int index=1; index <= nIndices; index++ ) {
     if ( timeseriesMode )
       vol=inputMaster[timepoint];
     volume4D<float> mask, masknz;
+    if ( indexMask.nvoxels() ) {
+      if ( indexMask.tsize() != 1 ) {
+	cerr << "Index mask must be 3D" << endl;
+        return 3;
+      }
+      copyconvert(indexMask,mask);
+      mask.binarise(index-1,index+1,exclusive);
+      vol=indexMaster*mask[0];
+      generateNonZeroMask(mask,masknz,vol);
+    }
     float lthr(vol.min()-1);
     float uthr=(vol.max()+1);    
     int narg(2);
@@ -343,30 +355,57 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
       cout << entropy << " ";
     } else if (sarg=="-k") {
       narg++;
+      volume4D<float> mask2;
       if (narg>=argc) {
-	cerr << "Must specify an argument to -k" << endl;
-	return(2);
+        cerr << "Must specify an argument to -k" << endl;
+        return(2);
       }
       read_volume4D(mask,argv[narg]);
       if (!samesize(mask[0],vol[0])) {
 	cerr << "Mask and image must be the same size" << endl;
 	return(3);
       }
+      if (timeseriesMode && mask.tsize() != 1 ) { mask2=mask[timepoint]; mask=mask2; }
       if ( mask.tsize() > vol.tsize() ) {
 	cerr << "Mask and image must be the same size" << endl;
 	return(3);
       }
       if ( mask.tsize() != vol.tsize() && mask.tsize() != 1) {
-	// copy the last max volume until the correct size is reached
-	while (mask.tsize() < vol.tsize() ) {
-   	  mask.addvolume(mask[mask.maxt()]);
+        // copy the last max volume until the correct size is reached
+        while (mask.tsize() < vol.tsize() ) {
+          mask.addvolume(mask[mask.maxt()]);
         }
       }
-      
+
       mask.binarise(0.5);
       generateNonZeroMask(mask,masknz,vol);
-        if (mask.tsize()!=1) vol*=mask; 
-	else vol*=mask[0];
+        if (mask.tsize()!=1) vol*=mask;
+        else vol*=mask[0];
+    } else if (sarg=="-d") {
+      narg++;
+      if (narg>=argc) {
+	cerr << "Must specify an argument to -d" << endl;
+	exit(2);
+      }
+      volume4D<float> image2,image3;
+      read_volume4D(image2,argv[narg]);
+      if (!samesize(image2[0],vol[0])) {
+	cerr << "Image used with -d must be the same size as the base image" << endl;
+	exit(3);
+      }
+      if (timeseriesMode) { image3=image2[timepoint]; image2=image3; }
+      if ( image2.tsize() > vol.tsize() ) {
+	cerr << "Image must be the same size as the base image" << endl;
+	exit(3);
+      }
+      if ( image2.tsize() != vol.tsize() && image2.tsize() != 1) {
+	// copy the last max volume until the correct size is reached
+	while (image2.tsize() < vol.tsize() ) {
+   	  image2.addvolume(image2[image2.maxt()]);
+        }
+      }
+      // now substract the new image from the base image 
+      vol -= image2;
     } else if (sarg=="-l") {
       narg++;
       if (narg<argc) {
@@ -391,8 +430,10 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
       vol = abs(vol);
     } else if (sarg=="-v") {
       if (mask.nvoxels()>0) {
-	cout << (long int) mask.sum() << " " 
-	     << mask.sum() * vol.xdim() * vol.ydim() * vol.zdim() << " ";
+        long int nvox = mask.sum();
+        if (mask.tsize() == 1) nvox = nvox * vol.tsize();
+	cout << (long int) nvox << " " 
+	     << nvox * vol.xdim() * vol.ydim() * vol.zdim() << " ";
       } else {
 	cout << (long int) vol.nvoxels() * vol.tsize() << " "
 	     << vol.nvoxels() * vol.tsize() * vol.xdim() * vol.ydim() * vol.zdim() << " ";
@@ -407,8 +448,8 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
 	cout << nzvox << " " 
 	     << nzvox * vol.xdim() * vol.ydim() * vol.zdim() << " ";
       }
-    } else if (sarg=="-d") {
-	// hidden debug option!
+    } else if (sarg=="-D") {
+	// hidden debug option!  // now -D not -d
       cout << vol.sum() << " ";
     } else if (sarg=="-s") {
 	if (mask.nvoxels()>0) cout << vol.stddev(mask) << " ";
@@ -533,7 +574,9 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode)
   
     narg++;
   }
-  cout << endl;
+   }
+   cout << endl;
+   
   }
   return 0;
 }
@@ -551,7 +594,15 @@ extern "C" __declspec(dllexport) int _stdcall fslstats(char *CmdLn)
   string progname(argv[0]);
   int retval(-1);
   bool timeseriesMode(false);
-  if ( argc > 2 && string(argv[1])=="-t" ) {
+  string indexMask("");
+  while ( argc > 2 && ( string(argv[1])=="-t" || string(argv[1]) =="-K" ) ) {
+    if ( string(argv[1])=="-t" )
+      timeseriesMode=true;
+    if ( string(argv[1])=="-K" ) {
+      indexMask=string(argv[2]);
+      argv++;
+      argc--;
+    }
     argv++;
     argc--;
     timeseriesMode=true;
@@ -564,7 +615,7 @@ extern "C" __declspec(dllexport) int _stdcall fslstats(char *CmdLn)
       freeparser(argc, argv);
       return 1; 
     }
-    retval = fmrib_main_float(argc,argv,timeseriesMode);
+    retval = fmrib_main_float(argc,argv,timeseriesMode, indexMask);
   } catch(std::exception &e) {
     cerr << e.what() << endl;
   } catch (...) {

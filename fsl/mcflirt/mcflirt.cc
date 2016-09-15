@@ -74,6 +74,7 @@
 #include <stdio.h>
 #include <string>
 #include <sstream>
+#include <stdexcept>
 
 #include "newimage/newimageall.h"
 #include "miscmaths/optimise.h"
@@ -786,6 +787,10 @@ extern "C" __declspec(dllexport) int _stdcall mcflirt(char *CmdLn)
       timeseries[i].setextrapolationmethod(extraslice);
       timeseries[i].setinterpolationmethod(nearestneighbour);
       affine_transform(timeseries[i],testvol,mat_array0[i]*init_trans,1.0);
+    } else  if (gOptions-> spline_final) {
+      timeseries[i].setextrapolationmethod(extraslice);
+      timeseries[i].setinterpolationmethod(spline);
+      affine_transform(timeseries[i],testvol,mat_array0[i]*init_trans,1.0);
     } else {
       timeseries[i].setextrapolationmethod(extraslice);
       timeseries[i].setinterpolationmethod(trilinear);
@@ -958,6 +963,10 @@ extern "C" __declspec(dllexport) int _stdcall mem_mcflirt(char *CmdLn, volume<fl
     } else  if (gOptions-> nn_final) {
       (*timeseries)[i].setextrapolationmethod(extraslice);
       (*timeseries)[i].setinterpolationmethod(nearestneighbour);
+      affine_transform((*timeseries)[i],testvol,(*mat_array0)[i]*init_trans,1.0);
+    } else  if (gOptions-> spline_final) {
+      timeseries[i].setextrapolationmethod(extraslice);
+      timeseries[i].setinterpolationmethod(spline);
       affine_transform((*timeseries)[i],testvol,(*mat_array0)[i]*init_trans,1.0);
     } else {
       (*timeseries)[i].setextrapolationmethod(extraslice);

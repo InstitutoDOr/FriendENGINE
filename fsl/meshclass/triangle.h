@@ -99,7 +99,8 @@ class Triangle
   const int operator <(const Triangle *const t) const;   //checks if two triangles are adjacents and well-oriented
   const bool operator ==(const Triangle & t) const;
   const bool intersect(const Triangle & t) const; //checks if two triangles intersect
-
+  const bool intersect(const vector<Pt> & p)const; // checks if a segment intersects the triangle
+  const bool intersect(const vector<Pt> & p,int& ind)const; // checks if a segment intersects the triangle
   bool oriented;           //has the triangle been well oriented ?
   
 

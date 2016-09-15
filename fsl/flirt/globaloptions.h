@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #ifndef __GLOBALOPTIONS_
 #define __GLOBALOPTIONS_
@@ -80,7 +80,7 @@
 
 namespace NEWIMAGE {
   enum anglereps { Euler, Quaternion };
-  enum interps { TriLinear, NearestNeighbour, Sinc };
+  enum interps { TriLinear, NearestNeighbour, Sinc, Spline };
   enum windowtype { Rect, Hanning, Blackman };
 }
 
@@ -88,8 +88,6 @@ using namespace NEWIMAGE;
 
   typedef std::vector<RowVector> MatVec;
   typedef MatVec* MatVecPtr;
-
-
 
 
 class globaloptions {
@@ -112,6 +110,11 @@ class globaloptions {
   string initmatfname;
   string refweightfname;
   string testweightfname;
+  string wmsegfname;
+  string wmcoordsfname;
+  string wmnormsfname;
+  string fmapfname;
+  string fmapmaskfname;
   bool initmatsqform;
   bool printinit;
   Matrix initmat;
@@ -129,6 +132,7 @@ class globaloptions {
   costfns maincostfn;
   costfns searchcostfn;
   costfns currentcostfn;
+  string optimisationtype;
   anglereps anglerep;
   float isoscale;
   float min_sampling;
@@ -151,22 +155,30 @@ class globaloptions {
   short datatype;
   bool forcedatatype;
   int verbose;
+  bool debug;
   bool interactive;
   bool do_optimise;
   bool nosave;
   bool iso;
   bool resample;
   bool useweights;
+  bool useseg;
+  bool usecoords;
   bool mode2D;
   bool clamping;
+  bool forcebackgnd;
+  float backgndval;
   bool interpblur;
   interps interpmethod;
   float sincwidth;
   windowtype sincwindow;
   float paddingsize;
+  int pe_dir;
+  float echo_spacing;
+  string bbr_type;
+  float bbr_slope;
 
   int single_param;
-
 
   void parse_command_line(int argc, char** argv, const string &);
 
@@ -212,6 +224,11 @@ inline void globaloptions::reiniciagopt()
   initmatfname = "";
   refweightfname = "";
   testweightfname = "";
+  wmsegfname = "";
+  wmcoordsfname = "";
+  wmnormsfname = "";
+  fmapfname = "";
+  fmapmaskfname = "";
   initmat = IdentityMatrix(4);
   initmatsqform = false;
   printinit = false;
@@ -231,6 +248,7 @@ inline void globaloptions::reiniciagopt()
   maincostfn = CorrRatio;
   searchcostfn = CorrRatio;
   currentcostfn = CorrRatio;
+  optimisationtype = "brent";
   anglerep = Euler;
   isoscale = 1.0;
   min_sampling = 1.0;
@@ -259,19 +277,28 @@ inline void globaloptions::reiniciagopt()
   datatype = -1;
   forcedatatype = false;
   verbose = 0;
+  debug = false;
   interactive = false;
   do_optimise = true;
   nosave = true;
   iso = true;
   resample = true;
   useweights = false;
+  useseg = false;
+  usecoords = false;
   mode2D = false;
   clamping = true;
+  forcebackgnd = false;
+  backgndval = 0.0;
   interpblur = true;
   interpmethod = TriLinear;
   sincwidth = 7.0; // voxels
   sincwindow = Hanning;
   paddingsize = 0.0;
+  pe_dir=0;   // 1=x, 2=y, 3=z, -1=-x, -2=-y, -3=-z, 0=none
+  echo_spacing = 5e-4;  // random guess (0.5ms) - units of seconds
+  bbr_type = "signed";
+  bbr_slope = -0.5;
 
   single_param = -1;
 }

@@ -106,6 +106,7 @@
     <ClCompile Include="..\..\..\..\fsl\mcflirt\Globaloptionsmc.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\Loga.cc" />
     <ClCompile Include="..\..\..\..\fsl\mcflirt\mcflirt.cc" />
+    <ClCompile Include="..\..\..\..\fsl\miscmaths\Simplex.cpp" />
     <ClCompile Include="..\..\..\..\fsl\miscvis\fsl_tsplot.cc" />
     <ClCompile Include="..\..\..\..\fsl\zlib\adler32.c" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibinternal.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="..\..\..\..\fsl\flirt\globaloptions.h" />
     <ClInclude Include="..\..\..\..\fsl\libvis\miscpic.h" />
     <ClInclude Include="..\..\..\..\fsl\libvis\miscplot.h" />
+    <ClInclude Include="..\..\..\..\fsl\miscmaths\Simplex.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\masks.h" />
     <ClInclude Include="..\..\..\Friend_Engine_Sources\PlugIn\vardb.h" />
   </ItemGroup>

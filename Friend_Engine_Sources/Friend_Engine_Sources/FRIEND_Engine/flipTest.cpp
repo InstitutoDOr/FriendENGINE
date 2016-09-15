@@ -12,6 +12,8 @@
 #endif
 
    /*
+   extern "C" __declspec(dllexport) int _stdcall fslstats(char *CmdLn)
+
    char outputFile[500], prefix[500] = "_RFI2";
 
    sprintf(outputFile, "E:\\projetos\\NFB_VR\\saida_RFI2.nii");

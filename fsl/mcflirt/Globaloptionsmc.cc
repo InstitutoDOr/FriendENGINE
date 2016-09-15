@@ -149,6 +149,10 @@ void Globaloptions::parse_command_line(int argc,char** argv)
       nn_final = 1;
       n++;
       continue;
+      } else if ( arg == "-spline_final" ) {
+      spline_final = 1;
+      n++;
+      continue;
     } else if ( arg == "-rmsrel" ) {
       tmpmatflag = 1;
       rmsrelflag = 1;

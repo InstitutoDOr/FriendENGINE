@@ -1,5 +1,69 @@
+/*    Copyright (C) 2012 University of Oxford  */
+
+/*  Part of FSL - FMRIB's Software Library
+    http://www.fmrib.ox.ac.uk/fsl
+    fsl@fmrib.ox.ac.uk
+    
+    Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+    Imaging of the Brain), Department of Clinical Neurology, Oxford
+    University, Oxford, UK
+    
+    
+    LICENCE
+    
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
+    Oxford (the "Software")
+    
+    The Software remains the property of the University of Oxford ("the
+    University").
+    
+    The Software is distributed "AS IS" under this Licence solely for
+    non-commercial use in the hope that it will be useful, but in order
+    that the University as a charitable foundation protects its assets for
+    the benefit of its educational and research purposes, the University
+    makes clear that no condition is made or to be implied, nor is any
+    warranty given or to be implied, as to the accuracy of the Software,
+    or that it will be suitable for any particular purpose or for use
+    under any specific conditions. Furthermore, the University disclaims
+    all responsibility for the use which is made of the Software. It
+    further disclaims any liability for the outcomes arising from using
+    the Software.
+    
+    The Licensee agrees to indemnify the University and hold the
+    University harmless from and against any and all claims, damages and
+    liabilities asserted by third parties (including claims for
+    negligence) which arise directly or indirectly from the use of the
+    Software or the sale of any products based on the Software.
+    
+    No part of the Software may be reproduced, modified, transmitted or
+    transferred in any form or by any means, electronic or mechanical,
+    without the express permission of the University. The permission of
+    the University is not required if the said reproduction, modification,
+    transmission or transference is done without financial return, the
+    conditions of this Licence are imposed upon the receiver of the
+    product, and all original and amended source code is included in any
+    transmitted product. You may be held legally responsible for any
+    copyright infringement that is caused or encouraged by your failure to
+    abide by these terms and conditions.
+    
+    You are not permitted under this Licence to use this Software
+    commercially. Use for which any financial return is received shall be
+    defined as commercial use, and includes (1) integration of all or part
+    of the source code or the Software into a product for sale or license
+    by or on behalf of Licensee to third parties or (2) use of the
+    Software or any derivative of it for research with the final aim of
+    developing software products for sale or license to a third party or
+    (3) use of the Software or any derivative of it for research with the
+    final aim of developing non-software products for sale or license to a
+    third party, or (4) use of the Software to provide any service to an
+    external organisation for which payment is received. If you are
+    interested in using the Software commercially, please contact Isis
+    Innovation Limited ("Isis"), the technology transfer company of the
+    University, to negotiate a licence. Contact details are:
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 // Definitions for module nonlin
 
+#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -10,9 +74,8 @@
 #include "newmatio.h"
 #include "bfmatrix.h"
 #include "nonlin.h"
+#include "Simplex.h"
 #include "utils/fsl_isfinite.h"
-#include <math.h>
-#include <float.h>
 
 using namespace std;
 using namespace NEWMAT;
@@ -22,20 +85,22 @@ namespace MISCMATHS {
 // Declarations of routines for use only in this module
 
 // Main routine for Variable-Metric optimisation
-
 NonlinOut varmet(const NonlinParam& p, const NonlinCF& cfo);
 
-// Main routine for Conjugate-Gradient optimisation
+// Main routine for Gradient-descent optimisation
+NonlinOut grades(const NonlinParam& p, const NonlinCF& cfo);
 
+// Main routine for Conjugate-Gradient optimisation
 NonlinOut congra(const NonlinParam& p, const NonlinCF& cfo);
 
 // Main routine for scaled conjugate-gradient optimisation
-
 NonlinOut sccngr(const NonlinParam& p, const NonlinCF& cfo);
 
 // Main routine for Levenberg-Marquardt optimisation
-
 NonlinOut levmar(const NonlinParam& p, const NonlinCF& cfo);
+
+// Main routine for amoeba (Nelder-Mead) optimisation
+NonlinOut amoeba(const NonlinParam& p, const NonlinCF& cfo);
 
 LinOut linsrch(// Input
                const ColumnVector&  pdir,    // Search direction
@@ -102,6 +167,36 @@ bool zero_par_step_conv(const ColumnVector&   par,
 void print_newmat(const NEWMAT::GeneralMatrix&  m,
                   std::string                   fname);
 
+
+std::string NonlinParam::TextStatus() const
+{
+  switch (status) {
+  case NL_UNDEFINED:
+    return(std::string("Status is undefined. Object has been created but no minimisation has been performed"));
+    break;
+  case NL_MAXITER:
+    return(std::string("The optimisation did not converge because the maximum number of iterations was exceeded"));
+    break;
+  case NL_LM_MAXITER:
+    return(std::string("The optimisation did not converge because the maximum number of iterations for a single line minimisation was exceeded"));
+    break;
+  case NL_PARCONV:
+    return(std::string("The optimisation converged. The convergence criterion was that the last step in parameter space was very short"));
+    break;
+  case NL_GRADCONV:
+    return(std::string("The optimisation converged. The convergence criterion was that all the elements of the gradient were very small"));
+    break;
+  case NL_CFCONV:
+    return(std::string("The optimisation converged. The convergence criterion was that the last step changed the cost-function by an insignificant amount"));
+    break;
+  case NL_LCONV:
+    return(std::string("The optimisation converged. The convergence criterion was that lambda became too large"));
+    break;
+  default:
+    return(std::string("Impossible status. This indicates there is a bug"));
+    break;
+  }
+}
 
 // If user choses not to overide the grad-method of the NonlinCF
 // base class this routine will be used to calculate numerical derivatives.
@@ -177,6 +272,7 @@ boost::shared_ptr<BFMatrix> NonlinCF::hess(const ColumnVector&         p,
 
   return(hessm);
 }
+
 
 // Display (for debug purposes) matrix if it is small enough for that to make sense
 
@@ -265,6 +361,7 @@ ColumnVector operator*(const VarmetMatrix& m, const ColumnVector& v)
   }
 }
 
+
 // Gateway function to routines for non-linear optimisation
 
 NonlinOut nonlin(const NonlinParam& p, const NonlinCF& cfo)
@@ -285,6 +382,12 @@ NonlinOut nonlin(const NonlinParam& p, const NonlinCF& cfo)
     break;
   case NL_LM:
     status = levmar(p,cfo);
+    break;
+  case NL_GD:
+    status = grades(p,cfo);
+    break;
+  case NL_NM:
+    status = amoeba(p,cfo);
     break;
   }
 
@@ -309,15 +412,24 @@ NonlinOut levmar(const NonlinParam& p, const NonlinCF& cfo)
     }
     for (int i=1; i<=p.NPar(); i++) {                         // Nudge it
       if (p.GaussNewtonType() == LM_LM) {                     // If Levenberg-Marquardt
-        H->AddTo(i,i,(p.Lambda()-olambda)*H->Peek(i,i));
+        // H->AddTo(i,i,(p.Lambda()-olambda)*H->Peek(i,i));
+        H->Set(i,i,((1.0+p.Lambda())/(1.0+olambda))*H->Peek(i,i));
       }
       else if (p.GaussNewtonType() == LM_L) {                // If Levenberg
         H->AddTo(i,i,p.Lambda()-olambda);             
       }
     }
-    ColumnVector step = -H->SolveForx(g,SYM_POSDEF,p.EquationSolverTol(),p.EquationSolverMaxIter());
-    double ncf = cfo.cf(p.Par()+step);
-    if (success = (ncf < p.CF())) {                           // If last step successful
+    ColumnVector step;
+    double ncf = 0.0;
+    bool inv_fail = false;  // Signals failure of equation solving
+    try {
+      step = -H->SolveForx(g,SYM_POSDEF,p.EquationSolverTol(),p.EquationSolverMaxIter());
+      ncf = cfo.cf(p.Par()+step);
+    }
+    catch(...) {
+      inv_fail = true;
+    }
+    if (!inv_fail && (success = (ncf < p.CF()))) {              // If last step successful
       olambda = 0.0;                                          // Pristine Hessian, so no need to undo old lambda
       p.SetPar(p.Par()+step);                                 // Set attempt as new parameters
       p.SetLambda(p.Lambda()/10.0);                           // Decrease nudge factor
@@ -342,58 +454,104 @@ NonlinOut levmar(const NonlinParam& p, const NonlinCF& cfo)
 
   return(p.Status());
 }
-  /*
-// Main routine for Levenberg-Marquardt optimisation
 
-NonlinOut levmar(const NonlinParam& p, const NonlinCF& cfo)
+// Main routine for Nelder-Mead simplex optimisation
+
+NonlinOut amoeba(const NonlinParam& p, 
+		 const NonlinCF& cfo)
 {
-  // Calculate initial values
-  p.SetCF(cfo.cf(p.Par()));                                   // Cost-function evaluated at current parameters
-  ColumnVector g = cfo.grad(p.Par());                         // Gradient evaluated at current parameters
-  boost::shared_ptr<BFMatrix> H = cfo.hess(p.Par());          // Hessian evaluated at current parameters
+  // cout << "Initialsing simplex" << endl; cout.flush();
+  Simplex smplx(p.Par(),cfo,p.GetAmoebaStart());
+  p.SetCF(smplx.BestFuncVal());
 
-  double olambda = 0.0;
-  bool   success = true;                                      // True if last step decreased CF
-
-  while (p.NextIter(success)) {
-    for (int i=1; i<=p.NPar(); i++) { // Nudge diagonal of H
-      if (p.GaussNewtonType() == LM_LM) {
-        H->AddTo(i,i,(p.Lambda()-olambda)*H->Peek(i,i));
-      }
-      else if (p.GaussNewtonType() == LM_L) {
-        H->AddTo(i,i,p.Lambda()-olambda);
-      }
-    }     
-    ColumnVector step = -H->SolveForx(g,SYM_POSDEF,p.EquationSolverTol(),p.EquationSolverMaxIter());
-    double ncf = cfo.cf(p.Par()+step);
-    if (success = (ncf < p.CF())) {                  // If last step successful
-      olambda = 0.0;                     // New H, so no need to undo old lambda
-      p.SetLambda(p.Lambda()/10.0);
-      p.SetPar(p.Par()+step);
-      // Check for convergence based on small decrease of cf
-      if (zero_cf_diff_conv(p.CF(),ncf,p.FractionalCFTolerance())) {
-	p.SetCF(ncf); p.SetStatus(NL_CFCONV); return(p.Status()); 
-      }
-      p.SetCF(ncf);
-      g = cfo.grad(p.Par());
-      H = cfo.hess(p.Par(),H);
+  while (p.NextIter()) {
+    // Check for convergence based on fractional difference 
+    // between best and worst points in simplex.
+    // cout << "New iteration: Checking for convergence" << endl; cout.flush();
+    if (zero_cf_diff_conv(smplx.WorstFuncVal(),smplx.BestFuncVal(),p.FractionalCFTolerance())) {
+      p.SetStatus(NL_CFCONV);
+      return(p.Status());
     }
-    else {                               // If last step was unsuccesful
-      olambda = p.Lambda();              // Returning to same H, so must undo old lambda
-      p.SetLambda(10.0*p.Lambda());
-      p.SetCF(p.CF());                   // Push another copy
-      // Check for convergence based on _really_ large lambda
-      if (p.Lambda() > p.LambdaConvergenceCriterion()) {
-        p.SetStatus(NL_LCONV); return(p.Status());
-      }
+    
+    // cout << "Attempting reflexion" << endl; cout.flush();
+    double newf = smplx.Reflect();   // Attempt reflexion
+    // Extend into an expansion if reflexion very successful
+    if (newf <= smplx.BestFuncVal()) { 
+      // cout << "Reflexion succesful: attempting expansion" << endl; cout.flush();
+      smplx.Expand(); // Attempt expansion
     }
+    else if (newf >= smplx.SecondWorstFuncVal()) {
+      // cout << "New value worse than second worst: attempting contraction" << endl; cout.flush();
+      double worst_fval = smplx.WorstFuncVal();
+      newf = smplx.Contract();     // Do a contraction towards plane of "better" points
+      if (newf >= worst_fval) {    // Didn't work. Contract towards best point
+	// cout << "Contraction unsuccesful: contracting towards best point" << endl; cout.flush();
+	smplx.MultiContract();
+      }
+    } 
+    smplx.UpdateRankIndicies();
+    p.SetCF(smplx.BestFuncVal());
+    p.SetPar(smplx.BestPar());
   }
-  // This means we did too many iterations
+  // If we're here we've exceeded max number of iterations
   p.SetStatus(NL_MAXITER);
-
   return(p.Status());
 }
-  */
+
+// Main routine for gradient-descent optimisation. It is
+// included mainly as a debugging tool for when the more
+// advanced methods fail and one wants to pinpoint the
+// reasons for that. 
+
+NonlinOut grades(const NonlinParam& np, const NonlinCF& cfo)
+{
+  // Set up initial values
+  np.SetCF(cfo.cf(np.Par()));
+  ColumnVector g = -cfo.grad(np.Par());
+
+  while (np.NextIter()) {
+    // Check for convergence based on zero gradient
+    if (zero_grad_conv(np.Par(),g,np.CF(),np.FractionalGradientTolerance())) {
+      np.SetStatus(NL_GRADCONV); return(np.Status());
+    }  
+    // Bracket minimum along g
+    pair<double,double> lp, mp;                                                                      // Leftmost and middle point of bracket
+    pair<double,double> rp = bracket(np.Par(),g,cfo,np.FractionalParameterTolerance(),1.0,&lp,&mp);  // Rightmost point of bracket
+    if (rp == lp) {                                                                                  // If no smaller point along g
+      np.SetStatus(NL_PARCONV); return(np.Status());                                                 // Assume it is because we are at minimum
+    }
+    // Find minimum along g between lp and rp
+    pair<double,double> minp;                               // Minimum along g
+    LinOut lm_status = linmin(np.Par(),g,cfo,1.0,lp,mp,rp,
+                              np.LineSearchFractionalParameterTolerance(),
+                              np.LineSearchMaxIterations(),&minp);
+    // Check for problems with line-search
+    if (lm_status == LM_MAXITER) {np.SetStatus(NL_LM_MAXITER); return(np.Status());} // Ouch!
+    // Set new cf value and parameters
+    np.SetPar(np.Par() + minp.first*g);
+    // Check for convergence based on small decrease of cost-function
+    if (zero_cf_diff_conv(np.CF(),minp.second,np.FractionalCFTolerance())) {
+      np.SetCF(minp.second); 
+      np.SetStatus(NL_CFCONV); 
+      return(np.Status());
+    }
+    // Check for convergence based on neglible move in parameter space
+    else if (zero_par_step_conv(minp.first*g,np.Par(),np.FractionalParameterTolerance())) {
+      np.SetCF(minp.second); 
+      np.SetStatus(NL_PARCONV); 
+      return(np.Status());
+    }
+    else {  // If no covergence
+      np.SetCF(minp.second);
+      g = -cfo.grad(np.Par());
+    }
+  }
+  // If we get here we have used too many iterations
+  np.SetStatus(NL_MAXITER);
+    
+  return(np.Status());
+}
+
 // Main routine for conjugate-gradient optimisation. The 
 // implementation follows that of Numerical Recipies 
 // reasonably closely.
@@ -425,12 +583,12 @@ NonlinOut congra(const NonlinParam& np, const NonlinCF& cfo)
     if (lm_status == LM_MAXITER) {np.SetStatus(NL_LM_MAXITER); return(np.Status());} // Ouch!
     // Set new cf value and parameters
     np.SetPar(np.Par() + minp.first*p);
-    np.SetCF(minp.second);  
     // Check for convergence based on small decrease of cost-function
-    if (zero_cf_diff_conv(np.CF(),minp.second,np.FractionalCFTolerance())) {np.SetStatus(NL_CFCONV); return(np.Status());}
+    if (zero_cf_diff_conv(np.CF(),minp.second,np.FractionalCFTolerance())) {np.SetCF(minp.second); np.SetStatus(NL_CFCONV); return(np.Status());}
     // Check for convergence based on neglible move in parameter space
-    else if (zero_par_step_conv(minp.first*p,np.Par(),np.FractionalParameterTolerance())) {np.SetStatus(NL_PARCONV); return(np.Status());}
+    else if (zero_par_step_conv(minp.first*p,np.Par(),np.FractionalParameterTolerance())) {np.SetCF(minp.second); np.SetStatus(NL_PARCONV); return(np.Status());}
     else {  // If no covergence
+      np.SetCF(minp.second);
       if (((np.NIter())%np.NPar()) == 0) {                          // Explicitly reset directions after npar iterations
         r = -cfo.grad(np.Par());
         p = r;
@@ -482,8 +640,9 @@ NonlinOut sccngr(const NonlinParam& np, const NonlinCF& cfo)
 
   while (np.NextIter()) {
     double p2 = DotProduct(p,p);                            // p'*p, Temporary variable to save some time
-    if (success == true) {                                  // If last step led to reduction of cos-function
-      double sigma_k = sigma/sqrt(p2);                      // Normalised step-length when estimating H*p
+    if (success == true) {                                  // If last step led to reduction of cost-function
+      double sigma_k = sigma/std::sqrt(p2);                      // Normalised step-length when estimating H*p
+      // cout << "np.NIter() = " << np.NIter() << ", p2 = " << p2 << ", sigma_k = " << sigma_k << endl;
       s = (cfo.grad(np.Par()+sigma_k*p) + r) / sigma_k;     // Approximation to H*p
       delta = DotProduct(p,s);                              // Approximation to p'*H*p
     }
@@ -499,12 +658,16 @@ NonlinOut sccngr(const NonlinParam& np, const NonlinCF& cfo)
     double alpha = mu/delta;                              // Step size in direction p
     double tmp_cf = cfo.cf(np.Par()+alpha*p);             // Value of cost-function at attempted new point
 
+    // cout << "np.NIter() " << np.NIter() << ", delta = " << delta << ", mu = " << mu << ", alpha = " << alpha << endl;
+
+    /*
     char fname[100]; 
-    sprintf(fname,"/Users/jesper/Desktop/gradient_%02d.txt",np.NIter());
+    sprintf(fname,"scg_debug_gradient_%02d.txt",np.NIter());
     print_newmat(r,fname);
-    sprintf(fname,"/Users/jesper/Desktop/step_%02d.txt",np.NIter());
+    sprintf(fname,"scg_debug_step_%02d.txt",np.NIter());
     ColumnVector  step(p); step *= alpha;
     print_newmat(step,fname);
+    */
     
     
     double Delta = 2.0*delta*(np.CF()-tmp_cf) / (mu*mu);  // > 0 means attempted step reduced cost-function
@@ -513,7 +676,7 @@ NonlinOut sccngr(const NonlinParam& np, const NonlinCF& cfo)
       np.SetPar(np.Par() + alpha*p);                      // Update best set of parameters
       lambda_bar = 0.0;
       success = true;
-      if ((np.NIter()%np.NPar()) == 0) {                   // If npar iterations since last resetting of directions
+      if ((np.NIter()%np.NPar()) == 0) {                  // If npar iterations since last resetting of directions
         r = -cfo.grad(np.Par());                          // Reset search direction to negative gradient
         p = r;
       }
@@ -521,6 +684,7 @@ NonlinOut sccngr(const NonlinParam& np, const NonlinCF& cfo)
         ColumnVector oldr = r;
         r = -cfo.grad(np.Par());
         double beta = (DotProduct(r,r)-DotProduct(oldr,r)) / mu;
+        // cout << "np.NIter() = " << np.NIter() << ", beta = " << beta << endl;
         p = r + beta*p;                              // New search direction
       } 
       if (Delta > 0.75) {                            // If attempted step was \emph{REALLY} good
@@ -583,6 +747,7 @@ NonlinOut varmet(const NonlinParam& p, const NonlinCF& cfo)
     else if (status == LM_LAMBDA_NILL) { // This means we might be heading uphill and should restart
       if (p.NextRestart()) { // If we have spare restarts
         p.SetCF(p.CF());      // Another copy of old value
+        p.SetPar(p.Par());    // Another copy of old values
         iH.reset();           // Back to being unity matrix
         pdir = -grad;
         continue;
@@ -595,7 +760,10 @@ NonlinOut varmet(const NonlinParam& p, const NonlinCF& cfo)
     ColumnVector dpar = newpar - p.Par();
     p.SetPar(newpar);
     p.SetCF(newcf);
-    if (zero_par_step_conv(dpar,p.Par(),p.FractionalParameterTolerance())) {p.SetStatus(NL_PARCONV); return(p.Status());}
+    // cout << "p.FractionalParameterTolerance() = " << p.FractionalParameterTolerance() << endl;
+    // cout << "P.Par() = " << p.Par() << endl;
+    // cout << "dpar = " << dpar << endl;
+    if (zero_par_step_conv(p.Par(),dpar,p.FractionalParameterTolerance())) {p.SetStatus(NL_PARCONV); return(p.Status());}
     // Get gradient at new point
     ColumnVector newgrad = sf*cfo.grad(p.Par());
     // Test for convergence based on "zero" gradient
@@ -635,7 +803,7 @@ LinOut linsrch(// Input
   // First make sure that the step-length suggested
   // by pdir isn't completely unreasonable.
 
-  double totstep=sqrt(DotProduct(dir,dir));
+  double totstep=std::sqrt(DotProduct(dir,dir));
   ColumnVector pdir(dir);
   if (totstep > sm) {pdir *= sm/totstep;}
 
@@ -692,7 +860,7 @@ LinOut linsrch(// Input
     y << f1-fp0*l1-f0 << f2-fp0*l2-f0;
     ColumnVector b = X.i()*y;
     // Find value for lambda that yield minimum of cubic
-    *lambda = (-b.element(1) + sqrt(std::pow(b.element(1),2.0) - 3.0*b.element(0)*fp0)) / (3.0*b.element(0));
+    *lambda = (-b.element(1) + std::sqrt(std::pow(b.element(1),2.0) - 3.0*b.element(0)*fp0)) / (3.0*b.element(0));
     // Make sure new lambda is 0.1*old_l < lambda < 0.5*old_l
     *lambda = std::max(lmin*l1,*lambda);
     *lambda = std::min(lmax*l1,*lambda);
@@ -788,7 +956,7 @@ LinOut linmin(// Input
       return(LM_CONV);
     }
     // Try parabolic fit, but not before third iteration
-    double tmp = 10.0*sqrt(MISCMATHS::EPS);
+    double tmp = 10.0*std::sqrt(MISCMATHS::EPS);
     if (std::abs(ostep) > tol/2.0 &&           // If second to last step big enough
         std::abs(x->first-w.first) > tmp && 
         std::abs(x->first-v.first) > tmp && 
@@ -905,7 +1073,7 @@ pair<double,double> bracket(// Input
       return(p_l);
     }
     // Let's see if a parabolic might help us
-    if (std::abs(l2-l1) > 10.0*sqrt(MISCMATHS::EPS)) {
+    if (std::abs(l2-l1) > 10.0*std::sqrt(MISCMATHS::EPS)) {
       X << std::pow(l1,2.0) << l1 << std::pow(l2,2.0) << l2;
       y << cf1 << cf2;
       ColumnVector b = X.i()*y;

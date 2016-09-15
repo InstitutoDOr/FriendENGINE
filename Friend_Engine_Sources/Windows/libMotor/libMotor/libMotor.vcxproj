@@ -134,6 +134,7 @@
     <ClCompile Include="..\..\..\..\fsl\miscmaths\miscmaths.cc" />
     <ClCompile Include="..\..\..\..\fsl\miscmaths\nonlin.cpp" />
     <ClCompile Include="..\..\..\..\fsl\miscmaths\optimise.cc" />
+    <ClCompile Include="..\..\..\..\fsl\miscmaths\Simplex.cpp" />
     <ClCompile Include="..\..\..\..\fsl\newimage\complexvolume.cc" />
     <ClCompile Include="..\..\..\..\fsl\newimage\costfns.cc" />
     <ClCompile Include="..\..\..\..\fsl\newimage\generalio.cc" />
@@ -236,6 +237,7 @@
     <ClInclude Include="..\..\..\..\fsl\miscmaths\miscmaths.h" />
     <ClInclude Include="..\..\..\..\fsl\miscmaths\nonlin.h" />
     <ClInclude Include="..\..\..\..\fsl\miscmaths\optimise.h" />
+    <ClInclude Include="..\..\..\..\fsl\miscmaths\Simplex.h" />
     <ClInclude Include="..\..\..\..\fsl\newimage\complexvolume.h" />
     <ClInclude Include="..\..\..\..\fsl\newimage\costfns.h" />
     <ClInclude Include="..\..\..\..\fsl\newimage\imfft.h" />

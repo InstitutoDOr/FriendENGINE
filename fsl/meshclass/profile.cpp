@@ -277,7 +277,7 @@ const double Profile::last_point_under (const double abs, const double thr)
 
   while (counter > lroi && (*i).val > t && i!=v.begin()) {counter --; i--;};
   
-  if (counter == lroi | i==v.begin()) return -500;
+  if ((counter == lroi) | (i==v.begin())) return -500;
   else 
     return (v[counter - 1].abs);
 }
@@ -295,7 +295,7 @@ const double Profile::last_point_over (const double abs, const double thr)
 
   while ((*i).val < t && counter > lroi && i!=v.begin()) {counter --; i--;};
   
-  if (counter == lroi | i==v.begin()) return -500;
+  if ((counter == lroi) | (i==v.begin())) return -500;
   else 
     return (v[counter - 1].abs);
 }

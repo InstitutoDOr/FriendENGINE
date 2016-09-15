@@ -510,6 +510,9 @@
     <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\fsl\miscmaths\Simplex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\cctypes.h">
@@ -562,6 +565,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Friend_Engine_Sources\PlugIn\vardb.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\fsl\miscmaths\Simplex.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

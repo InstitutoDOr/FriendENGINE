@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 
 #include <string>
@@ -93,8 +93,8 @@ int main(int argc,char *argv[])
 
   float rmax=80.0;
 
-  if (argc!=4) { 
-    cerr << "Usage: " << argv[0] << " matrixfile1 matrixfile2 refvol" << endl; 
+  if (argc<4) { 
+    cerr << "Usage: " << argv[0] << " matrixfile1 matrixfile2 refvol [mask]" << endl; 
     cerr << "        Outputs rms deviation between matrices (in mm)" << endl;
     return -1; 
   }
@@ -125,16 +125,40 @@ int main(int argc,char *argv[])
   centre = 0;
 
   volume<float> refvol;
-  read_volume_hdr_only(refvol,argv[3]);
-  // compute the centre of volume (in world coordinates)
-  centre(1) = 0.5*(refvol.xsize() - 1.0)*refvol.xdim();
-  centre(2) = 0.5*(refvol.ysize() - 1.0)*refvol.ydim();
-  centre(3) = 0.5*(refvol.zsize() - 1.0)*refvol.zdim();
+  read_volume(refvol,argv[3]);
 
-  float rms = rms_deviation(affmat1,affmat2,centre,rmax);
+  if (argc<5) {
+    // do the RMS
+    // compute the centre of gravity
+    centre = refvol.cog("scaledmm");
+    float rms = rms_deviation(affmat1,affmat2,centre,rmax);
+    cout << rms << endl;
+  } else {  
+    // do the extreme distance
+    double maxdist=0, dist=0, sumdistsq=0;
+    ColumnVector cvec(4);
+    cvec=0;  cvec(4)=1;
+    long int nvox=0;
+    volume<float> mask;
+    read_volume(mask,argv[4]);
+    for (int z=mask.minz(); z<=mask.maxz(); z++) {
+      for (int y=mask.miny(); y<=mask.maxy(); y++) {
+	for (int x=mask.minx(); x<=mask.maxx(); x++) {
+	  if (mask(x,y,z)>0.5) {
+	    cvec(1)=x*refvol.xdim();  cvec(2)=y*refvol.ydim();  cvec(3)=z*refvol.zdim();
+	    dist = norm2((affmat1 -affmat2)*cvec);
+	    maxdist=Max(dist,maxdist);
+	    sumdistsq+=dist*dist;
+	    nvox++;
+	  }
+	}
+      }
+    }
+    cout << maxdist << endl;
+    double rms = sqrt(sumdistsq/nvox);
+    cout << rms << endl;
+  }
 
-  cout << rms << endl;
-  
   return 0;
 
 }

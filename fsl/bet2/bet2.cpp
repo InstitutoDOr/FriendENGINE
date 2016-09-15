@@ -136,6 +136,9 @@ Option<float> fractional_threshold(string("-f"), 0.5,
 Option<float> gradient_threshold(string("-g"), 0.0,
 				 string("~<g>\t\tvertical gradient in fractional intensity threshold (-1->1); default=0; positive values give larger brain outline at bottom, smaller at top"), false, requires_argument);
 
+Option<float> smootharg(string("-w,--smooth"), 1.0,
+                     string("~<r>\tsmoothness factor; default=1; values smaller than 1 produce more detailed brain surface, values larger than one produce smoother, less detailed surface"), false, requires_argument);
+
 Option<float> radiusarg(string("-r,--radius"), 0.0,
 		     string("~<r>\thead radius (mm not voxels); initial surface sphere is set to half of this"), false, requires_argument);
 
@@ -659,6 +662,8 @@ int main(int argc, char *argv[]) {
   options.add(fractional_threshold);
   options.add(gradient_threshold);
   options.add(radiusarg);
+  options.add(smootharg);
+
   options.add(centerarg);
   options.add(apply_thresholding);
   options.add(generate_mesh);
@@ -780,8 +785,8 @@ int main(int argc, char *argv[]) {
 
   Mesh moriginal=m;
   
-  const double rmin=3.33;
-  const double rmax=10;
+  const double rmin=3.33 * smootharg.value();
+  const double rmax=10 * smootharg.value();
   const double E = (1/rmin + 1/rmax)/2.;
   const double F = 6./(1/rmin - 1/rmax);
   const int nb_iter = 1000;
@@ -867,6 +872,7 @@ int main(int argc, char *argv[]) {
   if (mask.value())
     {
       string maskstr = out+"_mask";
+      brainmask.setDisplayMaximumMinimum(1,0);
       if (save_volume((short)1-brainmask, maskstr.c_str())<0)  return -1;
     }
   

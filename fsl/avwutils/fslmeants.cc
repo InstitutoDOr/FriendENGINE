@@ -85,7 +85,7 @@ namespace fslmeants {
 // The two strings below specify the title and example usage that is
 //  printed out as the help or usage message
 
-string title="fslmeants (Version 1.2)\nCopyright(c) 2004-2009, University of Oxford (Mark Jenkinson, Christian F. Beckmann)\nPrints average timeseries (intensities) to the screen (or saves to a file).\nThe average is taken over all voxels in the mask (or all voxels in the image if no mask is specified).\n";
+string title="fslmeants \nCopyright(c) 2004-2009, University of Oxford (Mark Jenkinson, Christian F. Beckmann)\nPrints average timeseries (intensities) to the screen (or saves to a file).\nThe average is taken over all voxels in the mask (or all voxels in the image if no mask is specified).\n";
 string examples="fslmeants -i filtered_func_data -o meants.txt -m my_mask\nfslmeants -i filtered_func_data -m my_mask\nfslmeants -i filtered_func_data -c 24 19 10";
 
 // Each (global) object below specificies as option and can be accessed
@@ -134,6 +134,10 @@ Option<int> order(string("--order"), 1,
 Option<bool> transpose(string("--transpose"), false,
 		  string("        output results in transpose format (one row per voxel/mean)"),
 		  false, no_argument);
+Option<bool> weightedMask(string("-w"), false,
+		  string("output weighted mean, using mask values as weights, and exit."),
+		  false, no_argument);
+
 
 int nonoptarg;
 
@@ -162,6 +166,7 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
   options.add(transpose);
   options.add(verbose);
   options.add(help);
+  options.add(weightedMask);
   
   nonoptarg = options.parse_command_line(argc, argv);
   
@@ -187,6 +192,32 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
     mask = vin[0];
     mask = 1.0;
   }
+
+
+
+  if ( weightedMask.value() ) {
+    Matrix meanwts(vin.tsize(),1);
+    for(int t=0;t<vin.tsize();t++) {    
+      double mean(0);
+      double meanWeight(0);
+      for (int z=mask.minz(); z<=mask.maxz(); z++) 
+	for (int y=mask.miny(); y<=mask.maxy(); y++) 
+	  for (int x=mask.minx(); x<=mask.maxx(); x++) {
+	    mean+=mask(x,y,z)*vin(x,y,z,t);	
+	    meanWeight+=mask(x,y,z);
+	  }
+      meanwts(t+1,1)=(mean/meanWeight);
+    }
+
+    if ( transpose.value() ) 
+      meanwts=meanwts.t();
+    if ( outmat.set() ) 
+      write_ascii_matrix(meanwts,outmat.value());
+    else 
+      cout << meanwts << endl;
+    return(0);
+  }
+
 
   int nlabs=1;
   if (labelname.set() && showall.unset()) {
@@ -258,7 +289,7 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
       Corr << dat * dat.t() / dat.Ncols();
       DiagonalMatrix tmpD;
       EigenValues(Corr,tmpD,evecs);	
-      evecs = fliplr(evecs.Columns(evecs.Ncols()-order.value()+1 , evecs.Ncols())) * sqrt(dat.Nrows());
+      evecs = fliplr(evecs.Columns(evecs.Ncols()-order.value()+1 , evecs.Ncols())) * std::sqrt(dat.Nrows());
     
       Matrix res2 = mean(dat,2);
       res2 = res2.Column(1).t() * evecs.Column(1);
@@ -299,24 +330,20 @@ extern "C" __declspec(dllexport) int _stdcall fslmeants(char *CmdLn)
 	}
       }
     
-      if (verbose.value()) {
+      if (verbose.value()) 
 	cout << "Number of voxels used = " << num << endl;
-      }
-    
       // normalise for number of valid entries if averaging
-      if (!showall.value()) {
-	if (num>0) meants.SubMatrix(1,nt,iter,iter) = meants.SubMatrix(1,nt,iter,iter) / ((float) num);
-      }
-
-      // save the result
-      if (transpose.value()) { meants=meants.t(); }
-      if (outmat.set()) {
-	write_ascii_matrix(meants,outmat.value());
-      } else {
-	cout << meants << endl;
-      }
-      if (transpose.value()) { meants=meants.t(); }
+      if (!showall.value()) 
+	if (num>0) meants.SubMatrix(1,nt,iter,iter) = meants.SubMatrix(1,nt,iter,iter) / ((float) num);  
     }
+  }
+  if ( !eig.value() ) {
+    if (transpose.value())
+      meants=meants.t();
+    if (outmat.set()) 
+      write_ascii_matrix(meants,outmat.value());
+    else 
+      cout << meants << endl; 
   }
   freeparser(argc, argv);
   return 0;

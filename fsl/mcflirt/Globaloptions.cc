@@ -151,6 +151,10 @@ void Globaloptions::parse_command_line(int argc,char** argv)
       nn_final = 1;
       n++;
       continue;
+      } else if ( arg == "-spline_final" ) {
+      spline_final = 1;
+      n++;
+      continue;
     } else if ( arg == "-rmsrel" ) {
       tmpmatflag = 1;
       rmsrelflag = 1;
@@ -302,8 +306,9 @@ void Globaloptions::print_usage(int argc, char *argv[])
        << no_stages << " - specify 4 for final sinc interpolation)\n"
        << "        -fov <num>                         (default is 20mm - specify size of field of view when padding 2d volume)\n"
        << "        -2d                                Force padding of volume\n"
-       << "        -sinc_final                        (applies final transformations using sinc kernel\n"
-       << "        -nn_final                          (applies final transformations using Nearest Neighbour\n"
+       << "        -sinc_final                        (applies final transformations using sinc interpolation)\n"
+       << "        -spline_final                      (applies final transformations using spline interpolation)\n"
+       << "        -nn_final                          (applies final transformations using Nearest Neighbour interpolation)\n"
        << "        -init <filename>                   (initial transform matrix to apply to all vols)\n"
        << "        -gdt                               (run search on gradient images)\n"
        << "        -edge                              (run search on contour images)\n"

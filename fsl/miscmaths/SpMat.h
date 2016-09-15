@@ -89,8 +89,8 @@ template<class T>
 class SpMat
 {
 public:
-  SpMat() : _m(0), _n(0), _nz(0), _ri(0), _val(0) {}
-  SpMat(unsigned int m, unsigned int n) : _m(m), _n(n), _nz(0), _ri(n), _val(n) {}
+  SpMat() : _m(0), _n(0), _nz(0), _ri(0), _val(0), _pw(false) {}
+  SpMat(unsigned int m, unsigned int n) : _m(m), _n(n), _nz(0), _ri(n), _val(n), _pw(false) {}
   SpMat(unsigned int m, unsigned int n, const unsigned int *irp, const unsigned int *jcp, const double *sp);
   SpMat(const NEWMAT::GeneralMatrix& M);
   SpMat(const std::string& fname);
@@ -109,6 +109,8 @@ public:
   void Print(const std::string&  fname) const {Print(fname,8);}
   void Print(unsigned int        precision) const {Print(std::string(""),precision);}
   void Print() const {Print(8);}
+  void WarningsOn() {_pw=true;}
+  void WarningsOff() {_pw=false;}
 
 
   T Peek(unsigned int r, unsigned int c) const;
@@ -145,6 +147,39 @@ public:
   
   friend class Accumulator<T>; 
 
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  //
+  // Class ColumnIterator
+  //
+  // This implements a const forward iterator for a given column
+  //
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+  // template<class TT>
+  class ColumnIterator
+  {
+  public:
+    ColumnIterator(const SpMat<T>& mat, unsigned int col, bool end=false) {
+      if (end) { _ri_it = mat._ri[col-1].end(); _val_it = mat._val[col-1].end(); }
+      else { _ri_it = mat._ri[col-1].begin(); _val_it = mat._val[col-1].begin(); }
+    }
+    ~ColumnIterator() {}
+    T operator*() const { return(*_val_it); }
+    unsigned int Row() const { return((*_ri_it)+1); }
+    bool operator==(const ColumnIterator& rhs) const { return(_val_it == rhs._val_it); }
+    bool operator!=(const ColumnIterator& rhs) const { return(!(*this == rhs)); }
+    // Prefix increment. Use whenever possible
+    ColumnIterator& operator++() { ++_ri_it; ++_val_it; return(*this); }
+    // Postfix increment. Avoid.
+    ColumnIterator& operator++(int dummy) { ColumnIterator clone(*this); ++_ri_it; ++_val_it; return(clone); }
+  private:
+    typename std::vector<T>::const_iterator    _val_it;
+    std::vector<unsigned int>::const_iterator  _ri_it;
+  };
+
+  ColumnIterator begin(unsigned int col) const { if (col>_n) throw SpMatException("ColumnIterator: col out of range"); return(ColumnIterator(*this,col)); }
+  ColumnIterator end(unsigned int col) const { if (col>_n) throw SpMatException("ColumnIterator: col out of range"); return(ColumnIterator(*this,col,true)); }
+
   template<class TT>
   friend const SpMat<TT> operator*(const SpMat<TT>& lh, const SpMat<TT>& rh);      // Multiplication of two sparse matrices
 
@@ -167,15 +202,20 @@ public:
 				 boost::shared_ptr<Preconditioner<T> >  C,
 				 const NEWMAT::ColumnVector&            x_init) const;
 
+protected:
+  const std::vector<unsigned int>& get_ri(unsigned int i) const;
+  const std::vector<T>&            get_val(unsigned int i) const;
+  T& here(unsigned int r, unsigned int c);
+
 private:
   unsigned int                              _m;
   unsigned int                              _n;
   unsigned long                             _nz;
   std::vector<std::vector<unsigned int> >   _ri;
   std::vector<std::vector<T> >              _val;
+  bool                                      _pw;   // Print Warnings
 
-  bool found(const std::vector<unsigned int>&  ri, unsigned int key, int& pos) const;
-  T& here(unsigned int r, unsigned int c);
+  bool found(const std::vector<unsigned int>&  ri, unsigned int key, int& pos) const;  
   void insert(std::vector<unsigned int>& vec, int indx, unsigned int val);
   void insert(std::vector<T>& vec, int indx, const T& val);
   bool same_sparsity(const SpMat<T>& M) const;
@@ -305,7 +345,7 @@ private:
 
 template<class T>
 SpMat<T>::SpMat(unsigned int m, unsigned int n, const unsigned int *irp, const unsigned int *jcp, const double *sp)
-: _m(m), _n(n), _nz(0), _ri(n), _val(n)
+  : _m(m), _n(n), _nz(0), _ri(n), _val(n), _pw(false)
 {
   _nz = jcp[n];
   unsigned long nz = 0;
@@ -335,7 +375,7 @@ SpMat<T>::SpMat(unsigned int m, unsigned int n, const unsigned int *irp, const u
 
 template<class T>
 SpMat<T>::SpMat(const NEWMAT::GeneralMatrix& M)
-: _m(M.Nrows()), _n(M.Ncols()), _nz(0), _ri(M.Ncols()), _val(M.Ncols())
+  : _m(M.Nrows()), _n(M.Ncols()), _nz(0), _ri(M.Ncols()), _val(M.Ncols()), _pw(false)
 {
   double *m = static_cast<double *>(M.Store());
 
@@ -371,7 +411,7 @@ SpMat<T>::SpMat(const NEWMAT::GeneralMatrix& M)
 
 template<class T>
 SpMat<T>::SpMat(const std::string&  fname)
-: _m(0), _n(0), _nz(0), _ri(0), _val(0)
+: _m(0), _n(0), _nz(0), _ri(0), _val(0), _pw(false)
 {
   // First read data into (nz+1)x3 NEWMAT matrix
   NEWMAT::Matrix rcv;
@@ -573,7 +613,7 @@ NEWMAT::ReturnMatrix SpMat<T>::SolveForx(const NEWMAT::ColumnVector&            
     throw SpMatException("SolveForx: No idea how you got here. But you shouldn't be here, punk.");
   }
 
-  if (status) {
+  if (status && _pw) {
     cout << "SpMat::SolveForx: Warning requested tolerence not obtained." << endl;
     cout << "Requested tolerance was " << ltol << ", and achieved tolerance was " << tol << endl;
     cout << "This may or may not be a problem in your application, but you should look into it" << endl;
@@ -991,6 +1031,33 @@ const SpMat<T> operator&(const SpMat<T>& th, const NEWMAT::GeneralMatrix& bh)
 
 /*###################################################################
 ##
+## Here starts protected functions
+##
+###################################################################*/
+
+/////////////////////////////////////////////////////////////////////
+//
+// The following two functions give read access to _ri and _val
+// vectors (corresponding to one column).
+//
+/////////////////////////////////////////////////////////////////////
+
+template<class T>
+const std::vector<unsigned int>& SpMat<T>::get_ri(unsigned int i) const
+{
+  if (i >= _n) throw SpMatException("SpMat::get_ri: Index out of range");
+  return(_ri[i]);
+}
+
+template<class T>
+const std::vector<T>& SpMat<T>::get_val(unsigned int i) const
+{
+  if (i >= _n) throw SpMatException("SpMat::get_val: Index out of range");
+  return(_val[i]);
+}
+
+/*###################################################################
+##
 ## Here starts hidden functions
 ##
 ###################################################################*/
@@ -1195,7 +1262,7 @@ template<class T>
 const Accumulator<T>& Accumulator<T>::ExtractCol(const SpMat<T>& M, unsigned int c)
 {
   if (_sz != M._m) throw ;
-  if (c<0 || c>(M._n-1)) throw ;
+  if (c>(M._n-1)) throw ;
   if (_no) Reset();
   const std::vector<unsigned int>&      ri = M._ri[c];
   const std::vector<T>&                 val = M._val[c];

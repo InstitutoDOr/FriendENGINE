@@ -317,6 +317,146 @@ const bool Triangle::intersect(const Triangle & t) const
 
 }
 
+  // Saad
+  // algorithm from:
+  // http://softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
+
+  const bool Triangle::intersect(const vector<Pt> & p) const {
+    Vec    u,v,n;   // triangle vectors
+    Vec    dir,w0,w; // ray vectors
+    double r, a, b;              // params to calc ray-plane intersect
+
+    // check if point is one the vertices
+    for(int ii=0;ii<=2;ii++){
+      if((*_vertice[ii])==p[0])return true;
+      if((*_vertice[ii])==p[1])return true;
+    }
+
+    // get triangle edge vectors and plane normal
+    u = *_vertice[1]-*_vertice[0];
+    v = *_vertice[2]-*_vertice[0];
+    n = u*v;             // cross product
+    if (n.norm()==0) // triangle is degenerate
+      return false;                 
+    
+
+    dir = p[1]-p[0];             // ray direction vector
+    w0 = p[0]-*_vertice[0];
+    a = -(n|w0);
+    b = (n|dir);
+    if (fabs(b) < 0.001) { // ray is parallel to triangle plane
+      if (fabs(a) < 0.001)                 // ray lies in triangle plane
+	return true;
+      else return false;             // ray disjoint from plane
+    }
+    
+    // get intersect point of ray with triangle plane
+    r = a / b;
+    if (r < 0.0)                   // ray goes away from triangle
+      return false;                  // => no intersect
+    if(r > 1.0)
+      return false;
+    // for a segment, also test if (r > 1.0) => no intersect
+    Pt I;
+    I = p[0] + r * dir;           // intersect point of ray and plane
+    
+    // is I inside T?
+    double    uu, uv, vv, wu, wv, D;
+    uu = (u|u);
+    uv = (u|v);
+    vv = (v|v);
+    w = I - *_vertice[0];
+    wu = (w|u);
+    wv = (w|v);
+    D = uv * uv - uu * vv;
+    
+    // get and test parametric coords
+    double s, t;
+    s = (uv * wv - vv * wu) / D;
+    if (s < 0.0 || s > 1.0)        // I is outside T
+      return false;
+    t = (uv * wu - uu * wv) / D;
+    if (t < 0.0 || (s + t) > 1.0)  // I is outside T
+      return false;
+    
+    return true;                      // I is in T
+    
+  }
+  
+
+  const bool Triangle::intersect(const vector<Pt> & p,int& ind) const {
+    Vec    u,v,n;   // triangle vectors
+    Vec    dir,w0,w; // ray vectors
+    double r, a, b;              // params to calc ray-plane intersect
+
+    // check if point is one the vertices
+    for(int ii=0;ii<=2;ii++){
+      if((*_vertice[ii])==p[0]){ind=ii;return true;}
+      if((*_vertice[ii])==p[1]){ind=ii;return true;}
+    }
+
+    // get triangle edge vectors and plane normal
+    u = *_vertice[1]-*_vertice[0];
+    v = *_vertice[2]-*_vertice[0];
+    n = u*v;             // cross product
+    if (n.norm()==0) // triangle is degenerate
+      return false;                 
+    
+
+    dir = p[1]-p[0];             // ray direction vector
+    w0 = p[0]-*_vertice[0];
+    a = -(n|w0);
+    b = (n|dir);
+    if (fabs(b) < 0.0000000001) { // ray is parallel to triangle plane
+      if (fabs(a) < 0.0000000001)                 // ray lies in triangle plane
+	return true;
+      else return false;             // ray disjoint from plane
+    }
+    
+    // get intersect point of ray with triangle plane
+    r = a / b;
+    if (r < 0.0)                   // ray goes away from triangle
+      return false;                  // => no intersect
+    if(r > 1.0)
+      return false;
+    // for a segment, also test if (r > 1.0) => no intersect
+    Pt I;
+    I = p[0] + r * dir;           // intersect point of ray and plane
+    
+    // is I inside T?
+    double    uu, uv, vv, wu, wv, D;
+    uu = (u|u);
+    uv = (u|v);
+    vv = (v|v);
+    w = I - *_vertice[0];
+    wu = (w|u);
+    wv = (w|v);
+    D = uv * uv - uu * vv;
+    
+    // get and test parametric coords
+    double s, t;
+    s = (uv * wv - vv * wu) / D;
+    if (s < 0.0 || s > 1.0)        // I is outside T
+      return false;
+    t = (uv * wu - uu * wv) / D;
+    if (t < 0.0 || (s + t) > 1.0)  // I is outside T
+      return false;
+
+    // which vertex is closest to where the segment intersects?
+    float x=uu-2*wu,y=vv-2*wv;
+    if( x<0 ){
+      if( x<y ) ind=1;
+      else ind=2;
+    }
+    else{
+      if( y<0 ) ind=2;
+      else ind=0;
+    }
+    
+    return true;                      // I is in T
+    
+  }
+  
 
 }
 

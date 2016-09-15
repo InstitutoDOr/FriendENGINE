@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 
 #include "newimage/newimageall.h"
@@ -75,10 +75,11 @@ using namespace NEWIMAGE;
 namespace fslswapdim {
 #include "newimage/fmribmain.h"
 void print_usage(const string& progname) {
-  cout << "Usage: " << progname << " <input> <a> <b> <c> [output]" << endl;
+  cout << "Usage: " << progname << " <input> <a> <b> <c> [output] [--checkLR]" << endl;
   cout << endl;
   cout << "  where a,b,c represent the new x,y,z axes in terms of the" << endl;
   cout << "  old axes.  They can take values of -x,x,y,-y,z,-z" << endl;
+  cout << "  --checkLR  is an option that checks if the specified arguments lead to a Left-Right swap or not - it cannot be used with an output name" << endl;
   cout << "  e.g.  " << progname << " invol y x -z outvol" << endl;
 }
 
@@ -90,8 +91,13 @@ int fmrib_main(int argc,char *argv[])
   string inname=argv[1];
   string outname="";
   bool showmat=false;
+  bool checkonly=false;
   if (argc==6) {
     outname=argv[5];
+    if (outname=="--checkLR") {
+      outname="";
+      checkonly=true;
+    }
     showmat=false;
   } else {
     showmat=true;
@@ -107,11 +113,17 @@ int fmrib_main(int argc,char *argv[])
     cout << affmat << endl;
   }
 
+  if (checkonly) {
+    if (affmat.Determinant()<0.0) cout << "LR orientation changed" << endl;
+    else cout << "LR orientation preserved" << endl;
+    return 0;
+  } 
+
   if (affmat.Determinant()<0.0) {
     cout << "WARNING:: Flipping Left/Right orientation (as det < 0)" << endl;
   }
   
-  invol.swapdimensions(newx,newy,newz);
+  invol.swapdimensions(newx,newy,newz,true);
 
   int retval=0;
   if (outname!="") {

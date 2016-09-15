@@ -189,9 +189,25 @@ void FriendProcess::featureSelection()
    if (fileExists(vdb.glmTOutput))
    {
 	   // generate file with the maximum T for each voxel in the contrasts made
-	   fprintf(stderr, "Generating the all contrasts colapsed mask.\n");
-	   CmdLn << "fslmaths " << vdb.glmTOutput << " -Tmax " << vdb.featuresAllTrainSuffix;
-	   fslmaths((char *)CmdLn.str().c_str());
+	   char noInterestConditions[500];
+	   noInterestConditions[0]=0;
+
+	   if (vdb.readedIni.GetValue("FRIEND", "noInterestConditions"))
+	      strcpy(noInterestConditions, vdb.readedIni.GetValue("FRIEND", "noInterestConditions"));
+
+	   // if there is no interest conditions, generates the Tmax volume special way
+	   if (strlen(noInterestConditions) > 0)
+	   {
+		   vector<int> idxs;
+		   vdb.interval.noInterestContrastsIndexes(noInterestConditions, idxs);
+		   generateTMaxVoxels(vdb.glmTOutput, vdb.featuresAllTrainSuffix, idxs);
+	   }
+	   else
+	   {
+		   fprintf(stderr, "Generating the all contrasts colapsed mask.\n");
+		   CmdLn << "fslmaths " << vdb.glmTOutput << " -Tmax " << vdb.featuresAllTrainSuffix;
+		   fslmaths((char *)CmdLn.str().c_str());
+	   }
    }
    else
    {

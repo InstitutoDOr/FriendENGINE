@@ -1,6 +1,7 @@
 #ifndef FSLFUNCS_H
 #define FSLFUNCS_H
 #include "fslio/fslio.h"
+#include <vector>
 
 // functions handling FSL commands
 #ifdef WINDOWS
@@ -77,5 +78,9 @@ void functionalNormalization(char *mask, char *functional, char *reference, char
 
 // this function engraves a roi volume in a RFI volume, to make sure of the side
 void uniteVolumes(char *referenceVolume, char *roiVolume, char *outputFile);
+
+// this functions generates the T max volume form a 4D volume, considering only the indexes in a given vector
+void generateTMaxVoxels(char *input, char *output, std::vector<int> &idxs, int invert = 1);
+void generateTMaxVoxels(char *input, char *temp, char *output, std::vector<int> &idxs, int invert = 1);
 
 #endif

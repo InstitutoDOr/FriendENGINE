@@ -16,7 +16,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -65,7 +65,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 //
 
 #ifndef splinterpolator_h
@@ -162,7 +162,7 @@ public:
   }
   T ValAndDerivs(double x, double y, double z, std::vector<T>& rderiv) const;
 
-  // Return continous derivative at voxel centres (only works for order<1)
+  // Return continous derivative at voxel centres (only works for order>1)
   T Deriv(const std::vector<unsigned int>& indx, unsigned int ddir) const;
   T Deriv1(const std::vector<unsigned int>& indx) const {return(Deriv(indx,0));}
   T Deriv2(const std::vector<unsigned int>& indx) const {return(Deriv(indx,1));}
@@ -704,7 +704,7 @@ double Splinterpolator<T>::value_and_derivatives_at(const double       *coord,
 						    double             *dval) 
 const
 {
-  if (should_be_zero(coord)) { memset(dval,n_nonzero(deriv)*sizeof(double),0); return(0.0); }
+  if (should_be_zero(coord)) { memset(dval,0,n_nonzero(deriv)*sizeof(double)); return(0.0); }
 
   double       iwgt[8], jwgt[8], kwgt[8], lwgt[8], mwgt[8];
   double       *wgts[] = {iwgt, jwgt, kwgt, lwgt, mwgt};
@@ -860,7 +860,7 @@ unsigned int Splinterpolator<T>::get_wgts(const double *coord, const int *sinds,
 
   for (unsigned int dim=0; dim<_ndim; dim++) {
     for (unsigned int i=0; i<ni; i++) {
-      wgts[dim][i] = get_wgt(coord[dim]-(sinds[dim]+i));
+      wgts[dim][i] = get_wgt(coord[dim]-(sinds[dim]+int(i)));
     }
   }
   for (unsigned int dim=_ndim; dim<5; dim++) wgts[dim][0] = 1.0;
@@ -876,7 +876,7 @@ unsigned int Splinterpolator<T>::get_wgts_at_i(const unsigned int *indx, const i
   
   for (unsigned int dim=0; dim<_ndim; dim++) {
     for (unsigned int i=0; i<ni; i++) {
-      wgts[dim][i] = get_wgt_at_i(indx[dim]-(sinds[dim]+i));
+      wgts[dim][i] = get_wgt_at_i(indx[dim]-(sinds[dim]+int(i)));
     }
   }
   for (unsigned int dim=_ndim; dim<5; dim++) wgts[dim][0] = 1.0;
@@ -894,13 +894,12 @@ unsigned int Splinterpolator<T>::get_dwgts(const double *coord, const int *sinds
       switch (_order) {
       case 0:
 	throw SplinterpolatorException("get_dwgts: invalid order spline");
-        break;
       case 1:
         dwgts[dim][0] = -1; dwgts[dim][1] = 1;  // Not correct on original gridpoints
 	break;
       case 2: case 3: case 4: case 5: case 6: case 7:
 	for (unsigned int i=0; i<ni; i++) {
-	  dwgts[dim][i] = get_dwgt(coord[dim]-(sinds[dim]+i));
+	  dwgts[dim][i] = get_dwgt(coord[dim]-(sinds[dim]+int(i)));
         }
 	break;
       default:
@@ -923,10 +922,9 @@ unsigned int Splinterpolator<T>::get_dwgts_at_i(const unsigned int *indx, const 
       switch (_order) {
       case 0: case 1:
 	throw SplinterpolatorException("get_dwgts_at_i: invalid order spline");
-        break;
       case 2: case 3: case 4: case 5: case 6: case 7:
 	for (unsigned int i=0; i<ni; i++) {
-	  dwgts[dim][i] = get_dwgt_at_i(indx[dim]-(sinds[dim]+i));
+	  dwgts[dim][i] = get_dwgt_at_i(indx[dim]-(sinds[dim]+int(i)));
         }
 	break;
       default:
@@ -986,7 +984,6 @@ double Splinterpolator<T>::get_wgt_at_i(int i) const
     break;
   default:
     throw SplinterpolatorException("get_wgt_at_i: invalid order spline");
-    break;
   }
   return(val);     
 }
@@ -1008,7 +1005,6 @@ double Splinterpolator<T>::get_dwgt_at_i(int i) const
   switch (_order) {
   case 0: case 1:
     throw SplinterpolatorException("get_dwgt: invalid order spline");
-    break;
   case 2:
     if (!ai) val = 0.0;
     else if (ai==1) val = sign * (-0.5);
@@ -1041,7 +1037,6 @@ double Splinterpolator<T>::get_dwgt_at_i(int i) const
     break;
   default:
     throw SplinterpolatorException("get_dwgt_at_i: invalid order spline");
-    break;
   }
   return(val);     
 }
@@ -1098,7 +1093,6 @@ double Splinterpolator<T>::get_wgt(double x) const
     break;
   default:
     throw SplinterpolatorException("get_wgt: invalid order spline");
-    break;
   }
 
   return(val);
@@ -1121,7 +1115,6 @@ double Splinterpolator<T>::get_dwgt(double x) const
   switch (_order) {
   case 0: case 1:
     throw SplinterpolatorException("get_dwgt: invalid order spline");
-    break;
   case 2:
     if (ax < 0.5) val = sign * -2.0*ax;
     else if (ax < 1.5) val = sign * (-1.5 + ax);
@@ -1154,7 +1147,6 @@ double Splinterpolator<T>::get_dwgt(double x) const
     break;
   default:
     throw SplinterpolatorException("get_dwgt: invalid order spline");
-    break;
   }
 
   return(val);
@@ -1207,16 +1199,62 @@ inline unsigned int Splinterpolator<T>::indx2indx(int indx, unsigned int d) cons
 {
   if (d > (_ndim-1)) return(0);
 
+  // cout << "indx in = " << indx << endl;
+
+  if (indx < 0) {
+    switch (_et[d]) {
+    case Constant:
+      indx = 0;
+      break;
+    case Zeros: case Mirror:
+      indx = (indx%int(_dim[d])) ? -indx%int(_dim[d]) : 0;
+      break;
+    case Periodic:
+      indx = (indx%int(_dim[d])) ? _dim[d]+indx%int(_dim[d]) : 0;
+      break;
+    default:
+      break;
+    }
+  }
+  else if (indx >= static_cast<int>(_dim[d])) {
+    switch (_et[d]) {
+    case Constant:
+      indx = _dim[d]-1;
+      break;
+    case Zeros: case Mirror:
+      indx = 2*_dim[d] - (_dim[d]+indx%int(_dim[d])) - 2;
+      break;
+    case Periodic:
+      indx = indx%int(_dim[d]);
+      break;
+    default:
+      break;
+    }
+  }
+
+  // cout << "indx out = " << indx << endl;
+
+  return(indx);
+}
+
+// The next routine is defunct and will be moved out of this file.
+
+/*
+template<class T>
+inline unsigned int Splinterpolator<T>::indx2indx(int indx, unsigned int d) const
+{
+  if (d > (_ndim-1)) return(0);
+
   if (indx < 0) {
     switch (_et[d]) {
     case Constant:
       return(0);
       break;
     case Zeros: case Mirror:
-      return(1-indx);
+      return((indx%int(_dim[d])) ? -1-indx%int(_dim[d]) : _dim[d]-1);
       break;
     case Periodic:
-      return(_dim[d]+indx);
+      return((indx%int(_dim[d])) ? _dim[d]+indx%int(_dim[d]) : 0);
       break;
     default:
       break;
@@ -1228,10 +1266,10 @@ inline unsigned int Splinterpolator<T>::indx2indx(int indx, unsigned int d) cons
       return(_dim[d]-1);
       break;
     case Zeros: case Mirror:
-      return(2*_dim[d]-indx-1);
+      return(2*_dim[d] - (_dim[d]+indx%int(_dim[d])) - 1);
       break;
     case Periodic:
-      return(indx-_dim[d]);
+      return(indx%int(_dim[d]));
       break;
     default:
       break;
@@ -1239,6 +1277,7 @@ inline unsigned int Splinterpolator<T>::indx2indx(int indx, unsigned int d) cons
   }
   return(indx);
 }
+*/
 
 template<class T>
 unsigned int Splinterpolator<T>::indx2linear(int k, int l, int m) const
@@ -1269,7 +1308,6 @@ T Splinterpolator<T>::coef(int *indx) const
       switch (_et[i]) {
       case Zeros:
 	return(static_cast<T>(0));
-	break;
       case Constant:
 	indx[i] = 0;
 	break;
@@ -1287,7 +1325,6 @@ T Splinterpolator<T>::coef(int *indx) const
       switch (_et[i]) {
       case Zeros:
 	return(static_cast<T>(0));
-	break;
       case Constant:
 	indx[i] = _dim[i]-1;
 	break;
@@ -1336,7 +1373,7 @@ template<class T>
 void Splinterpolator<T>::common_construction(const T *data, const std::vector<unsigned int>& dim, unsigned int order, double prec, const std::vector<ExtrapolationType>& et, bool copy)
 {
   if (!dim.size()) throw SplinterpolatorException("common_construction: data has zeros dimensions");
-  if (!dim.size() > 5) throw SplinterpolatorException("common_construction: data cannot have more than 5 dimensions");
+  if (dim.size() > 5) throw SplinterpolatorException("common_construction: data cannot have more than 5 dimensions");
   if (dim.size() != et.size()) throw SplinterpolatorException("common_construction: dim and et must have the same size");
   for (unsigned int i=0; i<dim.size(); i++) if (!dim[i]) throw SplinterpolatorException("common_construction: data cannot have zeros size in any direction");
   if (order > 7) throw SplinterpolatorException("common_construction: spline order must be lesst than 7");
@@ -1518,7 +1555,6 @@ unsigned int Splinterpolator<T>::SplineColumn::get_poles(unsigned int order, dou
     break;
   default:
     throw SplinterpolatorException("SplineColumn::get_poles: invalid order of spline");
-    break;
   }
   return(np);
 }

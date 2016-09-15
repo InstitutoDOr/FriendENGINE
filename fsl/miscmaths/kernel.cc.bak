@@ -90,14 +90,12 @@ namespace MISCMATHS {
     return kernel(n)*(1.0-dn) + kernel(n+1)*dn;
   }
   
-  inline bool in_bounds(ColumnVector data, int index)
+  inline bool in_bounds(const ColumnVector& data, int index)
   { return ( (index>=1) && (index<=data.Nrows())); }
   
-  inline bool in_bounds(ColumnVector data, float index)
+  inline bool in_bounds(const ColumnVector& data, float index)
   { return ( ((int)floor(index)>=1) && ((int)ceil(index)<=data.Nrows())); }
   
-  // Support Functions
-
   float sincfn(float x)
   {
     if (fabs(x)<1e-7) { return 1.0-fabs(x); }
@@ -185,7 +183,7 @@ namespace MISCMATHS {
   }
 
   // dummy fn for now
-  float extrapolate_1d(const ColumnVector data, const int index)
+  float extrapolate_1d(const ColumnVector& data, const int index)
   {
     float extrapval;
 
@@ -202,7 +200,7 @@ namespace MISCMATHS {
   }
   
   // basic trilinear call
-  float interpolate_1d(ColumnVector data, const float index)
+  float interpolate_1d(const ColumnVector& data, const float index)
   {
     float interpval;
     int low_bound = (int)floor(index);
@@ -219,7 +217,7 @@ namespace MISCMATHS {
     
   //////// Spline Support /////////
 
-  float hermiteinterpolation_1d(ColumnVector data, int p1, int p4, float t)
+  float hermiteinterpolation_1d(const ColumnVector& data, int p1, int p4, float t)
   {
     // Q(t) = (2t^3 - 3t^2 + 1)P_1 + (-2t^3 + 3t^2)P_4 + (t^3 - 2t^2 + t)R_1 + (t^3 - t^2)R_4
     // inputs: points P_1, P_4; tangents R_1, R_4; interpolation index t;
@@ -253,24 +251,26 @@ namespace MISCMATHS {
 
   //////// Kernel Interpolation Call /////////
 
-  float kernelinterpolation_1d(ColumnVector data, float index, ColumnVector userkernel, int width)
+  float kernelinterpolation_1d(const ColumnVector& data, float index, const ColumnVector& userkernel, int width)
   {
     int widthx = (width - 1)/2;
     // kernel half-width  (i.e. range is +/- w)
 
-    int wx= widthx;
-    ColumnVector kernelx = userkernel;
-    float *storex = new float[2*wx+1];
-  
     int ix0;
     ix0 = (int) floor(index);
     
+    static int wx=0;
+    static float *storex = 0;
+    if ( (wx!=widthx) || (storex==0) ) {
+	wx=widthx;
+        storex = new float[2*wx+1]; 
+        for (int d=-wx; d<=wx; d++) {
+          storex[d+wx] = kernelval((index-ix0+d),wx,userkernel);
+        }
+    }
+  
     float convsum=0.0, interpval=0.0, kersum=0.0;
     
-    for (int d=-wx; d<=wx; d++) {
-      storex[d+wx] = kernelval((index-ix0+d),wx,kernelx);
-    }
-
     int xj;
     for (int x1=ix0-wx; x1<=ix0+wx; x1++) {
       if (in_bounds(data, x1)) {
@@ -283,8 +283,6 @@ namespace MISCMATHS {
       }
     }
 
-    delete(storex);
-    
     if ( (fabs(kersum)>1e-9) ) {
       interpval = convsum / kersum;
     } else {
@@ -298,7 +296,7 @@ namespace MISCMATHS {
   
   ////// Kernel wrappers //////
 
-  float kernelinterpolation_1d(ColumnVector data, float index)
+  float kernelinterpolation_1d(const ColumnVector& data, float index)
   {
     ColumnVector userkernel = sinckernel1D("hanning", 7, 1201);
     return kernelinterpolation_1d(data, index, userkernel, 7);
@@ -311,14 +309,3 @@ namespace MISCMATHS {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
- 

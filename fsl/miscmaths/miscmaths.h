@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 // Miscellaneous maths functions
 
@@ -192,6 +192,10 @@ namespace MISCMATHS {
   int rank(const Matrix& X);
   ReturnMatrix sqrtaff(const Matrix& mat);
 
+  // in the following mode = "new2old" or "old2new" (see .cc for more info)
+  vector<int> get_sortindex(const Matrix& vals, const string& mode, int col=1);
+  Matrix apply_sortindex(const Matrix& vals, vector<int> sidx, const string& mode);
+
   void reshape(Matrix& r, const Matrix& m, int nrows, int ncols);
   ReturnMatrix reshape(const Matrix& m, int nrows, int ncols);
   int addrow(Matrix& m, int ncols);
@@ -272,15 +276,22 @@ namespace MISCMATHS {
   ReturnMatrix repmat(const Matrix& mat, const int rows = 1, const int cols = 1);
   ReturnMatrix dist2(const Matrix& mat1, const Matrix& mat2);
   ReturnMatrix abs(const Matrix& mat);
+  void abs_econ(Matrix& mat);
   ReturnMatrix sqrt(const Matrix& mat);
+  void sqrt_econ(Matrix& mat);
   ReturnMatrix sqrtm(const Matrix& mat);
   ReturnMatrix log(const Matrix& mat);
+  void log_econ(Matrix& mat);
   ReturnMatrix exp(const Matrix& mat);
+  void exp_econ(Matrix& mat);
   ReturnMatrix expm(const Matrix& mat);
   ReturnMatrix tanh(const Matrix& mat);
+  void tanh_econ(Matrix& mat);
   ReturnMatrix pow(const Matrix& mat, const double exp);
+  void pow_econ(Matrix& mat, const double exp);
   ReturnMatrix sum(const Matrix& mat, const int dim = 1);
   ReturnMatrix mean(const Matrix& mat, const int dim = 1);
+  ReturnMatrix mean(const Matrix& mat, const RowVector& weights, const int dim=1);
   ReturnMatrix var(const Matrix& mat, const int dim = 1);
   ReturnMatrix max(const Matrix& mat);
   ReturnMatrix max(const Matrix& mat,ColumnVector& index);
@@ -293,13 +304,26 @@ namespace MISCMATHS {
   ReturnMatrix eq(const Matrix& mat1,const Matrix& mat2); 
   ReturnMatrix neq(const Matrix& mat1,const Matrix& mat2); 
   ReturnMatrix SD(const Matrix& mat1,const Matrix& mat2); // Schur (element-wise) divide
+  void SD_econ(Matrix& mat1,const Matrix& mat2); // Schur (element-wise) divide
+  void SP_econ(Matrix& mat1,const Matrix& mat2); // Schur (element-wise) divide
+
   ReturnMatrix vox_to_vox(const ColumnVector& xyz1,const ColumnVector& dims1,const ColumnVector& dims2,const Matrix& xfm);
   ReturnMatrix mni_to_imgvox(const ColumnVector& mni,const ColumnVector& mni_origin,const Matrix& mni2img, const ColumnVector& img_dims);
+
+  void remmean_econ(Matrix& mat, const int dim = 1);
+  void remmean(Matrix& mat, Matrix& Mean, const int dim = 1);
   void remmean(const Matrix& mat, Matrix& demeanedmat, Matrix& Mean,  const int dim = 1);
   ReturnMatrix remmean(const Matrix& mat, const int dim = 1);
+
   ReturnMatrix stdev(const Matrix& mat, const int dim = 1);
-  ReturnMatrix cov(const Matrix& mat, const int norm = 0);
-  ReturnMatrix corrcoef(const Matrix& mat, const int norm = 0);
+  ReturnMatrix cov(const Matrix& mat, const bool sampleCovariance = false, const int econ=20000);
+  ReturnMatrix cov_r(const Matrix& mat, const bool sampleCovariance = false, const int econ=20000);
+  ReturnMatrix cov_r(const Matrix& data, const Matrix& weights, int econ=20000);
+
+
+
+  ReturnMatrix oldcov(const Matrix& mat, const bool norm = false);
+  ReturnMatrix corrcoef(const Matrix& mat, const bool norm = false);
   void symm_orth(Matrix &Mat);
   void powerspectrum(const Matrix &Mat1, Matrix &Result, bool useLog);
   void element_mod_n(Matrix& Mat,double n); //represent each element in modulo n (useful for wrapping phases (n=2*M_PI))

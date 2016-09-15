@@ -96,6 +96,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\fsl\miscmaths\Simplex.cpp" />
     <ClCompile Include="..\..\..\..\fsl\zlib\adler32.c" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibinternal.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibmisc.cpp" />
@@ -263,6 +264,7 @@
     <ClCompile Include="..\..\..\..\fsl\zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\fsl\miscmaths\Simplex.h" />
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\cctypes.h" />
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\confusionmatrix.h" />
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\defs.h" />

@@ -73,6 +73,8 @@ echo Removing executable files
 del Application\*.exe
 del Application\*.ilk
 del Application\*.dll
+del Application\*.iobj
+del Application\*.ipdb
 
 echo Deleting the testdata intermediate files and directories
 rmdir ..\Friend_Engine_Sources\TestData\SUBJ002\input /s /q

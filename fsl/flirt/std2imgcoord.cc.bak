@@ -134,8 +134,8 @@ void print_usage(int argc, char *argv[])
 {
   cout << "Usage: " << argv[0] << " [options] <filename containing coordinates>\n\n"
        << "e.g.   " << argv[0] << " -img <invol> -std <standard image> -xfm <img2standard mat file> <coordinate file>\n"
-       << "       " << argv[0] << " -img <invol> <coordinate file>\n"
-       << "       " << argv[0] << " -img <invol> - \n\n"
+       << "       " << argv[0] << " -img <invol> -std <standard image> <coordinate file>\n"
+       << "       " << argv[0] << " -img <invol> -std <standard image> - \n\n"
        << "  Options are:\n"
        << "        -std <filename of standard image>\n"
        << "        -img <filename of input image>\n"

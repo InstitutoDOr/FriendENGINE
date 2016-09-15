@@ -87,8 +87,11 @@ namespace UTILS {
       
       while(true)
 	{
-//	  if ( (ret = mkdir(dir.c_str(), 0770))!= 0){
+#ifdef WIN32
 	  if ( (ret = _mkdir(dir.c_str()))!= 0){
+#else
+	  if ( (ret = mkdir(dir.c_str(), 0770))!= 0){
+#endif
 	    switch(errno){
 	    case EACCES: // don't have write permission
 	      return 1;

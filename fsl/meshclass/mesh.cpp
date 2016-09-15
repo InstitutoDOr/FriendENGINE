@@ -86,7 +86,7 @@ Mesh::Mesh(const Mesh&m)
   _triangles.clear();
   for (vector<Mpoint*>::const_iterator p= m._points.begin(); p!=m._points.end(); p++)
     {
-      Mpoint * pt = new Mpoint((*p)->get_coord(), (*p)->get_no());
+      Mpoint * pt = new Mpoint((*p)->get_coord(), (*p)->get_no(), (*p)->get_value());
       _points.push_back(pt);
     }
   for (list<Triangle*>::const_iterator t= m._triangles.begin(); t!=m._triangles.end(); t++)
@@ -95,6 +95,7 @@ Mesh::Mesh(const Mesh&m)
       Triangle * tr = new Triangle(get_point(v0), get_point(v1), get_point(v2));
       _triangles.push_back(tr);
     }
+  init_loc_triangles();
 }
 
  
@@ -121,6 +122,7 @@ Mesh Mesh::operator=(const Mesh&m)
       _triangles.push_back(tr);
     }
   
+  init_loc_triangles();
   return *this;
 }
 
@@ -142,6 +144,13 @@ void Mesh::clear() {
   for (vector<Mpoint*>::iterator i=_points.begin(); i!=_points.end(); i++)
     delete(*i);
   _points.clear();
+}
+
+void Mesh::init_loc_triangles(){
+  loc_triangles.clear();
+  for (list<Triangle*>::iterator i=_triangles.begin(); i!=_triangles.end(); i++){
+    loc_triangles.push_back(*i);
+  }
 }
 
 
@@ -392,12 +401,17 @@ int Mesh::load(string s) {
 	  }
 	  
 	  else{
-	    cout<<"Read other";
+	    //cout<<"Read other";
 	    load_fs(s);
 	    ret=2;
 	  }
 	}
-      else {cout<<"error opening file"<<endl; ret=-1; exit(-1);}
+      else {
+	cerr<<"error opening file"<<endl; 
+	cerr<<"could not open the following file: "<<s<<endl;
+	cerr<<"terminating."<<endl;
+	ret=-1; return(-1);
+      }
     }
 
   else{ret=0; cout<<"cancelled"<<endl; }
@@ -514,8 +528,20 @@ void Mesh::load_vtk_ASCII(string s) {//loads a .vtk format mesh
 	      int j;
 	      f>>j>>p0>>p1>>p2;
 	      Triangle * t = new Triangle(get_point(p0), get_point(p1), get_point(p2));
-	      _triangles.push_back(t);
+	      _triangles.push_back(t);	      
 	    }
+	  f>>header>>header;
+	  f>>header>>header>>header;
+	  f>>header>>header;
+	  //reading the values
+	  for (int i=0; i<NVertices; i++)
+	    {
+	      int val;
+	      f>>val;	      
+	      _points[i]->set_value(val);
+	    }
+
+	  
 	  f.close();
 	}
       else {cout<<"error opening file"<<endl; exit(-1);}
@@ -622,7 +648,7 @@ void Mesh::load_fs_label(string s,const int& value){
 	      double x, y, z;
 	      float tmp;
 	      f>>num>>x>>y>>z>>tmp; //NB - can't work out when Freesurfer sets the 5th value in label
-	      _points[num]->set_value(value);
+	      _points[num]->set_value(tmp);
 	    }
 	  
 	  f.close();
@@ -649,27 +675,21 @@ void Mesh::save(string s,int type) const {//type is 1 for an off file, 2 for a F
   
 }
 
-void Mesh::save_fs_label(string s, bool RAS) const { //save an fs label of all points whos value greater than 0
-                                                                      //If RAS is true, then mesh points are in standard-space coords
-                                                                      // and these are saved as label coords
+  void Mesh::save_fs_label(string s,bool saveall) const {
   ofstream f(s.c_str());
   stringstream flot;
   if (f.is_open())
     {
-      int ptcount=0,labcount=0;
+      int labcount=0;
       for(vector<Mpoint *>::const_iterator i=_points.begin();i!=_points.end();i++){
-	if((*i)->get_value()>0){
-	  if(!RAS)
-	    flot<<ptcount<<" "<<0<<" "<<0<<" "<<0<<" "<<(*i)->get_value()<<endl; //Don't know RAS coordinate of point
-	  else
-	    flot<<ptcount<<" "<<(*i)->get_coord().X<<" "<<(*i)->get_coord().Y<<" "<<(*i)->get_coord().Y<<" "<<(*i)->get_value()<<endl; 
-	  
+	if((*i)->get_value()!=0 || saveall){
+	  flot<<(*i)->get_no()<<" "
+	      <<(*i)->get_coord().X<<" "
+	      <<(*i)->get_coord().Y<<" "
+	      <<(*i)->get_coord().Z<<" "
+	      <<(*i)->get_value()<<endl;
 	  labcount++;
-	}
-	
-	ptcount++;
-	
-	
+	}       		
       }
       f<<"#!ascii label , from subject"<<endl;
       f<<labcount<<endl<<flot.str();      
@@ -677,6 +697,32 @@ void Mesh::save_fs_label(string s, bool RAS) const { //save an fs label of all p
     }
   else cerr<<"error opening file "<<s<<endl;
 }
+
+  void Mesh::save_fs(string s)const{// save an fs ascii file (both vertices and triangles)
+      ofstream f(s.c_str());
+  stringstream flot;
+  if (f.is_open())
+    {
+      int ptcount=0,tricount=0;
+      for(vector<Mpoint *>::const_iterator i=_points.begin();i!=_points.end();i++){
+	flot<<(*i)->get_coord().X<<" "<<(*i)->get_coord().Y<<" "<<(*i)->get_coord().Z<<" "<<(*i)->get_value()<<endl; 	  
+	ptcount++;
+      }
+      for(list<Triangle *>::const_iterator i=_triangles.begin();i!=_triangles.end();i++){
+	flot<<(*i)->get_vertice(0)->get_no()<<" "
+	    <<(*i)->get_vertice(1)->get_no()<<" "
+	    <<(*i)->get_vertice(2)->get_no()<<" "<<0<<endl;
+	tricount++;
+      }
+      f<<"#!ascii freesurfer"<<endl;
+      f<<ptcount<<" "<<tricount<<endl<<flot.str();
+      
+
+      f.close();
+    }
+  else cerr<<"error opening file "<<s<<endl;
+
+  }
 
 void Mesh::addvertex(Triangle * const t,const Pt p)
 {

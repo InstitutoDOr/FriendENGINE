@@ -17,7 +17,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -66,7 +66,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <string>
 #include <iostream>
@@ -100,7 +100,7 @@
 #endif
 
 // Put current version number here:
-const string version = "5.5";
+const string version = "6.0";
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -108,7 +108,11 @@ const string version = "5.5";
 
 volume<float> global_refweight, global_testweight, global_refweight1;
 volume<float> global_refweight2, global_refweight4, global_refweight8;
-bool global_scale1OK=true;
+volume<float> global_seg, global_init_testvol, global_init_testweight;
+volume<float> global_fmap, global_fmap_mask;
+Matrix global_coords, global_norms;
+bool global_scale1OK=true, read_testvol=false;
+float global_sampling=1.0f;
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -122,6 +126,19 @@ void print_vector(float x, float y, float z)
 
 
 //------------------------------------------------------------------------//
+
+void setupsinc(const volume<float>& invol)
+{
+  // the following full-width is in voxels
+  int w = MISCMATHS::round(gOptions->sincwidth);
+  if (gOptions->sincwindow==Hanning) {
+    invol.definesincinterpolation("hanning",w);
+  } else if (gOptions->sincwindow==Blackman) {
+    invol.definesincinterpolation("blackman",w);
+  } else if (gOptions->sincwindow==Rect) {
+    invol.definesincinterpolation("rectangular",w);
+  }
+}
 
 
 void set_basescale(const string& filenameA, const string& filenameB)
@@ -171,68 +188,8 @@ int FLIRT_read_volume(volume<float>& target, const string& filename)
   return retval;
 }
 
+
 //------------------------------------------------------------------------//
-
-void setupsinc(const volume<float>& invol)
-{
-  // the following full-width is in voxels
-	int w = MISCMATHS::round(gOptions->sincwidth);
-  if (gOptions->sincwindow==Hanning) {
-    invol.definesincinterpolation("hanning",w);
-  } else if (gOptions->sincwindow==Blackman) {
-    invol.definesincinterpolation("blackman",w);
-  } else if (gOptions->sincwindow==Rect) {
-    invol.definesincinterpolation("rectangular",w);
-  }
-}
-
-
-void final_transform(const volume<float>& testvol, volume<float>& outputvol,
-		     const Matrix& finalmat) 
-{
-  if (gOptions->interpmethod == NearestNeighbour) {
-    testvol.setinterpolationmethod(nearestneighbour);
-  } else if (gOptions->interpmethod == NEWIMAGE::Sinc) {
-    setupsinc(testvol);
-    testvol.setinterpolationmethod(sinc);
-  } else {
-    testvol.setinterpolationmethod(trilinear);
-  }
-  float paddingsize = gOptions->paddingsize;
-  if (gOptions->mode2D) {
-    paddingsize = Max(1.0,paddingsize);
-  }
-  affine_transform(testvol,outputvol,finalmat,paddingsize);
-}
-
-template <class T>
-int safe_save_volume(const volume<T>& source, const string& filename)
-{
-  if (!gOptions->nosave) {
-    const_cast< volume<T>& >(source).setDisplayMaximumMinimum(0,0);
-    save_volume_dtype(source,filename,gOptions->datatype);
-  }
-  return 0;
-}
-
-void save_matrix_data(const Matrix& matresult)
-{
-  Matrix outfmat = matresult;
-  write_ascii_matrix(outfmat,gOptions->outputmatascii);
-}
-
-void save_matrix_data(const Matrix& matresult, const volume<float>& initvol, 
-		      const volume<float>& finalvol)
-{
-  save_matrix_data(matresult);
-}
-
-float costfn(const Matrix& matresult);
-
-
-//////////////////////////////////////////////////////////////////////////
-
-// OPTIMISATION SUPPORT
 
 
 int vector2affine(const ColumnVector& params, int n, const ColumnVector& centre,
@@ -307,13 +264,213 @@ void set_param_basis(Matrix &parambasis, int no_params)
 }
 
 
+ColumnVector default_nonlin_params(void)
+{
+  int pe_dir = gOptions->pe_dir;
+  int N=0;
+  if (abs(pe_dir)==1) N=gOptions->impair->testvol.xsize();
+  if (abs(pe_dir)==2) N=gOptions->impair->testvol.ysize();
+  if (abs(pe_dir)==3) N=gOptions->impair->testvol.zsize();
+  float fmapscaling = gOptions->echo_spacing * N / (2.0*M_PI);
+  if (pe_dir<0) fmapscaling *= -1;
+  ColumnVector nonlin_params(1);
+  nonlin_params=fmapscaling;
+  return nonlin_params;
+}
+
+
+// cost function interfaces
+
+int setcostfntype(Costfn* imagepair, costfns ctype) {
+  imagepair->set_costfn(ctype);
+  if ((imagepair->get_costfn()==BBR) && (!imagepair->is_bbr_set())) {
+    if (gOptions->debug) {
+      cerr << "Setting bbr seg 1" << endl;
+      cerr << "Cost is set to " << imagepair->get_costfn() << endl;
+      cerr << "Cost == BBR is " << (imagepair->get_costfn() == BBR) << endl;
+      cerr << "Result (pre) of is_bbr_set is " << imagepair->is_bbr_set() << endl;
+    }
+    if (gOptions->usecoords) {
+      imagepair->set_bbr_coords(global_coords,global_norms);
+    } else {
+      imagepair->set_bbr_seg(global_seg);  // only run BBR at one scale so not wasteful
+    }
+    imagepair->set_bbr_fmap(global_fmap,global_fmap_mask,gOptions->pe_dir);
+    imagepair->set_bbr_type(gOptions->bbr_type);
+    imagepair->set_bbr_slope(gOptions->bbr_slope);
+    if (gOptions->debug) {
+      cerr << "Result (post) of is_bbr_set is " << imagepair->is_bbr_set() << endl;
+    }
+  }
+  return 0;
+}
+
+int setcostfntype(costfns ctype) {
+  if (gOptions->impair) {  // only do this if impair is set
+    return setcostfntype(gOptions->impair, ctype);
+  }
+  return -1;
+}
+
+int setcostfntype(const string& cname) {
+  return setcostfntype(costfn_type(cname));
+}
+
+
+
+int setup_costfn(Costfn* imagepair, costfns curcostfn, int no_bins, float smoothsize, float fuzzyfrac)
+{
+  setcostfntype(imagepair,curcostfn);
+  imagepair->set_no_bins(no_bins);
+  imagepair->smoothsize = smoothsize;
+  imagepair->fuzzyfrac = fuzzyfrac;
+  return 0;
+}
+
+
+float costfn(const Matrix& uninitaffmat, const ColumnVector& nonlin_params)
+{
+  //Tracer tr("costfn");
+  Matrix affmat = uninitaffmat * gOptions->initmat;  // apply initial matrix
+  setcostfntype(gOptions->currentcostfn);
+  float retval = 0.0;
+  retval = gOptions->impair->cost(affmat,nonlin_params);
+  return retval;
+}
+
+
+float costfn(const Matrix& uninitaffmat)
+{
+  //Tracer tr("costfn");
+  float retval = 0.0;
+  if ((gOptions->currentcostfn==BBR) && (gOptions->pe_dir!=0)) {
+    // call the non-linear version of costfn, which will apply the initmat there
+    retval = costfn(uninitaffmat,default_nonlin_params());
+  } else {
+    Matrix affmat = uninitaffmat * gOptions->initmat;  // apply initial matrix
+    setcostfntype(gOptions->currentcostfn);
+    retval = gOptions->impair->cost(affmat);
+  }
+  return retval;
+}
+
+
+float costfn(const ColumnVector& params)
+{
+  //Tracer tr("costfn");
+  Matrix affmat(4,4);
+  vector2affine(params,gOptions->no_params,affmat);
+  float retval;
+  int pe_dir=gOptions->pe_dir;
+  if ((gOptions->impair->get_costfn()==BBR) && (pe_dir!=0)) {
+    retval = costfn(affmat,default_nonlin_params());
+  } else {
+    retval = costfn(affmat);
+  }
+  if (gOptions->verbose>=5) {
+    cout << gOptions->impair->count() << " : ";
+    cout << retval << " :: ";
+    for (int i=1; i<=gOptions->no_params; i++) 
+      { cout << params(i) << " "; }
+    cout << endl;
+  }
+  return retval;
+}
+  
+
+//----------------------------------------------------------------------//
+
+void affine_and_fmap_transform(const volume<float>& testvol, const volume<float>& refvol,
+			       volume<float>& outputvol, const Matrix& finalmat, const ColumnVector& nonlin_params)
+{
+  if (gOptions->debug) { cerr << "Pre bbr_resamp" << endl; }
+  gOptions->impair->bbr_resamp(finalmat,nonlin_params,outputvol);
+  if (gOptions->debug) { cerr << "Post bbr_resamp" << endl; }
+}
+
+
+void final_transform(const volume<float>& testvol, const volume<float>& refvol,
+		     const Matrix& finalmat, volume<float>& outputvol) 
+{
+  if (gOptions->interpmethod == NearestNeighbour) {
+    testvol.setinterpolationmethod(nearestneighbour);
+  } else if (gOptions->interpmethod == NEWIMAGE::Sinc) {
+    setupsinc(testvol);
+    testvol.setinterpolationmethod(sinc);
+  } else if (gOptions->interpmethod == NEWIMAGE::Spline) {
+    testvol.setinterpolationmethod(spline);
+  } else {
+    testvol.setinterpolationmethod(trilinear);
+  }
+
+  if (gOptions->forcebackgnd) {
+    testvol.setpadvalue(gOptions->backgndval);
+    testvol.setextrapolationmethod(constpad);
+  } else {
+    testvol.setpadvalue(testvol.backgroundval());
+    testvol.setextrapolationmethod(extraslice);
+  }
+
+
+  float paddingsize = gOptions->paddingsize;
+  if (gOptions->mode2D) {
+    paddingsize = Max(1.0,paddingsize);
+  }
+  if (gOptions->pe_dir==0) {  // test to see if fieldmap is being used
+    affine_transform(testvol,outputvol,finalmat,paddingsize,false);
+  } else {
+    // Only setup costfn if it isn't already done (normally first time around in a 4D)
+    if (gOptions->debug) { cerr << "Start affine_and_fmap_transform" << endl; }
+    if (gOptions->impair==NULL) {
+      if (gOptions->debug) { cerr << "Pre new costfn" << endl; }
+      gOptions->impair = new Costfn(refvol,testvol);
+      if (gOptions->debug) { cerr << "Pre setup_costfn" << endl; }
+      // the following sets up all BBR related stuff like fieldmaps, etc.  (will also recalculate wm edge points)
+      setup_costfn(gOptions->impair, BBR,
+		   gOptions->no_bins,
+		   gOptions->smoothsize,gOptions->fuzzyfrac);  
+    }
+    affine_and_fmap_transform(testvol,refvol,outputvol,finalmat,default_nonlin_params());
+  }
+}
+
+template <class T>
+int safe_save_volume(const volume<T>& source, const string& filename)
+{
+  if (!gOptions->nosave) {
+    const_cast< volume<T>& >(source).setDisplayMaximumMinimum(0,0);
+    save_volume_dtype(source,filename,gOptions->datatype);
+  }
+  return 0;
+}
+
+void save_matrix_data(const Matrix& matresult)
+{
+  Matrix outfmat = matresult;
+  write_ascii_matrix(outfmat,gOptions->outputmatascii); 
+}
+
+void save_matrix_data(const Matrix& matresult, const volume<float>& initvol, 
+		      const volume<float>& finalvol)
+{
+  save_matrix_data(matresult);
+}
+
+//----------------------------------------------------------------------------//
+
+
+//////////////////////////////////////////////////////////////////////////
+
+// OPTIMISATION SUPPORT
+
+
 float estimate_scaling(const volume<float>& vol) {
-  //Tracer tr("estimate_scaling");
+  ////Tracer tr("estimate_scaling");
   return Min(Min(vol.xdim(),vol.ydim()),vol.zdim());
 }
 
 float estimate_scaling() {
-  //Tracer tr("estimate_scaling");
+  ////Tracer tr("estimate_scaling");
   return estimate_scaling(gOptions->impair->refvol);
 }
 
@@ -363,50 +520,19 @@ void optimise(ColumnVector& params, int no_params, ColumnVector& param_tol,
   for (int i=1; i<=no_params; i++) { ptol[i] = param_tol(i); }
   
   *fans = MISCMATHS::optimise(params,no_params,param_tol,costfunc,no_its,itmax,
-			      gOptions->boundguess);
+			      gOptions->boundguess,
+			      gOptions->optimisationtype);
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////
-
-// OPTIMISATION SUPPORT (cost function interfaces)
-
-
-float costfn(const Matrix& uninitaffmat)
-{
-  //Tracer tr("costfn");
-  Matrix affmat = uninitaffmat * gOptions->initmat;  // apply initial matrix
-  float retval = 0.0;
-  gOptions->impair->set_costfn(gOptions->currentcostfn);
-  retval = gOptions->impair->cost(affmat);
-  return retval;
-}
-
-
-float costfn(const ColumnVector& params)
-{
-  //Tracer tr("costfn");
-  Matrix affmat(4,4);
-  vector2affine(params,gOptions->no_params,affmat);
-  float retval = costfn(affmat);
-  if (gOptions->verbose>=5) {
-    cout << gOptions->impair->count() << " : ";
-    cout << retval << " :: ";
-    for (int i=1; i<=gOptions->no_params; i++) 
-      { cout << params(i) << " "; }
-    cout << endl;
-  }
-  return retval;
-}
-  
-
-//----------------------------------------------------------------------//
 
 
 void params12toN(ColumnVector& params)
 {
   // Convert the full 12 dof param vector to a small param vector
-  //Tracer tr("params12toN");
+  ////Tracer tr("params12toN");
   ColumnVector nparams;
   nparams = pinv(gOptions->parammask)*(params - gOptions->refparams);
   params = nparams;
@@ -416,7 +542,7 @@ void params12toN(ColumnVector& params)
 void paramsNto12(ColumnVector& params)
 {
   // Convert small param vector to full 12 dof param vector
-  //Tracer tr("paramsNto12");
+  ////Tracer tr("paramsNto12");
   ColumnVector param12;
   param12 = gOptions->parammask*params + gOptions->refparams;
   params = param12;
@@ -426,7 +552,7 @@ void paramsNto12(ColumnVector& params)
 
 float subset_costfn(const ColumnVector& params)
 {
-  //Tracer tr("subset_costfn");
+  ////Tracer tr("subset_costfn");
   ColumnVector param12;
   param12 = params;
   paramsNto12(param12);
@@ -445,7 +571,7 @@ float subset_costfn(const ColumnVector& params)
 
 
 void find_cost_minima(Matrix& bestpts, const volume<float>& cost) {
-  //Tracer tr("find_cost_minima");
+  ////Tracer tr("find_cost_minima");
   volume<float> minv(cost);
   ColumnVector bestpt(3);
   minv = 0.0;
@@ -511,7 +637,7 @@ void find_cost_minima(Matrix& bestpts, const volume<float>& cost) {
   
 
 void set_rot_sampling(ColumnVector& rots, float lowerbound, float upperbound) {
-  //Tracer tr("set_rot_sampling");
+  ////Tracer tr("set_rot_sampling");
   // this function RELIES on the number of rows in the vector rots being set
   int nmax = rots.Nrows();
   if (nmax==1) { rots(1) = (upperbound + lowerbound) / 2.0;  return; }
@@ -525,7 +651,7 @@ void set_rot_sampling(ColumnVector& rots, float lowerbound, float upperbound) {
 void set_rot_samplings(ColumnVector& rxcoarse, ColumnVector& rycoarse,
 		       ColumnVector& rzcoarse, ColumnVector& rxfine,
 		       ColumnVector& ryfine, ColumnVector& rzfine) {
-  //Tracer tr("set_rot_samplings");
+  ////Tracer tr("set_rot_samplings");
   //int coarsesize = 4, finesize = 11;
   // sets the number of rows (angle samples) for each axis
   rxcoarse.ReSize(MISCMATHS::round((gOptions->searchrx(2) 
@@ -847,7 +973,7 @@ void search_cost(Matrix& paramlist, volume<float>& costs, volume<float>& tx,
 
 float measure_cost(Matrix& affmat, int input_dof)
 {
-  //Tracer tr("measure_cost");
+  ////Tracer tr("measure_cost");
   // the most basic strategy - just do a single optimisation run at the
   //  specified dof
   int dof=input_dof;
@@ -866,7 +992,7 @@ float measure_cost(Matrix& affmat, int input_dof)
 
 void aligncog(Matrix& affmat)
 {
-  //Tracer tr("aligncog");
+  ////Tracer tr("aligncog");
   Matrix resmat = affmat;
   resmat(1,4) = resmat(2,4) = resmat(3,4) = 0.0;
   ColumnVector transoff;
@@ -882,7 +1008,7 @@ void aligncog(Matrix& affmat)
 
 void alignpaxes(Matrix& affmat)
 {
-  //Tracer tr("alignpaxes");
+  ////Tracer tr("alignpaxes");
   Matrix paxref, paxtest;
   paxref = gOptions->impair->refvol.principleaxes_mat();
   paxtest = gOptions->impair->testvol.principleaxes_mat();
@@ -909,7 +1035,7 @@ void alignpaxes(Matrix& affmat)
 
 int optimise_strategy0(Matrix& matresult, float& fans, int max_iterations=4)
 {
-  //Tracer tr("optimise_strategy0");
+  ////Tracer tr("optimise_strategy0");
   // the most basic strategy - just do a single optimisation run at the
   //  specified dof
 
@@ -955,7 +1081,7 @@ int optimise_strategy0(Matrix& matresult, float& fans, int max_iterations=4)
 int optimise_strategy1(Matrix& matresult, float& fans, int input_dof, 
 		       int max_iterations=4)
 {
-  //Tracer tr("optimise_strategy1");
+  ////Tracer tr("optimise_strategy1");
   // the most basic strategy - just do a single optimisation run at the
   //  specified dof
   int dof=input_dof;
@@ -988,7 +1114,7 @@ int optimise_strategy1(Matrix& matresult, float& fans, int input_dof,
 
 int sorted_posn(const float costval, const Matrix& opt_matrixlist)
 {
-  //Tracer tr("sorted_posn");
+  ////Tracer tr("sorted_posn");
   int n=1;
   if (opt_matrixlist.Nrows()<1) { return 1; }
   for (n=1; n<=opt_matrixlist.Nrows(); n++) {
@@ -1002,7 +1128,7 @@ int sorted_posn(const float costval, const Matrix& opt_matrixlist)
 
 void delete_row(Matrix& mat, const int row) 
 {
-  //Tracer tr("delete_row");
+  ////Tracer tr("delete_row");
   if ((row<1) || (row>mat.Nrows()))  return;
   int cols = mat.Ncols();
   if (cols<1) return;
@@ -1020,7 +1146,7 @@ void delete_row(Matrix& mat, const int row)
 
 void insert_row(Matrix& mat, const int row, const Matrix& rowmat)
 {
-  //Tracer tr("insert_row");
+  ////Tracer tr("insert_row");
   Matrix temp;
   if ((row<1) || (row>(mat.Nrows()+1)))  return;
   int cols = mat.Ncols(), nmax = mat.Nrows();
@@ -1040,7 +1166,7 @@ void insert_row(Matrix& mat, const int row, const Matrix& rowmat)
 
 int add2list(const Matrix& rowmat, Matrix& opt_matrixlist, float rms_min=1.0) 
 {
-  //Tracer tr("add2list");
+  ////Tracer tr("add2list");
   if (rowmat.Nrows()!=1) {
     cerr << "WARNING (add2list): cannot add matrix with " << rowmat.Nrows() 
 	 << " rows to matrix\n";
@@ -1072,7 +1198,7 @@ int add2list(const Matrix& rowmat, Matrix& opt_matrixlist, float rms_min=1.0)
 
 void optimise_strategy3(Matrix& opt_matrixlist)
 {
-  //Tracer tr("optimise_strategy3");
+  ////Tracer tr("optimise_strategy3");
   // the basic low-level search strategy - it searches the cost function
   //  space (across rotations)  then selects the best candidates and optimises
   //  these too   : best used for the 8x subsampled (far too slow otherwise)
@@ -1128,7 +1254,7 @@ void optimise_strategy3(Matrix& opt_matrixlist)
 
 void set_perturbations(Matrix& delta, Matrix& perturbmask)
 {
-  //Tracer tr("set_perturbations");
+  ////Tracer tr("set_perturbations");
   // set the perturbations to be applied to the pre-optimised
   //  solutions
   // the perturbations are given by the elementwise product of
@@ -1179,6 +1305,42 @@ void set_perturbations(Matrix& delta, Matrix& perturbmask)
 
 
 ////////////////////////////////////////////////////////////////////////////
+// SUPPORT FUNCTIONS FOR READING AND INITIALISING IMAGES AND MATRICES 
+//  - VERY FLIRT SPECIFIC
+////////////////////////////////////////////////////////////////////////////
+
+
+Matrix scalemat(const Matrix& mat)
+{
+  // Adjust for scaled coordinates
+  //   e.g. basescale=0.1mm => orig coord = 0.2 --> scaled coord = 2
+  //   all external matrices in orig coord (mm) but internally work in
+  //   scaled coords as the input volumes have their voxel size scaled
+  Matrix orig2scaled_coord(4,4), returnmat;
+  orig2scaled_coord=IdentityMatrix(4);
+  orig2scaled_coord(1,1)=1/gOptions->basescale;
+  orig2scaled_coord(2,2)=1/gOptions->basescale;
+  orig2scaled_coord(3,3)=1/gOptions->basescale;
+  //  need internal version of initmat to go to/from scaled coords
+  returnmat = orig2scaled_coord * mat * orig2scaled_coord.i();
+  return returnmat;
+}
+
+
+Matrix qsform_init_mat(const volume<float>& refvol, const volume<float>& testvol) 
+{
+  Matrix returnmat;
+  returnmat = IdentityMatrix(4);
+  if ( ((refvol.qform_code() + refvol.sform_code())>0) && 
+       ((testvol.qform_code() + testvol.sform_code())>0) ) {
+    returnmat = refvol.sampling_mat()
+      * refvol.newimagevox2mm_mat().i() * testvol.newimagevox2mm_mat()
+      * testvol.sampling_mat().i();
+    returnmat = scalemat(returnmat);
+  }
+  return returnmat;
+}
+
 
 void set_initmat(const volume<float>& refvol, const volume<float>& testvol)
 {
@@ -1189,26 +1351,12 @@ void set_initmat(const volume<float>& refvol, const volume<float>& testvol)
   } else {
     // If not matrix then use s/q form info (unless told to ignore it)
     if (gOptions->initmatsqform) {
-      if ( ((refvol.qform_code() + refvol.sform_code())>0) && 
-	   ((testvol.qform_code() + testvol.sform_code())>0) ) {
-	gOptions->initmat = refvol.sampling_mat()
-	  * refvol.newimagevox2mm_mat().i() * testvol.newimagevox2mm_mat()
-	  * testvol.sampling_mat().i();
-      }
+      gOptions->initmat = qsform_init_mat(refvol,testvol);
     }
   }
 
   // Adjust for scaled coordinates
-  //   e.g. basescale=0.1mm => orig coord = 0.2 --> scaled coord = 2
-  //   all external matrices in orig coord (mm) but internally work in
-  //   scaled coords as the input volumes have their voxel size scaled
-  Matrix orig2scaled_coord(4,4);
-  orig2scaled_coord=IdentityMatrix(4);
-  orig2scaled_coord(1,1)=1/gOptions->basescale;
-  orig2scaled_coord(2,2)=1/gOptions->basescale;
-  orig2scaled_coord(3,3)=1/gOptions->basescale;
-  //  need internal version of initmat to go to/from scaled coords
-  gOptions->initmat = orig2scaled_coord * gOptions->initmat * orig2scaled_coord.i();
+  gOptions->initmat = scalemat(gOptions->initmat);
 
   if (gOptions->verbose>=2) {
     cout << "Init Matrix = \n" << gOptions->initmat << endl;
@@ -1239,31 +1387,39 @@ void double_end_slices(volume<float>& testvol)
 
 int get_testvol(volume<float>& testvol)
 {
-  //Tracer tr("get_testvol");
-  FLIRT_read_volume(testvol,gOptions->inputfname);
-  short dtype;
-  dtype = NEWIMAGE::dtype(gOptions->inputfname);
-  if (!gOptions->forcedatatype)
-    gOptions->datatype = dtype;
-  if (testvol.zsize()==1) {
-    double_end_slices(testvol);
-  }
-
+  ////Tracer tr("get_testvol");
+  short dtype=0;
   float minval=0.0, maxval=0.0;
-  minval = testvol.robustmin();
-  maxval = testvol.robustmax();
-  if (gOptions->clamping) clamp(testvol,minval,maxval);
-
-  if (gOptions->useweights) {
-    if (gOptions->testweightfname.length()>0) {
-      FLIRT_read_volume(global_testweight,gOptions->testweightfname);
-      if (global_testweight.zsize()==1) {
-	double_end_slices(global_testweight);
-      }
-    } else {
-      global_testweight = testvol;  // Fix size and dimensions
-      global_testweight = 1.0;      // Set all elements to unity weighting
+  if (!read_testvol) {
+    FLIRT_read_volume(testvol,gOptions->inputfname);
+    dtype = NEWIMAGE::dtype(gOptions->inputfname);
+    if (!gOptions->forcedatatype)
+      gOptions->datatype = dtype;
+    if (testvol.zsize()==1) {
+      double_end_slices(testvol);
     }
+
+    minval = testvol.robustmin();
+    maxval = testvol.robustmax();
+    if (gOptions->clamping) clamp(testvol,minval,maxval);
+    
+    if (gOptions->useweights) {
+      if (gOptions->testweightfname.length()>0) {
+	FLIRT_read_volume(global_testweight,gOptions->testweightfname);
+	if (global_testweight.zsize()==1) {
+	  double_end_slices(global_testweight);
+	}
+      } else {
+	global_testweight = testvol;  // Fix size and dimensions
+	global_testweight = 1.0;      // Set all elements to unity weighting
+      }
+    }
+    global_init_testvol = testvol;
+    global_init_testweight = global_testweight;
+    read_testvol = true;
+  } else {
+    testvol = global_init_testvol;
+    global_testweight = global_init_testweight;
   }
 
   if (gOptions->verbose>=2) {
@@ -1282,7 +1438,7 @@ int get_testvol(volume<float>& testvol)
 
 int get_refvol(volume<float>& refvol)
 {
-  //Tracer tr("get_refvol");
+  ////Tracer tr("get_refvol");
   FLIRT_read_volume(refvol,gOptions->reffname);
   if ((refvol.zsize()==1) && (gOptions->do_optimise)) {
     double_end_slices(refvol);
@@ -1305,6 +1461,33 @@ int get_refvol(volume<float>& refvol)
     }
   }
 
+  if (gOptions->fmapfname.length()>0) {
+      FLIRT_read_volume(global_fmap,gOptions->fmapfname);
+      if (gOptions->fmapmaskfname.length()>0) {
+	FLIRT_read_volume(global_fmap_mask,gOptions->fmapmaskfname);
+      } else {
+	global_fmap_mask = global_fmap*0.0f + 1.0f;
+      }
+  }
+
+  if (gOptions->useseg) {
+    if (!gOptions->usecoords) {
+      FLIRT_read_volume(global_seg,gOptions->wmsegfname);
+      if (global_seg.zsize()==1) { 
+	double_end_slices(global_seg);
+      }
+    } else {
+      global_coords = read_ascii_matrix(gOptions->wmcoordsfname);
+      global_norms = read_ascii_matrix(gOptions->wmnormsfname);
+      if ( (global_coords.Nrows()==0) || (global_norms.Nrows()==0) || 
+	   (global_coords.Nrows() != global_norms.Nrows()) ) 
+	{
+	  cerr << "Coordinate and Normal matrices " << gOptions->wmcoordsfname << " and " << gOptions->wmnormsfname << " are either zero size or different sizes" << endl; 
+	  exit(1);
+	}
+    }
+  }
+  
   if (gOptions->verbose>=2) {
     cout << "Refvol intensity ";
     if (gOptions->clamping) {
@@ -1315,6 +1498,100 @@ int get_refvol(volume<float>& refvol)
   }
   return 0;
 }
+
+volume<float> filter_subsample_by_2(const volume<float>& vin)
+{
+  return subsample_by_2(vin);
+}
+
+volume<float> filter_blur(const volume<float>& vin)
+{
+  volume<float> tmpvol;
+  tmpvol = blur(vin,global_sampling);
+  return tmpvol;
+}
+
+volume<float> filter_resamp_blur(const volume<float>& vin)
+{
+  volume<float> tmpvol;
+  tmpvol = blur(vin,global_sampling);
+  tmpvol = isotropic_resample(tmpvol,global_sampling);
+  return tmpvol;
+}
+
+int filter_weight(volume<float>& blur_w, const volume<float>& weight,
+		  volume<float> (*filter_func)(const volume<float>&))
+{
+  // implements filter(W).*Thresh(filter(B)) 
+  //                  where W is the weight and B is a binarised weight
+  // filter(...) = isotropic_resample(blur(...))
+  float thresh1=0.01, thresh2=0.9;
+  volume<float> tmpvol;
+  // form B
+  tmpvol = binarise(weight,thresh1);
+  // form filter(B)
+  tmpvol = (*filter_func)(tmpvol);
+  // form Thresh(filter(B))
+  tmpvol.binarise(thresh2);
+  // now form filter(W)
+  // NB: if blur_w = weight on input, then the following changes weight!
+  blur_w = (*filter_func)(weight);
+  // now form filter(W).*Thresh(filter(B))
+  blur_w *= tmpvol;
+  return 0;
+}
+
+
+int filter_weight(volume<float>& blur_w, const volume<float>& weight, float sampling,
+		  volume<float> (*filter_func)(const volume<float>&))
+{
+  global_sampling = sampling;
+  return filter_weight(blur_w,weight,filter_func);
+}
+
+
+int filter_image(volume<float>& blur_im, const volume<float>& orig_im,
+		 const volume<float>& weight, 
+		 volume<float> (*filter_func)(const volume<float>&))
+{
+  // implements filter(I.*B)./filter(B) where I in the image and B is a binarised weight
+  // filter(...) = isotropic_resample(blur(...))
+  // form B then filter(I.*B)
+  float thresh=0.01;
+  volume<float> tmpvol;
+  tmpvol = binarise(weight,thresh);
+  // NB: if blur_im = orig_im on input, then the following line changes orig_im!
+  blur_im = (*filter_func)(orig_im*tmpvol);  
+  // form filter(B)
+  tmpvol = binarise(weight,thresh);
+  tmpvol = (*filter_func)(tmpvol);
+  // now form filter(I.*B)./filter(B) - with safe (non-zero) division
+  blur_im = divide(blur_im,tmpvol,tmpvol);
+  return 0;
+}
+
+
+int filter_image(volume<float>& blur_im, const volume<float>& orig_im,
+		 const volume<float>& weight, bool useweight,
+		 volume<float> (*filter_func)(const volume<float>& ))
+{
+  if (useweight) {
+    filter_image(blur_im,orig_im,weight,filter_func);
+  } else {
+    blur_im = (*filter_func)(orig_im);
+  }
+  return 0;
+}
+
+
+int filter_image(volume<float>& blur_im, const volume<float>& orig_im,
+		 const volume<float>& weight, float sampling, bool useweight,
+		 volume<float> (*filter_func)(const volume<float>& ))
+{
+  global_sampling = sampling;
+  return filter_image(blur_im, orig_im, weight, useweight, filter_func);
+}
+
 
 
 int resample_refvol(volume<float>& refvol, float sampling=1.0)
@@ -1334,9 +1611,8 @@ int resample_refvol(volume<float>& refvol, float sampling=1.0)
     cout << "Resampling refvol isotropically: " << sampling << endl;
 
   // isotropically resample the volume
-  volume<float> tmpvol;
-  tmpvol = blur(refvol,sampl);
-  refvol = isotropic_resample(tmpvol,sampl);
+  filter_image(refvol,refvol,global_refweight,sampl,
+	       gOptions->useweights,filter_resamp_blur);
 
   if (gOptions->verbose>=2) print_volume_info(refvol,"Refvol");      
   
@@ -1345,6 +1621,7 @@ int resample_refvol(volume<float>& refvol, float sampling=1.0)
 
 
 ////////////////////////////////////////////////////////////////////////////
+
 
 // template for either volume or volume4D (and no other)
 template <class V>
@@ -1370,9 +1647,9 @@ int output_dtype(const V& outvol)
 ////////////////////////////////////////////////////////////////////////////
 
 // this does the applyxfm!
-void no_optimise()
+void do_applyxfm()
 {
-  //Tracer tr("no_optimise");
+  //Tracer tr("do_applyxfm");
   volume<float> refvol;
   volume4D<float> testvol;
 
@@ -1417,7 +1694,12 @@ void no_optimise()
 
   float min_sampling_ref=1.0;
   min_sampling_ref = Min(refvol.xdim(),Min(refvol.ydim(),refvol.zdim()));
-  
+
+  // // need the following to set up BBR fieldmap parameters (MJ TODO - UNTESTED!!!)
+  // setup_costfn(gOptions->impair, gOptions->maincostfn,
+  // 	       gOptions->no_bins,
+  // 	       gOptions->smoothsize,gOptions->fuzzyfrac);  
+
   if (gOptions->outputfname.size()>0) {
     volume4D<float> outputvol;
     for (int t0=testvol.mint(); t0<=testvol.maxt(); t0++) {
@@ -1425,7 +1707,8 @@ void no_optimise()
       outputvol.addvolume(refvol);
       if ((gOptions->interpmethod != NearestNeighbour) &&
 	  (gOptions->interpblur)) {
-	testvol[t0] = blur(testvol[t0],min_sampling_ref);
+	filter_image(testvol[t0],testvol[t0],testvol[t0],min_sampling_ref,
+		     false,filter_blur);
       }
       
       if (gOptions->verbose>=2) { 
@@ -1433,10 +1716,11 @@ void no_optimise()
 	print_volume_info(testvol,"inputvol"); 
       }
       
-      final_transform(testvol[t0],outputvol[tref],gOptions->initmat);
+      final_transform(testvol[t0],refvol,gOptions->initmat,outputvol[tref]);
     }
     int outputdtype = output_dtype(outputvol);
     outputvol.setDisplayMaximumMinimum(0,0);
+    outputvol.settdim(testvol.tdim());
     save_volume4D_dtype(outputvol,gOptions->outputfname.c_str(),
 			outputdtype);
     if (gOptions->verbose>=2) {
@@ -1452,6 +1736,7 @@ void no_optimise()
 
 ////////////////////////////////////////////////////////////////////////////
 
+// ROUTINES FOR DEALING WITH THE SCHEDULE FILE
 
 int firstelementless(const RowVector& r1, const RowVector& r2)
 {
@@ -1462,7 +1747,7 @@ int firstelementless(const RowVector& r1, const RowVector& r2)
 
 void stripleadingspace(string& line)
 {
-  //Tracer tr("stripleadingspace");
+  ////Tracer tr("stripleadingspace");
   if (line.length()<1) return;
   string::size_type i2=line.find_first_not_of("	 ");
   if (i2==string::npos) {
@@ -1476,7 +1761,7 @@ void stripleadingspace(string& line)
 
 void striptrailingspace(string& line)
 {
-  //Tracer tr("striptrailingspace");
+  ////Tracer tr("striptrailingspace");
   if (line.length()<1) return;
   string::size_type i2=line.find_last_not_of("	 ");
   if (i2==string::npos) {
@@ -1492,7 +1777,7 @@ void striptrailingspace(string& line)
 
 int parseline(const string& inname, std::vector<string>& words) 
 {
-  //Tracer tr("parseline");
+  ////Tracer tr("parseline");
   string name = inname;
   string::size_type i1;
   words.clear();
@@ -1510,7 +1795,7 @@ int parseline(const string& inname, std::vector<string>& words)
 
 int setmatvariable(const string& name, MatVecPtr& namedmat)
 {
-  //Tracer tr("setmatvariable");
+  ////Tracer tr("setmatvariable");
   if (name.size()<1) return -2;
   if (name == "S") {
     namedmat = &gOptions->searchoptmat;
@@ -1551,7 +1836,9 @@ int setscalarvariable(const string& name, float& namedscalar)
     namedscalar = (float) gOptions->min_sampling;
     return 0;
   } else if (isalpha(name[0])) {
-    cerr << "Cannot interpret " << name << " as a scalar variable name" << endl;
+    if (gOptions->verbose>20) {
+      cerr << "Cannot interpret " << name << " as a scalar variable name" << endl;
+    }
     namedscalar = 0.0;
     return -1;
   } else {
@@ -1563,7 +1850,7 @@ int setscalarvariable(const string& name, float& namedscalar)
 
 int setscalarvariable(const string& name, int& namedscalar)
 {
-  //Tracer tr("setscalarvariable");
+  ////Tracer tr("setscalarvariable");
   float temp=0.0;
   int retval = setscalarvariable(name,temp);
   namedscalar = MISCMATHS::round(temp);
@@ -1573,7 +1860,7 @@ int setscalarvariable(const string& name, int& namedscalar)
 
 int parsematname(const string& inname, MatVecPtr& usrdefmat, int& r1, int& r2) 
 {
-  //Tracer tr("parsematname");
+  ////Tracer tr("parsematname");
   string name = inname;
   stripleadingspace(name);
   striptrailingspace(name);
@@ -1615,7 +1902,7 @@ int parsematname(const string& inname, MatVecPtr& usrdefmat, int& r1, int& r2)
 void usrcopy(MatVecPtr usrsrcmat, MatVecPtr usrdestmat, 
 	     unsigned int usrsrcrow1, unsigned int usrsrcrow2) 
 {
-  //Tracer tr("usrcopy");
+  ////Tracer tr("usrcopy");
   // COPY src -> dest
   for (unsigned int crow=usrsrcrow1; crow<=Min(usrsrcrow2,usrsrcmat->size()); 
        crow++)
@@ -1627,7 +1914,7 @@ void usrcopy(MatVecPtr usrsrcmat, MatVecPtr usrdestmat,
 
 void usrclear(MatVecPtr usrsrcmat) 
 {
-  //Tracer tr("usrclear");
+  ////Tracer tr("usrclear");
   // CLEAR src
   if (usrsrcmat->size() > 0) {
     usrsrcmat->erase(usrsrcmat->begin(),usrsrcmat->end());
@@ -1638,7 +1925,7 @@ void usrclear(MatVecPtr usrsrcmat)
 
 void usrprint(MatVecPtr usrsrcmat, unsigned int row1, unsigned int row2) 
 {
-  //Tracer tr("usrprint");
+  ////Tracer tr("usrprint");
   // PRINT src
   for (unsigned int r=row1; r<=Min(usrsrcmat->size(),row2); r++) {
     cout << (*usrsrcmat)[r-1];
@@ -1649,7 +1936,7 @@ void usrprint(MatVecPtr usrsrcmat, unsigned int row1, unsigned int row2)
 int usrsave(string filename, MatVecPtr usrsrcmat, 
 	     unsigned int row1, unsigned int row2) 
 {
-  //Tracer tr("usrsave");
+  ////Tracer tr("usrsave");
   // SAVE src
 
   ofstream fptr(filename.c_str());
@@ -1668,7 +1955,7 @@ int usrsave(string filename, MatVecPtr usrsrcmat,
 
 int usrread(string filename, MatVecPtr usrsrcmat)
 {
-  //Tracer tr("usrread");
+  ////Tracer tr("usrread");
   // READ src
 
   ifstream fptr(filename.c_str());
@@ -1694,7 +1981,7 @@ int usrread(string filename, MatVecPtr usrsrcmat)
 
 int usrsetrow(MatVecPtr usrsrcmat,const std::vector<string> &words)
 {
-  //Tracer tr("usrsetrow");
+  ////Tracer tr("usrsetrow");
   // SETROW mat p1 p2 .. p16
 
   RowVector currow(17);
@@ -1706,9 +1993,35 @@ int usrsetrow(MatVecPtr usrsrcmat,const std::vector<string> &words)
   return 0;
 }
 
+int usrsetrowqsform(MatVecPtr usrsrcmat, const volume<float>& refvol, 
+		    const volume<float>& testvol)
+{
+  //Tracer tr("usrsetrowqsform");
+  // SETROWQSFORM mat
+
+  Matrix qsinitmat(4,4);
+  // set the qsform initialisation matrix (if not already the -init)
+  if (gOptions->initmatsqform) {
+    qsinitmat = IdentityMatrix(4);
+  } else {
+    // account for user-defined initmat (when it is not the sqform init)
+    qsinitmat = qsform_init_mat(refvol,testvol) * gOptions->initmat.i();
+  }
+  RowVector currow(17);
+  currow = 0.0;
+  unsigned int c=2;
+  for (unsigned int col=1; col<=4; col++) {
+    for (unsigned int row=1; row<=4; row++) {
+      currow(c++) = qsinitmat(row,col);
+    }
+  }
+  usrsrcmat->push_back(currow);
+  return 0;
+}
+
 int usrsetrowparams(MatVecPtr usrsrcmat,const std::vector<string> &words)
 {
-  //Tracer tr("usrsetrowparams");
+  ////Tracer tr("usrsetrowparams");
   // SETROWPARAMS mat p1 p2 ...
 
   ColumnVector params(12);
@@ -1734,7 +2047,7 @@ int usrsetrowparams(MatVecPtr usrsrcmat,const std::vector<string> &words)
 
 int usrsetoption(const std::vector<string> &words)
 {
-  //Tracer tr("usrsetoption");
+  ////Tracer tr("usrsetoption");
   // SETOPTION name values
 
   int len = words.size();
@@ -1766,6 +2079,20 @@ int usrsetoption(const std::vector<string> &words)
     gOptions->fuzzyfrac = fvalues(1);
     if (gOptions->impair)
       gOptions->impair->fuzzyfrac = gOptions->fuzzyfrac;
+    return 0;
+  } else if (option=="optimisationtype") {
+    gOptions->optimisationtype = words[2];
+    return 0;
+  } else if (option=="costfunction") {
+    if (costfn_type(words[2])==Unknown) {
+      cerr << "Unrecognised cost function: " << words[2] << endl;
+      exit(-1);
+    }
+    gOptions->currentcostfn = costfn_type(words[2]);
+    gOptions->maincostfn = costfn_type(words[2]);
+    gOptions->searchcostfn = costfn_type(words[2]);
+    if (gOptions->impair)
+      setcostfntype(gOptions->currentcostfn);
     return 0;
   } else if (option=="tolerance") {
     gOptions->tolerance 
@@ -1800,6 +2127,9 @@ int usrsetoption(const std::vector<string> &words)
     return 0;
   } else if (option=="minsampling") {
     gOptions->min_sampling = fvalues(1);
+    return 0;
+  } else if (option=="bbrstep") {
+    gOptions->impair->set_bbr_step(fvalues(1));
     return 0;
   } else {
     cerr << "Option " << option << " is unrecognised - ignoring" << endl;
@@ -1995,7 +2325,7 @@ void usrmeasurecost(MatVecPtr stdresultmat,
 		    ColumnVector& usrperturbation, bool usrperturbrelative)
 {
   //Tracer tr("usrmeasurecost");
-  // OPTIMISE
+  // MEASURE COST
   Matrix delta, perturbmask, matresult;
   set_perturbations(delta,perturbmask);
   int dof = Min(gOptions->dof,usrdof);
@@ -2022,6 +2352,62 @@ void usrmeasurecost(MatVecPtr stdresultmat,
       rowresult.SubMatrix(1,1,2,17) = reshaped;
       // store result
       stdresultmat->push_back(rowresult);
+    }
+}
+
+
+void usrgridmeasurecost(MatVecPtr stdresultmat, 
+			MatVecPtr usrmatptr, 
+			unsigned int usrrow1, unsigned int usrrow2, int usrdof, 
+			ColumnVector& usrperturbation1, ColumnVector& usrpertstep,
+			ColumnVector& usrperturbation2, bool usrperturbrelative)
+{
+  //Tracer tr("usrgridmeasurecost");
+  // OPTIMISE
+  Matrix delta, perturbmask, matresult;
+  set_perturbations(delta,perturbmask);
+  int dof = Min(gOptions->dof,usrdof);
+  ColumnVector params0(12), params(12), usrperturbation;
+  RowVector rowresult(17);
+  for (unsigned int crow=usrrow1; crow<=Min(usrrow2,usrmatptr->size()); crow++)
+    {
+      Matrix reshaped = (*usrmatptr)[crow-1].SubMatrix(1,1,2,17);
+      reshape(matresult,reshaped,4,4);
+      affmat2vector(matresult,12,params0);
+      ColumnVector nsteps(usrperturbation1.Nrows());
+      for (int n=1; n<=nsteps.Nrows(); n++) {
+	nsteps(n) = ceil(Max((usrperturbation2(n)-usrperturbation1(n))/usrpertstep(n),1e-6)+0.000001);
+      }
+      int nit = 1;
+      for (int n=1; n<=nsteps.Nrows(); n++) { nit *= MISCMATHS::round(nsteps(n)); }
+      ColumnVector nvec;
+      nvec = nsteps * 0.0f;
+      for (int n=1; n<=nit; n++) {
+	params = params0;  // start with the unperturbed params
+	// the following increments the step pointer (to simulate n nested loops)
+	int step=1;
+	for (int m=1; m<=nsteps.Nrows(); m++) {
+	  nvec(m)+=step;
+	  if (MISCMATHS::round(nvec(m))<MISCMATHS::round(nsteps(m))) { step=0; } 
+	  else { nvec(m)=0.0f; }
+	}
+	usrperturbation = usrperturbation1 + SP(nvec,usrpertstep);
+	// use the elementwise product to produce the perturbation
+	if (usrperturbrelative) {
+	  params += SP(usrperturbation,delta); // rel
+	} else {
+	  params += usrperturbation; // abs
+	}
+	vector2affine(params,12,matresult);
+	
+	float costval=0.0;
+	costval = measure_cost(matresult,dof);
+	reshape(reshaped,matresult,1,16);
+	rowresult(1) = costval;
+	rowresult.SubMatrix(1,1,2,17) = reshaped;
+	// store result
+	stdresultmat->push_back(rowresult);
+      }
     }
 }
 
@@ -2069,7 +2455,7 @@ void usroptimise(MatVecPtr stdresultmat,
 
 
 
-void usrsetscale(float usrscale,
+void usrsetscale(float usrscale, bool usrforce,
 		 volume<float>& testvol, volume<float>& refvol, 
 		 volume<float>& refvol_2, volume<float>& refvol_4, 
 		 volume<float>& refvol_8) {
@@ -2079,21 +2465,32 @@ void usrsetscale(float usrscale,
   //  out of scope
   //Tracer tr("usrsetscale");
   float scale = usrscale;
+  bool forcescale=usrforce;
+  if (gOptions->force_scaling) forcescale=true;
   Costfn *globalpair=0;
   if (usrscale > 0.0) gOptions->requestedscale = usrscale;
-  
-  if ( (gOptions->force_scaling) || 
-       (gOptions->min_sampling<=1.25 * scale) ) {
+
+  if (gOptions->debug) {
+    cerr << "MJ DEBUG OUTPUT: scale = " << scale << endl;
+    cerr << "MJ DEBUG OUTPUT: min_sampling = " << gOptions->min_sampling 
+	 << endl;
+    print_volume_info(testvol,"testvol DEBUG");
+  }
+
+  // refresh the testvol (get rid of previous blurred version)
+  get_testvol(testvol);
+
+  if ( (forcescale) || (gOptions->min_sampling<=1.25 * scale) ) {  // MJ NOTE: SHOULD THE SCALE BE FORCED TO BE THE NEXT HIGHEST SENSIBLE ONE TO STOP IT STARTING AT 8MM (THE DEFAULT) AND THEN NOT GOING TO 1MM (BUT INSTEAD MAKING IT GO TO 2MM?)
     gOptions->lastsampling = scale;
     // blur test volume to correct scale
-    get_testvol(testvol);
-
     volume<float> testvolnew;
-    testvolnew = blur(testvol,scale);
+    filter_image(testvolnew,testvol,global_testweight,scale,
+		 gOptions->useweights,filter_blur);
     if (gOptions->useweights) {
-      global_testweight = blur(global_testweight,scale);
+      filter_weight(global_testweight,global_testweight,scale,filter_blur);
     }
     testvol = testvolnew;
+    
     // select correct refvol
     volume<float> *refvolnew=0;
     if (fabs(scale-8.0)<0.01) {
@@ -2135,11 +2532,10 @@ void usrsetscale(float usrscale,
     } else {
       globalpair = new Costfn(*refvolnew,testvol);
     }
-    // may need to fix this for very small scales - should really work
-    //   on number of voxels...
-    globalpair->set_no_bins(int(gOptions->no_bins/scale));
-    globalpair->smoothsize = gOptions->smoothsize;
-    globalpair->fuzzyfrac = gOptions->fuzzyfrac;
+    
+    setup_costfn(globalpair,gOptions->currentcostfn,
+		 int(gOptions->no_bins/scale),
+		 gOptions->smoothsize,gOptions->fuzzyfrac);
     if (gOptions->verbose>=3) {
       if (gOptions->impair) {
 	cout << "Previous scale used " << gOptions->impair->count()
@@ -2150,7 +2546,6 @@ void usrsetscale(float usrscale,
     gOptions->impair = globalpair;
   }
 }
-
 
 void interpretcommand(const string& comline, bool& skip,
 		      volume<float>& testvol, volume<float>& refvol, 
@@ -2344,6 +2739,45 @@ void interpretcommand(const string& comline, bool& skip,
     usrmeasurecost(&(gOptions->usrmat[0]),
 		   usrdefmat,usrrow1,usrrow2,usrdof, 
 		   usrperturbation,usrperturbrelative);
+  } else if (words[0]=="gridmeasurecost") {
+    // GRIDMEASURECOST
+    if (words.size()<7) {
+      cerr << "Wrong number of args to GRIDMEASURECOST" << endl;
+      exit(-1);
+    }
+    int usrdof=12, usrrow1=1, usrrow2=999999;
+    ColumnVector usrperturbation1(12), usrperturbation2(12), usrpertstep(12);
+    usrperturbation1 = 0.0;
+    usrperturbation2 = 0.0;
+    usrpertstep = 0.0;
+    MatVecPtr usrdefmat;
+    bool usrperturbrelative = true;
+    setscalarvariable(words[1],usrdof);
+    parsematname(words[2],usrdefmat,usrrow1,usrrow2);
+    unsigned int wordno=3;
+    float tempparam=0.0;
+    int compidx=1;
+    while ((wordno+2<words.size()) 
+	   && (words[wordno]!="rel") && (words[wordno]!="abs")) {
+      setscalarvariable(words[wordno],tempparam);
+      usrperturbation1(compidx) = tempparam;
+      wordno++;
+      setscalarvariable(words[wordno],tempparam);
+      usrpertstep(compidx) = tempparam;
+      wordno++;
+      setscalarvariable(words[wordno],tempparam);
+      usrperturbation2(compidx) = tempparam;
+      wordno++;
+      compidx++;
+    }
+    while (wordno<words.size()) {
+      if (words[wordno]=="abs")  usrperturbrelative = false;
+      wordno++;
+    }
+    usrgridmeasurecost(&(gOptions->usrmat[0]),
+		       usrdefmat,usrrow1,usrrow2,usrdof, 
+		       usrperturbation1,usrpertstep,
+		       usrperturbation2,usrperturbrelative);
   } else if (words[0]=="aligncog") {
     // ALIGNCOG
     if (words.size()<2) {
@@ -2370,9 +2804,11 @@ void interpretcommand(const string& comline, bool& skip,
       cerr << "Wrong number of args to SETSCALE" << endl;
 	  return;// (-1);
     }
+    bool usrforce=false;
     float usrscale;
     setscalarvariable(words[1],usrscale);
-    usrsetscale(usrscale,testvol,refvol,refvol_2,refvol_4,refvol_8);
+    if ((words.size()>=3) && (words[2]=="force")) usrforce=true;
+    usrsetscale(usrscale,usrforce,testvol,refvol,refvol_2,refvol_4,refvol_8);
   } else if (words[0]=="setrow") {
     // SETROW
     if (words.size()<18) {
@@ -2383,6 +2819,16 @@ void interpretcommand(const string& comline, bool& skip,
     int d1, d2;
     parsematname(words[1],src,d1,d2);
     usrsetrow(src,words);
+  } else if (words[0]=="setrowqsform") {
+    // SETROWQSFORM
+    if (words.size()<2) {
+      cerr << "Wrong number of args to SETROWQSFORM" << endl;
+      exit(-1);
+    }
+    MatVecPtr src;
+    int d1, d2;
+    parsematname(words[1],src,d1,d2);
+    usrsetrowqsform(src,refvol,testvol);
   } else if (words[0]=="setrowparams") {
     // SETROWPARAMS
     if (words.size()<14) {
@@ -2438,244 +2884,309 @@ void interpretcommand(const string& comline, bool& skip,
 
 extern "C" __declspec(dllexport) int _stdcall flirt(char *CmdLn)
 {
-  //Tracer tr("main");
+	////Tracer tr("main");
 
-  int argc;
-  char **argv;
+	int argc;
+	char **argv;
+	try {
 
-  parser(CmdLn, argc, argv);
+		parser(CmdLn, argc, argv);
 
-  gOptions = new globaloptions();
-  gOptions->parse_command_line(argc, argv,version);
+		gOptions = new globaloptions();
+		gOptions->parse_command_line(argc, argv, version);
 
-  if (!gOptions->do_optimise) {   
-    no_optimise();
-  }
-  else
-  {
-  // reset the basescale for images where voxels are quite different from the
-  //   usual human brain size
-  set_basescale(gOptions->reffname,gOptions->inputfname);
+		if (!gOptions->do_optimise) {
+			do_applyxfm();
+		}
+		else
+		{
+			// reset the basescale for images where voxels are quite different from the
+			//   usual human brain size (this must be done before any volumes are read, 
+			//   since part of the reading process uses the basescale for re-scaling)
+			set_basescale(gOptions->reffname, gOptions->inputfname);
 
-  // read in the volumes
-  volume<float> refvol, testvol;
-  get_refvol(refvol);
-  get_testvol(testvol);
-  set_initmat(refvol,testvol);
+			// READ IN THE VOLUMES
 
-  if ( (refvol.sform_code()!=NIFTI_XFORM_UNKNOWN) && 
-       (testvol.sform_code()!=NIFTI_XFORM_UNKNOWN) ) {
-    if (gOptions->verbose>0) {
-      cerr << "WARNING: Both reference and input images have an sform matrix set" << endl;
-    }
-  }
+			volume<float> refvol, testvol;
+			get_refvol(refvol);
+			get_testvol(testvol);
+			set_initmat(refvol, testvol);
 
-  if (gOptions->verbose>0) {
-    if (refvol.sform_code()!=NIFTI_XFORM_UNKNOWN) {
-      cout << "The output image will use the sform from the reference image" << endl;    
-    }
-    if (testvol.sform_code()!=NIFTI_XFORM_UNKNOWN) {
-      cout << "The output image will use the transformed sform from the input image" << endl;    
-    }
-  }
+			if ((refvol.sform_code() != NIFTI_XFORM_UNKNOWN) &&
+				(testvol.sform_code() != NIFTI_XFORM_UNKNOWN)) {
+				if (gOptions->verbose>0) {
+					cerr << "WARNING: Both reference and input images have an sform matrix set" << endl;
+				}
+			}
 
-  if ( (gOptions->verbose>0) || (gOptions->printinit)) {
-    cout << "Init Matrix = \n" << gOptions->initmat << endl;
-  }
+			if (gOptions->verbose>0) {
+				if (refvol.sform_code() != NIFTI_XFORM_UNKNOWN) {
+					cout << "The output image will use the sform from the reference image" << endl;
+				}
+				if (testvol.sform_code() != NIFTI_XFORM_UNKNOWN) {
+					cout << "The output image will use the transformed sform from the input image" << endl;
+				}
+			}
 
-  float min_sampling_ref=1.0, min_sampling_test=1.0, min_sampling=1.0;
-  min_sampling_ref = Min(refvol.xdim(),Min(refvol.ydim(),refvol.zdim()));
-  min_sampling_test = Min(testvol.xdim(),Min(testvol.ydim(),testvol.zdim()));
-  min_sampling = (float) ceil(Max(min_sampling_ref,min_sampling_test));
-  if (!gOptions->force_scaling) {
-    // take the MAXIMUM of the user specified minimum and the estimated min
-    if (gOptions->min_sampling < min_sampling) 
-      gOptions->min_sampling = min_sampling;
-  }
-    
-  if (gOptions->verbose>=3) {
-    cout << "CoG for refvol is:  " << refvol.cog("scaled_mm").t();
-    cout << "CoG for testvol is:  " << testvol.cog("scaled_mm").t();
-  }
-  
-  volume<float> refvol_2, refvol_4, refvol_8;
-  if (gOptions->resample) {
-    // set up subsampled volumes by factors of 2, 4 and 8
-    if (gOptions->verbose >= 2) 
-      cout << "Subsampling the volumes" << endl;
-      
-    resample_refvol(refvol,gOptions->min_sampling);
-    if (gOptions->min_sampling < 1.9) {
-      refvol_2 = subsample_by_2(refvol);
-    } else {
-      refvol_2 = refvol;
-    }
-    if (gOptions->min_sampling < 3.9) {
-      refvol_4 = subsample_by_2(refvol_2);
-    } else {
-      refvol_4 = refvol_2;
-    }
-    if (gOptions->min_sampling < 7.9) {
-      refvol_8 = subsample_by_2(refvol_4);
-    } else {
-      refvol_8 = refvol_4;
-    }
+			if ((gOptions->verbose>0) || (gOptions->printinit)) {
+				cout << "Init Matrix = \n" << gOptions->initmat << endl;
+			}
 
+			// Calculate quantities used to work out the correct resolution/sampling
+			//  - especially important for very high-res volumes where a 1mm scale is too big
 
-    {
-      volume<float> testvol_8;
-      testvol_8 = blur(testvol,8.0);
-      testvol = testvol_8;
-    }
+			float min_sampling_ref = 1.0, min_sampling_test = 1.0, min_sampling = 1.0;
+			min_sampling_ref = Min(refvol.xdim(), Min(refvol.ydim(), refvol.zdim()));
+			min_sampling_test = Min(testvol.xdim(), Min(testvol.ydim(), testvol.zdim()));
+			min_sampling = (float)ceil(Max(min_sampling_ref, min_sampling_test));
+			if (!gOptions->force_scaling) {
+				// take the MAXIMUM of the user specified minimum and the estimated min
+				if (gOptions->min_sampling < min_sampling)
+					gOptions->min_sampling = min_sampling;
+			}
 
-    // If weights are used then do the same for the weighting volumes...
-    if (gOptions->useweights) {
-      resample_refvol(global_refweight,gOptions->min_sampling);
-      global_refweight1 = global_refweight;
-      if (gOptions->min_sampling < 1.9) {
-	global_refweight2 = subsample_by_2(global_refweight1);
-      } else {
-	global_refweight2 = global_refweight1;
-      }
-      if (gOptions->min_sampling < 3.9) {
-	global_refweight4 = subsample_by_2(global_refweight2);
-      } else {
-	global_refweight4 = global_refweight2;
-      }
-      if (gOptions->min_sampling < 7.9) {
-	global_refweight8 = subsample_by_2(global_refweight4);
-      } else {
-	global_refweight8 = global_refweight4;
-      }
+			if (gOptions->verbose >= 3) {
+				cout << "CoG for refvol is:  " << refvol.cog("scaled_mm").t();
+				cout << "CoG for testvol is:  " << testvol.cog("scaled_mm").t();
+			}
 
-      global_testweight = blur(global_testweight,8.0);
-      
-    }
+			// CREATE THE VARIOUS SUB-SAMPLED REFERENCE VOLUMES FOR THE MULTI-SCALE
 
-  } else {
-    // if no resampling chosen, then refvol is simply copied
-    refvol_8 = refvol;
-    refvol_4 = refvol;
-    refvol_2 = refvol;
-    if (gOptions->useweights) {
-      global_refweight1 = global_refweight;
-      global_refweight2 = global_refweight;
-      global_refweight4 = global_refweight;
-      global_refweight8 = global_refweight;
-    }
-  }
+			// REFVOL RESAMPLING
+			//    QUESTION: IS IT OK TO RECURSIVELY DEFINE WEIGHTS AND SUBSAMPLE LIKE THIS?
+			//              OR WOULD DIRECT IMPLEMENTATION OF 4 AND 8 TIMES SUBSAMPLING BE 
+			//              BETTER?  (SEP2010)
+			volume<float> refvol_2, refvol_4, refvol_8;
+			if (gOptions->resample) {
+				// set up subsampled volumes by factors of 2, 4 and 8
+				if (gOptions->verbose >= 2)
+					cout << "Subsampling the volumes" << endl;
 
-  // set up image pair and global pointer
-  if (gOptions->impair)  delete gOptions->impair;
-  global_refweight = global_refweight8;
-  gOptions->lastsampling = 8;
-  if (gOptions->useweights) {
-    gOptions->impair  = new Costfn(refvol_8,testvol,
-					      global_refweight,
-					      global_testweight);
-  } else {
-    gOptions->impair = new Costfn(refvol_8,testvol);
-  }
-  gOptions->impair->set_no_bins(gOptions->no_bins/8);
-  gOptions->impair->smoothsize = gOptions->smoothsize;
-  gOptions->impair->fuzzyfrac = gOptions->fuzzyfrac;
+				resample_refvol(refvol, gOptions->min_sampling);
+				filter_weight(global_refweight, global_refweight,
+					gOptions->min_sampling, filter_resamp_blur);
+				// the following tests enforce a maximum subsampling (i.e. for large voxel sizes, do not subsample as much as if the voxels are small)
+				global_refweight1 = global_refweight;
+				// SCALE 2
+				if (gOptions->min_sampling < 1.9) {
+					filter_image(refvol_2, refvol, global_refweight,
+						gOptions->useweights, filter_subsample_by_2);
+					if (gOptions->useweights) {
+						filter_weight(global_refweight2, global_refweight1, filter_subsample_by_2);
+					}
+				}
+				else {
+					refvol_2 = refvol;
+					if (gOptions->useweights) { global_refweight2 = global_refweight1; }
+				}
+				// SCALE 4
+				if (gOptions->min_sampling < 3.9) {
+					filter_image(refvol_4, refvol_2, global_refweight2,
+						gOptions->useweights, filter_subsample_by_2);
+					if (gOptions->useweights) {
+						filter_weight(global_refweight4, global_refweight2, filter_subsample_by_2);
+					}
+				}
+				else {
+					refvol_4 = refvol_2;
+					if (gOptions->useweights) { global_refweight4 = global_refweight2; }
+				}
+				// SCALE 8
+				if (gOptions->min_sampling < 7.9) {
+					filter_image(refvol_8, refvol_4, global_refweight4,
+						gOptions->useweights, filter_subsample_by_2);
+					if (gOptions->useweights) {
+						filter_weight(global_refweight8, global_refweight4, filter_subsample_by_2);
+					}
+				}
+				else {
+					refvol_8 = refvol_4;
+					if (gOptions->useweights) { global_refweight8 = global_refweight4; }
+				}
 
-  if (gOptions->verbose>=2) print_volume_info(testvol,"TESTVOL");
+			}
+			else {
+				// if no resampling chosen, then refvol is simply copied and nothing done to testvol
+				refvol_8 = refvol;
+				refvol_4 = refvol;
+				refvol_2 = refvol;
+				if (gOptions->useweights) {
+					global_refweight1 = global_refweight;
+					global_refweight2 = global_refweight;
+					global_refweight4 = global_refweight;
+					global_refweight8 = global_refweight;
+				}
+			}
 
 
-  Matrix matresult(4,4);
-  ColumnVector params_8(12), param_tol(12);
+			// TESTVOL RESAMPLING
+			if (gOptions->resample) {
+				volume<float> testvol_8;
+				filter_image(testvol_8, testvol, global_testweight, 8.0,
+					gOptions->useweights, filter_blur);
+				filter_weight(global_testweight, global_testweight, 8.0, filter_blur);
 
-    // perform the optimisation
+				testvol = testvol_8;
+			}
 
-  gOptions->currentcostfn = gOptions->maincostfn;
-   
-  std::vector<string> schedulecoms(0);
-  string comline;
-  if (gOptions->schedulefname.length()<1) {
-    if (gOptions->mode2D) {
-      set2Ddefaultschedule(schedulecoms);
-    } else {
-      setdefaultschedule(schedulecoms);
-    }
-  } else {
-    // open the schedule file
-    ifstream schedulefile(gOptions->schedulefname.c_str());
-    if (!schedulefile) {
-      cerr << "Could not open file" << gOptions->schedulefname << endl;
-      freeparser(argc, argv);
-      return -1;
-    }
-    while (!schedulefile.eof()) {
-      getline(schedulefile,comline);
-      schedulecoms.push_back(comline);
-    }
-    schedulefile.close();
-  }
+			if (gOptions->debug) {
+				save_volume(refvol_8, "refvol_8");
+				save_volume(refvol_4, "refvol_4");
+				save_volume(refvol_2, "refvol_2");
+				save_volume(refvol, "refvol");
+				save_volume(global_refweight1, "global_refweight1");
+				save_volume(global_refweight2, "global_refweight2");
+				save_volume(global_refweight4, "global_refweight4");
+				save_volume(global_refweight8, "global_refweight8");
+				save_volume(testvol, "testvol");
+				save_volume(global_testweight, "testweight");
+			}
 
-  // interpret each line in the schedule command vector
-  bool skip=false;
-  for (unsigned int i=0; i<schedulecoms.size(); i++) {
-    comline = schedulecoms[i];
-    if (gOptions->verbose>=1) {
-      cout << " >> " << comline << endl;
-    }
-    interpretcommand(comline,skip,testvol,refvol,refvol_2,refvol_4,refvol_8);
-  }
 
-  // re-read the initial volume, and transform it by the optimised result
-  Matrix reshaped;
-  if (gOptions->usrmat[0].size()>0) {
-    reshaped = (gOptions->usrmat[0])[0].SubMatrix(1,1,2,17);
-    reshape(matresult,reshaped,4,4);
+			// set up image pair and global pointer, plus setup cost function params
+			if (gOptions->impair)  delete gOptions->impair;
+			global_refweight = global_refweight8;
+			gOptions->lastsampling = 8;
+			if (gOptions->useweights) {
+				gOptions->impair = new Costfn(refvol_8, testvol,
+					global_refweight,
+					global_testweight);
+			}
+			else {
+				gOptions->impair = new Costfn(refvol_8, testvol);
+			}
 
-    // want unity basescale for transformed output
-    float oldbasescale = gOptions->basescale;
-    gOptions->basescale = 1.0;
+			gOptions->currentcostfn = gOptions->maincostfn;
+			setup_costfn(gOptions->impair, gOptions->currentcostfn,
+				gOptions->no_bins / 8,
+				gOptions->smoothsize, gOptions->fuzzyfrac);
+			if (gOptions->verbose >= 2) print_volume_info(testvol, "TESTVOL");
 
-    FLIRT_read_volume(testvol,gOptions->inputfname);
-    FLIRT_read_volume(refvol,gOptions->reffname);
-    if (gOptions->verbose>=2) {
-      print_volume_info(testvol,"testvol");
-      print_volume_info(testvol,"refvol");
-    }
 
-    Matrix finalmat = matresult * gOptions->initmat;
-    finalmat(1,4) *= oldbasescale;
-    finalmat(2,4) *= oldbasescale;
-    finalmat(3,4) *= oldbasescale;
-    if (gOptions->verbose>=2) {
-      cout << "Final transform matrix is:" << endl << finalmat << endl;
-    }
-    save_matrix_data(finalmat,testvol,refvol);
-  
-    // generate the outputvolume (not safe_save st -out overrides -nosave)
-    if (gOptions->outputfname.size()>0) {
-      volume<float> newtestvol = refvol;
-      float min_sampling_ref=1.0;
-      min_sampling_ref = Min(refvol.xdim(),Min(refvol.ydim(),refvol.zdim()));
-      if ((gOptions->interpmethod != NearestNeighbour) &&
-	  (gOptions->interpblur)) {
-	testvol = blur(testvol,min_sampling_ref);
-      }
-      final_transform(testvol,newtestvol,finalmat);      
-      if (gOptions->verbose>=2) {
-	print_volume_info(newtestvol,"Transformed testvol");
-      }
-      int outputdtype = output_dtype(newtestvol);
-      newtestvol.setDisplayMaximumMinimum(0,0);
-      save_volume_dtype(newtestvol,gOptions->outputfname.c_str(),
-			outputdtype);
-    }
-    if ( (gOptions->outputmatascii.size()<=0) ) {
-      cout << endl << "Final result: " << endl << finalmat << endl;
-    }
-  }
-  }
-  freeparser(argc, argv);
-  if (gOptions->impair)  delete gOptions->impair;
-  delete gOptions;
-  return(0);
+			Matrix matresult(4, 4);
+			ColumnVector params_8(12), param_tol(12);
+
+
+			// PERFORM THE OPTIMISATION
+
+			std::vector<string> schedulecoms(0);
+			string comline;
+			if (gOptions->schedulefname.length()<1) {
+				if (gOptions->mode2D) {
+					set2Ddefaultschedule(schedulecoms);
+				}
+				else {
+					setdefaultschedule(schedulecoms);
+				}
+			}
+			else {
+				// open the schedule file
+				ifstream schedulefile(gOptions->schedulefname.c_str());
+				if (!schedulefile) {
+					cerr << "Could not open file" << gOptions->schedulefname << endl;
+					return -1;
+				}
+				while (!schedulefile.eof()) {
+					getline(schedulefile, comline);
+					schedulecoms.push_back(comline);
+				}
+				schedulefile.close();
+			}
+
+			// interpret each line in the schedule command vector
+			bool skip = false;
+			for (unsigned int i = 0; i<schedulecoms.size(); i++) {
+				comline = schedulecoms[i];
+				if (gOptions->verbose >= 1) {
+					cout << " >> " << comline << endl;
+				}
+				interpretcommand(comline, skip, testvol, refvol, refvol_2, refvol_4, refvol_8);
+			}
+
+			if (gOptions->debug) {  // run this to save out any cost function debug info
+				cerr << "Final DEBUG call in FLIRT" << endl;
+				cerr << "Pointer to impair is " << gOptions->impair << endl;
+				gOptions->impair->set_debug_mode(true);
+				cerr << "Final DEBUG call in FLIRT 2" << endl;
+				//cerr << "Reshaped matrix is:" << endl << reshaped << endl;
+				cerr << "Scale is:" << gOptions->requestedscale << endl;
+				interpretcommand("measurecost 12 U:1  0.0   0.0   0.0   0.0   0.0   0.0   0.0  rel 8", skip, testvol, refvol, refvol_2, refvol_4, refvol_8);
+				// costfn(reshaped); // this currently causes an Abort!  Why?!?  No idea!!  :(
+				cerr << "Final DEBUG call in FLIRT 3" << endl;
+				gOptions->impair->set_debug_mode(false);
+				cerr << "Final DEBUG call in FLIRT 4" << endl;
+			}
+
+			// FINISHED OPTIMISATION - NOW GENERATE OUTPUTS
+
+			// re-read the initial volume, and transform it by the optimised result
+
+			Matrix reshaped;
+			if (gOptions->usrmat[0].size()>0) {
+				reshaped = (gOptions->usrmat[0])[0].SubMatrix(1, 1, 2, 17);
+				reshape(matresult, reshaped, 4, 4);
+
+				// want unity basescale for transformed output
+				float oldbasescale = gOptions->basescale;
+				gOptions->basescale = 1.0;
+				// make sure the old images don't get used
+				if (gOptions->impair) {
+					delete gOptions->impair;
+					gOptions->impair = NULL;
+				}
+				FLIRT_read_volume(testvol, gOptions->inputfname);
+				FLIRT_read_volume(refvol, gOptions->reffname);
+				if (gOptions->verbose >= 2) {
+					print_volume_info(testvol, "testvol");
+					print_volume_info(refvol, "refvol");
+				}
+
+				Matrix finalmat = matresult * gOptions->initmat;
+				finalmat(1, 4) *= oldbasescale;
+				finalmat(2, 4) *= oldbasescale;
+				finalmat(3, 4) *= oldbasescale;
+				if (gOptions->verbose >= 2) {
+					cout << "Final transform matrix is:" << endl << finalmat << endl;
+				}
+				save_matrix_data(finalmat, testvol, refvol);
+
+				// generate the outputvolume (not safe_save st -out overrides -nosave)
+				if (gOptions->outputfname.size()>0) {
+					volume<float> newtestvol = refvol;
+					float min_sampling_ref = 1.0;
+					min_sampling_ref = Min(refvol.xdim(), Min(refvol.ydim(), refvol.zdim()));
+					if ((gOptions->interpmethod != NearestNeighbour) &&
+						(gOptions->interpblur)) {
+						filter_image(testvol, testvol, testvol, min_sampling_ref,
+							false, filter_blur);
+					}
+					final_transform(testvol, refvol, finalmat, newtestvol);
+					if (gOptions->verbose >= 2) {
+						print_volume_info(newtestvol, "Transformed testvol");
+					}
+					int outputdtype = output_dtype(newtestvol);
+					newtestvol.setDisplayMaximumMinimum(0, 0);
+					save_volume_dtype(newtestvol, gOptions->outputfname.c_str(),
+						outputdtype);
+				}
+				//			if ((gOptions->outputmatascii.size() <= 0)) {
+				//				cout << endl << "Final result: " << endl << finalmat << endl;
+				//			}
+			}
+			else 
+			{
+				cerr << "Failed to calculate any transformation matrix" << endl;
+			}
+		}
+
+	}
+	catch (std::exception &e) {
+		cerr << e.what() << endl;
+	}
+	freeparser(argc, argv);
+	if (gOptions->impair)  delete gOptions->impair;
+	delete gOptions;
+	return(0);
 }
 
 void final_transform2(const volume<float>& testvol, volume<float>& outputvol,

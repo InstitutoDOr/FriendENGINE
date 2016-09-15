@@ -11,7 +11,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -60,7 +60,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #ifndef _mpoint
 #define _mpoint
@@ -103,9 +103,10 @@ class Mpoint {
   const double medium_distance_of_neighbours() const;
 
   const Pt get_coord() const {return _coord;};
+  void set_coord(const Pt& coord){_coord=coord;}
   const int get_no() const {return _no;};
   const float get_value() const {return _value;};
-  void set_value(const float val){_value=val;};
+  void set_value(const float val){_value=val;};  
   list<Mpoint *> _neighbours; 
 
   list<double> data; //can be used to store extra-data attached to the point  
@@ -118,6 +119,7 @@ class Mpoint {
 };
 
 const bool operator ==(const Mpoint &p2, const Mpoint &p1);
+const bool operator ==(const Mpoint &p2, const Pt &p1);
 const Vec operator -(const Mpoint&p1, const Mpoint &p2);
 const bool operator <(const Mpoint &p1, const Mpoint &p2); //checks if p1 and p2 are adjacent
 const Vec operator -(const Pt&p1, const Mpoint &p2);

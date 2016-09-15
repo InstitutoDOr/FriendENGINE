@@ -1237,3 +1237,70 @@ void uniteVolumes(char *referenceVolume, char *roiVolume, char *outputFile)
 	}
 	save_volume(reference, string(outputFile));
 }
+
+void invertIndexes(vector<int> &idxs, int size)
+{
+	vector<int>temp;
+	temp = idxs;
+	idxs.clear();
+	std::sort(temp.begin(), temp.end());
+
+	int idxVector = 0;
+	for (int t = 1; t <= size; t++)
+	{
+		if (idxVector < temp.size())
+		{
+			if (t < temp[idxVector]) idxs.push_back(t);
+			else idxVector++;
+		}
+		else idxs.push_back(t);
+	}
+}
+
+void generateTMaxVoxels(char *input, char *temp, char *output, vector<int> &idxs, int invert)
+{
+	volume4D<float>inputVolume;
+	volume4D<float>outputVolume;
+
+	read_volume4D(inputVolume, string(input));
+	if (invert) invertIndexes(idxs, inputVolume.tsize());
+
+	outputVolume.reinitialize(inputVolume.xsize(), inputVolume.ysize(), inputVolume.zsize(), idxs.size());
+	outputVolume.copyproperties(inputVolume);
+
+	for (int t = 0; t < idxs.size(); t++)
+	{
+		outputVolume[t] = inputVolume[idxs[t] - 1];
+	}
+
+	save_volume4D(outputVolume, string(temp));
+	stringstream CmdLn;
+	CmdLn << "fslmaths " << temp << " -Tmax " << output;
+	fslmaths((char *)CmdLn.str().c_str());
+}
+
+void generateTMaxVoxels(char *input, char *output, vector<int> &idxs, int invert)
+{
+	volume4D<float>inputVolume;
+	volume<float>tmaxVolume;
+
+	read_volume4D(inputVolume, string(input));
+	if (invert) invertIndexes(idxs, inputVolume.tsize());
+
+	tmaxVolume.reinitialize(inputVolume[0]);
+	tmaxVolume.copyproperties(inputVolume[0]);
+	int numVoxels = tmaxVolume.xsize() * tmaxVolume.ysize() * tmaxVolume.zsize();
+
+	float *tmaxDataPtr = (float *)tmaxVolume.fbegin();
+
+	for (int t = 0; t < numVoxels; t++)
+	{
+		float maxValue = -10000;
+		for (int j = 0; j < idxs.size(); j++)
+		{
+			maxValue = MAX(maxValue, inputVolume[idxs[j] - 1].fbegin()[t]);
+		}
+		tmaxDataPtr[t] = maxValue;
+	}
+	save_volume(tmaxVolume, string(output));
+}

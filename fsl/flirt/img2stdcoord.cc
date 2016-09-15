@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <string>
 #include <iostream>
@@ -263,8 +263,8 @@ ColumnVector NewimageCoord2NewimageCoord(const FnirtFileReader& fnirtfile, const
   ColumnVector retvec;
   if (fnirtfile.IsValid()) {
     // in the following affmat=example_func2highres.mat, fnirtfile=highres2standard_warp.nii.gz
-    retvec = NewimageCoord2NewimageCoord(affmat,
-					 fnirtfile.FieldAsNewimageVolume4D(true),true,srcvol,destvol,srccoord);
+    static volume4D<float> fieldVolume( fnirtfile.FieldAsNewimageVolume4D(true) );
+    retvec = NewimageCoord2NewimageCoord(affmat,fieldVolume,true,srcvol,destvol,srccoord);
   } else {
     retvec = NewimageCoord2NewimageCoord(affmat,srcvol,destvol,srccoord);
   }
@@ -377,17 +377,14 @@ int main(int argc,char *argv[])
   
   // loop around reading coordinates and displaying output
   
-  while ( (use_stdin && (!cin.eof())) || ((!use_stdin) && (!matfile.eof())) ) {
-    for (int j=1; j<=3; j++) {
-      if (use_stdin) { cin >> imgcoord(j); }
-      else { matfile >> imgcoord(j); }
-    } 
+  while ( (use_stdin && (!cin.eof())) || ((!use_stdin) && (matfile >> imgcoord(1) >> imgcoord(2) >> imgcoord(3))) ) {
     if  (use_stdin) {
+      cin >> imgcoord(1) >> imgcoord(2) >> imgcoord(3);
       // this is in case the pipe continues to input a stream of zeros
       if (oldimg == imgcoord)  return 0;
       oldimg = imgcoord;
     }
-    
+     
     if (globalopts.mm) {  // in mm
       stdcoord = stdvol.newimagevox2mm_mat() * 
 	NewimageCoord2NewimageCoord(fnirtfile,affmat,imgvol,stdvol,imgvol.newimagevox2mm_mat().i() * imgcoord);

@@ -104,6 +104,7 @@ class Globaloptions {
   int costmeas;
   int meanvol;
   int sinc_final;
+  int spline_final;
   int nn_final;
   int rmsrelflag;
   int rmsabsflag;
@@ -176,6 +177,7 @@ inline Globaloptions::Globaloptions()
   rot_param = 1;
   no_stages = 3;
   sinc_final = 0;
+  spline_final = 0;
   nn_final = 0;
   rmsrelflag = 0;
   rmsabsflag = 0;

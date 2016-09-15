@@ -258,17 +258,17 @@ int DesignObject::maxIndex()
 }
 
 // remove spaces from string
-std::string trim(const std::string &s)
+string trim(const std::string &s)
 {
-	std::string::const_iterator it = s.begin();
+	string::const_iterator it = s.begin();
 	while (it != s.end() && isspace(*it))
 		it++;
 
-	std::string::const_reverse_iterator rit = s.rbegin();
+	string::const_reverse_iterator rit = s.rbegin();
 	while (rit.base() != it && isspace(*rit))
 		rit++;
 
-	return std::string(it, rit.base());
+	return string(it, rit.base());
 }
 
 // reads a design file
@@ -312,6 +312,38 @@ int DesignObject::readDesignFile(char *designFile)
 	in.close();
 	getConditionsList();
 	return intervals.size();
+}
+
+void DesignObject::noInterestContrastsIndexes(char *noInteresetConditions, vector<int> &indexes)
+{
+	string conditions = trim(string(noInteresetConditions));
+	vector<string>names;
+	int pos = 0;
+	do
+	{
+		pos = conditions.find(";");
+		if (pos > -1)
+		{
+			string name;
+			name = conditions.substr(0, pos);
+			names.push_back(name);
+			conditions = conditions.substr(pos + 1, conditions.size() - pos - 1);
+		}
+
+	} while (pos > -1);
+	names.push_back(conditions);
+
+	for (int t = 0; t < contrasts.size(); t++)
+	{
+		for (int j = 0; j < names.size(); j++)
+		{
+			if (strstr(contrasts[t].name, names[j].c_str()))
+			{
+				indexes.push_back(t);
+				break;
+			}
+		}
+	}
 }
 
 // populates the contrasts and contrast vectors

@@ -114,11 +114,18 @@ int printUsage(const string& programName)
   cout << " -log   : natural logarithm" << endl;
   cout << " -sin   : sine function" << endl;
   cout << " -cos   : cosine function" << endl;
+  cout << " -tan   : tangent function" << endl;
+  cout << " -asin  : arc sine function" << endl;
+  cout << " -acos  : arc cosine function" << endl;
+  cout << " -atan  : arc tangent function" << endl;
   cout << " -sqr   : square" << endl;
   cout << " -sqrt  : square root" << endl;
   cout << " -recip : reciprocal (1/current image)" << endl;
   cout << " -abs   : absolute value" << endl;
   cout << " -bin   : use (current image>0) to binarise" << endl;
+  cout << " -binv  : binarise and invert (binarisation and logical inversion)" << endl;
+  cout << " -fillh : fill holes in a binary mask (holes are internal - i.e. do not touch the edge of the FOV)" << endl;
+  cout << " -fillh26 : fill holes using 26 connectivity" << endl;
   cout << " -index : replace each nonzero voxel with a unique (subject to wrapping) index number" << endl;
   cout << " -grid <value> <spacing> : add a 3D grid of intensity <value> with grid spacing <spacing>" << endl;
   cout << " -edge  : edge strength" << endl;
@@ -135,19 +142,21 @@ int printUsage(const string& programName)
   cout << "\nMatrix operations:" << endl;
   cout << " -tensor_decomp : convert a 4D (6-timepoint )tensor image into L1,2,3,FA,MD,MO,V1,2,3 (remaining image in pipeline is FA)" << endl;
 
-  cout << "\nKernel operations (set BEFORE filtering operation):" << endl;
+  cout << "\nKernel operations (set BEFORE filtering operation if desired):" << endl;
   cout << " -kernel 3D : 3x3x3 box centered on target voxel (set as default kernel)" << endl;
   cout << " -kernel 2D : 3x3x1 box centered on target voxel" << endl;
-  cout << " -kernel box    <size>     : all voxels in a box of width <size> centered on target voxel" << endl;
-  cout << " -kernel boxv   <size>     : <size>x<size>x<size> box centered on target voxel, CAUTION: size should be an odd number" << endl;
+  cout << " -kernel box    <size>     : all voxels in a cube of width <size> mm centered on target voxel" << endl;
+  cout << " -kernel boxv   <size>     : all voxels in a cube of width <size> voxels centered on target voxel, CAUTION: size should be an odd number" << endl;
+  cout << " -kernel boxv3  <X> <Y> <Z>: all voxels in a cuboid of dimensions X x Y x Z centered on target voxel, CAUTION: size should be an odd number" << endl;
   cout << " -kernel gauss  <sigma>    : gaussian kernel (sigma in mm, not voxels)" << endl;
   cout << " -kernel sphere <size>     : all voxels in a sphere of radius <size> mm centered on target voxel" << endl;
   cout << " -kernel file   <filename> : use external file as kernel" << endl;
 
-  cout << "\nSpatial Filtering operations: N.B. all options apart from -s use the kernel _previously_ specified by -kernel" << endl;
+  cout << "\nSpatial Filtering operations: N.B. all options apart from -s use the default kernel or that _previously_ specified by -kernel" << endl;
   cout << " -dilM    : Mean Dilation of non-zero voxels" << endl;
   cout << " -dilD    : Modal Dilation of non-zero voxels" << endl;
   cout << " -dilF    : Maximum filtering of all voxels" << endl;
+  cout << " -dilall  : Apply -dilM repeatedly until the entire FOV is covered" << endl;
   cout << " -ero     : Erode by zeroing non-zero voxels when zero voxels found in kernel" << endl;
   cout << " -eroF    : Minimum filtering of all voxels" << endl;
   cout << " -fmedian : Median Filtering " << endl;
@@ -229,7 +238,7 @@ int check_for_output_name(int i, int argc_1)
 
 
 template <class T>
-int inputParser(int argc, char *argv[], short output_dt, bool forceOutputType=false)
+int inputParser(int argc, char *argv[], short output_dt)
 {
   volume4D<T> inputVolume;
   volume<float> kernel(box_kernel(3,3,3));
@@ -237,6 +246,8 @@ int inputParser(int argc, char *argv[], short output_dt, bool forceOutputType=fa
   read_volume4D(inputVolume,string(argv[1]));
   bool modifiedInput(false);
   bool setDisplayRange(false);
+  float tfce_delta(0);
+  float tfce_minT(0);
 
   int i=2;
   for (i = 2; i < argc-1; i++)  //main loop
@@ -618,14 +629,16 @@ if (!separatenoise)
        else
        {
 	 float size=atof(argv[i+2]);
-	 if(string(argv[i+1])=="box")      kernel=box_kernel(size,xdim,ydim,zdim);
-	 if(string(argv[i+1])=="boxv")   kernel=box_kernel((int)size,(int)size,(int)size);
+	 separable=false;
+         if(string(argv[i+1])=="box" || string(argv[i+1])=="boxv" || string(argv[i+1])=="boxv3" || string(argv[i+1])=="gauss") separable=true;       
+
+	 if(string(argv[i+1])=="box")         kernel=box_kernel(size,xdim,ydim,zdim);
+	 else if(string(argv[i+1])=="boxv")   kernel=box_kernel((int)size,(int)size,(int)size);
+	 else if(string(argv[i+1])=="boxv3")  { kernel=box_kernel((int)atof(argv[i+2]),(int)atof(argv[i+3]),(int)atof(argv[i+4])); i+=2; }
          else if(string(argv[i+1])=="gauss")  kernel=gaussian_kernel3D(size,xdim,ydim,zdim);
          else if(string(argv[i+1])=="sphere") kernel=spherical_kernel(size,xdim,ydim,zdim);
 	 else if(string(argv[i+1])=="file")   read_volume(kernel,string(argv[i+2]));
-         if(string(argv[i+1])=="box" || string(argv[i+1])=="gauss") separable=true;       
-         else separable=false;  
-	  i++;
+	 i++;
        }
        i++;
        //save_volume(kernel,"kernel");
@@ -646,13 +659,19 @@ if (!separatenoise)
     /***************************************************************/
     else if (string(argv[i])=="-subsamp2"){
       temp_volume.clear();
+      extrapolation oldex = inputVolume.getextrapolationmethod();
+      inputVolume.setextrapolationmethod(extraslice);
       temp_volume = subsample_by_2(inputVolume,true);
+      temp_volume.setextrapolationmethod(oldex);
       inputVolume = temp_volume;
     }
     /***************************************************************/
     else if (string(argv[i])=="-subsamp2offc"){
       temp_volume.clear();
+      extrapolation oldex = inputVolume.getextrapolationmethod();
+      inputVolume.setextrapolationmethod(extraslice);
       temp_volume = subsample_by_2(inputVolume,false);
+      temp_volume.setextrapolationmethod(oldex);
       inputVolume = temp_volume;
     }
     /***************************************************************/
@@ -732,6 +751,43 @@ if (!separatenoise)
 	    for(int x=0;x<inputVolume.xsize();x++)
               inputVolume.value(x,y,z,t)=(T)sin((double)inputVolume.value(x,y,z,t));
     }
+    /***************************************************************/
+    else if (string(argv[i])=="-tan")
+    {
+      for(int t=0;t<inputVolume.tsize();t++)           
+        for(int z=0;z<inputVolume.zsize();z++)
+          for(int y=0;y<inputVolume.ysize();y++)	    
+	    for(int x=0;x<inputVolume.xsize();x++)
+              inputVolume.value(x,y,z,t)=(T)tan((double)inputVolume.value(x,y,z,t));
+    }
+    /***************************************************************/
+    else if (string(argv[i])=="-asin")
+    {
+      for(int t=0;t<inputVolume.tsize();t++)           
+        for(int z=0;z<inputVolume.zsize();z++)
+          for(int y=0;y<inputVolume.ysize();y++)	    
+	    for(int x=0;x<inputVolume.xsize();x++)
+              inputVolume.value(x,y,z,t)=(T)asin((double)inputVolume.value(x,y,z,t));
+    }
+    /***************************************************************/
+    else if (string(argv[i])=="-acos")
+    {
+      for(int t=0;t<inputVolume.tsize();t++)           
+        for(int z=0;z<inputVolume.zsize();z++)
+          for(int y=0;y<inputVolume.ysize();y++)	    
+	    for(int x=0;x<inputVolume.xsize();x++)
+              inputVolume.value(x,y,z,t)=(T)acos((double)inputVolume.value(x,y,z,t));
+    }
+    /***************************************************************/
+    else if (string(argv[i])=="-atan")
+    {
+      for(int t=0;t<inputVolume.tsize();t++)           
+        for(int z=0;z<inputVolume.zsize();z++)
+          for(int y=0;y<inputVolume.ysize();y++)	    
+	    for(int x=0;x<inputVolume.xsize();x++)
+              inputVolume.value(x,y,z,t)=(T)atan((double)inputVolume.value(x,y,z,t));
+    }
+    /***************************************************************/
     /* Uncorrected nonparametric P-value, assuming t-dim is perm-dim */
     else if (string(argv[i])=="-pval" || string(argv[i])=="-pval0")
     {
@@ -892,6 +948,32 @@ if (!separatenoise)
     /***************************************************************/
     else if (string(argv[i])=="-bin") inputVolume.binarise(0,inputVolume.max()+1,exclusive); 
     /***************************************************************/
+    else if (string(argv[i])=="-binv") 
+      {
+	inputVolume.binarise(0,inputVolume.max()+1,exclusive);
+	inputVolume*=(T)(-1);
+	inputVolume+=(T)1;
+	inputVolume.binarise((T)0.5,inputVolume.max()+1,exclusive);  // do this to cope with a bit of rounding error
+      }
+    /***************************************************************/
+    else if (string(argv[i])=="-fillh") 
+      {
+	inputVolume.binarise(0,inputVolume.max()+1,exclusive);
+	for (int t=0; t<=inputVolume.maxt(); t++) {
+	  inputVolume[t] = fill_holes(inputVolume[t],6);
+	}
+	inputVolume.binarise(0,inputVolume.max()+1,exclusive);
+      }
+    /***************************************************************/
+    else if (string(argv[i])=="-fillh26") 
+      {
+	inputVolume.binarise(0,inputVolume.max()+1,exclusive);
+	for (int t=0; t<=inputVolume.maxt(); t++) {
+	  inputVolume[t] = fill_holes(inputVolume[t],26);
+	}
+	inputVolume.binarise(0,inputVolume.max()+1,exclusive);
+      }
+    /***************************************************************/
     else if (string(argv[i])=="-index")
     {
       int indexval=0;
@@ -918,6 +1000,13 @@ if (!separatenoise)
 		inputVolume.value(x,y,z,t)=(T)gridvalue;
     }
     /*****************SPATIAL FILTERING OPTIONS*********************/
+    /***********************All Dilation***************************/
+    else if (string(argv[i])=="-dilall") {
+        volume4D<T> mask(inputVolume);   
+        mask.binarise(0,0,inclusive); // get a zero mask
+	mask=(T)1-mask;  // convert to a non-zero mask
+	for(int t=0;t<inputVolume.tsize();t++) dilall(inputVolume[t],mask[t]);
+    }
     /***********************Mean Dilation***************************/
     else if (string(argv[i])=="-dilM")
 	for(int t=0;t<inputVolume.tsize();t++) inputVolume[t]=morphfilter(inputVolume[t],kernel,"dilateM");
@@ -945,6 +1034,10 @@ if (!separatenoise)
     /*****************END OF FILTERING OPTIONS***************/
     else if (string(argv[i])=="-edge")
        inputVolume=edge_strengthen(inputVolume);
+    else if (string(argv[i])=="-tfce_minT")
+      tfce_minT = atof(argv[++i]);
+    else if (string(argv[i])=="-tfce_delta")
+      tfce_delta = atof(argv[++i]);
     else if (string(argv[i])=="-tfce") {
       float height_power = atof(argv[++i]);
       float size_power = atof(argv[++i]);
@@ -952,7 +1045,7 @@ if (!separatenoise)
 
       for(int t=0;t<inputVolume.tsize();t++) {
 	try { 
-	  tfce(inputVolume[t], height_power, size_power, connectivity, 0, 0);
+	  tfce(inputVolume[t], height_power, size_power, connectivity, tfce_minT, tfce_delta);
 	}
 	catch(Exception& e) { 
 	  cerr << "ERROR: TFCE failed, please check your file for valid sizes and voxel values." <<  e.what() << endl << endl << "Exiting" << endl;
@@ -974,7 +1067,7 @@ if (!separatenoise)
 	float tfce_thresh = atof(argv[++i]);
 	
 	for(int t=0;t<inputVolume.tsize();t++)
-	  tfce_support(inputVolume[t], height_power, size_power, connectivity, 0, inputVolume[t].max(), X, Y, Z, tfce_thresh);
+	  tfce_support(inputVolume[t], height_power, size_power, connectivity, tfce_minT, tfce_delta, X, Y, Z, tfce_thresh);
       }
 
 // }}}
@@ -1183,14 +1276,23 @@ if (!separatenoise)
 
        // if i+1>argc-1 then can save (otherwise it is a syntax error with no specific output specified)
        check_for_output_name(i+1,argc-1);
+       dti_L1.setDisplayMaximumMinimum(dti_L1.max(),dti_L1.min());
        save_volume(dti_L1,string(argv[argc-1])+"_L1");
+       dti_L2.setDisplayMaximumMinimum(dti_L2.max(),dti_L2.min());
        save_volume(dti_L2,string(argv[argc-1])+"_L2");
+       dti_L3.setDisplayMaximumMinimum(dti_L3.max(),dti_L3.min());
        save_volume(dti_L3,string(argv[argc-1])+"_L3");
+       dti_FA.setDisplayMaximumMinimum(1,0);
        save_volume(dti_FA,string(argv[argc-1])+"_FA");
+       dti_MD.setDisplayMaximumMinimum(dti_MD.max(),dti_MD.min());
        save_volume(dti_MD,string(argv[argc-1])+"_MD");
+       dti_MO.setDisplayMaximumMinimum(1,-1);
        save_volume(dti_MO,string(argv[argc-1])+"_MO");
+       dti_V1.setDisplayMaximumMinimum(1,-1);
        save_volume4D(dti_V1,string(argv[argc-1])+"_V1");
+       dti_V2.setDisplayMaximumMinimum(1,-1);
        save_volume4D(dti_V2,string(argv[argc-1])+"_V2");
+       dti_V3.setDisplayMaximumMinimum(1,-1);
        save_volume4D(dti_V3,string(argv[argc-1])+"_V3");
 
 // }}}
@@ -1206,11 +1308,6 @@ if (!separatenoise)
 
   // if i>argc-1 then can save (otherwise it is a syntax error with no specific output specified)
   check_for_output_name(i,argc-1);
-
-  double max(inputVolume.max()),min(inputVolume.min());
-  if ( !forceOutputType && ((int)max-(int)min)==0 && (max-min)!=0 && (output_dt<DT_FLOAT))
-    output_dt=DT_FLOAT;
-  
 
   if (dtype(inputVolume)>=DT_FLOAT && output_dt < DT_FLOAT)
   {
@@ -1244,37 +1341,39 @@ extern "C" __declspec(dllexport) int _stdcall fslmaths(char *CmdLn)
     return printUsage(string(argv[0])); 
   }
   
-  bool forceOutputType(false);
   short inputType;
   if(string(argv[1]) == "-h" || string(argv[1]) == "--help") { printUsage(string(argv[0]));   freeparser(argc, argv); return 0; }
   if(string(argv[1]) =="-datatype" || string(argv[1])== "-dt")  inputType = dtype(string(argv[3]));
   else inputType = dtype(string(argv[1]));
-  short outputType=inputType;
+  short outputType = DT_FLOAT;
+  if ( inputType == DT_DOUBLE )
+    outputType = DT_DOUBLE; 
+
   if(string(argv[argc-2])=="-output_datatype" || string(argv[argc-2])== "-odt") //output datatype
   {
-    if(string(argv[argc-1])=="char")        outputType =  DT_UNSIGNED_CHAR;  
+    if ( string(argv[argc-1]) == "input" )   outputType =  inputType;
+    else if(string(argv[argc-1])=="char")   outputType =  DT_UNSIGNED_CHAR;  
     else if(string(argv[argc-1])=="short")  outputType =  DT_SIGNED_SHORT;
     else if(string(argv[argc-1])=="int")    outputType =  DT_SIGNED_INT;
     else if(string(argv[argc-1])=="float")  outputType =  DT_FLOAT;
     else if(string(argv[argc-1])=="double") outputType =  DT_DOUBLE;
     else {cout << "Error: Unknown datatype \"" << argv[argc-1] << "\" - Possible datatypes are: char short int float double" << endl; freeparser(argc, argv); return 1;}
     argc-=2;
-    forceOutputType=true;
   }
   int r;
   if(string(argv[1])=="-datatype" || string(argv[1])== "-dt") //input datatype
   {
     if(string(argv[2])!="input") inputType=-1;
-    if(string(argv[2])=="char" || inputType == DT_UNSIGNED_CHAR)      r= inputParser<char>(argc-2, argv+2,outputType,forceOutputType);
-    else if(string(argv[2])=="short" || inputType == DT_SIGNED_SHORT) r= inputParser<short>(argc-2, argv+2,outputType,forceOutputType);
-    else if(string(argv[2])=="int"   || inputType == DT_SIGNED_INT)   r= inputParser<int>(argc-2, argv+2,outputType,forceOutputType);
-    else if(string(argv[2])=="float" || inputType == DT_FLOAT)        r= inputParser<float>(argc-2, argv+2,outputType,forceOutputType); 
-    else if(string(argv[2])=="double"|| inputType == DT_DOUBLE)       r= inputParser<double>(argc-2, argv+2,outputType,forceOutputType); 
+    if(string(argv[2])=="char" || inputType == DT_UNSIGNED_CHAR)      return inputParser<char>(argc-2, argv+2,outputType);
+    else if(string(argv[2])=="short" || inputType == DT_SIGNED_SHORT) return inputParser<short>(argc-2, argv+2,outputType);
+    else if(string(argv[2])=="int"   || inputType == DT_SIGNED_INT)   return inputParser<int>(argc-2, argv+2,outputType);
+    else if(string(argv[2])=="float" || inputType == DT_FLOAT)        return inputParser<float>(argc-2, argv+2,outputType); 
+    else if(string(argv[2])=="double"|| inputType == DT_DOUBLE)       return inputParser<double>(argc-2, argv+2,outputType); 
     else if (inputType==-1)
       { cout << "Error: Unknown datatype \"" << argv[2] <<  "\" - Possible datatypes are: char short int float double input" << endl; r=1;}
   }
-  else if (dtype(string(argv[1]))==DT_DOUBLE) r= inputParser<double>(argc,argv,outputType,forceOutputType);
-  else r= inputParser<float>(argc,argv,outputType,forceOutputType);
+  else if (dtype(string(argv[1]))==DT_DOUBLE) r= inputParser<double>(argc,argv,outputType);
+  else r= inputParser<float>(argc,argv,outputType);
 
   freeparser(argc, argv);
   return r;
