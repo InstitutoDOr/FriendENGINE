@@ -1,5 +1,5 @@
 sudo g++ -fPIC -g -c \
-PTSDPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/filefuncs.cpp ../../FRIEND_Engine/parser.cpp ../../FRIEND_Engine/intervals.cpp ../../FRIEND_Engine/session.cpp ../../FRIEND_Engine/fslfuncs.cpp ../../FRIEND_Engine/socket.cxx ../../FRIEND_Engine/socket2.cpp ../../FRIEND_Engine/defs.cpp \
+PTSDPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/utils.cpp ../../FRIEND_Engine/filefuncs.cpp ../../FRIEND_Engine/parser.cpp ../../FRIEND_Engine/intervals.cpp ../../FRIEND_Engine/session.cpp ../../FRIEND_Engine/fslfuncs.cpp ../../FRIEND_Engine/socket.cxx ../../FRIEND_Engine/socket2.cpp ../../FRIEND_Engine/defs.cpp \
 ../../alglib/statistics.cpp ../../alglib/alglibinternal.cpp ../../alglib/ap.cpp ../../alglib/specialfunctions.cpp ../../alglib/linalg.cpp ../../alglib/alglibmisc.cpp \
 -DUNIX -DDARWIN -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I. \
@@ -14,7 +14,7 @@ PTSDPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/filefuncs.cpp ../..
 -I$FSLDIR/extras/src/libprob \
 -I../../simpleini 
 
-g++ -dynamiclib -o ../../Application/libPTSD.dylib PTSDPlugIn.o vardb.o masks.o intervals.o fslfuncs.o filefuncs.o defs.o parser.o socket.o socket2.o statistics.o alglibinternal.o ap.o specialfunctions.o linalg.o alglibmisc.o session.o \
+g++ -dynamiclib -o ../../Application/libPTSD.dylib PTSDPlugIn.o vardb.o masks.o intervals.o utils.o fslfuncs.o filefuncs.o defs.o parser.o socket.o socket2.o statistics.o alglibinternal.o ap.o specialfunctions.o linalg.o alglibmisc.o session.o \
 -L../../libFiles \
 -L$FSLDIR/extras/lib \
 -L$FSLDIR/lib \

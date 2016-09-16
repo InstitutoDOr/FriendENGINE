@@ -1,5 +1,5 @@
 sudo g++ -fPIC -g -c \
-MDDPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/parser.cpp ../../FRIEND_Engine/filefuncs.cpp ../../FRIEND_Engine/intervals.cpp ../../FRIEND_Engine/fslfuncs.cpp ../../FRIEND_Engine/defs.cpp ../../FRIEND_Engine/socket.cxx ../../FRIEND_Engine/socket2.cpp \
+MDDPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/utils.cpp ../../FRIEND_Engine/parser.cpp ../../FRIEND_Engine/filefuncs.cpp ../../FRIEND_Engine/intervals.cpp ../../FRIEND_Engine/fslfuncs.cpp ../../FRIEND_Engine/defs.cpp ../../FRIEND_Engine/socket.cxx ../../FRIEND_Engine/socket2.cpp \
 ../../alglib/statistics.cpp ../../alglib/alglibinternal.cpp ../../alglib/ap.cpp ../../alglib/specialfunctions.cpp ../../alglib/linalg.cpp ../../alglib/alglibmisc.cpp \
 -DUNIX -DDARWIN -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB  \
 -I. \
@@ -14,7 +14,7 @@ MDDPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/parser.cpp ../../FRI
 -I$FSLDIR/extras/src/libprob \
 -I../../simpleini
 
-g++ -dynamiclib -o ../../Application/libMDD.dylib MDDPlugIn.o vardb.o masks.o intervals.o socket.o socket2.o fslfuncs.o filefuncs.o defs.o parser.o statistics.o alglibinternal.o ap.o specialfunctions.o linalg.o alglibmisc.o \
+g++ -dynamiclib -o ../../Application/libMDD.dylib MDDPlugIn.o vardb.o masks.o intervals.o socket.o socket2.o utils.o fslfuncs.o filefuncs.o defs.o parser.o statistics.o alglibinternal.o ap.o specialfunctions.o linalg.o alglibmisc.o \
 -L$FSLDIR/extras/lib \
 -L$FSLDIR/lib \
 -lfslio \
