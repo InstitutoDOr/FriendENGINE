@@ -1,4 +1,4 @@
-/*  Copyright (C) 1999-2004 University of Oxford  */
+/*  Copyright (C) 1999-2014 University of Oxford  */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -11,7 +11,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -60,7 +60,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #if !defined(OPTIONS_H)
 #define OPTIONS_H
@@ -266,6 +266,7 @@ namespace Utilities {
     virtual ~BaseOption() {}
 
   private:
+    BaseOption() {}
     std::string key_, help_text_;
     ArgFlag arg_flag_;
 
@@ -403,7 +404,7 @@ namespace Utilities {
     */
     const T& default_value() const { return default_; }
 
-    virtual ostream& print(ostream& os) const {
+    virtual std::ostream& print(std::ostream& os) const {
       os << "# " << help_text() << std::endl 
 	 << config_key() << value_string();
       
@@ -423,7 +424,7 @@ namespace Utilities {
     unsigned int valuevec_size_;
   };
 
-//  template<> bool Option<bool>::set_value(const string& s);
+//  template<> bool Option<bool>::set_value(const std::string& s);
 //  template<> std::ostream& Option<bool>::print(std::ostream& s) const;
   //  std::ostream& operator<<(std::ostream& os, const Option<bool>& o);
   std::ostream& operator<<(std::ostream& os, const BaseOption& o);
@@ -454,7 +455,7 @@ namespace Utilities {
      <pre>
 #include "options.h"
 
-// $Id: options.h,v 1.33 2009/04/24 15:34:42 flitney Exp $ 
+// $Id: options.h,v 1.35 2014/01/31 11:54:17 jmouthuy Exp $ 
 
 using namespace Utilities;
 
@@ -551,7 +552,7 @@ int main(unsigned int argc, char **argv) {
        @param argc The argument count.
        @param argv The vector of argument strings.
     */
-    unsigned int parse_command_line(unsigned int argc, char **argv, int skip=0);
+    unsigned int parse_command_line(unsigned int argc, char **argv, int skip=0, bool silentFail=false);
 
     /**
        @param filename The config file name.

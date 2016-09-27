@@ -17,7 +17,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -66,7 +66,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 //
 #include <string>
 #include <iostream>
@@ -98,13 +98,13 @@ basisfield::basisfield(const std::vector<unsigned int>& psz, const std::vector<d
 basisfield::basisfield(const basisfield& inf)
 : ndim(inf.ndim), sz(3,1), vxs(3,0.0), coef(), futd(4,false), field(4)
 {
-  assign(inf);
+  assign_basisfield(inf);
 }
 
 basisfield& basisfield::operator=(const basisfield& inf)
 {
   if (&inf == this) {return(*this);} // Detect self
-  assign(inf);
+  assign_basisfield(inf);
   return(*this);
 }
 
@@ -135,7 +135,7 @@ ReturnMatrix basisfield::vox2mm(unsigned int sz) const
 
 double basisfield::Peek(unsigned int x, unsigned int y, unsigned int z, FieldIndex fi)
 {
-  if (x<0 || y<0 || z<0 || x>=FieldSz_x() || y>=FieldSz_y() || z>=FieldSz_z()) { 
+  if ( x>=FieldSz_x() || y>=FieldSz_y() || z>=FieldSz_z()) { 
     throw BasisfieldException("basisfield::PeekField:: Co-ordinates out of bounds");
   }
   if (!coef) {return(0.0);} // Consider field as zero if no coefficients set
@@ -146,7 +146,7 @@ double basisfield::Peek(unsigned int x, unsigned int y, unsigned int z, FieldInd
 
 double basisfield::Peek(unsigned int vi, FieldIndex fi)
 {
-  if (vi<0 || vi>=FieldSz()) {throw BasisfieldException("basisfield::PeekField:: Voxel index out of bounds");}
+  if (vi>=FieldSz()) {throw BasisfieldException("basisfield::PeekField:: Voxel index out of bounds");}
   if (!coef) {return(0.0);} // Consider field as zero if no coefficients set
   if (!UpToDate(fi)) {Update(fi);}
 
@@ -244,7 +244,7 @@ void basisfield::AsVolume(volume<float>& vol, FieldIndex fi)
 
 // Functions that are declared private or protected
 
-void basisfield::assign(const basisfield& inf) // Helper function for copy constructor and assignment
+void basisfield::assign_basisfield(const basisfield& inf) // Helper function for copy constructor and assignment
 {
   futd = inf.futd;
   ndim = inf.ndim;

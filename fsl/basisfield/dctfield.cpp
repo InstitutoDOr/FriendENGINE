@@ -17,7 +17,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -66,7 +66,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 //
 
 #include <string>
@@ -94,7 +94,7 @@ dctfield::dctfield(const std::vector<unsigned int>& psz, const std::vector<doubl
   : basisfield(psz,pvxs), dctbas(3)
 {
   if (porder.size() != NDim()) {throw BasisfieldException("dctfield::dctfield: Dimensionality mismatch");}
-  if (porder[0]<1 || porder[0]>FieldSz_x() || (NDim()>1 && (porder[1]<0 || porder[1]>FieldSz_y())) || (NDim()>2 && (porder[2]<0 || porder[2]>FieldSz_z()))) {
+  if (porder[0]<1 || porder[0]>FieldSz_x() || (NDim()>1 && (porder[1]>FieldSz_y())) || (NDim()>2 && (porder[2]>FieldSz_z()))) {
     throw BasisfieldException("dctfield::dctfield: Invalid order of DCT transform");
   }
 
@@ -115,11 +115,11 @@ dctfield::dctfield(const std::vector<unsigned int>& psz, const std::vector<doubl
 dctfield::dctfield(const dctfield& inf) 
 : basisfield(inf), dctbas(3)
 {
-  basisfield::assign(inf);
-  dctfield::assign(inf);
+  basisfield::assign_basisfield(inf);
+  dctfield::assign_dctfield(inf);
 }
 
-void dctfield::assign(const dctfield& inf)
+void dctfield::assign_dctfield(const dctfield& inf)
 {
   for (int i=0; i<3; i++) {
     dctbas[i] = std::vector<boost::shared_ptr<NEWMAT::Matrix> >(3);
@@ -134,8 +134,8 @@ dctfield& dctfield::operator=(const dctfield& inf)
   if (&inf == this) {return(*this);} // Detect self
 
   dctbas = std::vector<std::vector<boost::shared_ptr<NEWMAT::Matrix> > >(3);
-  basisfield::assign(inf);   // Assign common part
-  dctfield::assign(inf);     // Assign dctfield specific bits
+  basisfield::assign_basisfield(inf);   // Assign common part
+  dctfield::assign_dctfield(inf);     // Assign dctfield specific bits
 
   return(*this);
 }

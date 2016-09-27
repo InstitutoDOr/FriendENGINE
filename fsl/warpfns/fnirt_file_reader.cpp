@@ -7,9 +7,69 @@
 // 
 // Jesper Andersson, FMRIB Image Analysis Group
 //
-// Copyright (C) 2007 University of Oxford 
+// Copyright (C) 2007-2012 University of Oxford 
 //
-
+/*  Part of FSL - FMRIB's Software Library
+    http://www.fmrib.ox.ac.uk/fsl
+    fsl@fmrib.ox.ac.uk
+    
+    Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+    Imaging of the Brain), Department of Clinical Neurology, Oxford
+    University, Oxford, UK
+    
+    
+    LICENCE
+    
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
+    Oxford (the "Software")
+    
+    The Software remains the property of the University of Oxford ("the
+    University").
+    
+    The Software is distributed "AS IS" under this Licence solely for
+    non-commercial use in the hope that it will be useful, but in order
+    that the University as a charitable foundation protects its assets for
+    the benefit of its educational and research purposes, the University
+    makes clear that no condition is made or to be implied, nor is any
+    warranty given or to be implied, as to the accuracy of the Software,
+    or that it will be suitable for any particular purpose or for use
+    under any specific conditions. Furthermore, the University disclaims
+    all responsibility for the use which is made of the Software. It
+    further disclaims any liability for the outcomes arising from using
+    the Software.
+    
+    The Licensee agrees to indemnify the University and hold the
+    University harmless from and against any and all claims, damages and
+    liabilities asserted by third parties (including claims for
+    negligence) which arise directly or indirectly from the use of the
+    Software or the sale of any products based on the Software.
+    
+    No part of the Software may be reproduced, modified, transmitted or
+    transferred in any form or by any means, electronic or mechanical,
+    without the express permission of the University. The permission of
+    the University is not required if the said reproduction, modification,
+    transmission or transference is done without financial return, the
+    conditions of this Licence are imposed upon the receiver of the
+    product, and all original and amended source code is included in any
+    transmitted product. You may be held legally responsible for any
+    copyright infringement that is caused or encouraged by your failure to
+    abide by these terms and conditions.
+    
+    You are not permitted under this Licence to use this Software
+    commercially. Use for which any financial return is received shall be
+    defined as commercial use, and includes (1) integration of all or part
+    of the source code or the Software into a product for sale or license
+    by or on behalf of Licensee to third parties or (2) use of the
+    Software or any derivative of it for research with the final aim of
+    developing software products for sale or license to a third party or
+    (3) use of the Software or any derivative of it for research with the
+    final aim of developing non-software products for sale or license to a
+    third party, or (4) use of the Software to provide any service to an
+    external organisation for which payment is received. If you are
+    interested in using the Software commercially, please contact Isis
+    Innovation Limited ("Isis"), the technology transfer company of the
+    University, to negotiate a licence. Contact details are:
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 #include <string>
 #include <vector>
 #include <boost/shared_ptr.hpp>
@@ -205,7 +265,9 @@ volume<float> FnirtFileReader::FieldAsNewimageVolume(unsigned int indx, bool inc
   volume<float> vol(FieldSize()[0],FieldSize()[1],FieldSize()[2]);
   switch (_type) {
   case FnirtFieldDispType: case UnknownDispType:
-    return((*_vol_rep)[indx]); 
+    vol=(*_vol_rep)[indx];
+    if (inc_aff) add_affine_part(_aff,indx,vol);
+    return(vol);
     break;
   case FnirtSplineDispType: case FnirtDCTDispType:
     vol.setdims(VoxelSize()[0],VoxelSize()[1],VoxelSize()[2]);
@@ -230,7 +292,11 @@ volume4D<float> FnirtFileReader::FieldAsNewimageVolume4D(bool inc_aff) const
   volume4D<float> vol(FieldSize()[0],FieldSize()[1],FieldSize()[2],3);
   switch (_type) {
   case FnirtFieldDispType: case UnknownDispType:
-    return(*_vol_rep); 
+    vol = *_vol_rep;
+    for (unsigned int i=0; i<3; i++) {
+      if (inc_aff) add_affine_part(_aff,i,vol[i]);
+    }
+    return(vol);
     break;
   case FnirtSplineDispType: case FnirtDCTDispType:
     vol.setdims(VoxelSize()[0],VoxelSize()[1],VoxelSize()[2],1.0);
@@ -464,6 +530,72 @@ void remove_affine_part(const NEWMAT::Matrix&     aff,
 
 /////////////////////////////////////////////////////////////////////
 //
+// Estimates an affine component as an "average" of the non-linear
+// warps. Useful when one need to divide a "non-fnirt" field into
+// an affine and a non-linear part.
+// This can be coded MUCH more efficiently if it turns out to
+// take a significant time/memory.
+//
+/////////////////////////////////////////////////////////////////////
+NEWMAT::Matrix estimate_affine_part(NEWIMAGE::volume4D<float>&  warps,
+                                    unsigned int                every)
+{
+  NEWMAT::Matrix B = warps.sampling_mat();
+  double b11, b12, b13, b14;
+  double b21, b22, b23, b24;
+  double b31, b32, b33, b34;
+  b11=B(1,1); b12=B(1,2); b13=B(1,3); b14=B(1,4);
+  b21=B(2,1); b22=B(2,2); b23=B(2,3); b24=B(2,4);
+  b31=B(3,1); b32=B(3,2); b33=B(3,3); b34=B(3,4);
+
+  NEWMAT::Matrix aff(4,4);
+  aff = 0.0;
+  aff(4,4) = 1.0;
+  // Create "design matrix"
+  NEWMAT::Matrix X(warps.xsize()*warps.ysize()*warps.zsize(),4);
+  NEWMAT::RowVector yp(warps.xsize()*warps.ysize()*warps.zsize());
+  for (int k=0, n=0; k<warps.zsize(); k+=every) {
+    for (int j=0; j<warps.ysize(); j+=every) {
+      for (int i=0; i<warps.xsize(); i+=every, n++) {
+        X(n+1,1)=b11*i+b12*j+b13*k+b14; 
+        X(n+1,2)=b21*i+b22*j+b23*k+b24; 
+        X(n+1,3)=b31*i+b32*j+b33*k+b34; 
+        X(n+1,4)=1.0; 
+      }
+    }
+  }
+  NEWMAT::Matrix iXtX = (X.t()*X).i();
+  
+  // Solve for x, y and z "data vectors".
+  for (int indx=0; indx<3; indx++) {
+    for (int k=0, n=0; k<warps.zsize(); k+=every) {
+      for (int j=0; j<warps.ysize(); j+=every) {
+        for (int i=0; i<warps.xsize(); i+=every, n++) {
+          switch (indx) {
+	  case 0:
+	    yp(n+1)=b11*i+b12*j+b13*k+b14+warps[0](i,j,k);
+	    break;
+	  case 1:
+	    yp(n+1)=b21*i+b22*j+b23*k+b24+warps[1](i,j,k);
+	    break;
+	  case 2:
+	    yp(n+1)=b31*i+b32*j+b33*k+b34+warps[2](i,j,k);
+	    break;
+	  default:
+	    break;
+	  }
+	}
+      }
+    }
+    aff.Row(indx+1) = (yp*X)*iXtX;
+  }
+  aff = aff.i();   // It is really the inverse we want
+
+  return(aff);
+}  
+
+/////////////////////////////////////////////////////////////////////
+//
 // Here starts private helper routines
 //
 /////////////////////////////////////////////////////////////////////
@@ -493,15 +625,16 @@ void FnirtFileReader::common_read(const string& fname, AbsOrRelWarps wt, bool ve
   case FSL_FNIRT_DISPLACEMENT_FIELD:                                    // Field generated by fnirt
     _type = FnirtFieldDispType;
     _aor = RelativeWarps;                                               // Relative warps
+    _aff = estimate_affine_part(vol);                                   // Get (possible) affine component
+    for (int i=0; i<3; i++) remove_affine_part(_aff,i,vol[i]);          // Siphon off the affine component
     _vol_rep = boost::shared_ptr<volume4D<float> >(new volume4D<float>(vol));  // Represent as volume
-    _aff = IdentityMatrix(4);                                           // Affine part already included
     break;
   default:                                                              // Field generated by "unknown" application
     _type = UnknownDispType;
     _aor =wt;                                                           // Trust the user
     _vol_rep = boost::shared_ptr<volume4D<float> >(new volume4D<float>(vol));  // Represent as volume
     _aff = IdentityMatrix(4);                                           // Affine part already included
-    // Convert into realtive warps (if neccessary)
+    // Convert into relative warps (if neccessary)
     if (wt==AbsoluteWarps) convertwarp_abs2rel(*_vol_rep);
     else if (wt==UnknownWarps) {
       if (verbose) cout << "Automatically determining absolute/relative warp convention" << endl;
@@ -518,6 +651,9 @@ void FnirtFileReader::common_read(const string& fname, AbsOrRelWarps wt, bool ve
         if (verbose) cout << "Assuming warps was relative" << endl;
         convertwarp_rel2abs(*_vol_rep);  // Restore to relative, which is what we want
       }
+      // By now it will be in a relative form, which allows us to estimate the affine component.
+      _aff = estimate_affine_part(*_vol_rep);
+      for (int i=0; i<3; i++) remove_affine_part(_aff,i,(*_vol_rep)[i]);
     }
     break;
   }

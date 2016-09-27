@@ -1,4 +1,5 @@
-/*  Copyright (C) 1999-2004 University of Oxford  */
+
+/*  Copyright (C) 1999-2014 University of Oxford  */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -11,7 +12,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -60,7 +61,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "options.h"
 #include <fstream>
@@ -167,7 +168,7 @@ namespace Utilities {
   }
  
   unsigned int OptionParser::parse_command_line(unsigned int argc, 
-						char **argv, int skip) 
+						char **argv, int skip, bool silentFail) 
   {
     unsigned int optpos = 1 + skip;
     unsigned int valpos = 1 + skip;
@@ -177,9 +178,14 @@ namespace Utilities {
       unsigned int increments = 0;
       
       string optstr(argv[optpos]), valstr;
-
-      if(optstr[0] != '-')	// End of parsable options
-	break;
+   
+      if(optstr[0] != '-') {	// End of parsable options
+	
+	if (!silentFail) // Throwing an error if an unrecognised token occurs in the command line
+	  throw X_OptionError(optstr, " is an unrecognised token");
+	else // if silentFail is TRUE then ignores an unrecognised token and continues
+	  break;
+      }
 
       if(optstr[1] == '-') {	// Parse a long opt
 

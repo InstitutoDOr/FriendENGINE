@@ -17,7 +17,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -66,7 +66,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 //
 
 #ifndef dctfield_h
@@ -133,7 +133,7 @@ private:
 protected:
 
   // Functions for use in this and derived classes
-  virtual void assign(const dctfield& inf);
+  virtual void assign_dctfield(const dctfield& inf);
 
 public:
 
@@ -146,6 +146,8 @@ public:
 
   bool valid_size(unsigned int psz, double pvxs, unsigned int porder, unsigned int pdim) const;
 
+  // Explicit instruction to compiler that we intend not to refine some Peek functions
+  using basisfield::Peek;
   // Getting the value for a non-integer voxel location
   virtual double Peek(double x, double y, double z, FieldIndex fi=FIELD) const {return(0.0);}
 
@@ -249,22 +251,22 @@ public:
 
 
   virtual double MemEnergy() const;
-  virtual double BendEnergy() const {throw BasisfieldException("dctfield::BendEnergy not yet implemented"); return(0.0);}
+  virtual double BendEnergy() const {throw BasisfieldException("dctfield::BendEnergy not yet implemented"); } // return(0.0);} // nvcc complained
 
   virtual NEWMAT::ReturnMatrix MemEnergyGrad() const;
   virtual NEWMAT::ReturnMatrix BendEnergyGrad() const
   {
-    Matrix  skrutt(1,1);
+    // Matrix  skrutt(1,1); // nvcc complained
     throw BasisfieldException("dctfield::BendEnergyGrad not yet implemented");
-    return(skrutt);
+    // return(skrutt); // nvcc complained
   }
 
   virtual boost::shared_ptr<MISCMATHS::BFMatrix> MemEnergyHess(MISCMATHS::BFMatrixPrecisionType   prec) const;
   virtual boost::shared_ptr<MISCMATHS::BFMatrix> BendEnergyHess(MISCMATHS::BFMatrixPrecisionType   prec) const
   {
-    boost::shared_ptr<MISCMATHS::BFMatrix>    skrutt(new MISCMATHS::FullBFMatrix());
+    // boost::shared_ptr<MISCMATHS::BFMatrix>    skrutt(new MISCMATHS::FullBFMatrix()); // nvcc complained
     throw BasisfieldException("dctfield::BendEnergyHess not yet implemented");
-    return(skrutt);
+    // return(skrutt); // nvcc complained
   }
 
   virtual boost::shared_ptr<BASISFIELD::basisfield> ZoomField(const std::vector<unsigned int>&     psz,

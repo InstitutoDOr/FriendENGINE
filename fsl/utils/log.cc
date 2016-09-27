@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "log.h"
 
@@ -95,9 +95,12 @@ namespace Utilities {
 	      string s("Cannot create directory " + dir);
 	      throw Exception(s.c_str());
 	    }
-
+#ifdef WINDOWS
 	  string cmd = "mkdir " + dir;
 	  int ret = system(cmd.c_str());
+#else
+	  int ret = system(("mkdir "+ dir).c_str());
+#endif
 	  if(ret == 0)
 	    {
 	      break;
@@ -109,7 +112,7 @@ namespace Utilities {
       // setup logfile
       if(stream_to_logfile)
 	{
-	  logfileout.open((dir + '\\' + logfilename).c_str(), ios::app);
+	  logfileout.open((dir + "\\" + logfilename).c_str(), ios::app);
 	  if(logfileout.bad())
 	    {
 	      throw Exception(string(string("Unable to setup logfile ")+logfilename+string(" in directory ")+dir).c_str());
@@ -134,7 +137,12 @@ namespace Utilities {
       // setup logfile
       if(stream_to_logfile)
 	{
+#ifdef WINDOWS
 	  logfileout.open((dir + '\\' + logfilename).c_str(), mode);
+#else
+	  logfileout.open((dir + "/" + logfilename).c_str(), mode);
+#endif
+
 	   if(logfileout.bad())
 	     {
 	      throw Exception(string(string("Unable to setup logfile ")+logfilename+string(" in directory ")+dir).c_str());
@@ -157,7 +165,12 @@ namespace Utilities {
       stream_to_cout = pstream_to_cout;
 
       // make directory
+#ifdef WINDOWS
       int ret = system(("mkdir " + dir).c_str());
+#else
+      int ret = system(("mkdir -p "+ dir + " 2>/dev/null").c_str());
+#endif
+
       if(ret == -1)
 	{
 	  throw Exception(string(string("Unable to make directory ")+dir).c_str());
@@ -166,7 +179,11 @@ namespace Utilities {
       // setup logfile
       if(stream_to_logfile)
 	{
+#ifdef WINDOWS
 	  logfileout.open((dir + '\\' + logfilename).c_str(), ios::app);
+#else
+	  logfileout.open((dir + "/" + logfilename).c_str(), ios::app);
+#endif
 	   if(logfileout.bad())
 	     {
 	      throw Exception(string(string("Unable to setup logfile ")+logfilename+string(" in directory ")+dir).c_str());

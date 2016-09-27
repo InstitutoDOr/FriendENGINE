@@ -20,7 +20,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -69,7 +69,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 //
 
 #ifndef basisfield_h
@@ -127,7 +127,7 @@ protected:
   virtual boost::shared_ptr<NEWMAT::ColumnVector> get_coef() const;
   double get_coef(unsigned int i, unsigned int j, unsigned int k) const;
   double get_coef(unsigned int i) const;
-  virtual void assign(const basisfield& inf);
+  virtual void assign_basisfield(const basisfield& inf);
   virtual double peek_outside_fov(int i, int j, int k, FieldIndex fi) const {return(0.0);} // Should be replaced by proper method in derived classes
 
 public:

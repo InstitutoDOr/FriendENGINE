@@ -30,12 +30,14 @@ sudo ar rcs libnewimage.a lazy.o newimage.o generalio.o newimagefns.o complexvol
 
 
 echo recreating miscmaths library
-sudo g++ -fPIC -g -c $FSLDIR/src/miscmaths/miscmaths.cc $FSLDIR/src/miscmaths/optimise.cc $FSLDIR/src/miscmaths/miscprob.cc $FSLDIR/src/miscmaths/kernel.cc $FSLDIR/src/miscmaths/histogram.cc $FSLDIR/src/miscmaths/base2z.cc $FSLDIR/src/miscmaths/t2z.cc $FSLDIR/src/miscmaths/f2z.cc $FSLDIR/src/miscmaths/minimize.cc $FSLDIR/src/miscmaths/cspline.cc $FSLDIR/src/miscmaths/sparse_matrix.cc $FSLDIR/src/miscmaths/sparsefn.cc $FSLDIR/src/miscmaths/rungekutta.cc \
+sudo g++ -fPIC -g -c $FSLDIR/src/miscmaths/miscmaths.cc $FSLDIR/src/miscmaths/optimise.cc $FSLDIR/src/miscmaths/miscprob.cc $FSLDIR/src/miscmaths/kernel.cc $FSLDIR/src/miscmaths/histogram.cc $FSLDIR/src/miscmaths/base2z.cc $FSLDIR/src/miscmaths/t2z.cc $FSLDIR/src/miscmaths/f2z.cc $FSLDIR/src/miscmaths/minimize.cc $FSLDIR/src/miscmaths/cspline.cc $FSLDIR/src/miscmaths/sparse_matrix.cc $FSLDIR/src/miscmaths/sparsefn.cc $FSLDIR/src/miscmaths/rungekutta.cc $FSLDIR/src/miscmaths/nonlin.cpp $FSLDIR/src/miscmaths/Simplex.cpp $FSLDIR/src/miscmaths/bfmatrix.cpp \
 -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/include/libprob \
--I$FSLDIR/extras/include/newmat 
+-I$FSLDIR/extras/src/newmat \
+-I$FSLDIR/extras/src/zlib \
+-I$FSLDIR/extras/include/boost \
 
 sudo ar rcs libmiscmaths.a miscmaths.o optimise.o miscprob.o kernel.o histogram.o base2z.o t2z.o f2z.o minimize.o cspline.o sparse_matrix.o sparsefn.o rungekutta.o
 
@@ -62,3 +64,50 @@ sudo gcc -fPIC -g -c $FSLDIR/src/znzlib/znzlib.c \
 
 sudo ar rcs libznz.a znzlib.o
 
+echo recreating warpfns library
+sudo gcc -fPIC -g -c $FSLDIR/src/warpfns/warpfns.cc $FSLDIR/src/warpfns/fnirt_file_reader.cpp $FSLDIR/src/warpfns/fnirt_file_writer.cpp $FSLDIR/src/warpfns/point_list.cpp \
+-DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-I$FSLDIR/src \
+-I$FSLDIR/extras/include \
+-I$FSLDIR/extras/src/libgdc \
+-I$FSLDIR/extras/include/libprob \
+-I$FSLDIR/extras/include/newmat \
+-I$FSLDIR/extras/include/boost/
+
+sudo ar rcs libwarpfns.a warpfns.o fnirt_file_reader.o fnirt_file_writer.o point_list.o
+
+echo recreating meshclass library
+sudo gcc -fPIC -g -c $FSLDIR/src/meshclass/point.cpp $FSLDIR/src/meshclass/mpoint.cpp $FSLDIR/src/meshclass/triangle.cpp $FSLDIR/src/meshclass/mesh.cpp $FSLDIR/src/meshclass/pt_special.cpp $FSLDIR/src/meshclass/profile.cpp \
+-DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-I$FSLDIR/src \
+-I$FSLDIR/extras/include \
+-I$FSLDIR/extras/src/libgdc \
+-I$FSLDIR/extras/include/libprob \
+-I$FSLDIR/extras/include/newmat \
+-I$FSLDIR/extras/include/boost/
+
+sudo ar rcs libmeshclass.a point.o mpoint.o triangle.o mesh.o pt_special.o profile.o 
+
+echo recreating basisfield library
+sudo gcc -fPIC -g -c $FSLDIR/src/basisfield/dctfield.cpp $FSLDIR/src/basisfield/splinefield.cpp $FSLDIR/src/basisfield/basisfield.cpp $FSLDIR/src/basisfield/splines.c \
+-DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-I$FSLDIR/src \
+-I$FSLDIR/extras/include \
+-I$FSLDIR/extras/src/libgdc \
+-I$FSLDIR/extras/include/libprob \
+-I$FSLDIR/extras/include/newmat \
+-I$FSLDIR/extras/include/boost/
+
+sudo ar rcs libbasisfield.a dctfield.o splinefield.o basisfield.o splines.o 
+
+echo recreating utils library
+sudo gcc -fPIC -g -c $FSLDIR/src/utils/matches.cc $FSLDIR/src/utils/functions.cc $FSLDIR/src/utils/usage.cc $FSLDIR/src/utils/check.cc $FSLDIR/src/utils/parse.cc $FSLDIR/src/utils/log.cc $FSLDIR/src/utils/time_tracer.cc \
+-DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-I$FSLDIR/src \
+-I$FSLDIR/extras/include \
+-I$FSLDIR/extras/src/libgdc \
+-I$FSLDIR/extras/include/libprob \
+-I$FSLDIR/extras/include/newmat \
+-I$FSLDIR/extras/include/boost/
+
+sudo ar rcs libutils.a matches.o functions.o usage.o check.o parse.o log.o time_tracer.o 

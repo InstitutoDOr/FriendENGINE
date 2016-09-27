@@ -11,7 +11,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -60,7 +60,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "options.h"
 
@@ -82,7 +82,7 @@ namespace Utilities {
   
   template<> string Option<bool>::value_string() const { return ""; }
 
-  template<> bool Option<bool>::set_value(const string& s)
+  template<> bool Option<bool>::set_value(const std::string& s)
   {
     if(s.length() == 0)
       {
@@ -102,7 +102,7 @@ namespace Utilities {
     return !unset_;
   }
 
-  template<> ostream& Option<bool>::print(ostream& os) const 
+  template<> ostream& Option<bool>::print(std::ostream& os) const 
   {
     os << "# " << help_text() << endl;
     if(set())
@@ -174,7 +174,8 @@ namespace Utilities {
 
   bool string_to_T(vector<string>& vi, const string& s) {
     string str(s), delin(",");
-//    if(str.find(":")!=string::npos) delin = ":";
+    if(str.find(":")!=string::npos)
+      delin = ":";
     str=str+delin;
     vi.clear();
     while(str.size()) {

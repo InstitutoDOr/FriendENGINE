@@ -16,7 +16,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -65,7 +65,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 //
 
 #ifndef fsl_splines_h
@@ -542,7 +542,7 @@ Spline3D<T> operator/(const Spline3D<T>& sp, double s)
 template<class T>
 inline T Spline3D<T>::operator()(unsigned int i, unsigned int j, unsigned int k) const
 {
-  if (i>=0 && i<_vsp1D[0].KernelSize() && j>=0 && j<_vsp1D[1].KernelSize() && k>=0 && k<_vsp1D[2].KernelSize()) {
+  if (i<_vsp1D[0].KernelSize() && j<_vsp1D[1].KernelSize() && k<_vsp1D[2].KernelSize()) {
     return(_sp3D[k*_vsp1D[1].KernelSize()*_vsp1D[0].KernelSize()+j*_vsp1D[0].KernelSize()+i]);
   }
   else {
@@ -855,7 +855,6 @@ inline void Spline1D<T>::Range(// Input
     break;
   default:
     throw FslSplinesException("Spline1D::Range: Only orders 2 and 3 implemented");
-    break;
   }
 }
 
@@ -917,7 +916,6 @@ inline unsigned int Spline1D<T>::Offset(unsigned int   cindx,       // Index of 
     break;
   default:
     throw FslSplinesException("Spline1D::Offset: Only orders 2 and 3 implemented");
-    break;
   }
   return(os);
 }
@@ -1100,7 +1098,7 @@ T Spline1D<T>::kernel_value(double x, unsigned int order, unsigned int ksp, unsi
     case 0:
       if (ax < 1) return(static_cast<T>(1 - ax));
       else return(static_cast<T>(0.0));
-      break;
+      // break; // Commented away to stop warnings from nvcc compiler
     case 1:
       if (ax < 1e-6) return(static_cast<T>(0.0));                                        // Smack on center discontinuity
       else if (fabs(ax-1.0) < 1e-6) return(static_cast<T>(-(x/ax) * 0.5 / double(ksp))); // Smack on edge discontinuity
@@ -1114,20 +1112,20 @@ T Spline1D<T>::kernel_value(double x, unsigned int order, unsigned int ksp, unsi
       if (ax <= 0.5) return(static_cast<T>(0.75 - ax*ax));
       else if (ax < 1.5) return(static_cast<T>(0.5 * (1.5-ax) * (1.5-ax)));
       else return(static_cast<T>(0.0));
-      break;
+      // break; // Commented away to stop warnings from nvcc compiler
     case 1:
       if (ax < 1e-6) return(static_cast<T>(0.0));
       else if (ax <= 0.5) return(static_cast<T>(- (x/ax) * 2.0 * (ax / double(ksp))));
       else if (ax < 1.5) return(static_cast<T>((x/ax) * 0.5 * ((2.0*ax - 3)/double(ksp))));
       else return(static_cast<T>(0.0));
-      break;
+      // break; // Commented away to stop warnings from nvcc compiler
     case 2:
       if (fabs(ax-1.5) < 1e-6) return(static_cast<T>(0.5 / double(ksp*ksp)));          // Smack on edge discontinuity
       else if (fabs(ax-0.5) < 1e-6) return(static_cast<T>(-0.5 / double(ksp*ksp)));    // Smack on inner discontinuity
       else if (ax < 0.5) return(static_cast<T>(-2.0 / double(ksp*ksp)));
       else if (ax < 1.5) return(static_cast<T>(1.0 / double(ksp*ksp)));
       else return(static_cast<T>(0.0));
-      break;
+      // break; // Commented away to stop warnings from nvcc compiler
     default:
       break;
     }
@@ -1138,24 +1136,24 @@ T Spline1D<T>::kernel_value(double x, unsigned int order, unsigned int ksp, unsi
       if (ax <= 1.0) return(static_cast<T>((2.0/3.0) + (ax*ax)*(ax/2.0 - 1)));
       else if (ax < 2.0) return(static_cast<T>((1.0/6.0) * (2.0-ax)*(2.0-ax)*(2.0-ax)));
       else return(static_cast<T>(0.0));
-      break;
+      // break; // Commented away to stop warnings from nvcc compiler
     case 1:
       if (ax < 1e-6) return(static_cast<T>(0.0));
       else if (ax <= 1.0) return(static_cast<T>((x/ax) * (1.5*ax*ax - 2.0*ax) / double(ksp)));
       else if (ax < 2.0) return(static_cast<T>((x/ax) * (-0.5*(2.0-ax)*(2.0-ax)) / double(ksp)));
       else return(static_cast<T>(0.0));
-      break;
+      // break; // Commented away to stop warnings from nvcc compiler
     case 2:
       if (ax <= 1.0) return(static_cast<T>((3.0*ax - 2.0)/double(ksp*ksp)));
       else if (ax < 2.0) return(static_cast<T>((2.0-ax)/double(ksp*ksp)));
       else return(static_cast<T>(0.0));
-      break;
+      // break; // Commented away to stop warnings from nvcc compiler
     default:
       break;
     }
     break;
   default:
-    break;
+    break; 
   }
   return(0.0);
 }

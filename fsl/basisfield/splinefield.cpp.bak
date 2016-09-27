@@ -86,6 +86,14 @@ using namespace NEWMAT;
 
 namespace BASISFIELD {
 
+inline long roundl(double d) { 
+    return (long)(d>0 ? d+0.5 : ceil(d-0.5)); 
+}
+
+inline int round(double d) {
+   return (d>0) ? int(d+0.5) : int(d-0.5);
+}
+
 // Constructor, assignement and destructor
 
 // Plain vanilla constructors

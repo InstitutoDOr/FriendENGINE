@@ -181,7 +181,8 @@ int main(int argc, char *argv[]) {
   bool mesh = false;
   if (argc == 4)
     {
-      if (argv[3]=="-m")
+      string ismesh=argv[3];
+      if (ismesh.compare("-m") == 0)
 	mesh = true;
       else 
 	{
