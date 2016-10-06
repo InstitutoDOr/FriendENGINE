@@ -76,7 +76,10 @@ void SVMProcessing::initializeVars(studyParams &vdb)
 	   fprintf(stderr, "Distance limits %f %f\n", minDistance, maxDistance);
    }
 
-   
+   sprintf(featuresTestMask, "%s%s.nii", vdbPtr->featuresSuffix, vdbPtr->testFeatureSuffix);
+   // correcting the file name
+   fileExists(featuresTestMask);
+
    sprintf(svmModelFile, "%s%s%s%s", svmDir, vdb.subject, vdb.trainFeatureSuffix, ".model");
    
    if (cummulativeTraining)
@@ -152,6 +155,16 @@ void SVMProcessing::train()
    
    char svmMask[BUFF_SIZE], svmTestingFile[BUFF_SIZE];
    sprintf(svmMask, "%s%s", vdbPtr->featuresSuffix, vdbPtr->trainFeatureSuffix);
+
+   if (cummulativeTraining)
+   {
+	   if (fileExists(featuresTestMask))
+	   {
+		   CmdLn.str("");
+		   CmdLn << "fslmaths " << featuresTestMask << " " << svmMask;
+		   fslmaths((char *)CmdLn.str().c_str());
+	   }
+   }
    
    // transforms the 4D volume in a svm like input file
    saveSVMFile(vdbPtr->train4DFile, svmMask, svmTrainingFile, 0, indices, classes);
@@ -288,12 +301,6 @@ void SVMProcessing::test(int index, char *volumeFile, float &classnum, float &pr
 		sprintf(msg, "\nBeginning of interval %d\n", (idxInterval+1));
 		writeLog(msg);
 	}
-	// getting the training mask name
-   char featuresTestMask[BUFF_SIZE];
-   sprintf(featuresTestMask, "%s%s.nii",  vdbPtr->featuresSuffix, vdbPtr->testFeatureSuffix);
-
-   // correcting the file name
-   fileExists(featuresTestMask);
 
    if (model == NULL) model=svm_load_model(svmModelPredictFile);
    if (model == NULL) fprintf(stderr, "model file %s not loaded.\n", svmModelPredictFile);

@@ -19,6 +19,8 @@ char extension[]="";
 
 #endif
 
+#define numPasses 100
+
 // set socket data for response
 void FriendProcess::setSocketfd(int Sock)
 {
@@ -418,6 +420,19 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		}
 		else
 		{
+			// in PAR/REC
+			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".par");
+			//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
+			if (fileExists(inFile) && fileExists(dcm2niiExe))
+			{
+				// executes the dcm2nii tool
+				stringstream osc;
+				osc << dcm2niiExe << " -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
+				fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
+				system(osc.str().c_str());
+				fileFound = 1;
+			}
+
 			// in Analyze. The engine converts it to nifti and inverts the axis, if needed
 			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".img");
 			//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
@@ -462,6 +477,16 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 					fileFound = 1;
 				}
 			}
+			if (fileFound == 0)
+			{
+				passes++;
+				if (passes > numPasses)
+				{
+					fprintf(stderr, "file not found : %s\n", inFile);
+					passes = 0;
+				}
+			}
+
 
 		}
 	}
@@ -600,7 +625,7 @@ void FriendProcess::runRealtimePipeline()
    
 	sprintf(auxConfigFile, "%sstudy_params%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
 	vdb.readedIni.SaveFile(auxConfigFile);
-	fprintf(stderr, "processing pipeline begin\n");
+	fprintf(stderr, "######################### processing pipeline begin ######################\n");
 
 	if (vdb.interval.intervals.size())
 	{
@@ -634,6 +659,7 @@ void FriendProcess::runRealtimePipeline()
 		vdb.interval.generateContrasts(vdb.conditionContrasts, 0);
 
 		// looping
+		passes = 0;
 		while (vdb.actualImg <= vdb.runSize)
 		{
 			realtimePipelineStep(preprocVolumePrefix, format, vdb.actualBaseline);
@@ -654,7 +680,8 @@ void FriendProcess::runRealtimePipeline()
 		}
 		vdb.rPipeline = true;
 	}
-	fprintf(stderr, "processing pipeline end\n");
+	else fprintf(stderr, "######################### Invalid design file    ######################\n");
+	fprintf(stderr, "######################### processing pipeline end   ######################\n");
 }
 
 

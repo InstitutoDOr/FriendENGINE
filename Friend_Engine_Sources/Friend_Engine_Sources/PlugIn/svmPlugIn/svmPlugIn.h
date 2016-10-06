@@ -36,7 +36,8 @@ class SVMProcessing
    AdaptingSVM adaptativeTraining;
    FILE *svmLog, *projectionsFile;
    char logFileName[BUFF_SIZE], projectionsFilename[BUFF_SIZE];
-   
+   char featuresTestMask[BUFF_SIZE];
+
    // initializes variables and creates the svm directory
    void initializeVars(studyParams &vdb);
    

@@ -11,6 +11,7 @@ class FriendProcess
 
 				// holds the engine executable path
 				char exePath[BUFF_SIZE];
+				int passes;
 
                // holds plugin information
                PluginHandler pHandler;
