@@ -399,8 +399,12 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 	// forming the output file
 	sprintf(numberOut, format, indexOut);
 	sprintf(outFile, "%s%s%s", rtPrefix, numberOut, ".nii");
-	sprintf(dcm2niiExe, "%s%cdcm2nii", exePath, PATHSEPCHAR);
 
+#ifdef WINDOWS
+	sprintf(dcm2niiExe, "%s%cdcm2nii.exe", exePath, PATHSEPCHAR);
+#else
+	sprintf(dcm2niiExe, "%s%cdcm2nii", exePath, PATHSEPCHAR);
+#endif
 	// forming the input file
 	sprintf(numberIn, format, indexIn);
 
@@ -422,7 +426,13 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		{
 			// in PAR/REC
 			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".par");
-			//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
+			/*			
+			if (!fileFound)
+			{
+				fprintf(stderr, "Searching file  : %s\n", inFile);
+				fprintf(stderr, "Executable file : %s\n", dcm2niiExe);
+			}
+            */
 			if (fileExists(inFile) && fileExists(dcm2niiExe))
 			{
 				// executes the dcm2nii tool
