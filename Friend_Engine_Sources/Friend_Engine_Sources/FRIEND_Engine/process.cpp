@@ -15,7 +15,7 @@ using namespace NEWIMAGE;
 #define chdir _chdir
 char extension[]="";
 #else
-char extension[]="";
+char extension[] = "";
 
 #endif
 
@@ -426,13 +426,6 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		{
 			// in PAR/REC
 			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".par");
-			/*			
-			if (!fileFound)
-			{
-				fprintf(stderr, "Searching file  : %s\n", inFile);
-				fprintf(stderr, "Executable file : %s\n", dcm2niiExe);
-			}
-            */
 			if (fileExists(inFile) && fileExists(dcm2niiExe))
 			{
 				// executes the dcm2nii tool
@@ -440,6 +433,12 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 				osc << dcm2niiExe << " -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
 				fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
 				system(osc.str().c_str());
+
+				sprintf(inFile, "%s%s%s", rtPrefix, numberIn, ".nii");
+				osc.str("");
+				osc << "fslswapdim " << inFile << " x y z " << outFile << '\0';
+
+				fslSwapDimRT(osc.str().c_str(), vdb.runReferencePtr);
 				fileFound = 1;
 			}
 
