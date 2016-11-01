@@ -186,7 +186,6 @@ float RoiMeanCalculation::roiMean(int index)
 		return means[index];
 	}
 	else return 0;
-
 }
 
 // returns the number of rois
@@ -195,6 +194,19 @@ void RoiMeanCalculation::getRoiValues(vector<int> &values)
 	values.clear();
 	for (std::map<int, int>::iterator it = mapping.begin(); it != mapping.end(); ++it)
 		values.push_back(it->first);
+}
+
+// returns the roi value given its index
+int RoiMeanCalculation::getRoiValue(int index)
+{
+	vector<int> values;
+	getRoiValues(values);
+
+	if (index < values.size())
+	{
+		return values[index];
+	}
+	else return 0;
 }
 
 // reads a region extraction map file
@@ -305,6 +317,31 @@ void RegionExtraction::regionsExtraction(char *refVol, char *valueVol4D, char *v
    }
    // saving the result
    save_volume(output, string(outputVol));
+}
+
+// extract the `percentage` best voxels of a roi, based on a volume that defines the roi and T value volume
+void RegionExtraction::regionExtraction(char *refVol, char *valueVol, char *outputVol, float percentage)
+{
+	// loads the reference volume demarking the roi
+	reference.loadReference(refVol);
+
+	volume<float>values;
+	volume<float>output;
+
+	// loads the summary volume
+	read_volume(values, string(valueVol));
+
+	// initializating the volume output variable
+	output.reinitialize(values.xsize(), values.ysize(), values.zsize());
+	output.copyproperties(values);
+
+	// this is important. Zeroing the volume
+	output = 0;
+
+	// calculate each region separately. regionContrastMap defines the map of a roi intensity and a contrast index.
+	regionBestVoxels(reference, values, output, reference.getRoiValue(0), reference.roiSize(0), percentage);
+	// saving the result
+	save_volume(output, string(outputVol));
 }
 
 // update the statistical variables with another value, modifying the variance if required (default is modify)

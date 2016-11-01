@@ -70,6 +70,8 @@ public:
    int roiCount();
    // returns the number of rois
    void getRoiValues(vector<int> &values);
+   // returns the roi value given its index
+   int getRoiValue(int index);
 };
 
 // extracts the best voxels of each roi
@@ -81,6 +83,9 @@ public:
    void regionBestVoxels(RoiMeanCalculation &reference, volume<float>&values, volume<float>&output, int region, int regionSize, float percentage);
    // extract the `percentage` best voxels of each roi, based on a volume that defines the rois and volumes of T value. How these volumes are used is explained in code
    void regionsExtraction(char *refVol, char *valueVol4D, char *valueVol, char *outputVol, map<int,int> &regionContrastMap, float percentage);
+
+   // extract the `percentage` best voxels of a roi, based on a volume that defines the roi and T value volume
+   void regionExtraction(char *refVol, char *valueVol, char *outputVol, float percentage);
 
    // reaads a region extraction map file
    void readMappings(char *filename, std::map<int, int> &mappings);
@@ -245,7 +250,6 @@ public:
 	// the most simply way to load information in this object
 	void loadRoiMask(char *roiMask);
 
-    
     RegionCorrelation()
     {
         finals = 0;
