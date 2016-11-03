@@ -476,9 +476,9 @@ void WeightedMean::initializeCoefs(int type)
 
 void WeightedMean::calculateLimits(int lastValues)
 {
-	int first = vectorData.size() - lastValues;
+	int first = usedPoints - lastValues;
 	if (first < 0) first = 0;
-	for (int i = first; i < vectorData.size(); i++)
+	for (int i = first; i < usedPoints; i++)
 	{
 		if (i == first)
 		{
