@@ -106,6 +106,9 @@ public:
    void getMCVolumeName(char *outfile, char *number);
    void getMCVolumeName(char *outfile, int number);
    
+   // motion and noise corrected 
+   void getMCNoiseCorrectedVolumeName(char *outFile, char *number);
+
    // returns the volume file name given the number index in a string. Returns three types :
    // 1 - motion corrected volume,
    // 2 - motion corrected and gaussian filtered

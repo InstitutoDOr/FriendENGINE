@@ -549,7 +549,8 @@ bool	friendEngine::serverChild ( int	socketFd )
          if (strcmp(command, "NBFEEDBACK") == 0)
          {
             process.setPhaseStatus("PIPELINE", 0);
-            
+			process.setPhaseStatus("FEEDBACK", 0);
+
             // sending ack
             sprintf(command, "OK\n");
             socks.writeString(command);
@@ -558,7 +559,8 @@ bool	friendEngine::serverChild ( int	socketFd )
             process.setFeedbackCalculation(1);
             process.runRealtimePipeline();
             process.setPhaseStatus("PIPELINE", 1);
-         }
+			process.setPhaseStatus("FEEDBACK", 1);
+		 }
          else
          // sends a terminate command. From here it only exits the thread.
          if (strcmp(command, "END") == 0) 
@@ -568,8 +570,17 @@ bool	friendEngine::serverChild ( int	socketFd )
             socks.writeString(command); 
             break;
          } 
-         else
-         // reads the library filename and the function names in that order : train, test, initialization, finalization, before preprocessing volume and after preprocessing callback. This list will change
+		 else
+		 // exits the engine
+		 if (strcmp(command, "EXIT") == 0)
+		 {
+			 process.wrapUpRun();
+			 sprintf(command, "OK\n");
+			 socks.writeString(command);
+			 exit(0);
+		 }
+		 else
+		 // reads the library filename and the function names in that order : train, test, initialization, finalization, before preprocessing volume and after preprocessing callback. This list will change
          if (strcmp(command, "PLUGIN") == 0)
          {
             char library[500], trainfname[100], testfname[100], initfname[100], finalfname[200], volumefname[200], afterpreprocfname[200];

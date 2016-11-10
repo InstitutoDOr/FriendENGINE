@@ -83,6 +83,13 @@ void studyParams::getMCVolumeName(char *outFile, char *number)
    sprintf(outFile, "%s%s%s", preprocVolumePrefix, number, "_mc.nii");
 }
 
+// the following three functions returns the concatenation of a volume filename type
+// motion and noise corrected 
+void studyParams::getMCNoiseCorrectedVolumeName(char *outFile, char *number)
+{
+	sprintf(outFile, "%s%s%s", preprocVolumePrefix, number, "_mc_corr.nii");
+}
+
 // motion corrected and gaussian filtered
 void studyParams::getMCGVolumeName(char *outFile, char *number)
 {

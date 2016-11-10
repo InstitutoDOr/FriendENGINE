@@ -5,6 +5,9 @@
 #include <fstream>
 #include <sstream>
 #include "filefuncs.h"
+#ifdef CUDAENGINE
+#include "volumeUtils.h"
+#endif
 
 using namespace std;
 using namespace NEWIMAGE;
@@ -669,6 +672,19 @@ void FriendProcess::runRealtimePipeline()
 
 		// looping
 		passes = 0;
+
+#ifdef CUDAENGINE
+		volume<float>maskRFI;
+		load_volume(maskRFI, vdb.maskFile);
+
+		int nvoxels = maskSize(maskRFI);
+		rtc.init_cuda();
+		rtc.rt_glm_cuda_init(num_regressors, nvoxels, vdb.runSize, 0, poly_order, 2);
+		rtc.calculateStatistics = 0;
+		volumeVector = (float *)malloc(nvoxels * sizeof(float));
+		confounds = (float *)malloc(num_regressors * sizeof(float));
+		mask = &maskRFI;
+#endif
 		while (vdb.actualImg <= vdb.runSize)
 		{
 			realtimePipelineStep(preprocVolumePrefix, format, vdb.actualBaseline);
@@ -680,7 +696,10 @@ void FriendProcess::runRealtimePipeline()
 			}
 		}
 		fslioclose(vdb.runReferencePtr);
-
+#ifdef CUDAENGINE
+		rtc.rt_glm_cuda_free_GPU_memory();
+		rtc.end_cuda();
+#endif
 		// issuing the end of run response
 		if (vdb.sessionPointer == NULL)
 		{
@@ -777,28 +796,70 @@ void FriendProcess::setApplicationPath(char *path)
 // process one volume in the pipeline
 void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *actualBaseline)
 {
-   char mcfile[BUFF_SIZE], mcgfile[BUFF_SIZE], inFile[BUFF_SIZE], outFile[BUFF_SIZE], CmdLn[BUFF_SIZE], matOldName[BUFF_SIZE], matNewName[BUFF_SIZE], number[50];
+	char mcfile[BUFF_SIZE], realMCfile[BUFF_SIZE], mcgfile[BUFF_SIZE], inFile[BUFF_SIZE], outFile[BUFF_SIZE], CmdLn[BUFF_SIZE], matOldName[BUFF_SIZE], matNewName[BUFF_SIZE], number[50];
+#ifdef CUDAENGINE
+   char mcCUDAfile[BUFF_SIZE];
+#endif
    if (isReadyNextFile(vdb.actualImg, rtPrefix, format, inFile))
    {
-	  fprintf(stderr, "Processing file = %s\n", inFile);
-	  sprintf(number, format, vdb.actualImg);
-	  sprintf(inFile, "%s%s", rtPrefix, number);
-	  vdb.getMCVolumeName(mcfile, number);
-	  vdb.getMCGVolumeName(mcgfile, number);
-	  vdb.getFinalVolumeName(outFile, number);
-	  sprintf(CmdLn, "mcflirt -in %s -reffile %s -out %s %s", inFile, vdb.motionRefVolume, mcfile, vdb.mcflirtParams);
+	   fprintf(stderr, "Processing file = %s\n", inFile);
+	   sprintf(number, format, vdb.actualImg);
+	   sprintf(inFile, "%s%s", rtPrefix, number);
+	   vdb.getMCVolumeName(mcfile, number);
+	   strcpy(realMCfile, mcfile);
+	   vdb.getMCGVolumeName(mcgfile, number);
+	   vdb.getFinalVolumeName(outFile, number);
+	   sprintf(CmdLn, "mcflirt -in %s -reffile %s -out %s %s", inFile, vdb.motionRefVolume, mcfile, vdb.mcflirtParams);
 
 
-	  // mcFlirt
-	  mcflirt(CmdLn);
-	  
-	  // copying the .mat file
-	  sprintf(matOldName, "%s%s%c%s", mcfile, ".mat", PATHSEPCHAR, "MAT_0000");
-	  sprintf(matNewName,  "%s%s%s", rtPrefix, number, "_mc.mat");
-	  rename(matOldName, matNewName);
-	  sprintf(matOldName, "%s%s", mcfile, ".mat");
-	  rmdir(matOldName);
+	   // mcFlirt
+	   mcflirt(CmdLn);
 
+	   // copying the .mat file
+	   sprintf(matOldName, "%s%s%c%s", mcfile, ".mat", PATHSEPCHAR, "MAT_0000");
+	   sprintf(matNewName, "%s%s%s", rtPrefix, number, "_mc.mat");
+	   rename(matOldName, matNewName);
+	   sprintf(matOldName, "%s%s", mcfile, ".mat");
+	   rmdir(matOldName);
+#ifdef CUDAENGINE
+	   volume<float>*maskRFI = (volume<float>*)mask;
+	   vdb.getMCNoiseCorrectedVolumeName(mcCUDAfile, number);
+	   volume<float>actualVolume;
+
+	   read_volume(actualVolume, string(mcfile));
+
+	   char parFileName[BUFF_SIZE];
+	   sprintf(parFileName, "%s%s%s", rtPrefix, number, "_mc.nii.par");
+	   fstream confoundFile(parFileName, fstream::in);
+
+	   if (num_regressors)
+	   {
+		   for (int j = 0; j < num_regressors; j++) confoundFile >> confounds[j];
+		   confoundFile.close();
+	   }
+
+	   volume2Vector(*maskRFI, actualVolume, volumeVector);
+	   rtc.rt_glm_cuda_append_data(vdb.actualImg - 1, confounds, volumeVector);
+	   rtc.rt_glm_cuda_update_polyreg();
+
+	   //if (vdb.actualImg > (vdb.runSize-2)) rtc.outputFiles = 1;
+	   //else rtc.outputFiles = 0;
+	   rtc.outputFiles = 0;
+
+	   rtc.rt_glm_cuda_get_residual(vdb.actualImg - 1, 0, 0, volumeVector);
+	   if (rtc.canGetResidual())
+	   {
+		   vector2Volume(*maskRFI, actualVolume, volumeVector);
+		   save_volume(actualVolume, string(mcCUDAfile));
+
+	   }
+	   else
+	   {
+		   sprintf(CmdLn, "fslmaths %s %s", mcfile, mcCUDAfile);
+		   fslmaths(CmdLn);
+	   }
+	  sprintf(mcfile, "%s", mcCUDAfile);
+#endif
 	  // subtraction process
 	  // ending of the block ?
 	  if (vdb.actualImg > vdb.interval.intervals[vdb.actualInterval].end)
@@ -817,6 +878,11 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 		  vdb.actualInterval++;
 	  };
 
+#ifdef NOCUDAENGINE
+	  // no mean subtraction due to noise correction 
+	  sprintf(CmdLn, "fslmaths %s %s", mcfile, outFile);
+	  fslmaths(CmdLn);
+#else
 	  // actual subtraction
 	  if (vdb.actualBaseline[0] != 0)
 	  {
@@ -828,7 +894,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 		 sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcfile, outFile);
 		 fslmaths(CmdLn);
 	  }
-
+#endif
 	  // gaussian filtering the subtracted volume
 	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float) vdb.FWHM/2.3548, outFile);
 	  fslmaths(CmdLn);
@@ -838,7 +904,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 	  fslmaths(CmdLn);
 
 	  // send graph params to FRONT END
-	  sendGraphParams(mcfile, number);
+	  sendGraphParams(realMCfile, number);
 	  pHandler.callAfterPreprocessingFunction(vdb, vdb.actualImg, outFile);
 	  
 	  if (vdb.sessionPointer != NULL)

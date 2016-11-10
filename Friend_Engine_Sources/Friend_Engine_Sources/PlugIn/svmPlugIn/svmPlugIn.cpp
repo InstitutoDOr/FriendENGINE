@@ -76,7 +76,7 @@ void SVMProcessing::initializeVars(studyParams &vdb)
 	   fprintf(stderr, "Distance limits %f %f\n", minDistance, maxDistance);
    }
 
-   sprintf(featuresTestMask, "%s%s.nii", vdbPtr->featuresSuffix, vdbPtr->testFeatureSuffix);
+   sprintf(featuresTestMask, "%s%s.nii", vdb.featuresSuffix, vdb.testFeatureSuffix);
    // correcting the file name
    fileExists(featuresTestMask);
 

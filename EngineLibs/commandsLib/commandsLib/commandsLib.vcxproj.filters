@@ -84,5 +84,14 @@
     <ClCompile Include="..\..\..\fsl\miscvis\fsl_tsplot.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\fsl\feat5\feat_model.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\fsl\melodic\fsl_glm.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\fsl\melodic\melhlprfns.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
