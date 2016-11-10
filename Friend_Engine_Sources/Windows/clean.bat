@@ -6,6 +6,16 @@ rmdir FriendEngine\FriendEngine\debug /s /q
 del   FriendEngine\FriendEngine.sdf
 del   FriendEngine\FriendEngine.v12.suo
 
+echo Removing intermediate files and directories of cudaEngine
+rmdir cudaEngine\release /s /q
+rmdir cudaEngine\debug /s /q
+rmdir cudaEngine\x64 /s /q
+rmdir cudaEngine\cudaEngine\Release /s /q
+rmdir cudaEngine\cudaEngine\debug /s /q
+rmdir cudaEngine\cudaEngine\x64 /s /q
+del   cudaEngine\cudaEngine.sdf
+del   cudaEngine\cudaEngine.v12.suo
+
 echo Removing intermediate files and directories of libROI
 rmdir libroi\release /s /q
 rmdir libroi\debug /s /q
