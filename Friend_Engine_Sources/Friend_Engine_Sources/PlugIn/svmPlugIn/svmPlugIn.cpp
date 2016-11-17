@@ -145,7 +145,9 @@ void SVMProcessing::train()
    vdbPtr->getFinalVolumeFormat(prefix);
    
    // calculating the sliding window and saving a 4D volume
-   estimateActivation(1, vdbPtr->interval.maxIndex(), vdbPtr->slidingWindowSize, prefix, vdbPtr->train4DFile);
+   int swSize = vdbPtr->slidingWindowSize;
+   if (vdbPtr->doEstimation == 0) swSize = 1;
+   estimateActivation(1, vdbPtr->interval.maxIndex(), swSize, prefix, vdbPtr->train4DFile);
    
    // getting the volume indexes, excluding the baseline and the first ones discarted by haemodynamic stabilization
    vdbPtr->interval.getVolumeIndices(vdbPtr->offset, 1, vdbPtr->interval.maxIndex(), indices);
@@ -440,7 +442,11 @@ DLLExport testSVM(studyParams &vdb, int index, float &classnum, float &projectio
    fprintf(stderr, "Generating activation file.\n");
    vdb.setActivationFile(index);
 
-   estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
+   if (vdb.doEstimation) estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
+   else
+   {
+	   vdb.getFinalVolumeName(vdb.activationFile, index);
+   }
    
    fprintf(stderr, "Classifying.\n");
    svmProcessingVar->test(index, vdb.activationFile, classnum, projection);

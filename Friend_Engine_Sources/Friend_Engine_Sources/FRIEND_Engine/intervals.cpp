@@ -90,6 +90,35 @@ const char *DesignObject::getCondition(int idx)
    return (const char*) intervals[Idx].condition;
 }
 
+// is this index the start of an activation block? 
+int DesignObject::IsActivationBlockStart(int index)
+{
+	int idxInterval = returnInterval(index);
+
+	if ((!isBaselineCondition(intervals[idxInterval].condition)) && (index == intervals[idxInterval].start)) return 1;
+	else return 0;
+}
+
+// is this index the start of a block? 
+int DesignObject::IsBlockStart(int index)
+{
+	int idxInterval = returnInterval(index);
+
+	if (index == intervals[idxInterval].start) return 1;
+	else return 0;
+}
+
+// returns the first activation index 
+int DesignObject::firstActivationIndex()
+{
+	for (int i = 0; i < intervals.size(); i++)
+	{
+		if (!isBaselineCondition(intervals[i].condition))
+			return intervals[i].start;
+	}
+	return -1;
+}
+
 // populates the conditionNames vector with the design file information and sort
 int DesignObject::getConditionsList()
 {
@@ -119,16 +148,16 @@ int DesignObject::getConditionsList()
 // returns the used volume indexes, taking in account offset and baseline conditions
 int DesignObject::getVolumeIndices(int offset, int start, int end, vector <int> &indexes, int NoFirstInterval)
 {
-   indexes.clear();
-   
-   int initInterval=0;
-   if (NoFirstInterval) initInterval=1;
-	for (int i=initInterval;i<intervals.size();i++)
+	indexes.clear();
+
+	int initInterval = 0;
+	if (NoFirstInterval) initInterval = 1;
+	for (int i = initInterval; i<intervals.size(); i++)
 	{
 
 		for (int j = (intervals[i].start + offset); j <= intervals[i].end; j++)
 		{
-			if ((j >= start) && (j <= end) && ((!isBaselineCondition(intervals[i].condition)) || (conditionNamesWithoutBaseline.size()==1))) // if we jut have one condition include baseline
+			if ((j >= start) && (j <= end) && ((!isBaselineCondition(intervals[i].condition)) || (conditionNamesWithoutBaseline.size() == 1))) // if we jut have one condition include baseline
 			{
 				indexes.push_back(j);
 			}
@@ -236,7 +265,7 @@ int DesignObject::stringIndex(vector <string> &list, char* name)
 	return r;
 }
 
-// return the interval of a volue index
+// return the interval of a volume index
 int DesignObject::returnInterval(int index)
 {
 	int ret = -1;

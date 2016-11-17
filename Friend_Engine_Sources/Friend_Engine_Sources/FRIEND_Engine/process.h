@@ -8,7 +8,7 @@
 #include "vardb.h"
 #include "PlugInHandler.h"
 
-#define poly_order 3
+#define poly_order 1
 #define num_regressors 0
 
 // Class responsible for control all the core FRIEND engine functionality

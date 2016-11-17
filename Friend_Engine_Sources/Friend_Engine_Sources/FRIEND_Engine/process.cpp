@@ -684,6 +684,7 @@ void FriendProcess::runRealtimePipeline()
 		volumeVector = (float *)malloc(nvoxels * sizeof(float));
 		confounds = (float *)malloc(num_regressors * sizeof(float));
 		mask = &maskRFI;
+		vdb.doEstimation = 0;
 #endif
 		while (vdb.actualImg <= vdb.runSize)
 		{
@@ -798,7 +799,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 {
 	char mcfile[BUFF_SIZE], realMCfile[BUFF_SIZE], mcgfile[BUFF_SIZE], inFile[BUFF_SIZE], outFile[BUFF_SIZE], CmdLn[BUFF_SIZE], matOldName[BUFF_SIZE], matNewName[BUFF_SIZE], number[50];
 #ifdef CUDAENGINE
-   char mcCUDAfile[BUFF_SIZE];
+   char mcCUDAfile[BUFF_SIZE], mcswFile[BUFF_SIZE];
 #endif
    if (isReadyNextFile(vdb.actualImg, rtPrefix, format, inFile))
    {
@@ -824,6 +825,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 #ifdef CUDAENGINE
 	   volume<float>*maskRFI = (volume<float>*)mask;
 	   vdb.getMCNoiseCorrectedVolumeName(mcCUDAfile, number);
+	   vdb.getSlidingWindowVolumeName(mcswFile, number);
 	   volume<float>actualVolume;
 
 	   read_volume(actualVolume, string(mcfile));
@@ -842,10 +844,8 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 	   rtc.rt_glm_cuda_append_data(vdb.actualImg - 1, confounds, volumeVector);
 	   rtc.rt_glm_cuda_update_polyreg();
 
-	   //if (vdb.actualImg > (vdb.runSize-2)) rtc.outputFiles = 1;
-	   //else rtc.outputFiles = 0;
+	   // no debug files
 	   rtc.outputFiles = 0;
-
 	   rtc.rt_glm_cuda_get_residual(vdb.actualImg - 1, 0, 0, volumeVector);
 	   if (rtc.canGetResidual())
 	   {
@@ -862,6 +862,43 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 #endif
 	  // subtraction process
 	  // ending of the block ?
+#ifdef CUDAENGINE
+	  // gaussian filtering the motion corrected volume
+	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcfile, (float)vdb.FWHM / 2.3548, mcgfile);
+	  fslmaths(CmdLn);
+
+	  char prefix[BUFF_SIZE];
+	  vdb.getMCNoiseCorrectedVolumeFormat(prefix);
+
+	  // sliding window 
+	  estimateActivation(vdb.actualImg, vdb.actualImg, vdb.slidingWindowSize, prefix, mcswFile);
+
+	  if (vdb.interval.IsActivationBlockStart(vdb.actualImg))
+	  {
+		  fprintf(stderr, "Baseline mean calculation\n");
+		  sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", vdb.actualImg, "mean.nii");
+		  sprintf(CmdLn, "fslmaths %s %s", mcswFile, actualBaseline);
+		  fslmaths(CmdLn);
+
+		  vdb.actualInterval++;
+	  };
+
+	  // actual subtraction
+	  if (actualBaseline[0] != 0)
+	  {
+		  sprintf(CmdLn, "fslmaths %s -sub %s %s", mcswFile, actualBaseline, outFile);
+		  fslmaths(CmdLn);
+		  
+		  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float)vdb.FWHM / 2.3548, outFile);
+		  fslmaths(CmdLn);
+	  }
+	  else // if no baseline mean already calculated, zeros volume. Note zeroing the supposed subtracted volume
+	  {
+		  sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcswFile, outFile);
+		  fslmaths(CmdLn);
+	  }
+
+#else
 	  if (vdb.actualImg > vdb.interval.intervals[vdb.actualInterval].end)
 	  {
 		  if (!vdb.skipMeanSubtraction)
@@ -871,38 +908,31 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 			  {
 				  fprintf(stderr, "Baseline mean calculation\n");
 				  sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", (vdb.actualInterval + 1), "mean.nii");
-				  baselineCalculation(vdb.actualInterval, vdb.actualBaseline);
+				  baselineCalculation(vdb.actualInterval, actualBaseline);
 			  }
 		  }
 		  // going to the next interval
 		  vdb.actualInterval++;
 	  };
-
-#ifdef NOCUDAENGINE
-	  // no mean subtraction due to noise correction 
-	  sprintf(CmdLn, "fslmaths %s %s", mcfile, outFile);
-	  fslmaths(CmdLn);
-#else
 	  // actual subtraction
-	  if (vdb.actualBaseline[0] != 0)
+	  if (actualBaseline[0] != 0)
 	  {
-		 sprintf(CmdLn, "fslmaths %s -sub %s %s", mcfile, vdb.actualBaseline, outFile);
-		 fslmaths(CmdLn);
+		  sprintf(CmdLn, "fslmaths %s -sub %s %s", mcfile, actualBaseline, outFile);
+		  fslmaths(CmdLn);
+
+		  // gaussian filtering the subtracted volume
+		  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float)vdb.FWHM / 2.3548, outFile);
+		  fslmaths(CmdLn);
 	  }
 	  else // if no baseline mean already calculated, zeros volume. Note zeroing the supposed subtracted volume
 	  {
-		 sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcfile, outFile);
-		 fslmaths(CmdLn);
+		  sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcfile, outFile);
+		  fslmaths(CmdLn);
 	  }
-#endif
-	  // gaussian filtering the subtracted volume
-	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float) vdb.FWHM/2.3548, outFile);
-	  fslmaths(CmdLn);
-
 	  // gaussian filtering the motion corrected volume
-	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcfile, (float) vdb.FWHM/2.3548, mcgfile);
+	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcfile, (float)vdb.FWHM / 2.3548, mcgfile);
 	  fslmaths(CmdLn);
-
+#endif
 	  // send graph params to FRONT END
 	  sendGraphParams(realMCfile, number);
 	  pHandler.callAfterPreprocessingFunction(vdb, vdb.actualImg, outFile);

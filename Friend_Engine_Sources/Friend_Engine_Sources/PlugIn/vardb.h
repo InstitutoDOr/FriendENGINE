@@ -36,6 +36,9 @@ public:
    // if we do not need to do mean subtraction step
    int skipMeanSubtraction;
 
+   // if the plugin should calculate explicitly the activation
+   int doEstimation;
+
    // parameter variables
    char baselineCondition[BUFF_SIZE];
    
@@ -76,8 +79,14 @@ public:
    Session *sessionPointer;
    FILE *outputLog;
 
+   // returns the noise corrected file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+   void getMCNoiseCorrectedVolumeFormat(char *format);
+
    // returns the final volume file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
    void getFinalVolumeFormat(char *format);
+
+   // returns the motion corrected file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+   void getMCVolumeFormat(char *format);
 
    // returns the motion corrected gausian file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
    void getMCGVolumeFormat(char *format);
@@ -108,6 +117,10 @@ public:
    
    // motion and noise corrected 
    void getMCNoiseCorrectedVolumeName(char *outFile, char *number);
+
+   // sliding window 
+   void getSlidingWindowVolumeName(char *outFile, char *number);
+
 
    // returns the volume file name given the number index in a string. Returns three types :
    // 1 - motion corrected volume,
@@ -164,7 +177,7 @@ public:
    // writes the message in the log file
    void writeLog(int inScreen, const char * format, ...);
 
-   studyParams() { mcflirtParams[0] = '\0'; strcpy(mcflirtParams, "-plots -mats -rmsabs"); betParameters[0] = '\0'; strcpy(betParameters, "-f 0.3 -o"); sessionPointer = NULL; outputLog = NULL; };
+   studyParams() { mcflirtParams[0] = '\0'; strcpy(mcflirtParams, "-plots -mats -rmsabs"); betParameters[0] = '\0'; strcpy(betParameters, "-f 0.3 -o"); sessionPointer = NULL; outputLog = NULL; doEstimation = 1; };
 
    virtual ~studyParams() { closeLogFile(); };
     

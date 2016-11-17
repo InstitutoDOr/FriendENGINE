@@ -76,18 +76,23 @@ void studyParams::getFormat(char *format)
    sprintf(format, "%c0%dd", '%', numberWidth);
 }
 
+// motion and noise corrected 
+void studyParams::getMCNoiseCorrectedVolumeName(char *outFile, char *number)
+{
+	sprintf(outFile, "%s%s%s", preprocVolumePrefix, number, "_mc_corr.nii");
+}
+
+// sliding window 
+void studyParams::getSlidingWindowVolumeName(char *outFile, char *number)
+{
+	sprintf(outFile, "%s%s%s", preprocVolumePrefix, number, "_mc_g_sw.nii");
+}
+
 // the following three functions returns the concatenation of a volume filename type
 // motion corrected
 void studyParams::getMCVolumeName(char *outFile, char *number)
 {
    sprintf(outFile, "%s%s%s", preprocVolumePrefix, number, "_mc.nii");
-}
-
-// the following three functions returns the concatenation of a volume filename type
-// motion and noise corrected 
-void studyParams::getMCNoiseCorrectedVolumeName(char *outFile, char *number)
-{
-	sprintf(outFile, "%s%s%s", preprocVolumePrefix, number, "_mc_corr.nii");
 }
 
 // motion corrected and gaussian filtered
@@ -99,7 +104,19 @@ void studyParams::getMCGVolumeName(char *outFile, char *number)
 // returns the motion corrected gausian file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
 void studyParams::getMCGVolumeFormat(char *format)
 {
-	sprintf(format, "%s%c0%dd%s", preprocVolumePrefix, '%', numberWidth, ".nii");
+	sprintf(format, "%s%c0%dd%s", preprocVolumePrefix, '%', numberWidth, "_mc_g.nii");
+}
+
+// returns the motion corrected file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+void studyParams::getMCVolumeFormat(char *format)
+{
+	sprintf(format, "%s%c0%dd%s", preprocVolumePrefix, '%', numberWidth, "_mc.nii");
+}
+
+// returns the noise corrected file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+void studyParams::getMCNoiseCorrectedVolumeFormat(char *format)
+{
+	sprintf(format, "%s%c0%dd%s", preprocVolumePrefix, '%', numberWidth, "_mc_corr.nii");
 }
 
 // motion corrected, gaussian filtered, baseline mean subtracted

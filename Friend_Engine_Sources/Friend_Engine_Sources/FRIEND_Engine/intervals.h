@@ -77,8 +77,17 @@ class DesignObject
          // returns the index of name in vector list
          int stringIndex(vector <string> &list, char* name);
    
-         // return the interval of a volue index
+         // return the interval of a volume index
          int returnInterval(int index);
+
+		 // returns the first activation index 
+		 int firstActivationIndex();
+
+		 // is this index the start of an activation block? 
+		 int IsActivationBlockStart(int index);
+
+		 // is this index the start of a block? 
+		 int IsBlockStart(int index);
    
          // returns the max volume index in the design file
          int maxIndex();
