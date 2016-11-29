@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\BROCCOLI_Interface\broccoliInterface.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\confusionmatrix.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\defs.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\engine.cpp" />
@@ -76,7 +77,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 7.5.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -97,13 +98,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\..\..\..\EngineLibs\Libs</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\..\..\..\EngineLibs\Libs;$(BROCCOLI_DIR)code\BROCCOLI_LIB\clBLASMac;$(BROCCOLI_DIR)code\BROCCOLI_LIB\x64\$(Configuration);$(IncludePath);$(CudaToolkitIncludeDir)\CL</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);..\..\..\..\EngineLibs\Libs</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\..\..\..\EngineLibs\Libs</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);..\..\..\..\EngineLibs\Libs;$(BROCCOLI_DIR)code\BROCCOLI_LIB\clBLASMac;$(BROCCOLI_DIR)code\BROCCOLI_LIB\x64\$(Configuration);$(IncludePath);$(CudaToolkitIncludeDir)\CL</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -130,13 +131,13 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>CUDAENGINE;_DEBUG;_CRT_SECURE_NO_WARNINGS;_CONSOLE;WIN32;WIN64;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USEBROCCOLI;CUDAENGINE;_DEBUG;_CRT_SECURE_NO_WARNINGS;_CONSOLE;WIN32;WIN64;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(CudaToolkitIncludeDir)\CL;$(BROCCOLI_DIR)code\BROCCOLI_LIB;..\..\..\Friend_Engine_Sources\BROCCOLI_Interface;..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;$(BROCCOLI_DIR)code\Bash_Wrapper\nifticlib-2.0.0\niftilib;$(BROCCOLI_DIR)code\Bash_Wrapper\nifticlib-2.0.0\znzlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cusolver.lib;cublas.lib;cusparse.lib;cudart_static.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencl.lib;BROCCOLI_LIB.lib;cusolver.lib;cublas.lib;cusparse.lib;cudart_static.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\..\Application\cudaEngine.exe</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -178,15 +179,15 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>CUDAENGINE;NDEBUG;_CRT_SECURE_NO_WARNINGS;_CONSOLE;WIN32;WIN64;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USEBROCCOLI;CUDAENGINE;NDEBUG;_CRT_SECURE_NO_WARNINGS;_CONSOLE;WIN32;WIN64;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(CudaToolkitIncludeDir)\CL;$(BROCCOLI_DIR)code\BROCCOLI_LIB;..\..\..\Friend_Engine_Sources\BROCCOLI_Interface;..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;$(BROCCOLI_DIR)code\Bash_Wrapper\nifticlib-2.0.0\niftilib;$(BROCCOLI_DIR)code\Bash_Wrapper\nifticlib-2.0.0\znzlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cusolver.lib;cublas.lib;cusparse.lib;cudart_static.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencl.lib;BROCCOLI_LIB.lib;cusolver.lib;cublas.lib;cusparse.lib;cudart_static.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\..\Application\cudaEngine.exe</OutputFile>
     </Link>
     <PostBuildEvent>
@@ -199,6 +200,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 7.5.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.targets" />
   </ImportGroup>
 </Project>

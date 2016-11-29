@@ -146,8 +146,10 @@ namespace Utilities {
 
   bool string_to_T(vector<int>& vi, const string& s) {
     string str(s), delin(",");
+#ifndef WINDOWS
     if(str.find(":")!=string::npos)
       delin = ":";
+#endif
     str=str+delin;
     vi.clear();
     while(str.size()) {
@@ -160,8 +162,10 @@ namespace Utilities {
 
   bool string_to_T(vector<float>& vi, const string& s) {
     string str(s), delin(",");
-    if(str.find(":")!=string::npos)
+#ifndef WINDOWS
+	if (str.find(":") != string::npos)
       delin = ":";
+#endif
     str=str+delin;
     vi.clear();
     while(str.size()) {
@@ -174,8 +178,10 @@ namespace Utilities {
 
   bool string_to_T(vector<string>& vi, const string& s) {
     string str(s), delin(",");
+#ifndef WINDOWS
     if(str.find(":")!=string::npos)
       delin = ":";
+#endif
     str=str+delin;
     vi.clear();
     while(str.size()) {
