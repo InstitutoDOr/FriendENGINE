@@ -29,7 +29,7 @@
 #include "assert.h"
 
 static int FslIgnoreMFQ=0;
-static int FslOverrideOutputType=-1;
+static int FslOverrideOutputType = FSL_TYPE_NIFTI_GZ;
 
 #define FSLIOERR(x) { fprintf(stderr,"Error:: %s\n",(x)); fflush(stderr); return(EXIT_FAILURE); }
 
@@ -181,7 +181,7 @@ int FslGetEnvOutputType(void)
   otype = getenv("FSLOUTPUTTYPE");
   if (otype == NULL) 
   {
-	  otype = strdup("NIFTI");
+	  otype = strdup("NIFTI_GZ");
 	  allocated=1;
   }
   if (otype == NULL) {

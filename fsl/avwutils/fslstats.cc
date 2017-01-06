@@ -75,10 +75,9 @@
 using namespace NEWIMAGE;
 
 namespace fslstats {
-int print_usage(const string& progname) {
-  cout << "Usage: fslstats [preoptions] <input> [options]" << endl << endl; 
-  cout << "preoption -t will give a separate output line for each 3D volume of a 4D timeseries" << endl;
-  cout << "preoption -K < indexMask > will generate seperate n submasks from indexMask, for indexvalues 1..n where n is the maximum index value in indexMask, and generate statistics for each submask" << endl;
+void print_usage(const string& progname) {
+  cout << "Usage: fslstats [-t] <input> [options]" << endl << endl; 
+  cout << "-t will give a separate output line for each 3D volume of a 4D timeseries" << endl; 
   cout << "Note - options are applied in order, e.g. -M -l 10 -M will report the non-zero mean, apply a threshold and then report the new nonzero mean" << endl << endl;
   cout << "-l <lthresh> : set lower threshold" << endl;
   cout << "-u <uthresh> : set upper threshold" << endl;
@@ -106,7 +105,6 @@ int print_usage(const string& progname) {
   cout << "-h <nbins>   : output a histogram (for the thresholded/masked voxels only) with nbins" << endl; 
   cout << "-H <nbins> <min> <max>   : output a histogram (for the thresholded/masked voxels only) with nbins and histogram limits of min and max" << endl << endl;
   cout << "Note - thresholds are not inclusive ie lthresh<allowed<uthresh" << endl;
-  return 1;
 }
 
 // Some specialised nonzero functions just for speedup

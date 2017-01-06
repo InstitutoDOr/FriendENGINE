@@ -497,7 +497,7 @@ int RealTimeCorrection::rt_glm_cuda_get_residual(int t, int normX, int scaleY, f
 	cublas_status = cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, Ndata, Xdim, &one, X_buff, Xdim, &zero, X_buff, Ndata, X, Ndata);
 	cublas_status = cublasSgeam(handle, CUBLAS_OP_T, CUBLAS_OP_N, Ndata, Ydim, &one, Y_buff, Ydim, &zero, Y_buff, Ndata, Y, Ndata);
 
-	if (1) //(outputFiles)
+	if (0) //(outputFiles)
 	{
 		float *A = (float*)malloc(sizeof(float) * Xdim * Ndata);
 		cudaMemcpy(A, X, sizeof(float) * Ndata * Xdim, cudaMemcpyDeviceToHost);

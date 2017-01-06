@@ -3,9 +3,9 @@
     
     melhlprfns.cc - misc functions
 
-    Christian F. Beckmann, FMRIB Image Analysis Group
+    Christian F. Beckmann, FMRIB Analysis Group
     
-    Copyright (C) 1999-2008 University of Oxford */
+    Copyright (C) 1999-2013 University of Oxford */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -18,7 +18,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -67,7 +67,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #ifndef __MELODICHLPR_h
 #define __MELODICHLPR_h
@@ -75,6 +75,22 @@
 #include "newimage/newimageall.h"
 #include "newmatap.h"
 #include "newmatio.h"
+
+	#ifdef __APPLE__
+	#include <mach/mach.h>
+	#define mmsg(msg) { \
+	  struct task_basic_info t_info; \
+	  mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT; \
+	  if (KERN_SUCCESS == task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t) &t_info, &t_info_count)) \
+		{ \
+			cout << " MEM: " << msg << " res: " << t_info.resident_size/1000000 << " virt: " << t_info.virtual_size/1000000 << "\n"; \
+			} \
+	}
+	#else
+	#define mmsg(msg) { \
+	   cout << msg; \
+	}
+	#endif
 
 using namespace NEWIMAGE;
 
@@ -88,28 +104,26 @@ namespace Melodic{
 
   Matrix convert_to_pbsc(Matrix& Mat);
 
-  RowVector varnorm(Matrix& in, int dim = 30, float level = 1.6);
+  RowVector varnorm(Matrix& in, int dim = 30, float level = 1.6, int econ = 20000);
        void varnorm(Matrix& in, const RowVector& vars);
-  RowVector varnorm(Matrix& in, Matrix& Corr, int dim = 30, float level = 1.6);
+  RowVector varnorm(Matrix& in, SymmetricMatrix& Corr, int dim = 30, float level = 1.6, int econ = 20000);
 
-  Matrix SP2(const Matrix& in, const Matrix& weights, bool econ = 0);
+  Matrix SP2(const Matrix& in, const Matrix& weights, int econ = 20000);
+  void SP3(Matrix& in, const Matrix& weights);
 
   RowVector Feta(int n1,int n2);
   RowVector cumsum(const RowVector& Inp);
 
   Matrix corrcoef(const Matrix& in1, const Matrix& in2);
   Matrix corrcoef(const Matrix& in1, const Matrix& in2, const Matrix& part);
-  Matrix calc_corr(const Matrix& in, bool econ = 0);
-  Matrix calc_corr(const Matrix& in, const Matrix& weights, bool econ = 0);
-
   float calc_white(const Matrix& tmpE, const RowVector& tmpD, const RowVector& PercEV, int dim, Matrix& param, Matrix& paramS, Matrix& white, Matrix& dewhite);
   float calc_white(const Matrix& tmpE, const RowVector& tmpD, const RowVector& PercEV, int dim, Matrix& white, Matrix& dewhite);
   void calc_white(const Matrix& tmpE, const RowVector& tmpD, int dim, Matrix& param, Matrix& paramS, Matrix& white, Matrix& dewhite);
   void calc_white(const Matrix& tmpE, const RowVector& tmpD, int dim, Matrix& white, Matrix& dewhite);
-  void calc_white(const Matrix& Corr, int dim, Matrix& white, Matrix& dewhite);
+  void calc_white(const SymmetricMatrix& Corr, int dim, Matrix& white, Matrix& dewhite);
   
-  void std_pca(const Matrix& Mat, Matrix& Corr, Matrix& evecs, RowVector& evals);
-  void std_pca(const Matrix& Mat, const Matrix& weights, Matrix& Corr, Matrix& evecs, RowVector& evals);
+  void std_pca(const Matrix& Mat, SymmetricMatrix& Corr, Matrix& evecs, RowVector& evals, int econ = 20000);
+  void std_pca(const Matrix& Mat, const Matrix& weights, SymmetricMatrix& Corr, Matrix& evecs, RowVector& evals, int econ = 20000);
   void em_pca(const Matrix& Mat, Matrix& evecs, RowVector& evals, int num_pc = 1, int iter = 20);
   void em_pca(const Matrix& Mat, Matrix& guess, Matrix& evecs, RowVector& evals, int num_pc = 1, int iter = 20);
 
@@ -122,7 +136,7 @@ namespace Melodic{
   void adj_eigspec(const RowVector& in, RowVector& out1, RowVector& out2, RowVector& out3, int& out4, int num_vox, float resels);
   void adj_eigspec(const RowVector& in, RowVector& out1, RowVector& out2);
 
-  int ppca_dim(const Matrix& in, const Matrix& weights, Matrix& PPCA, RowVector& AdjEV, RowVector& PercEV, Matrix& Corr, Matrix& tmpE, RowVector &tmpD, float resels, string which);
+  int ppca_dim(const Matrix& in, const Matrix& weights, Matrix& PPCA, RowVector& AdjEV, RowVector& PercEV, SymmetricMatrix& Corr, Matrix& tmpE, RowVector &tmpD, float resels, string which);
   int ppca_dim(const Matrix& in, const Matrix& weights, Matrix& PPCA, RowVector& AdjEV, RowVector& PercEV, float resels, string which);
   int ppca_dim(const Matrix& in, const Matrix& weights, float resels, string which);
   ColumnVector ppca_select(Matrix& PPCAest, int& dim, int maxEV, string which);
@@ -135,7 +149,7 @@ namespace Melodic{
   ColumnVector gen_ar(const ColumnVector& in, int maxorder = 1);
   Matrix gen_ar(const Matrix& in, int maxorder);
   Matrix gen_arCorr(const Matrix& in, int maxorder);
-  
+ 
 	class basicGLM{
 		public:
 		
@@ -146,7 +160,7 @@ namespace Melodic{
 			~basicGLM(){}
 		
 			void olsfit(const Matrix& data, const Matrix& design, 
-				const Matrix& contrasts, int DOFadjust = 0);
+				const Matrix& contrasts, int DOFadjust = -1);
 
 			inline Matrix& get_t(){return t;}
 			inline Matrix& get_z(){return z;}

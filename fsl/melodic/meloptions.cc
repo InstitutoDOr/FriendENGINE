@@ -1,12 +1,11 @@
-
 /*  MELODIC - Multivariate exploratory linear optimized decomposition into 
               independent components
     
     meloptions.cc - class for command line options
 
-    Christian F. Beckmann, FMRIB Image Analysis Group
+    Christian F. Beckmann, FMRIB Analysis Group
      
-    Copyright (C) 1999-2008 University of Oxford */
+    Copyright (C) 1999-2013 University of Oxford */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -19,7 +18,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -68,7 +67,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <iostream>
 #include <iomanip>
@@ -78,7 +77,9 @@
 #include "utils/log.h"
 #include "meloptions.h"
 #include "newimage/newimageall.h"
-
+#ifdef WINDOWS
+#include "direct.h"
+#endif
 using namespace Utilities;
 using namespace NEWIMAGE;
 
@@ -179,9 +180,6 @@ MelodicOptions* MelodicOptions::gopt = NULL;
 					cerr << "WARNING: melodic denoising is deprecated, please use fsl_regfilt instead!" <<endl;
     		} 
   		}
-  		if (threshold.value()<=0){
-    		use_mask.set_T(false);
-  		}
   		if (output_all.value()){
     		output_unmix.set_T(true);
     		output_MMstats.set_T(true);
@@ -219,6 +217,9 @@ MelodicOptions* MelodicOptions::gopt = NULL;
   		if (numICs.value() > 0){
     		explicitnums = true;
   		}
+		if (insta_fn.value() > ""){
+			varnorm.set_T(false);
+		}
   
   		//in the case of indirect inputs, create the vector of input names here
   		if(!fsl_imageexists(inputfname.value().at(0))){
@@ -226,9 +227,12 @@ MelodicOptions* MelodicOptions::gopt = NULL;
     		ifstream fs(inputfname.value().at(0).c_str());
     		string cline;
     		while (!fs.eof()) {
-      		getline(fs,cline);
-      		if(cline.length()>0)
-						tmpfnames.push_back(cline);
+		  getline(fs,cline);
+		  if(cline.length()>0) {
+		    while ( cline.find(' ') != cline.npos )
+		      cline.erase( cline.find(' '),1);
+		    tmpfnames.push_back(cline);
+		  }
     		}	
     		fs.close();
     		inputfname.set_T(tmpfnames);
@@ -250,7 +254,11 @@ MelodicOptions* MelodicOptions::gopt = NULL;
     		logger.makeDir(logdir.value(),logfname);
  			} else{
     		// setup logger directory
-    		system(("mkdir "+ logdir.value() + " 2>/dev/null").c_str());
+#ifdef WINDOWS
+			_mkdir(logdir.value().c_str());
+#else
+			system(("mkdir "+ logdir.value() + " 2>/dev/null").c_str());
+#endif
     		logger.setDir(logdir.value(),logfname);
   		}
   		message(endl << "Melodic Version " << version << endl << endl);

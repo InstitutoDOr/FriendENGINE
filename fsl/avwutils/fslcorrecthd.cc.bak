@@ -12,7 +12,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,7 +61,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "newimage/newimageall.h"
 #include "fslio/fslio.h"
@@ -75,7 +75,7 @@ void print_usage(const string& progname)
 {
   cout << endl;
   cout << "Usage: fslcorrecthd <input> <output>" << endl;
-  cout << "       Note that fslcorrecthd only works uncompressed NIFTI or ANALYZE files" << endl;
+  cout << "       Note that fslcorrecthd only operates on uncompressed NIFTI or ANALYZE files" << endl;
 }
 
 extern "C" __declspec(dllexport) int _stdcall fslcorrecthd(char *CmdLn)
@@ -87,6 +87,7 @@ extern "C" __declspec(dllexport) int _stdcall fslcorrecthd(char *CmdLn)
   if (argc < 3) 
   {
     print_usage(string(argv[0]));
+    freeparser(argc, argv);
     return 1; 
   }
   FSLIO* fslio=NULL;
@@ -107,20 +108,23 @@ extern "C" __declspec(dllexport) int _stdcall fslcorrecthd(char *CmdLn)
 
   if (offset==0) {
     cout << "No byte correction needed, exiting." << endl;
+    freeparser(argc, argv);
     return 0;
   }
 
   if (FslIsCompressedFileType(FslGetFileType(fslio))) {
     cerr << "Error: fslcorrecthd requires uncompressed input" << endl;         
-    return 1;
+    freeparser(argc, argv);    
+	return 1;
   }
 
  ifstream input_file;
  ofstream output_file;
- char *temp,*outputName; 
+ char *temp,*outputName,*inputName; 
  FslGetHdrImgNames(argv[2],fslio,&temp,&outputName);
+ FslGetHdrImgNames(argv[1],fslio,&temp,&inputName);
  char byte[1];
- input_file.open(argv[1],ios::in | ios :: binary);
+ input_file.open(inputName,ios::in | ios :: binary);
  output_file.open(outputName,ofstream::out | ofstream::binary);
 
  for(int i=1;i<=minft;i++) //Write Header
@@ -150,7 +154,7 @@ extern "C" __declspec(dllexport) int _stdcall fslcorrecthd(char *CmdLn)
  output_file.close();
  input_file.close();
 
- system(("FSLOUTPUTTYPE=NIFTI; ${FSLDIR}/bin/fslmaths " + string(outputName)).c_str());  //To clean up header
+ //system(("FSLOUTPUTTYPE=NIFTI; ${FSLDIR}/bin/fslmaths " + string(outputName)).c_str());  //To clean up header
  free(temp);
  free(outputName);
  free(hdr);

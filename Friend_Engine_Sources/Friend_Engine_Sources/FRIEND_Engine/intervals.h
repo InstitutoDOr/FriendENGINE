@@ -32,6 +32,9 @@ class DesignObject
 		 vector <string> conditionNamesWithoutBaseline;
 		 vector <Contrast> contrasts;
    
+		 // is the first baseline block? 
+		 int IsFirstBaselineBlock(int index);
+
          // tests if a condition is the baseline condition
          bool isBaselineCondition(const string condition);
    

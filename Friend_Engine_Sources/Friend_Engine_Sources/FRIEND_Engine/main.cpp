@@ -10,13 +10,13 @@
 
 int main(int argc, char* argv[])
 {
-   friendEngine app;
-   char port[20] = "5678";
+	friendEngine app;
+	char port[20] = "5678";
 
-   extractFilePath(argv[0], app.workingDir);
-   if (argc >1) strcpy(port, argv[1]);
-   // entry function for the object. This starts the FRIEND Engine server
-   app.server((BYTE *)port);
-   printf("Leaving...\n");
-   return 0;
+	extractFilePath(argv[0], app.workingDir);
+	if (argc >1) strcpy(port, argv[1]);
+	// entry function for the object. This starts the FRIEND Engine server
+	app.server((BYTE *)port);
+	printf("Leaving...\n");
+	return 0;
 }

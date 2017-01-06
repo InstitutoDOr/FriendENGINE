@@ -18,7 +18,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -67,7 +67,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <iostream>
 #include <string>
@@ -79,12 +79,14 @@
 #include "utils/options.h"
 #include "newimage/newimageall.h"
 #include "meshclass/meshclass.h"
+#include "parser.h"
 
 using namespace std;
 using namespace NEWIMAGE;
 using namespace Utilities;
 using namespace mesh;
 
+namespace fsl_bet2 {
 void noMoreMemory()
 {
   cerr<<"Unable to satisfy request for memory"<<endl;
@@ -651,7 +653,12 @@ volume<float> find_skull (volume<float> & image, const Mesh & m, const double t2
 }
 
 
-int main(int argc, char *argv[]) {
+extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
+{
+  int argc;
+  char **argv;
+  
+  parser(CmdLn, argc, argv);
 
   //parsing options
   OptionParser options(title, examples);
@@ -671,15 +678,16 @@ int main(int argc, char *argv[]) {
   options.add(help);
   
   if (argc < 3) {
-    if (argc == 1) {options.usage(); exit(EXIT_FAILURE);};
+    if (argc == 1) {options.usage();   freeparser(argc, argv); return(EXIT_FAILURE);};
     if (argc>1)
       {
 	string s = argv[1];
 	if (s.find("-h")!=string::npos | s.find("--help")!=string::npos ) 
-	  {options.usage(); exit (0);}
+	  {options.usage();   freeparser(argc, argv); return (0);}
       }
     cerr<<"error: not enough arguments, use bet -h for help"<<endl;
-    exit (-1);
+    freeparser(argc, argv);
+    return (-1);
   }
   
   vector<string> strarg;
@@ -690,7 +698,7 @@ int main(int argc, char *argv[]) {
   string outputname=strarg[2];
   
   if (inputname.find("-")==0 || outputname.find("-")==0 )
-    {cerr<<"error : two first arguments should be input and output names, see bet -h for help"<<endl; exit(-1);};
+    {cerr<<"error : two first arguments should be input and output names, see bet -h for help"<<endl; freeparser(argc, argv); return(-1);};
  
   /*
   int c=0;
@@ -710,13 +718,14 @@ int main(int argc, char *argv[]) {
   catch(X_OptionError& e) {
     options.usage();
     cerr << endl << e.what() << endl;
-    exit(EXIT_FAILURE);
+    freeparser(argc, argv);
+    return(EXIT_FAILURE);
   } 
   catch(std::exception &e) {
     cerr << e.what() << endl;
   } 
   
-  if (help.value()) {options.usage(); return 0;};
+  if (help.value()) {options.usage(); freeparser(argc, argv); return 0;};
 
   string out = outputname;
   if (out.find(".hdr")!=string::npos) out.erase(out.find(".hdr"), 4);
@@ -735,7 +744,7 @@ int main(int argc, char *argv[]) {
 
   volume<float> testvol;
   
-  if (read_volume(testvol,in.c_str())<0)  return -1;
+  if (read_volume(testvol,in.c_str())<0)  { freeparser(argc, argv); return -1; }
 
   double xarg = 0, yarg = 0, zarg = 0;
   if (centerarg.set())
@@ -866,21 +875,20 @@ int main(int argc, char *argv[]) {
 	for (int j=0; j<ysize; j++)
 	  for (int i=0; i<xsize; i++)
 	    output.value(i, j, k) = (1-brainmask.value(i, j, k)) * output.value(i, j, k);
-      if (save_volume(output,out.c_str())<0)  return -1;
+	  if (save_volume(output,out.c_str())<0)  { freeparser(argc, argv); return -1;}
     }  
   
   if (mask.value())
     {
       string maskstr = out+"_mask";
-      brainmask.setDisplayMaximumMinimum(1,0);
-      if (save_volume((short)1-brainmask, maskstr.c_str())<0)  return -1;
+	  if (save_volume((short)1-brainmask, maskstr.c_str())<0)  { freeparser(argc, argv); return -1;}
     }
   
   if (outline.value())
     {
       string outlinestr = out+"_overlay";
       volume<float> outline = draw_mesh_bis(testvol, m);
-      if (save_volume(outline, outlinestr.c_str())<0)  return -1;
+	  if (save_volume(outline, outlinestr.c_str())<0)  { freeparser(argc, argv); return -1;}
     }
 
   if (generate_mesh.value())
@@ -897,10 +905,12 @@ int main(int argc, char *argv[]) {
       volume<short> bskull;
       copyconvert(skull,bskull);
 
-      if (save_volume(bskull, skullstr.c_str())<0)  return -1;
+	  if (save_volume(bskull, skullstr.c_str())<0)  { freeparser(argc, argv); return -1; }
     }
 
+  freeparser(argc, argv);
   return 0;
   
 }
 
+}

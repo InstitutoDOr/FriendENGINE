@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<CONFIG>
-  <Compiler Value="/usr/bin/fpc" Date="1266686313"/>
-  <Params Value=" -MObjFPC -Scgi -O2 -Xs -XX -vewnhi -l -Fu../common/ -Fu. -odcm2nii dcm2nii.lpr"/>
-</CONFIG>

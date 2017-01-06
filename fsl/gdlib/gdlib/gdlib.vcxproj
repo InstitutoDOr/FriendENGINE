@@ -94,7 +94,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Lib>
-      <OutputFile>..\$(Configuration)\gdlib.lib</OutputFile>
+      <OutputFile>..\$(IntDir)\gdlib.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,7 +113,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Lib>
-      <OutputFile>..\$(Configuration)\gdlib.lib</OutputFile>
+      <OutputFile>..\$(IntDir)\gdlib.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -129,7 +129,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Lib>
-      <OutputFile>..\$(Configuration)\gdlib.lib</OutputFile>
+      <OutputFile>..\$(IntDir)\gdlib.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -148,7 +148,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Lib>
-      <OutputFile>..\$(Configuration)\gdlib.lib</OutputFile>
+      <OutputFile>..\$(IntDir)\gdlib.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

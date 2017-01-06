@@ -77,8 +77,8 @@ void DesignObject::saveConditionNames(char *file)
 	f=fopen(file, "wt+");
 	if (f!=NULL)
 	{
-		for (int t=0;t<conditionNames.size();t++)
-      fprintf(f, "%s\n", conditionNames[t].c_str());
+		for (int t = 0; t<conditionNames.size(); t++)
+			fprintf(f, "%s\n", conditionNames[t].c_str());
 		fclose(f);
 	}
 }
@@ -96,6 +96,15 @@ int DesignObject::IsActivationBlockStart(int index)
 	int idxInterval = returnInterval(index);
 
 	if ((!isBaselineCondition(intervals[idxInterval].condition)) && (index == intervals[idxInterval].start)) return 1;
+	else return 0;
+}
+
+// is the first baseline block? 
+int DesignObject::IsFirstBaselineBlock(int index)
+{
+	int idxInterval = returnInterval(index);
+
+	if ((idxInterval == 0) && (isBaselineCondition(intervals[idxInterval].condition))) return 1;
 	else return 0;
 }
 

@@ -3,9 +3,9 @@
     
     meldata.h - data container class
 
-    Christian F. Beckmann, FMRIB Image Analysis Group
+    Christian F. Beckmann, FMRIB Analysis Group
     
-    Copyright (C) 1999-2008 University of Oxford */
+    Copyright (C) 1999-2013 University of Oxford */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -18,7 +18,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -67,7 +67,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 
 #ifndef __MELODICDATA_h
@@ -96,7 +96,7 @@ namespace Melodic{
  
       void save();
 
-      Matrix process_file(string fname, int numfiles = 1);
+      ReturnMatrix process_file(string fname, int numfiles = 1);
 
       inline void save4D(Matrix what, string fname){
 	 			volume4D<float> tempVol;
@@ -116,7 +116,11 @@ namespace Melodic{
       }
 
       int  remove_components();
+
+      void setup_classic();
+      void setup_migp();
       void setup();
+
       void status(const string &txt);
 
       inline Matrix& get_pcaE() {return pcaE;}
@@ -136,22 +140,30 @@ namespace Melodic{
       inline Matrix& get_Smodes(int what) {return Smodes.at(what);}
       inline void add_Smodes(Matrix& Arg) {Smodes.push_back(Arg);}      
       inline void save_Smodes(){
+			if(Smodes.size()>0){
 				Matrix tmp = Smodes.at(0); 
 				for(unsigned int ctr = 1; ctr < Smodes.size(); ctr++)
 	  			tmp |= Smodes.at(ctr);
 				  saveascii(tmp,opts.outputfname.value() + "_Smodes");
+			}
       }
 
       inline vector<Matrix>& get_Tmodes() {return Tmodes;}
       inline Matrix& get_Tmodes(int what) {return Tmodes.at(what);}
       inline void add_Tmodes(Matrix& Arg) {Tmodes.push_back(Arg);}
       inline void save_Tmodes(){
+			if(Tmodes.size()>0){
 				Matrix tmp = Tmodes.at(0); 
-				for(unsigned int ctr = 1; ctr < Tmodes.size(); ctr++)
-	  			tmp |= Tmodes.at(ctr);
+				outMsize("tmp",tmp);
+				for(unsigned int ctr = 1; ctr < Tmodes.size(); ctr++){
+					outMsize("Tmodes ",Tmodes.at(ctr));
+     	  			tmp |= Tmodes.at(ctr);
+				}
 				saveascii(tmp,opts.outputfname.value() + "_Tmodes");
+			}
       }
 
+      void set_TSmode_depr();	
       void set_TSmode();
 
       inline Matrix& get_param() {return param;} 
@@ -255,7 +267,7 @@ namespace Melodic{
       }
       
       void sort();
-	  void reregress();
+	  void dual_regression();
 
       vector<Matrix> DWM, WM;
 			basicGLM glmT, glmS;
@@ -289,6 +301,7 @@ namespace Melodic{
       volume<float> Mask;
       volume<float> Mean;
       volume<float> background;
+      Matrix insta_mask;	
 
       Matrix Data;
       Matrix PPCA;

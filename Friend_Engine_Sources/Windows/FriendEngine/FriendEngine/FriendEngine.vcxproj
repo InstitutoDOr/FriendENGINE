@@ -69,32 +69,37 @@
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);H:\FriendEngine\openjpeg2\openjpeg\$(IntDir)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);H:\FriendEngine\openjpeg2\openjpeg\$(IntDir)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);H:\FriendEngine\openjpeg2\openjpeg\Release;H:\FriendEngine\openjpeg2\openjpeg\$(IntDir)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);H:\FriendEngine\openjpeg2\openjpeg\x64\Release;H:\FriendEngine\openjpeg2\openjpeg\$(IntDir)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories);H:\FriendEngine\openjpeg\src\lib;H:\FriendEngine\dcm2niix\console</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>dcm2niifunction;OPJ_STATIC;_DEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <UndefinePreprocessorDefinitions>UNICODE</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openjpeg.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -105,17 +110,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories);H:\FriendEngine\openjpeg\src\lib;H:\FriendEngine\dcm2niix\console</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>dcm2niifunction;OPJ_STATIC;WIN32;WIN64;_DEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <UndefinePreprocessorDefinitions>UNICODE</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openjpeg.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OutputFile>..\..\Application\engine.exe</OutputFile>
@@ -127,17 +133,18 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories);H:\FriendEngine\openjpeg\src\lib;H:\FriendEngine\dcm2niix\console</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>dcm2niifunction;OPJ_STATIC;dcm2niifunction;OPJ_STATIC;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FloatingPointExceptions>true</FloatingPointExceptions>
+      <UndefinePreprocessorDefinitions>UNICODE</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openjpeg.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -151,8 +158,8 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NEWPIPELINE;_CRT_SECURE_NO_WARNINGS;WIN32;WIN64;NDEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories);H:\FriendEngine\openjpeg\src\lib;H:\FriendEngine\dcm2niix\console</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>dcm2niifunction;OPJ_STATIC;dcm2niifunction;OPJ_STATIC;NEWPIPELINE;_CRT_SECURE_NO_WARNINGS;WIN32;WIN64;NDEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -160,9 +167,10 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FloatingPointExceptions>true</FloatingPointExceptions>
+      <UndefinePreprocessorDefinitions>UNICODE</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;..\..\..\..\fsl\gdlib\$(Configuration)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openjpeg.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -171,6 +179,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\jpg_0XC3.cpp" />
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nifti1_io_core.cpp" />
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_dicom.cpp" />
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_dicom_batch.cpp" />
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_ortho.cpp" />
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_ostu_ml.cpp" />
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\ujpeg.cpp" />
+    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cpp" />
     <ClCompile Include="..\..\..\..\fsl\miscmaths\Simplex.cpp" />
     <ClCompile Include="..\..\..\..\fsl\zlib\adler32.c" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\alglibinternal.cpp" />
@@ -181,7 +197,6 @@
     <ClCompile Include="..\..\..\..\fsl\newmat\bandmat.cpp" />
     <ClCompile Include="..\..\..\..\fsl\miscmaths\base2z.cc" />
     <ClCompile Include="..\..\..\..\fsl\cprob\bdtr.c" />
-    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cc" />
     <ClCompile Include="..\..\..\..\fsl\miscmaths\bfmatrix.cpp" />
     <ClCompile Include="..\..\..\..\fsl\cprob\btdtr.c" />
     <ClCompile Include="..\..\..\..\fsl\cprob\chdtr.c" />
@@ -196,6 +211,7 @@
     <ClCompile Include="..\..\..\..\fsl\miscmaths\cspline.cc" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\dataanalysis.cpp" />
     <ClCompile Include="..\..\..\..\fsl\zlib\deflate.c" />
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\dcm2niiInterface.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\defs.cpp" />
     <ClCompile Include="..\..\..\Friend_Engine_Sources\alglib\diffequations.cpp" />
     <ClCompile Include="..\..\..\..\fsl\cprob\drand.c" />
@@ -340,6 +356,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\fsl\miscmaths\Simplex.h" />
+    <ClInclude Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\dcm2niiInterface.h" />
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\cctypes.h" />
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\confusionmatrix.h" />
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\defs.h" />

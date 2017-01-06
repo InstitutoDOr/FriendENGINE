@@ -226,21 +226,21 @@ void studyParams::readConfigVars()
 	volumesToSkip = readedIni.GetDoubleValue("FRIEND", "VolumesAllowedToSkip", volumesToSkip);
 	skipMeanSubtraction = readedIni.GetDoubleValue("FRIEND", "skipMeanSubtraction", skipMeanSubtraction);
 
-	strcpy(subject, readedIni.GetValue("FRIEND", "SUBJECT"));
+	strcpy(subject, readedIni.GetValue("FRIEND", "SUBJECT", ""));
    
-   strcpy(raiFile, readedIni.GetValue("FRIEND", "RAI"));
+	strcpy(raiFile, readedIni.GetValue("FRIEND", "RAI", ""));
    expandFilename(raiFile);
    
-   strcpy(rfiFile, readedIni.GetValue("FRIEND", "RFI"));
+   strcpy(rfiFile, readedIni.GetValue("FRIEND", "RFI", ""));
    expandFilename(rfiFile);
    
-   strcpy(rawVolumePrefix, readedIni.GetValue("FRIEND", "Prefix"));
+   strcpy(rawVolumePrefix, readedIni.GetValue("FRIEND", "Prefix", ""));
    expandFilename(rawVolumePrefix);
    
-   strcpy(designFile, readedIni.GetValue("FRIEND", "Design"));
+   strcpy(designFile, readedIni.GetValue("FRIEND", "Design", ""));
    expandFilename(designFile);
    
-   strcpy(studyDir, readedIni.GetValue("FRIEND", "StudyDir"));
+   strcpy(studyDir, readedIni.GetValue("FRIEND", "StudyDir", ""));
    expandFilename(studyDir);
    
    TR = readedIni.GetDoubleValue("FRIEND", "TR", 2);
@@ -261,7 +261,8 @@ void studyParams::readConfigVars()
    conditionContrasts = readedIni.GetLongValue("FRIEND", "ConditionContrasts", 1);
    averageMeanOffset = readedIni.GetLongValue("FRIEND", "AverageMeanOffset", 0);
    strcpy(mniTemplate, readedIni.GetValue("FRIEND", "MNITemplate", mniTemplate));
-   strcpy(mniMask, readedIni.GetValue("FRIEND", "MNIMask"));
+   strcpy(subjectSpaceMaskUser, readedIni.GetValue("FRIEND", "SubjectSpaceMaskUser", ""));
+   strcpy(mniMask, readedIni.GetValue("FRIEND", "MNIMask", ""));
    trainingPercentage = readedIni.GetDoubleValue("FRIEND", "TrainingPercentage", trainingPercentage);
    FWHM = readedIni.GetDoubleValue("FRIEND", "FWHM", FWHM);
    performSUSAN = readedIni.GetLongValue("FRIEND", "PerformSUSAN", 0);

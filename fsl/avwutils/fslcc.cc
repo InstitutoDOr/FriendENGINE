@@ -1,6 +1,6 @@
-//     fslcc.cc cross-correlate two time series
+//     fslcc.cc cross-correlate two time series timepoint by timepoint
 //     Steve Smith and Matthew Webster, FMRIB Image Analysis Group
-//     Copyright (C) 2001-2009 University of Oxford  
+//     Copyright (C) 2001-2013 University of Oxford  
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
     fsl@fmrib.ox.ac.uk
@@ -12,7 +12,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,7 +61,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "newimage/newimageall.h"
 #include "utils/options.h"
@@ -72,13 +72,24 @@ using namespace NEWIMAGE;
 using namespace Utilities;
 
 namespace fsl_cc {
+
 #include "newimage/fmribmain.h"
-int print_usage(const string& progname) 
-{
-  cout << "Usage: fslcc [-noabs] <first_input> <second_input> [cc_thresh]" << endl;
-  cout << "-noabs: Don't return absolute values (keep sign)." << endl;
-  return(1);
-}
+
+Option<string> fnmask(string("-m"), string(""),
+		string("mask file name "),
+		false, requires_argument);
+Option<bool> noabs(string("--noabs"), false, 
+		     string("\tDon't return absolute values (keep sign)"), 
+		     false, no_argument);
+Option<bool> nodemean(string("--nodemean"), false, 
+		     string("Don't demean the input files"), 
+		     false, no_argument);
+Option<float> thresh(string("-t"), 0.1,
+		     string("\tThreshhold ( default 0.1 )"),
+		     false, requires_argument);
+Option<float> precision(string("-p"), 2,
+		     string("\tNumber of decimal places to display in output ( default 2 )"),
+		     false, requires_argument);
 
 template <class T>
 int fmrib_main(int argc, char *argv[])
@@ -159,6 +170,7 @@ Option<float> thresh(string("-t"), 0.1,
 Option<float> precision(string("-p"), 2,
 		     string("\tNumber of decimal places to display in output ( default 2 )"),
 		     false, requires_argument);
+
 
   parser(CmdLn, argc, argv);
   string title("fslcc: Cross-correlate two time-series, timepoint by timepoint");

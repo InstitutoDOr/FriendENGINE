@@ -3,6 +3,7 @@
 //     Steve Smith, David Flitney, Mark Jenkinson, Stuart Clare, Thomas Nichols and Matthew Webster, FMRIB Image Analysis Group
 //     Copyright (C) 2000-2008 University of Oxford  
 //     
+
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
     fsl@fmrib.ox.ac.uk
@@ -14,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -63,7 +64,8 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+
 //     
 #define EXPOSE_TREACHEROUS
 #include "newimage/newimageall.h"
@@ -85,9 +87,9 @@ int printUsage(const string& programName)
 
   cout << "\nDatatype information:" << endl;
   cout << " -dt sets the datatype used internally for calculations (default float for all except double images)" << endl;
-  cout << " -odt sets the output datatype (default as original image)" << endl;
-  cout << " Possible datatypes are: char short int float double" << endl;
-  cout << " Additionally \"-dt input\" will set the internal datatype to that of the original image" << endl;
+  cout << " -odt sets the output datatype ( default is float )" << endl;
+  cout << " Possible datatypes are: char short int float double input" << endl;
+  cout << " \"input\" will set the datatype to that of the original image" << endl;
 
   cout << "\nBinary operations:" << endl;
   cout << "  (some inputs can be either an image or a number)" << endl;
@@ -145,9 +147,8 @@ int printUsage(const string& programName)
   cout << "\nKernel operations (set BEFORE filtering operation if desired):" << endl;
   cout << " -kernel 3D : 3x3x3 box centered on target voxel (set as default kernel)" << endl;
   cout << " -kernel 2D : 3x3x1 box centered on target voxel" << endl;
-  cout << " -kernel box    <size>     : all voxels in a cube of width <size> mm centered on target voxel" << endl;
-  cout << " -kernel boxv   <size>     : all voxels in a cube of width <size> voxels centered on target voxel, CAUTION: size should be an odd number" << endl;
-  cout << " -kernel boxv3  <X> <Y> <Z>: all voxels in a cuboid of dimensions X x Y x Z centered on target voxel, CAUTION: size should be an odd number" << endl;
+  cout << " -kernel box    <size>     : all voxels in a box of width <size> centered on target voxel" << endl;
+  cout << " -kernel boxv   <size>     : <size>x<size>x<size> box centered on target voxel, CAUTION: size should be an odd number" << endl;
   cout << " -kernel gauss  <sigma>    : gaussian kernel (sigma in mm, not voxels)" << endl;
   cout << " -kernel sphere <size>     : all voxels in a sphere of radius <size> mm centered on target voxel" << endl;
   cout << " -kernel file   <filename> : use external file as kernel" << endl;
@@ -628,9 +629,8 @@ if (!separatenoise)
        else if(string(argv[i+1])=="3D") kernel=box_kernel(3,3,3);
        else
        {
-	 float size=atof(argv[i+2]);
-	 separable=false;
-         if(string(argv[i+1])=="box" || string(argv[i+1])=="boxv" || string(argv[i+1])=="boxv3" || string(argv[i+1])=="gauss") separable=true;       
+ 	     float size=atof(argv[i+2]);
+
 
 	 if(string(argv[i+1])=="box")         kernel=box_kernel(size,xdim,ydim,zdim);
 	 else if(string(argv[i+1])=="boxv")   kernel=box_kernel((int)size,(int)size,(int)size);
@@ -638,6 +638,8 @@ if (!separatenoise)
          else if(string(argv[i+1])=="gauss")  kernel=gaussian_kernel3D(size,xdim,ydim,zdim);
          else if(string(argv[i+1])=="sphere") kernel=spherical_kernel(size,xdim,ydim,zdim);
 	 else if(string(argv[i+1])=="file")   read_volume(kernel,string(argv[i+2]));
+         if(string(argv[i+1])=="box" || string(argv[i+1])=="boxv" || string(argv[i+1])=="boxv3" || string(argv[i+1])=="gauss") separable=true;       
+         else separable=false;
 	 i++;
        }
        i++;

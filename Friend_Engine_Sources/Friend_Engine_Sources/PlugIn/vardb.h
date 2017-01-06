@@ -49,7 +49,7 @@ public:
    int performNeurofeedback, useWholeSubjectSpaceMask, referenceWholeVolume, storePredictions, feedBackType, numberWidth;
    int invX, invY, invZ;
    
-   char mniTemplate[BUFF_SIZE], mniMask[BUFF_SIZE];
+   char mniTemplate[BUFF_SIZE], mniMask[BUFF_SIZE], subjectSpaceMaskUser[BUFF_SIZE];
    
    double tTestCutOff, pvalueCutOff, FWHM, trainingPercentage, percentileHigherVoxels;
    

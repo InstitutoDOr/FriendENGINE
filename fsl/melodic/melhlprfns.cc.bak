@@ -452,7 +452,7 @@ namespace Melodic{
 		Evals=fliplr(Evals);
 		res = sum(Evals.Columns(1,dim),2).AsScalar()/sum(Evals,2).AsScalar()*100;
 		return res;
-  } // rankapprox
+  } // MISCMATHS::rankapprox
 
   RowVector krfact(const Matrix& Mat, Matrix& cols, Matrix& rows)
   {
@@ -574,15 +574,15 @@ namespace Melodic{
 
     RowVector eta(30*n1);
     float rangestepsize = (urange - lrange) / eta.Ncols(); 
-    for(int ctr_i = 0; ctr_i < eta.Ncols(); ctr_i++){ 
-      eta(ctr_i+1) = lrange + rangestepsize * (ctr_i);
+    for(int ctr_i = 1; ctr_i <= eta.Ncols(); ctr_i++){ 
+      eta(ctr_i) = lrange + rangestepsize * (ctr_i);
     }
 
     RowVector teta(10*n1);
     teta = 0;
     float stepsize = (bp - bm) / teta.Ncols();
-    for(int ctr_i = 0; ctr_i < teta.Ncols(); ctr_i++){ 
-      teta(ctr_i+1) = stepsize*(ctr_i);
+    for(int ctr_i = 1; ctr_i <= teta.Ncols(); ctr_i++){ 
+      teta(ctr_i) = stepsize*(ctr_i);
     }  
     
     RowVector feta(teta);
@@ -602,7 +602,8 @@ namespace Melodic{
     }
     
     RowVector Res(n1); //invert the CDF
-    for(int ctr_i = 1; ctr_i < eta.Ncols(); ctr_i++){
+    Res = 0;
+    for(int ctr_i = 1; ctr_i < eta.Ncols(); ctr_i++){ //Should this be <= instead of <?
       if(floor(claw(ctr_i))>floor(claw(ctr_i+1))){
 	Res(int(floor(claw(ctr_i)))) = eta(ctr_i);
       }

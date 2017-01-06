@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<CONFIG>
-  <Compiler Value="/usr/bin/fpc" Date="1266686313"/>
-  <Params Value=" -MDelphi -Scgi -O1 -Xs -XX -WG -vewnhi -Fu../common/ -Fu../../../../usr/lib/lazarus/0.9.28.2/lcl/units/i386-linux/ -Fu../../../../usr/lib/lazarus/0.9.28.2/lcl/units/i386-linux/gtk2/ -Fu../../../../usr/lib/lazarus/0.9.28.2/packager/units/i386-linux/ -Fu. -odcm2niigui -dLCL -dLCLgtk2 dcm2niigui.lpr"/>
-</CONFIG>

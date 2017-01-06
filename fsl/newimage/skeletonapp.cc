@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 // Skeleton application framework for using newimage
 
@@ -146,16 +146,19 @@ int main(int argc,char *argv[])
 	exit(EXIT_FAILURE);
       }
     
-  }  catch(X_OptionError& e) {
+    // Call the local functions
+    return do_work(argc,argv);
+
+  } catch(X_OptionError& e) {
     options.usage();
     cerr << endl << e.what() << endl;
     exit(EXIT_FAILURE);
   } catch(std::exception &e) {
     cerr << e.what() << endl;
+  } catch(Exception &e) {
+    cerr << e.what() << endl;
+  } catch(...) {
+    cerr << "Fatal error" << endl;
   } 
-
-  // Call the local functions
-
-  return do_work(argc,argv);
 }
 

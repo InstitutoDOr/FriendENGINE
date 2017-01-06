@@ -3,9 +3,9 @@
     
     melica.cc - ICA estimation 
 
-    Christian F. Beckmann, FMRIB Image Analysis Group
+    Christian F. Beckmann, FMRIB Analysis Group
     
-    Copyright (C) 1999-2008 University of Oxford */
+    Copyright (C) 1999-2013 University of Oxford */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -18,7 +18,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -67,7 +67,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <stdlib.h>
 #include "newimage/newimageall.h"
@@ -85,7 +85,7 @@
 using namespace Utilities;
 using namespace NEWIMAGE;
 
-namespace Melodic{
+namespace Melodic {
     
   void MelodicICA::ica_fastica_symm(const Matrix &Data){
     // based on Aapo Hyvärinen's fastica method
@@ -94,7 +94,6 @@ namespace Melodic{
     //initialize matrices
     Matrix redUMM_old, rank1_old;
     Matrix tmpU;    
-    
     //srand((unsigned int)timer(NULL));
     redUMM = melodat.get_white()*
        unifrnd(melodat.get_white().Ncols(),dim); // got to start somewhere
@@ -117,17 +116,16 @@ namespace Melodic{
     if(opts.approach.value() == string("tica"))
       opts.maxNumItt.set_T(opts.rank1interval.value());
 
-		rank1_old = melodat.get_dewhite()*redUMM;
-		rank1_old = melodat.expand_dimred(rank1_old);
-	  rank1_old = krapprox(rank1_old,int(rank1_old.Nrows()/melodat.get_numfiles())); 
-
+    rank1_old = melodat.get_dewhite()*redUMM;
+    rank1_old = melodat.expand_dimred(rank1_old);
+    rank1_old = krapprox(rank1_old,int(rank1_old.Nrows()/melodat.get_numfiles())); 
     do{// TICA loop
       itt_ctr = 1;
       do{ // da loop!!!
 				redUMM_old = redUMM;      
 				//calculate IC estimates
 				tmpU = Data.t() * redUMM;
-      
+					
 				//update redUMM depending on nonlinearity
 				if(opts.nonlinearity.value()=="pow4"){
 	  			redUMM = (Data * pow(tmpU,3.0)) / samples - 3 * redUMM;
@@ -141,7 +139,7 @@ namespace Melodic{
 	  			Matrix hyptanh;
 	  			hyptanh = tanh(opts.nlconst1.value()*tmpU);
 	  			redUMM = (Data * hyptanh - opts.nlconst1.value()*SP(ones(dim,1)*
-						sum(1-pow(hyptanh,2),1),redUMM))/samples;
+						sum(1-pow(hyptanh,2),1),redUMM))/samples;						
 				}
 				if(opts.nonlinearity.value()=="gauss"){
 	  			Matrix tmpUsq;
@@ -158,10 +156,10 @@ namespace Melodic{
            
 				// orthogonalize the unmixing-matrix 
 				symm_orth(redUMM);
-
 				if(opts.approach.value() == string("tica")){
 					message("");
 				}
+
 				//termination condition : angle between old and new < epsilon
 				minAbsSin = 1 - diag(abs(redUMM.t()*redUMM_old)).Minimum();
 
@@ -536,7 +534,7 @@ namespace Melodic{
       melodat.set_ICstats(scales);
       melodat.sort();
 
-	    message("Calculating T- and S-modes " << endl);
+	  //message("Calculating T- and S-modes " << endl);
       melodat.set_TSmode();
 		
     }

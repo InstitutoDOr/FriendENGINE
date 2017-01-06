@@ -108,9 +108,7 @@ namespace NEWIMAGE {
 			int mint; int maxx; int maxy; int maxz; int maxt; } ;
 
 
-#ifndef __llvm__
-#pragma interface	 /* gcc class implementation */
-#endif
+#pragma interface  
 
   template <class T>
   class volume : public lazymanager {
@@ -118,7 +116,6 @@ namespace NEWIMAGE {
 
     T* Data;
     bool data_owner;
-    mutable double maskDelimiter;
     int SizeBound;
     int SliceOffset;
 
@@ -298,7 +295,7 @@ namespace NEWIMAGE {
     int intent_code() const { return IntentCode; }
     float intent_param(int n) const;
     void set_intent(int intent_code, float p1, float p2, float p3) const;
-    inline T maskThreshold() const { return (T)maskDelimiter; }
+
     T min() const { return minmax().min; }
     T max() const { return minmax().max; }
     int mincoordx() const { return minmax().minx; }
@@ -422,6 +419,7 @@ namespace NEWIMAGE {
     ColumnVector ExtractColumn(int i, int k) const;
     void SetRow(int j, int k, const ColumnVector& row);
     void SetColumn(int j, int k, const ColumnVector& col);
+
 
     // SECONDARY FUNCTIONS
     void setextrapolationmethod(extrapolation extrapmethod) const { p_extrapmethod = extrapmethod; }
@@ -1047,7 +1045,7 @@ namespace NEWIMAGE {
      for (int z=mask.minz(); z<=mask.maxz(); z++) {
        for (int y=mask.miny(); y<=mask.maxy(); y++) {
          for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	   if (mask.value(x,y,z)>mask.maskThreshold()) n++;
+	   if (mask.value(x,y,z)>(T) 0.5) n++;
          }
        }
      }
@@ -1062,7 +1060,7 @@ namespace NEWIMAGE {
        for (int z=mask.minz(); z<=mask.maxz(); z++) {
 	 for (int y=mask.miny(); y<=mask.maxy(); y++) {
 	   for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	     if (mask.value(x,y,z,t)>mask[0].maskThreshold()) n++;
+	     if (mask.value(x,y,z,t)>(T) 0.5) n++;
 	   }
 	 }
        }
@@ -1138,9 +1136,9 @@ namespace NEWIMAGE {
   template <class S1, class S2>
   bool samedim(const volume<S1>& vol1, const volume<S2>& vol2)
   {
-    return(std::abs(vol1.xdim()-vol2.xdim())<1e-3 && 
-           std::abs(vol1.ydim()-vol2.ydim())<1e-3 && 
-           std::abs(vol1.zdim()-vol2.zdim())<1e-3);
+    return(std::abs(vol1.xdim()-vol2.xdim())<1e-6 && 
+           std::abs(vol1.ydim()-vol2.ydim())<1e-6 && 
+           std::abs(vol1.zdim()-vol2.zdim())<1e-6);
   }
 
   template <class S1, class S2>

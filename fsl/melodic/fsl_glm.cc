@@ -1,8 +1,8 @@
 /*  fsl_glm - 
 
-    Christian F. Beckmann, FMRIB Image Analysis Group
+    Christian F. Beckmann, FMRIB Analysis Group
 
-    Copyright (C) 2006-2008 University of Oxford  */
+    Copyright (C) 2006-2013 University of Oxford  */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "libvis/miscplot.h"
 #include "miscmaths/miscmaths.h"
@@ -85,11 +85,9 @@ namespace fslglm
 // The two strings below specify the title and example usage that is
 // printed out as the help or usage message
 
-  string title=string("fsl_glm (Version 1.1)")+
-		string("\nCopyright(c) 2004-2009, University of Oxford (Christian F. Beckmann)\n")+
-		string(" \n Simple GLM usign ordinary least-squares (OLS) regression on\n")+
-		string(" time courses and/or 3D/4D imges against time courses \n")+
-		string(" or 3D/4D images");
+  string title=string("fsl_glm")+
+		string("\nAuthor: Christian F. Beckmann \nCopyright(C) 2006-2013 University of Oxford \n")+
+    string(" \n Simple GLM allowing temporal or spatial regression on either text data or images\n");
   string examples="fsl_glm -i <input> -d <design> -o <output> [options]";
 
 //Command line Options {
@@ -100,7 +98,7 @@ namespace fslglm
 		string("output file name for GLM parameter estimates (GLM betas)"),
 		false, requires_argument);
   Option<string> fndesign(string("-d,--design"), string(""),
-		string("file name of the GLM design matrix (time courses or spatial maps)"),
+		string("file name of the GLM design matrix (text time courses for temporal regression or an image file for spatial regression )"),
 		false, requires_argument);
   Option<string> fnmask(string("-m,--mask"), string(""),
 		string("mask image file name if input is image"),
@@ -111,7 +109,7 @@ namespace fslglm
   Option<string> fnftest(string("-f,--ftests"), string(""),
 		string("matrix of F-tests on contrasts"),
 		false, requires_argument,false);
-	Option<int> dofset(string("--dof"),0,
+	Option<int> dofset(string("--dof"),-1,
 		string("        set degrees-of-freedom explicitly"),
 		false, requires_argument);
 	Option<bool> normdes(string("--des_norm"),FALSE,
@@ -166,6 +164,12 @@ namespace fslglm
 	Option<string> outvnscales(string("--out_vnscales"),string(""),
 		string("output file name for scaling factors for variance normalisation"),
 		false, requires_argument);
+        Option<vector<string> > textConfounds(string("--vxt"), vector<string>(), 
+         string("\tlist of text files containing text matrix confounds. caution BETA option."), 
+         false, requires_argument);
+        Option<vector<string> > voxelwiseConfounds(string("--vxf"), vector<string>(), 
+         string("\tlist of 4D images containing voxelwise confounds. caution BETA option."), 
+         false, requires_argument);
 		/*
 }
 */
@@ -201,7 +205,7 @@ void saveit(Matrix what, string fname, Matrix &data, volume<float> &mask){
 		write_ascii_matrix(what,fname);
 }
 
-int setup(Matrix &data, volume<float> &mask, Matrix &design, Matrix &contrasts, Matrix &fcontrasts, Matrix &meanR, RowVector &vnscales)
+int setup(int &dof, Matrix &data, volume<float> &mask, Matrix &design, Matrix &contrasts, Matrix &fcontrasts, Matrix &meanR, RowVector &vnscales)
 {
 	if(fsl_imageexists(fnin.value())){//read data
 		//input is 3D/4D vol
@@ -216,7 +220,7 @@ int setup(Matrix &data, volume<float> &mask, Matrix &design, Matrix &contrasts, 
 			if(!samesize(tmpdata[0],mask)){
 				cerr << "ERROR: Mask image does not match input image" << endl;
 				return 1;
-			};
+ 			};
 		}else{
 			if(debug.value())
 				cout << "Creating mask image" << endl;
@@ -259,6 +263,41 @@ int setup(Matrix &data, volume<float> &mask, Matrix &design, Matrix &contrasts, 
 			cout << "De-meaning the data matrix" << endl;
 		data = remmean(data,1);
 	}
+
+	dof=ols_dof(design);
+	Matrix baseConfounds;
+
+	if ( textConfounds.set() ) {
+	  baseConfounds=read_ascii_matrix( textConfounds.value().at(0) );
+	  for(unsigned int i=1; i< textConfounds.value().size(); i++) 
+		baseConfounds|=read_ascii_matrix( textConfounds.value().at(i) );
+	  dof-=textConfounds.value().size();
+	  if ( !voxelwiseConfounds.set() )
+	    data=(IdentityMatrix(baseConfounds.Nrows())-baseConfounds*pinv(baseConfounds))*data;
+	    }
+
+	if ( voxelwiseConfounds.set() ) {
+	  vector<Matrix> confounds;
+	  confounds.resize(voxelwiseConfounds.value().size());
+	  volume4D<float> input;
+	  for(unsigned int i=0; i< confounds.size(); i++) {
+	    read_volume4D(input,voxelwiseConfounds.value().at(i));
+	    if ( mask.nvoxels() )	  
+	      confounds.at(i)=input.matrix(mask);
+	    else
+	    confounds.at(i)=input.matrix();
+	  }
+	  for(int voxel=1;voxel<=data.Ncols();voxel++) {
+	    Matrix confound(confounds.at(0).Column(voxel) );
+	    for(unsigned int i=1; i< confounds.size(); i++) 
+	    confound|=confounds.at(i).Column(voxel);
+	    if ( textConfounds.set() )
+	      confound=baseConfounds | confound;
+	    data.Column(voxel)=(IdentityMatrix(confound.Nrows())-confound*pinv(confound))*data.Column(voxel);	  
+	  }
+	  dof-=confounds.size();
+	}
+
 	if(normdat.value()){
 		if(debug.value())
 			cout << "Normalising data matrix to unit std-deviation" << endl;
@@ -270,6 +309,7 @@ int setup(Matrix &data, volume<float> &mask, Matrix &design, Matrix &contrasts, 
 		if(debug.value())
 			cout << "De-meaning design matrix" << endl;	
 		design = remmean(design,1);
+		dof-=1;
 	}
 	if(normdes.value()){
 		if(debug.value())
@@ -284,7 +324,6 @@ int setup(Matrix &data, volume<float> &mask, Matrix &design, Matrix &contrasts, 
 		}
 	}else{
 		contrasts = IdentityMatrix(design.Ncols());
-		contrasts &= -1.0 * contrasts;
 	}
 	return 0;	
 }
@@ -327,7 +366,8 @@ int do_work(int argc, char* argv[]) {
 	RowVector vnscales;
 	volume<float> mask;
 
-	if (setup(data, mask, design, contrasts, fcontrasts, meanR, vnscales))
+    int dof(-1);
+	if (setup(dof, data, mask, design, contrasts, fcontrasts, meanR, vnscales))
 		return(1);
 
 	glm.olsfit(data,design,contrasts,dofset.value());
@@ -373,6 +413,9 @@ extern "C" __declspec(dllexport) int _stdcall fsl_glm(char *CmdLn)
 			options.add(outsigsq);
 			options.add(outdata);
 			options.add(outvnscales);
+			options.add(textConfounds);
+			options.add(voxelwiseConfounds);
+
 	    options.parse_command_line(argc, argv);
 
 	    // line below stops the program if the help was requested or 

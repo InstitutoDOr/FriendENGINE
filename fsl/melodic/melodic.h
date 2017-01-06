@@ -3,9 +3,9 @@
     
     melodic.h - main program header
 
-    Christian F. Beckmann, FMRIB Image Analysis Group
+    Christian F. Beckmann and Matthew Webster, FMRIB Analysis Group
     
-    Copyright (C) 1999-2008 University of Oxford */
+    Copyright (C) 1999-2013 University of Oxford */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -18,7 +18,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -67,12 +67,38 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #ifndef __MELODIC_h
 #define __MELODIC_h
 
 #include <strstream>
+
+#ifdef __APPLE__
+#include <mach/mach.h>
+#define memmsg(msg) { \
+  MelodicOptions&opt = MelodicOptions::getInstance(); \
+  struct task_basic_info t_info; \
+  mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT; \
+  if (KERN_SUCCESS == task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t) &t_info, &t_info_count)) \
+	{ \
+		if(opt.debug.value()) {\
+		    cout << " MEM: " << msg << " res: " << t_info.resident_size/1000000 << " virt: " << t_info.virtual_size/1000000 << "\n"; \
+		    cout.flush(); \
+		 } \
+	} \
+}
+#else
+#define memmsg(msg) { \
+  MelodicOptions&opt = MelodicOptions::getInstance(); \
+  if(opt.debug.value()) {\
+		cout << msg; \
+		cout.flush(); \
+  } \
+}
+#endif
+
+
 
 // a simple message macro that takes care of cout and log
 #define message(msg) { \
@@ -100,13 +126,13 @@
 
 namespace Melodic{
 
-const string version = "3.10";  
+const string version = "3.14";  
 
 // The two strings below specify the title and example usage that is	
 // printed out as the help or usage message
 const string title=string("MELODIC (Version ")+version+")"+
 		string("\n Multivariate Exploratory Linear Optimised Decomposition into Independent Components\n")+
-		string(" Copyright(c) 2001-2008, University of Oxford (Christian F. Beckmann)");
+		string("\nAuthor: Christian F. Beckmann \n Copyright(c) 2001-2013 University of Oxford");
 
 const string usageexmpl=string(" melodic -i <filename> <options>")+
 		   string("\n \t \t to run melodic")+

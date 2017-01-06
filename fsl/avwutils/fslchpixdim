@@ -2,9 +2,9 @@
 
 #   fslchpixdim - change pixel dimensions, but keep everything else the same
 #
-#   Mark Jenkinson, FMRIB Image Analysis Group
+#   Mark Jenkinson and Matthew Webster, FMRIB Image Analysis Group
 #
-#   Copyright (C) 1999-2004 University of Oxford
+#   Copyright (C) 1999-2010 University of Oxford
 #
 #   Part of FSL - FMRIB's Software Library
 #   http://www.fmrib.ox.ac.uk/fsl
@@ -17,7 +17,7 @@
 #   
 #   LICENCE
 #   
-#   FMRIB Software Library, Release 4.0 (c) 2007, The University of
+#   FMRIB Software Library, Release 5.0 (c) 2012, The University of
 #   Oxford (the "Software")
 #   
 #   The Software remains the property of the University of Oxford ("the
@@ -66,10 +66,10 @@
 #   interested in using the Software commercially, please contact Isis
 #   Innovation Limited ("Isis"), the technology transfer company of the
 #   University, to negotiate a licence. Contact details are:
-#   innovation@isis.ox.ac.uk quoting reference DE/1112.
+#   innovation@isis.ox.ac.uk quoting reference DE/9564.
 
-if [ $# -lt 3 ] ; then
-  echo "Usage: $0 <hdrfile> <xdim> <ydim> <zdim>       (in mm)"
+if [ $# -lt 4 ] ; then
+  echo "Usage: $0 <hdrfile> <xdim> <ydim> <zdim> [tdim]      (in mm, or seconds for tdim)"
   echo "WARNING: This will set default s/q-form values for NIFTI files"
   exit 1;
 fi
@@ -107,6 +107,10 @@ if [ $flag -eq 0 ] ; then
   flag='';
 else
   flag='-r';
+fi
+
+if [ $# -eq 5 ] ; then
+  tr=$5
 fi
 
 echo $FSLDIR/bin/fslcreatehd $xsz $ysz $zsz $tsz $2 $3 $4 $tr $xor $yor $zor $dt $1 $flag

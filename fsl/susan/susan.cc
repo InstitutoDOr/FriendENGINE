@@ -12,7 +12,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,7 +61,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -151,18 +151,7 @@ int fmrib_main(int argc, char *argv[])
   save_volume4D(output_vol,string(argv[argc-1]));
   return 0;
 }
-/*
-int call_fmrib_main(short datatype, int argc, char* argv[])
-{
-  datatype=NEWIMAGE::closestTemplatedType(datatype);
-  if ( datatype==DT_UNSIGNED_CHAR ) return fmrib_main<char>(argc, argv);
-  else if ( datatype==DT_SIGNED_SHORT ) return fmrib_main<short>(argc, argv);
-  else if ( datatype==DT_SIGNED_INT ) return fmrib_main<int>(argc, argv);
-  else if ( datatype==DT_FLOAT )  return fmrib_main<float>(argc, argv);
-  else if ( datatype==DT_DOUBLE ) return fmrib_main<double>(argc, argv);
-  return -1;
-}
-*/
+
 extern "C" __declspec(dllexport) int _stdcall susan(char *CmdLn)
 {
   int r;

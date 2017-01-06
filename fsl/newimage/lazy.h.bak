@@ -71,6 +71,7 @@
 
 #include <iostream>
 #include <map>
+#include <cstdlib>
 
 #ifndef NO_NAMESPACE
 using namespace std;

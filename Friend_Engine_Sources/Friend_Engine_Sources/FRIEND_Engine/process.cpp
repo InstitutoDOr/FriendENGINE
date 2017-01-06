@@ -11,8 +11,9 @@
 
 #ifdef USEBROCCOLI
 #include "broccoliInterface.h"
-BROCCOLIEngineInterface interface;
 #endif
+#include "masks.h"
+#include "dcm2niiInterface.h"
 
 using namespace std;
 using namespace NEWIMAGE;
@@ -112,8 +113,10 @@ void FriendProcess::glm()
    // concatenating the .par (movements parameters) files
    generateConfoundFile(Pref, 1, vdb.interval.maxIndex(), vdb.parFile);
    
+#ifndef USEBROCCOLI
    // concatenating the .rms files
    generateRmsFile(Pref, 1, vdb.interval.maxIndex(), vdb.rmsFile);
+#endif
 
    // generating the rotation graph png
    fprintf(stderr, "Generating rotation movement graphics\n");
@@ -129,12 +132,14 @@ void FriendProcess::glm()
 
    fsl_tsplot((char *)CmdLn.str().c_str());
 
+#ifndef USEBROCCOLI
    // generating the rms graph png
    fprintf(stderr, "Generating rms graphics\n");
    CmdLn.str("");
    CmdLn << "fsl_tsplot -i " << vdb.rmsFile << " -t \"MCFLIRT estimated mean displacement (mm)\" -u 1 --start=1 --finish=1 -a absolute -w 640 -h 144 -o " << vdb.logDir << "rms" << vdb.trainFeatureSuffix << ".png";
 
    fsl_tsplot((char *)CmdLn.str().c_str());
+#endif
 
    // copying the concatenated movements parameter file to log dir
    fprintf(stderr, "Copying confound files\n");
@@ -246,6 +251,16 @@ void FriendProcess::featureSelection()
 	  // brings the mni mask to subject space
 	  MniToSubject(vdb.maskFile, vdb.mniMask, vdb.mniTemplate, vdb.subjectSpaceMask, prefix);
    }
+   else if (fileExists(vdb.subjectSpaceMaskUser))
+   {
+	   char outputFile[BUFF_SIZE];
+	   sprintf(outputFile, "%s.nii", vdb.featuresTrainSuffix);
+	   fprintf(stderr, "Using all subject mask, defined by user, by copying the file %s to %s.\n", vdb.subjectSpaceMaskUser, outputFile);
+
+	   CmdLn.str("");
+	   CmdLn << "fslmaths " << vdb.subjectSpaceMaskUser << " " << outputFile;
+	   fslmaths((char *)CmdLn.str().c_str());
+   }
    
    if ((vdb.useWholeSubjectSpaceMask) && (fileExists(vdb.subjectSpaceMask)))
    { // just use all mni mask (in native space)
@@ -257,7 +272,7 @@ void FriendProcess::featureSelection()
 	  CmdLn << "fslmaths " << vdb.subjectSpaceMask << " " << outputFile;
 	  fslmaths((char *)CmdLn.str().c_str());
    }
-   else
+   else if (!fileExists(vdb.subjectSpaceMaskUser))
    {
 	   switch (vdb.thresholdType)
 	   {
@@ -420,6 +435,12 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		// in DICOM
 		sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".dcm");
 		//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
+#ifdef dcm2niifunction
+		if (fileExists(inFile))
+		{
+			transformDicom(inFile, vdb.preprocDir);
+		}
+#else
 		if (fileExists(inFile) && fileExists(dcm2niiExe))
 		{
 			// executes the dcm2nii tool
@@ -429,6 +450,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 			system(osc.str().c_str());
 			fileFound = 1;
 		}
+#endif
 		else
 		{
 			// in PAR/REC
@@ -676,6 +698,10 @@ void FriendProcess::runRealtimePipeline()
 
 		// looping
 		passes = 0;
+		EMADetrend emaObj;
+		IncrementalBaseline baselineObj;
+		emaDetrending = &emaObj;
+		baselineCalculationObj = &baselineObj;
 
 #ifdef CUDAENGINE
 		volume<float>maskRFI;
@@ -695,6 +721,8 @@ void FriendProcess::runRealtimePipeline()
 		vdb.doEstimation = 0;
 #endif
 #ifdef USEBROCCOLI
+		BROCCOLIEngineInterface interface;
+		interfacePtr = &interface;
 		interface.createBROCCOLIObject(0, 0);
 		interface.setRFI(vdb.maskFile);
 		interface.preparePipeline(vdb.FWHM);
@@ -828,10 +856,25 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 	   vdb.getMCGVolumeName(mcgfile, number);
 	   vdb.getFinalVolumeName(outFile, number);
 #ifdef USEBROCCOLI
+	   char motionparms[BUFF_SIZE];
+	   changeFileExt(mcfile, ".nii.par", motionparms);
+
 	   volume <float>epi;
 	   load_volume(epi, string(inFile));
-	   interface.runMotionCorrection(epi);
+	   BROCCOLIEngineInterface *interfaceB = (BROCCOLIEngineInterface *)interfacePtr;
+	   interfaceB->runMotionCorrection(epi);
 	   save_volume(epi, string(mcfile));
+
+	   std::ofstream motion;
+	   motion.open(motionparms);
+
+	   if (motion.good())
+	   {
+		   motion.precision(6);
+		   motion << interfaceB->h_Motion_Parameters[4] << std::setw(2) << " " << -interfaceB->h_Motion_Parameters[3] << std::setw(2) << " " << interfaceB->h_Motion_Parameters[5] << std::setw(2) << " " << -interfaceB->h_Motion_Parameters[2] << std::setw(2) << " " << -interfaceB->h_Motion_Parameters[0] << std::setw(2) << " " << -interfaceB->h_Motion_Parameters[1] << std::endl;
+	   }
+	   motion.close();
+
 #else
 	   sprintf(CmdLn, "mcflirt -in %s -reffile %s -out %s %s", inFile, vdb.motionRefVolume, mcfile, vdb.mcflirtParams);
 	   // mcFlirt
@@ -888,7 +931,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 #ifdef CUDAENGINE
 #ifdef USEBROCCOLI
 	  load_volume(epi, string(mcfile));
-	  interface.runSmoothing(epi);
+	  interfaceB->runSmoothing(epi);
 	  save_volume(epi, string(mcgfile));
 #else
 	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcfile, (float)vdb.FWHM / 2.3548, mcgfile);
@@ -901,41 +944,93 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 	  // sliding window 
 	  estimateActivation(vdb.actualImg, vdb.actualImg, vdb.slidingWindowSize, prefix, mcswFile);
 
-	  if (vdb.interval.IsActivationBlockStart(vdb.actualImg))
+	  if (0)
 	  {
-		  fprintf(stderr, "Baseline mean calculation\n");
-		  sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", vdb.actualImg, "mean.nii");
-		  sprintf(CmdLn, "fslmaths %s %s", mcswFile, actualBaseline);
-		  fslmaths(CmdLn);
+		  EMADetrend *emaObj = (EMADetrend *)emaDetrending;
+		  IncrementalBaseline *baselineObj = (IncrementalBaseline *)baselineCalculationObj;
 
-		  vdb.actualInterval++;
-	  };
+		  volume<float>vol;
+		  load_volume(vol, string(mcswFile));
 
-	  // actual subtraction
-	  if (actualBaseline[0] != 0)
-	  {
-		  sprintf(CmdLn, "fslmaths %s -sub %s %s", mcswFile, actualBaseline, outFile);
-		  fslmaths(CmdLn);
-		  
+		  if (vdb.actualImg == 1)
+		  {
+			  emaObj->loadReference(vol);
+			  baselineObj->loadReference(vol);
+		  }
+		  else
+		  {
+			  emaObj->addVolume(vol);
+			  baselineObj->addVolume(vol);
+		  }
+
+
 #ifdef USEBROCCOLI
-		  load_volume(epi, string(outFile));
-		  interface.runSmoothing(epi);
-		  save_volume(epi, string(outFile));
+		  interfaceB->runSmoothing(vol);
+		  save_volume(vol, string(outFile));
+		  if (vdb.interval.IsFirstBaselineBlock(vdb.actualImg))
+		  {
+			  sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcswFile, outFile);
+			  fslmaths(CmdLn);
+	      }
 #else
+		  save_volume(vol, string(outFile));
 		  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float)vdb.FWHM / 2.3548, outFile);
 		  fslmaths(CmdLn);
 #endif
 	  }
-	  else // if no baseline mean already calculated, zeros volume. Note zeroing the supposed subtracted volume
+	  else
 	  {
-		  sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcswFile, outFile);
-		  fslmaths(CmdLn);
+		  
+		  EMADetrend *emaObj = (EMADetrend *)emaDetrending;
+		  volume<float>vol;
+		  load_volume(vol, string(mcswFile));
+
+		  if (vdb.actualImg == 1)
+		  {
+			  emaObj->loadReference(vol);
+		  }
+		  else
+		  {
+			  emaObj->addVolume(vol);
+		  }
+		  save_volume(vol, string(mcswFile));
+		  
+		  if (vdb.interval.IsActivationBlockStart(vdb.actualImg))
+		  {
+			  fprintf(stderr, "Baseline mean calculation\n");
+			  sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", vdb.actualImg, "mean.nii");
+			  sprintf(CmdLn, "fslmaths %s %s", mcswFile, actualBaseline);
+			  fslmaths(CmdLn);
+
+			  vdb.actualInterval++;
+		  };
+
+		  // actual subtraction
+		  if (actualBaseline[0] != 0)
+		  {
+			  sprintf(CmdLn, "fslmaths %s -sub %s %s", mcswFile, actualBaseline, outFile);
+			  fslmaths(CmdLn);
+
+#ifdef USEBROCCOLI
+			  load_volume(epi, string(outFile));
+			  interfaceB->runSmoothing(epi);
+			  save_volume(epi, string(outFile));
+#else
+			  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float)vdb.FWHM / 2.3548, outFile);
+			  fslmaths(CmdLn);
+#endif
+		  }
+		  else // if no baseline mean already calculated, zeros volume. Note zeroing the supposed subtracted volume
+		  {
+			  sprintf(CmdLn, "fslmaths %s -mul 0 %s", mcswFile, outFile);
+			  fslmaths(CmdLn);
+		  }
 	  }
 #else
 #ifdef NEWPIPELINE
 #ifdef USEBROCCOLI
 	  load_volume(epi, string(mcfile));
-	  interface.runSmoothing(epi);
+	  interfaceB->runSmoothing(epi);
 	  save_volume(epi, string(mcgfile));
 #else
 	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcfile, (float)vdb.FWHM / 2.3548, mcgfile);
@@ -953,7 +1048,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 	  {
 #ifdef USEBROCCOLI
 		  load_volume(epi, string(mcswFile));
-		  interface.runSmoothing(epi);
+		  interfaceB->runSmoothing(epi);
 		  save_volume(epi, string(mcswFile));
 #else
 		  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcswFile, (float)vdb.FWHM / 2.3548, mcswFile);
@@ -981,7 +1076,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 		  {
 #ifdef USEBROCCOLI
 			  load_volume(epi, string(outFile));
-			  interface.runSmoothing(epi);
+			  interfaceB->runSmoothing(epi);
 			  save_volume(epi, string(outFile));
 #else
 			  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float)vdb.FWHM / 2.3548, outFile);
@@ -1019,7 +1114,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 		  // gaussian filtering the subtracted volume
 #ifdef USEBROCCOLI
 		  load_volume(epi, string(outFile));
-		  interface.runSmoothing(epi);
+		  interfaceB->runSmoothing(epi);
 		  save_volume(epi, string(outFile));
 #else
 		  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", outFile, (float)vdb.FWHM / 2.3548, outFile);
@@ -1034,7 +1129,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 	  // gaussian filtering the motion corrected volume
 #ifdef USEBROCCOLI
 	  load_volume(epi, string(mcfile));
-	  interface.runSmoothing(epi);
+	  interfaceB->runSmoothing(epi);
 	  save_volume(epi, string(mcgfile));
 #else
 	  sprintf(CmdLn, "fslmaths %s -kernel gauss %f -fmean %s", mcfile, (float)vdb.FWHM / 2.3548, mcgfile);

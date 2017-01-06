@@ -261,6 +261,45 @@ int fileExists(char *fileName)
    return resp;
 }
 
+// move a file respecting the extension
+int moveFile(char *fileName, char *destFilename)
+{
+	int resp;
+	if (fileName == NULL) return 0;
+	resp = _fileExists(fileName);
+
+	char auxFileName[2048], auxDestFileName[2048];
+	if (resp == 0)
+	{
+		sprintf(auxFileName, "%s%s", fileName, ".gz");
+		resp = _fileExists(auxFileName);
+		if (resp == 0)
+		{
+			sprintf(auxFileName, "%s%s", fileName, ".nii");
+			resp = _fileExists(auxFileName);
+			if (resp == 0)
+			{
+				sprintf(auxFileName, "%s%s", fileName, ".nii.gz");
+				resp = _fileExists(auxFileName);
+			    if (resp) sprintf(auxDestFileName, "%s%s", destFilename, ".nii.gz");
+			}
+			else sprintf(auxDestFileName, "%s%s", destFilename, ".nii");
+		}
+		else sprintf(auxDestFileName, "%s%s", destFilename, ".gz");
+		if (resp)
+			strcpy(fileName, auxFileName);
+	}
+	else sprintf(auxDestFileName, "%s", destFilename);
+
+	if (resp)
+	{
+		copyFile(fileName, auxDestFileName);
+		remove(fileName);
+
+	}
+	return resp;
+}
+
 // returns the path of `fileName` without the last PATHSEPARATOR. Note `output` must have at least the same size than `fileName`
 void extractFilePath(char *fileName, char *output)
 {

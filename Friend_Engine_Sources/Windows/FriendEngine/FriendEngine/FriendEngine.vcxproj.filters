@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="dcm2nii">
+      <UniqueIdentifier>{dc89b799-8465-4894-99be-7a18ddd00472}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dcm2niiInterface">
+      <UniqueIdentifier>{21a2ab60-db00-4280-9460-b525131c414f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\fsl\zlib\adler32.c">
@@ -40,9 +46,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\fsl\cprob\bdtr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\fsl\miscmaths\bfmatrix.cpp">
@@ -513,6 +516,33 @@
     <ClCompile Include="..\..\..\..\fsl\miscmaths\Simplex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\jpg_0XC3.cpp">
+      <Filter>dcm2nii</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nifti1_io_core.cpp">
+      <Filter>dcm2nii</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_dicom.cpp">
+      <Filter>dcm2nii</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_dicom_batch.cpp">
+      <Filter>dcm2nii</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_ortho.cpp">
+      <Filter>dcm2nii</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_ostu_ml.cpp">
+      <Filter>dcm2nii</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\dcm2niix\console\ujpeg.cpp">
+      <Filter>dcm2nii</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\dcm2niiInterface.cpp">
+      <Filter>dcm2niiInterface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Friend_Engine_Sources\Friend_Engine\cctypes.h">
@@ -568,6 +598,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\fsl\miscmaths\Simplex.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\dcm2niiInterface.h">
+      <Filter>dcm2niiInterface</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

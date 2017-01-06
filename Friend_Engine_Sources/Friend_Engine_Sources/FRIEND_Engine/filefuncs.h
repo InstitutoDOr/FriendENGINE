@@ -29,6 +29,9 @@ int fileExists(char *arquivo);
 // returns the path of `fileName`. Note `output` must have at least the same size than `fileName`
 void extractFilePath(char *file, char *saida);
 
+// move a file respecting the extension
+int moveFile(char *fileName, char *destFilename);
+
 // returns the filename part of `fileName`. Note output must have at least the same size than fileName
 void extractFileName(char *file, char *saida);
 

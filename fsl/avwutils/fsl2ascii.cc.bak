@@ -1,6 +1,6 @@
-//     fsl2ascii.cc - convert AVW to raw ASCII text
-//     Stephen Smith and Matthew Webster, FMRIB Image Analysis Group
-//     Copyright (C) 2001-2005 University of Oxford  
+//     fsl2ascii.cc - convert raw ASCII text to a NIFTI image
+//     Mark Jenkinson, FMRIB Image Analysis Group
+//     Copyright (C) 2009 University of Oxford  
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
     fsl@fmrib.ox.ac.uk
@@ -66,64 +66,63 @@
 #include "newimage/newimageall.h"
 #include "miscmaths/miscmaths.h"
 #include <fstream>
+
 using namespace NEWIMAGE;
 using namespace MISCMATHS;
 
 namespace fsl_ascii {
 
-#include "newimage/fmribmain.h"
-
 
 void print_usage(const string& progname) {
   cout << endl;
-  cout << "Usage: fsl2ascii <input> <output>" << endl;
+  cout << "Usage: fslascii2img <input> <xsize> <ysize> <zsize> <tsize> <xdim> <ydim> <zdim> <TR>  <output>" << endl;
+  cout << "  where sizes are in voxels, dims are in mm, TR in sec " << endl;
 }
 
 
-template <class T>
-int fmrib_main(int argc, char *argv[])
+int do_work(int argc, char *argv[])
 {
-  volume4D<T> input_volume;
+  int xsize, ysize, zsize, tsize;
+  float xdim, ydim, zdim, tr;
+  xsize=atoi(argv[2]);
+  ysize=atoi(argv[3]);
+  zsize=atoi(argv[4]);
+  tsize=atoi(argv[5]);
+  xdim=atof(argv[6]);
+  ydim=atof(argv[7]);
+  zdim=atof(argv[8]);
+  tr=atof(argv[9]);
+  volume4D<float> ovol(xsize,ysize,zsize,tsize);
+  ovol.setdims(xdim,ydim,zdim,tr);
   string input_name=string(argv[1]);
-  read_volume4D(input_volume,input_name);
-  string output_name=string(argv[2]);
-  ofstream output_file;
-  int i,j,k,t;
-  for(t=0;t<=input_volume.maxt();t++)
-  {
-    output_file.open((output_name+num2str(t,5)).c_str(),ofstream::out);
-    for(k=0;k<=input_volume.maxz();k++)
-    {
-      for(j=0;j<=input_volume.maxy();j++)
-      {
-        for(i=0;i<=input_volume.maxx();i++)
-	{
-          output_file << input_volume(i,j,k,t) << " ";
-        }
-        output_file << endl;
-      }
-      output_file << endl;
-    }
-    output_file.close();
-  } 
+  string output_name=string(argv[10]);
+  Matrix amat;
+  amat = read_ascii_matrix(input_name);
+  if (xsize*ysize*zsize*tsize != amat.Nrows() * amat.Ncols()) {
+    cerr << "Sizes incompatible: " <<  xsize*ysize*zsize*tsize << " voxels vs " << amat.Nrows() * amat.Ncols() << " numbers" << endl;
+    cerr << "Matrix dimensions are " << amat.Nrows() << " by " << amat.Ncols() << endl;
+    return (EXIT_FAILURE);
+  }
+  amat = reshape(amat.t(),tsize,xsize*ysize*zsize);
+  ovol.setmatrix(amat);
+  save_volume4D(ovol,output_name);
   return 0;
 }
 
 
-int main(int argc,char *argv[])
+int fsl2asciiimg(int argc,char *argv[])
 {
 
   Tracer tr("main");
 
   string progname=argv[0];
-  if (argc != 3) 
+  if (argc != 11) 
   { 
     print_usage(progname);
     return 1; 
   }
    
-  string iname=string(argv[1]);
-  return call_fmrib_main(dtype(iname),argc,argv); 
+  return do_work(argc,argv); 
 }
 
 

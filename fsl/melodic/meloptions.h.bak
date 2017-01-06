@@ -176,6 +176,7 @@ class MelodicOptions {
 
   	Option<int>   dummy;
   	Option<int>   repeats;
+	Option<int>   seed;
   	Option<float> nlconst1;
   	Option<float> nlconst2;
   	Option<float> smooth_probmap;
@@ -411,6 +412,9 @@ class MelodicOptions {
    repeats(string("--repeats"), 1,
 	   string("number of repeats (multistart)"), 
 	   false, requires_argument, false),
+   seed(string("--seed"), -1,
+	   string("integer seed for melodic"), 
+	   false, requires_argument, false),
    nlconst1(string("--nl1,--nlconst1"),  1.0,
 	   string("nonlinear constant 1"), 
 	   false, requires_argument, false),
@@ -509,6 +513,7 @@ class MelodicOptions {
 	    options.add(axials_str); 
 	    options.add(dummy);
 	    options.add(repeats);
+	    options.add(seed);
 	    options.add(nlconst1);
 	    options.add(nlconst2);
 	    options.add(smooth_probmap);

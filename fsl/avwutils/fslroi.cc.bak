@@ -75,7 +75,7 @@ void print_usage(const string& progname) {
   cout << "Usage: fslroi <input> <output> <xmin> <xsize> <ymin> <ysize> <zmin> <zsize>" << endl;
   cout << "       fslroi <input> <output> <tmin> <tsize>\n" << endl;
   cout << "       fslroi <input> <output> <xmin> <xsize> <ymin> <ysize> <zmin> <zsize> <tmin> <tsize>" << endl;
-  cout << "Note: indexing (in both time and space) starts with 0 not 1!" << endl;
+  cout << "Note: indexing (in both time and space) starts with 0 not 1! Inputting -1 for a size will set it to the full image extent for that dimension." << endl;
 }
 
 
@@ -130,6 +130,15 @@ int fmrib_main(int argc, char *argv[])
     maxz+=minz-1;
     maxt+=mint-1;
   }
+
+  if ( maxx == minx-2 ) //Then the user input -1 for size
+    maxx=input_vol.maxx();
+  if ( maxy == miny-2 ) //Then the user input -1 for size
+    maxy=input_vol.maxy();
+  if ( maxz == minz-2 ) //Then the user input -1 for size
+    maxz=input_vol.maxz();
+  if ( maxt == mint-2 ) //Then the user input -1 for size
+    maxt=input_vol.maxt();
 
   // sanity check
   if ((maxx<minx) || (maxy<miny) || (maxz<minz) || (maxt<mint)) { 

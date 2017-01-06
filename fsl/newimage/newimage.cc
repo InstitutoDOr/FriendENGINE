@@ -152,7 +152,6 @@ namespace NEWIMAGE {
       ColumnsX = xsize;
       SizeBound = SlicesZ * RowsY * ColumnsX;
       SliceOffset = RowsY * ColumnsX;
-      maskDelimiter=0.5;
       if (SizeBound > 0) {
 	if (d != 0) {
 	  Data = d;
@@ -1383,6 +1382,7 @@ namespace NEWIMAGE {
     for (unsigned int n=0; n<percentilepvals.size(); n++) {
       unsigned int percentile = 
 	(unsigned int) (((float) numbins) * percentilepvals[n]);
+      if (percentile<0)  percentile=0;
       if (percentile>=numbins)  percentile=numbins-1;
       outputvals[n] = hist[percentile];
     }
@@ -1652,7 +1652,7 @@ namespace NEWIMAGE {
       for (int z=vol.minz(); z<=vol.maxz(); z++) {
 	for (int y=vol.miny(); y<=vol.maxy(); y++) {
 	  for (int x=vol.minx(); x<=vol.maxx(); x++) {
-	    double val = vol.value(x,y,z);
+	    T val = vol.value(x,y,z);
 	    sum += val;
 	    sum2 += val*val;
 	    n++;
@@ -1666,7 +1666,7 @@ namespace NEWIMAGE {
       for (typename volume<T>::fast_const_iterator it=vol.fbegin(),
 	       itend = vol.fend();   it!=itend; ++it) 
 	{
-	  double val = *it;
+	  T val = *it;
 	  sum += val;
 	  sum2 += val*val;
 	  n++;
@@ -1713,7 +1713,7 @@ namespace NEWIMAGE {
 	for (int y=vol.miny(); y<=vol.maxy(); y++) {
 	  for (int x=vol.minx(); x<=vol.maxx(); x++) {
 	    if (mask.value(x,y,z)>(T) 0.5) {
-	      double val = vol.value(x,y,z);
+	      T val = vol.value(x,y,z);
 	      sum += val;
 	      sum2 += val*val;
 	      n++;
@@ -3755,7 +3755,7 @@ namespace NEWIMAGE {
     for (int z=mask.minz(); z<=mask.maxz(); z++) {
       for (int y=mask.miny(); y<=mask.maxy(); y++) {
 	for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	  if (mask(x,y,z)>mask.maskThreshold()) {
+	  if (mask(x,y,z)>0) {
 	    for (int t=this->mint(); t<=this->maxt(); t++) {
 	      matv(t+toff,cidx) = vols[t](x+xoff,y+yoff,z+zoff);
 	    }
@@ -3786,7 +3786,7 @@ namespace NEWIMAGE {
     for (int z=mask.minz(); z<=mask.maxz(); z++) {
       for (int y=mask.miny(); y<=mask.maxy(); y++) {
 	for (int x=mask.minx(); x<=mask.maxx(); x++) {
-	  if (mask(x,y,z)>mask.maskThreshold()) {
+	  if (mask(x,y,z)>0) {
 	    voxelLabels.push_back(x+y*mask.xsize()+z*mask.xsize()*mask.ysize());
 	    for (int t=this->mint(); t<=this->maxt(); t++) {
 	      matv(t+toff,cidx) = vols[t](x+xoff,y+yoff,z+zoff);
@@ -3832,7 +3832,7 @@ namespace NEWIMAGE {
     for (int z=vols[0].minz(); z<=vols[0].maxz(); z++) {
       for (int y=vols[0].miny(); y<=vols[0].maxy(); y++) {
 	for (int x=vols[0].minx(); x<=vols[0].maxx(); x++) {
-	  if (mask(x+xoff,y+yoff,z+zoff)>mask.maskThreshold()) {
+	  if (mask(x+xoff,y+yoff,z+zoff)>0) {
 	    for (int t=this->mint(); t<=this->maxt(); t++) {
 	      vols[t](x,y,z) = (T) newmatrix(t+1,cidx);
 	    }
@@ -4301,23 +4301,13 @@ namespace NEWIMAGE {
   template <class T>
   double volume4D<T>::mean(const volume<T>& mask) const
   { 
-    return sum(mask)/(Max((double)(no_mask_voxels(mask)*tsize()),1.0));
+    return sum(mask)/(Max((double) no_mask_voxels(mask),1.0));
   }
 
   template <class T>
   double volume4D<T>::mean(const volume4D<T>& mask) const
   { 
-    long int no_voxels = no_mask_voxels(mask);
-
-    /* if the 4D mask only has one time point, treat it as a 3D mask */
-    if (mask.tsize() == 1) {
-      no_voxels = no_voxels * tsize();
-    }
-    else if (mask.tsize() != tsize()) {
-      imthrow("mean: 4D mask size does not match volume size", 4);
-    }
-
-    return sum(mask)/(Max((double) no_voxels,1.0));
+    return sum(mask)/(Max((double) no_mask_voxels(mask),1.0));
   }
 
 
@@ -4325,7 +4315,7 @@ namespace NEWIMAGE {
   double volume4D<T>::variance(const volume<T>& mask) const
   { 
     if (no_mask_voxels(mask)>0) {
-      double n(no_mask_voxels(mask)*tsize());
+      double n=(double) no_mask_voxels(mask);
       return (n/Max(1.0,n-1))*(sumsquares(mask)/n - mean(mask)*mean(mask));
     } else {
       cerr << "ERROR:: Empty mask image" << endl;
@@ -4336,19 +4326,8 @@ namespace NEWIMAGE {
   template <class T>
   double volume4D<T>::variance(const volume4D<T>& mask) const
   { 
-
-    long int no_voxels = no_mask_voxels(mask);
-
-    /* if the 4D mask only has one time point, treat it as a 3D mask */
-    if (mask.tsize() == 1) {
-      no_voxels = no_voxels * tsize();
-    }
-    else if (mask.tsize() != tsize()) {
-      imthrow("variance: 4D mask size does not match volume size", 4);
-    }
-
-    if (no_voxels>0) {
-      double n=(double) no_voxels;
+    if (no_mask_voxels(mask)>0) {
+      double n=(double) no_mask_voxels(mask);
       return (n/Max(1.0,n-1))*(sumsquares(mask)/n - mean(mask)*mean(mask));
     } else {
       cerr << "ERROR:: Empty mask image" << endl;

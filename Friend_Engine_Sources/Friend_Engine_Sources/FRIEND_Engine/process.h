@@ -28,6 +28,12 @@ private:
 	float *confounds;
 #endif
 
+#ifdef USEBROCCOLI
+	void *interfacePtr;
+#endif
+	void *emaDetrending;
+	void *baselineCalculationObj;
+
 	// holds plugin information
 	PluginHandler pHandler;
 

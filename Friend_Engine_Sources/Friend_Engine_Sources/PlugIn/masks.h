@@ -26,6 +26,13 @@ typedef struct
    
 } roiPoint;
 
+typedef struct
+{
+	float mean;
+	int numPoints;
+
+} baselineStruct;
+
 // structs for vector class sorting
 typedef struct
 {
@@ -39,6 +46,50 @@ typedef struct
 
 // znormalize a vetor of double
 void znormalise(vector<double>&values);
+
+// Exponential Moving average class detrending
+class EMADetrend
+{
+private:
+	int numPoints;
+	float alpha;
+	volume<float> emaFiltered;
+
+public:
+	// loads the volume that defines the initial values
+	void loadReference(char *referenceFileName, float alphaValue = 0.96);
+	// loads the volume that defines the initial values
+	void loadReference(volume<float>&volume, float alphaValue = 0.96);
+	// update the baseline calculation
+	void addVolume(char *volumeName);
+	// update the baseline calculation
+	void addVolume(volume<float> &vol);
+};
+
+// calculates an incremental Baseline
+class IncrementalBaseline
+{
+private:
+	int numVoxels;
+	baselineStruct *meanArray;
+
+public:
+	// loads the volume that defines the initial values
+	void loadReference(char *referenceFileName, int zeroValues = 1);
+	// loads the volume that defines the initial values
+	void loadReference(volume<float>&volume, int zeroValues = 1);
+	// loads a value that defines the initial value
+	void loadReference(float value);
+	// update the baseline calculation
+	void addVolume(char *volumeName, int subtract = 1);
+	// update the baseline calculation
+	void addVolume(volume<float> &vol, int subtract = 1);
+	// update the baseline calculation
+	void addVolume(float &value, int subtract = 1);
+
+	IncrementalBaseline() { meanArray = NULL; }
+	~IncrementalBaseline() { if (meanArray) { free(meanArray); } }
+};
 
 // calculates the mean of a set of rois
 class RoiMeanCalculation

@@ -3,9 +3,9 @@
    
     melreport.cc - report generation
 
-    Christian F. Beckmann, FMRIB Image Analysis Group
+    Christian F. Beckmann, FMRIB Analysis Group
     
-    Copyright (C) 1999-2008 University of Oxford */
+    Copyright (C) 1999-2013 University of Oxford */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -18,7 +18,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -67,7 +67,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "newimage/newimageall.h"
 #include "utils/log.h"
@@ -168,9 +168,11 @@ namespace Melodic{
       }		
 			
       {//plot time course
-    	IChtml << "<H3> Temporal mode </H3><p>" << endl <<endl;
-    	miscplot newplot;
+    	IChtml << "<H3> Temporal mode </H3><p>" << endl <<endl;     	
+		miscplot newplot;
+		
 			Matrix tmptc = melodat.get_Tmodes(cnum-1).Column(1).t();
+
 			newplot.col_replace(0,0xFF0000);
 
 			newplot.add_label(string("IC ")+num2str(cnum)+" time course");
@@ -202,7 +204,10 @@ namespace Melodic{
 				tmptc.Row(1).Minimum()),tmptc.Row(1).Maximum()+
 				0.05*(tmptc.Row(1).Maximum()-tmptc.Row(1).Minimum()));
 			newplot.grid_swapdefault();
-	    newplot.timeseries(tmptc,
+			
+			newplot.set_xysize(750,150);
+			
+	        newplot.timeseries(tmptc,
 			  report.appendDir(string("t")+num2str(cnum)+".png"),
 			  string("Timecourse No. ")+num2str(cnum), 
 			  opts.tr.value(),150,12,1,false);
@@ -238,6 +243,8 @@ namespace Melodic{
 				newplot.set_Ylabel_fmt("%.0f");
 				newplot.set_yrange(0.0,1.02*fmixtc.Maximum());
 				newplot.grid_swapdefault();
+				newplot.set_xysize(750,150);
+				
 				if(opts.tr.value()>0.0){
 					newplot.add_xlabel(string("Frequency (in Hz / ")+num2str(fact)+ " )");
 	  			newplot.timeseries(empty | fmixtc.t(),
@@ -336,7 +343,9 @@ namespace Melodic{
 					newplot.grid_swapdefault();
 					newplot.set_Ylabel_fmt("%.2f");
 					newplot.add_xlabel(" Subject Number");
-//					newplot.set_xysize(smode.Nrows()*80,150);
+					
+
+					newplot.set_xysize(750,150);
 	      	newplot.timeseries(smode.t(), 
 			    	report.appendDir(string("s")+num2str(cnum)+".png"),
 			      string("Subject/Session mode No. ") + num2str(cnum));
@@ -835,6 +844,7 @@ namespace Melodic{
   }
 	
 	void MelodicReport::Smode_rep(){
+	  if(melodat.get_Smodes().size()>0){
 		report << "<p><hr><b>TICA Subject/Session modes </b> <br>" << endl;
 		miscplot newplot;
 		report << "Boxplots show the relative response amplitudes across the "
@@ -850,9 +860,13 @@ namespace Melodic{
 		outMsize("allmodes", allmodes);
 		newplot.add_xlabel("Component No.");
 		newplot.add_ylabel("");
-		newplot.set_xysize(100+30*allmodes.Ncols(),300);
+		if(allmodes.Ncols()<100)
+			newplot.set_xysize(100+30*allmodes.Ncols(),300);
+		else
+			newplot.set_xysize(1200,300);
 		newplot.boxplot(allmodes,report.appendDir(string("bp_Smodes.png")),
   			string("Subject/Session modes"));
   		report << "<img BORDER=0 SRC=\"bp_Smodes.png\"><p>" << endl;
+      }
 	}
 }

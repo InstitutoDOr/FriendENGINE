@@ -79,10 +79,13 @@ void print_usage(const string& progname)
 template <class T>
 int fmrib_main(int argc, char *argv[])
 {
-  volume4D<T> inputvol;
-  string input_name=string(argv[1]);
-  read_volume4D_hdr_only(inputvol,input_name);
-  cout << inputvol.tsize() << endl;
+  FSLIO *IP1;
+  IP1 = NewFslOpen(string(argv[1]), "r");
+  if (IP1==0) throw Exception(("Failed to read volume "+string(argv[1])).c_str()); 
+  short sx=0,sy=0,sz=0,st=0;
+  FslGetDim(IP1,&sx,&sy,&sz,&st);
+  FslClose(IP1);  
+  cout << st << endl;
   return 0;
 }
 

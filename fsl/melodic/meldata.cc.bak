@@ -445,6 +445,9 @@ namespace Melodic{
 
     //seed the random number generator
     double tmptime = time(NULL);
+    if ( opts.seed.value() != -1 ) {
+      tmptime = opts.seed.value(); 
+    }
     srand((unsigned int) tmptime);
 
 	if(opts.paradigmfname.value().length()>0){
@@ -716,7 +719,7 @@ namespace Melodic{
       Resels = 1.0;
       
       in.open(logger.appendDir("smoothest").c_str(), ios::in);
-      if(in>0){
+      if(in.good()){
 				for(int ctr=1; ctr<7; ctr++)
 					in >> str;
 				in.close();
@@ -852,7 +855,12 @@ namespace Melodic{
       if(opts.perf_bet.value() && opts.use_mask.value()){ //use BET
 				message("Create mask ... ");
     		//save first image
-    		tmpnam(Mean_fname); // generate a tmp name
+			char auxs[1000], auxs1[1000], *s;
+			strcpy(auxs, opts.logdir.value().c_str());
+    		tmpnam(auxs1); // generate a tmp name
+			s=strchr(auxs1, '.');
+			if (s != NULL) s[0] = '\0';
+			sprintf(Mean_fname, "%s%s", auxs, auxs1);
     		save_volume(Mean,Mean_fname);    
 
 				// set up all strings
@@ -876,9 +884,13 @@ namespace Melodic{
 				// clean /tmp
 				char callRMstr[1000];
 				ostrstream osc(callRMstr,1000);
+#ifdef WINDOWS
+				osc << "del " << string(Mean_fname) << "*  " << '\0';
+				system(callRMstr);
+#else
 				osc  << "rm " << string(Mean_fname) <<"*  " << '\0';
 				system(callRMstr);
-		   
+#endif		   
 				message("done" << endl);
       }  
       else{

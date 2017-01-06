@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\fsl\avwutils\fslcc.cc" />
     <ClCompile Include="..\..\..\fsl\avwutils\fslfft.cc" />
     <ClCompile Include="..\..\..\fsl\avwutils\fslhd.cc" />
     <ClCompile Include="..\..\..\fsl\avwutils\fslmaths.cc" />
@@ -32,8 +33,11 @@
     <ClCompile Include="..\..\..\fsl\avwutils\fslsplit.cc" />
     <ClCompile Include="..\..\..\fsl\avwutils\fslstats.cc" />
     <ClCompile Include="..\..\..\fsl\avwutils\fslswapdim.cc" />
-    <ClCompile Include="..\..\..\fsl\bet2\bet2.cc" />
+    <ClCompile Include="..\..\..\fsl\bet2\bet2.cpp" />
     <ClCompile Include="..\..\..\fsl\bet2\betsurf.cpp" />
+    <ClCompile Include="..\..\..\fsl\cluster\cluster.cc" />
+    <ClCompile Include="..\..\..\fsl\cluster\connectedcomp.cc" />
+    <ClCompile Include="..\..\..\fsl\cluster\smoothest.cc" />
     <ClCompile Include="..\..\..\fsl\feat5\feat_model.cc" />
     <ClCompile Include="..\..\..\fsl\flirt\convert_xfm.cc" />
     <ClCompile Include="..\..\..\fsl\flirt\flirt.cc" />
@@ -43,8 +47,17 @@
     <ClCompile Include="..\..\..\fsl\mcflirt\Loga.cc" />
     <ClCompile Include="..\..\..\fsl\mcflirt\mcflirt.cc" />
     <ClCompile Include="..\..\..\fsl\melodic\fsl_glm.cc" />
+    <ClCompile Include="..\..\..\fsl\melodic\ggmix.cc" />
+    <ClCompile Include="..\..\..\fsl\melodic\meldata.cc" />
+    <ClCompile Include="..\..\..\fsl\melodic\melgmix.cc" />
     <ClCompile Include="..\..\..\fsl\melodic\melhlprfns.cc" />
+    <ClCompile Include="..\..\..\fsl\melodic\melica.cc" />
+    <ClCompile Include="..\..\..\fsl\melodic\melodic.cc" />
+    <ClCompile Include="..\..\..\fsl\melodic\meloptions.cc" />
+    <ClCompile Include="..\..\..\fsl\melodic\melpca.cc" />
+    <ClCompile Include="..\..\..\fsl\melodic\melreport.cc" />
     <ClCompile Include="..\..\..\fsl\miscvis\fsl_tsplot.cc" />
+    <ClCompile Include="..\..\..\fsl\susan\susan.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{64BAB0E0-5CA0-44BD-9773-3FE09D6D63F4}</ProjectGuid>
@@ -109,7 +122,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <OutputFile>..\..\Libs\$(ProjectName).lib</OutputFile>
+      <OutputFile>..\..\Libs\$(IntDir)\$(ProjectName).lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -126,7 +139,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <OutputFile>..\..\Libs\$(ProjectName).lib</OutputFile>
+      <OutputFile>..\..\Libs\$(IntDir)\$(ProjectName).lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -139,6 +152,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;WINDOWS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\fsl;..\..\..\fsl\zlib;..\..\..\fsl\newmat;..\..\..\fsl\gd;..\..\..\fsl\libprob</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,7 +161,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <OutputFile>..\..\Libs\$(ProjectName).lib</OutputFile>
+      <OutputFile>..\..\Libs\$(IntDir)\$(ProjectName).lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -160,6 +174,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;WINDOWS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\fsl;..\..\..\fsl\zlib;..\..\..\fsl\newmat;..\..\..\fsl\gd;..\..\..\fsl\libprob</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -168,7 +183,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <OutputFile>..\..\Libs\$(ProjectName).lib</OutputFile>
+      <OutputFile>..\..\Libs\$(IntDir)\$(ProjectName).lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
