@@ -2,6 +2,7 @@
 #include "engine.h"
 #include "cctypes.h"
 #include "filefuncs.h"
+#include <cstring>
 
 // Usage : engine PORT_NUMBER
 // where PORT_NUMBER is the TCP/IP listening port that FRIEND Engine uses to
