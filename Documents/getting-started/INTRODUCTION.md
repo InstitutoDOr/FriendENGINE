@@ -1,4 +1,4 @@
-## 1. INTRODUCTION
+## INTRODUCTION
 
 
 The FRIEND Engine Framework is a new implementation of the FRIEND software, a fMRI neurofeedback processing package that has been on the NITRC website since Oct 2013. Its aim is to create a cross-platform framework for a real time neurofeedback processing pipeline that permits interoperability with other applications (e.g.: games engines for the creation of virtual scenarios) and the inclusion of new processing methods through the use of plug-ins provided with the distribution or developed and shared by FRIEND engine users.

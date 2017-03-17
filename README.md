@@ -3,13 +3,22 @@
 # FRIEND Engine Framework
 > Functional Real-Time Interactive Endogenous Neuromodulation and Decoding (FRIEND) Engine Framework
 
+
 D'Or Institute for Research and Education (IDOR) - Neuroinformatics Workgroup
 
 Check our site: http://idor.org
 
 More from our group: https://github.com/InstitutoDOr
 
+
+## Docs
+
+* [Getting Started](Documents/getting-started/README.md)   
+* [Developer Documentation](Documents/developer/README.md)
+
+
 ---
+
 
 FRIEND engine is a new implementation of the FRIEND software, a fMRI neurofeedback processing package that has been on the NITRC website since Oct 2013. Its aim is to create a cross-platform framework for a real time neurofeedback processing pipeline that permits interoperability with other applications (e.g.: games engines for the creation of virtual scenarios) and the inclusion of new processing methods through the use of plug-ins provided with the distribution or developed and shared by FRIEND engine users. 
 
@@ -18,13 +27,4 @@ The FRIEND engine framework consists of three main parts. The first one is the f
 Third-party software is used: the FSL toolbox (http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/), the Alglib library (http://www.alglib.net/) and SimpleINI (https://github.com/brofield/simpleini).
 
 **Domain**: Clinical Neuroinformatics, MR, Computational Neuroscience
-
-
-## Getting Started
-
-* [Documentation](Documents/getting-started)
-
-## Developers
-    
-* [Developer Documentation](Documents/developer)
 
