@@ -169,36 +169,31 @@ The targetValue variable used at the end of the method processVolume is read wit
 ```c
 
 // libROI Plug-in function that calculates the feedback value that the engine will pass to the frontend
-int roiProcessing::processVolume(studyParams &vdb , int index , float &classnum , float &projection)
+int roiProcessing::processVolume(studyParams &vdb, int index, float &classnum, float &projection)
 {
    char processedFile[200];
-
    int idxInterval = vdb.interval.returnInterval(index);
 
    volume <float> v ;
 
    // gets the motion corrected and Gaussian smoothed file
    vdb.getMCGVolumeName(processedFile , index);
-
-   read\_volume(v , string(processedFile));
+   read_volume(v , string(processedFile));
 
    // if in baseline condition, adds current image to the previous sum image
    classnum = vdb.getClass(index);
-
-   projection = 0 ;
+   projection = 0;
 
     if ( vdb. interval. isBaselineCondition ( index ))
-
     {
 
       if ( vdb. interval. intervals [idxInterval]. start == index )
-          meanbaseline = v ;
-      else meanbaseline += v ;
+          meanbaseline = v;
+      else meanbaseline += v;
 
       // when finishing adding images on baseline condition block,
       // divide the sum image by the size of the block to create the
       // mean volume
-
       if ( vdb.interval.intervals[idxInterval].end == index )
       {
          meanbaseline = ( vdb.interval.intervals[idxInterval].end 
@@ -213,12 +208,10 @@ int roiProcessing::processVolume(studyParams &vdb , int index , float &classnum 
 
          // Calculates the mean of the ROI for the current mean volume.
          lastBaselineValue = meanCalculation.means[0];
-
       }
-
     }
-    else // task condition. Taking the mean of the volume and calculating the PSC
-    {
+    // task condition. Taking the mean of the volume and calculating the PSC
+    else {
       meanCalculation.calculateMeans(v);
 
       // Percent signal change calculation
@@ -227,25 +220,24 @@ int roiProcessing::processVolume(studyParams &vdb , int index , float &classnum 
       // Divide feedback value by user-defined target value. The
       // front-end will use the feedback value for neurofeedback
       // display
-
       projection = projection / targetValue ;
       fprintf(stderr ,"Projection value = %f\n" , projection);
     }
-    return 0 ;
+    return 0;
 }
 
 // calculate the percent signal change value
-float roiProcessing::PSC(float value , float base)
+float roiProcessing::PSC(float value, float base)
 {
-    return ( base ) ? (( value - base ) / base): 0 ;
+    return ( base ) ? (( value - base ) / base): 0;
 }
 
 // plugin function for calculationg feedback value
-DLLExport processROI(studyParams &vdb , int index , float &classnum , float &projection , void *&userData )
+DLLExport processROI(studyParams &vdb, int index, float &classnum, float &projection, void *&userData)
 {
-   roiProcessing *roiVar = ( roiProcessing *) userData ;
-   roiVar -> processVolume(vdb , index , classnum , projection);
-   return 0 ;
+   roiProcessing *roiVar = ( roiProcessing *) userData;
+   roiVar->processVolume(vdb , index , classnum , projection);
+   return 0;
 }
 
 ```
@@ -261,7 +253,7 @@ int roiProcessing::initialization(studyParams &vdb)
     if(vdb.readedIni.IsEmpty())
    {
        fprintf(stderr ,"the studyparams.txt file was not read.\n");
-       return 1 ;
+       return 1;
    }
 
     // reads the specific plugin information. readedIni object contains all the information from the
@@ -270,19 +262,22 @@ int roiProcessing::initialization(studyParams &vdb)
    strcpy(vdb.mniTemplate , vdb.readedIni.GetValue("FRIEND" ,"ActivationLevelMaskReference"));
    targetValue = vdb.readedIni.GetDoubleValue("FRIEND" ,"ActivationLevel");
    int masktype = vdb.readedIni.GetLongValue("FRIEND" ,"ActivationLevelMaskType");
+   
    fprintf(stderr ,"mnimask = %s\n" , vdb.mniMask);
    fprintf(stderr ,"mnitemp = %s\n" , vdb.mniTemplate);
    fprintf(stderr ,"masktype = %d\n" , masktype);
    
-    if (( fileExists ( vdb. mniMask )) &&( fileExists ( vdb. mniTemplate )) &&( masktype == 2 ))
+    if (( fileExists ( vdb.mniMask )) && ( fileExists ( vdb.mniTemplate )) && ( masktype == 2 ))
     {
       char outputFile[500], prefix[500]="_RFI2" , name[500];
+      
       extractFileName(vdb.mniMask , name);
-      for ( int t = 0 ; t <strlen ( name ); t ++)
-      if ( name[t] =='.') name[t]= '_' ;
+      for (int t = 0; t < strlen( name ); t++)
+      if (name[t] == '.') name[t] = '_';
+      
       sprintf(outputFile ,"%s%s%s.nii" , vdb.inputDir , name , vdb.trainFeatureSuffix);
+      
       fprintf(stderr ,"Calculating the native template %s\n" , outputFile);
-
       // bringing mni mask to subject space
       MniToSubject(vdb.rfiFile , vdb.mniMask , vdb.mniTemplate , outputFile , prefix);
 
@@ -295,26 +290,19 @@ int roiProcessing::initialization(studyParams &vdb)
           fprintf(stderr ,"Loading native space mask %s\n" , vdb.mniMask);
           meanCalculation.loadReference(vdb.mniMask);
     }
-
    lastBaselineValue = 0 ;
    return 0 ;
 }
 
 // plugin function for initializating the roi processing object
-
-DLLExport initializeROIProcessing(studyParams &vdb , void *&userData)
-
+DLLExport initializeROIProcessing(studyParams &vdb, void *&userData)
 {
-
-   roiProcessing *roiVar = new roiProcessing ;
-
-   roiVar -> initialization(vdb);
-
-   userData = roiVar ;
-
-    return 0 ;
-
+   roiProcessing *roiVar = new roiProcessing;
+   roiVar->initialization(vdb);
+   userData = roiVar;
+   return 0;
 }
+
 ```
 
 The following code snippets are from the Matlab frontend showing how information must be exchanged with the engine via a non-blocked TCP/IP communication in the ROI processing pipeline. The first command issued is the "NEWSESSION" command that creates a new session in memory and returns the session id that uniquely identifies the newly created session. As already explained in the main paper, a session is an independent location in the memory of the computer running the engine, capable of storing all the information needed to be sent back to the frontend, such as neurofeedback information and motion corrected volume parameters. We use the Matlab functions fprintf and fgetl to send and receive, respectively, messages via TCP/IP communication.
@@ -322,6 +310,7 @@ The following code snippets are from the Matlab frontend showing how information
 The variables mainThread and responseThread, presented in the following code snippets, are two Matlab TCP/IP objects. The connection established through the mainThread variable is the first made and lasts until the end of the acquisition run processing. The principal commands are sent through that connection.  The connection established through the responseThread is temporary. Each time an information is needed, such the feedback information for a specific volume, the connection is opened and after the information is acquired, the connection is closed.
 
 **Code snippet 3**. Creating a new session in the engine
+
 ```matlab
 
 fprintf(mainThread ,'NEWSESSION');
@@ -342,14 +331,14 @@ The next command issued by the frontend is the "PLUGIN", which sends the plug-in
 ```matlab
 
 % sending the PLUG-IN command and parameters
-fprintf(mainThread ,'PLUGIN');
-fprintf(mainThread ,'libROI');
-fprintf(mainThread ,'no'); % train function
-fprintf(mainThread ,'processROI'); % test function
-fprintf(mainThread ,'initializeROIProcessing'); % initialization function
-fprintf(mainThread ,'finalizeProcessing'); %finalization function
-fprintf(mainThread ,'no'); % volume function
-fprintf(mainThread ,'no'); % post preprocessing function
+fprintf(mainThread, 'PLUGIN');
+fprintf(mainThread, 'libROI');
+fprintf(mainThread, 'no'); % train function
+fprintf(mainThread, 'processROI'); % test function
+fprintf(mainThread, 'initializeROIProcessing'); % initialization function
+fprintf(mainThread, 'finalizeProcessing'); %finalization function
+fprintf(mainThread, 'no'); % volume function
+fprintf(mainThread, 'no'); % post preprocessing function
 
 % getting the acknowledge
 response = fgetl(mainThread);
@@ -364,7 +353,7 @@ The next command is "NBPREPROC", which initiates the preprocessing steps of the 
 ```matlab
 
 % sending PREPROC non-blocked command
-fprintf(mainThread ,'NBPREPROC');
+fprintf(mainThread, 'NBPREPROC');
 
 % getting the acknowledge
 response = fgetl(mainThread);
@@ -379,18 +368,18 @@ response = fgetl(mainThread);
 fopen(responseThread);
 
 % sending the session command to create a new workspace
-fprintf(responseThread ,'SESSION');
+fprintf(responseThread, 'SESSION');
 
 % sending the session id
-fprintf(responseThread ,'%s' , sessionID);
+fprintf(responseThread, '%s', sessionID);
 
 response = fgetl(responseThread);
 
 % sending the TEST sub-command
-fprintf(responseThread ,'TEST');
+fprintf(responseThread, 'TEST');
 
 % sending the volume index of the feedback value
-fprintf(responseThread ,'%d' , actualVolume);
+fprintf(responseThread, '%d', actualVolume);
 
 % getting feedback information
 class = str2double(fgetl(responseThread));
@@ -409,6 +398,7 @@ Next, the "NBFEEDBACK" command is sent, initiating the processing of the volumes
 
 
 **Code snippet 7**. Example of how to use the SET command
+
 ```matlab
 
 % changing the mask type to native space
@@ -420,7 +410,7 @@ response = fgetl(mainThread);
 % changing the mask to the generated by the funcional localizer run
 fprintf(mainThread ,'SET');
 fprintf(mainThread ,'ActivationLevelMask');
-fprintf(mainThread ,'glmdirtstats\_features\_RUN01\_bin');
+fprintf(mainThread ,'glmdirtstats_features_RUN01\_bin');
 response = fgetl(mainThread);
 
 % changing the mask to the generated by the funcional localizer run
