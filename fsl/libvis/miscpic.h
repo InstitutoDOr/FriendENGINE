@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 
 #ifndef __MISCPIC_h
@@ -87,6 +87,7 @@ namespace MISCPIC{
 	compare= 0;
 	writeText=false;
 	LR_label_flag = true;
+	markRight=false;
 	trans= -10;
 	edgethresh = 0.0;
 	if(getenv("FSLDIR")!=0){
@@ -115,7 +116,7 @@ namespace MISCPIC{
       int slicer(const NEWIMAGE::volume<float>& vol1,const NEWIMAGE::volume<float>& vol2,const char *opts, bool labelSlices=false, bool debug = false);
       int slicer(const NEWIMAGE::volume<float>& vol1,const NEWIMAGE::volume<float>& vol2,vector<string> inputOptions, bool labelSlices=false, bool debug = false);
 
-      inline int slicer(const NEWIMAGE::volume<float>& vol1, char *opts, bool labelSlices=false, bool debug = false)
+      inline int slicer(const NEWIMAGE::volume<float>& vol1,const char *opts, bool labelSlices=false, bool debug = false)
       { NEWIMAGE::volume<float> tmp(1,1,1); 
 	return this->slicer(vol1, tmp, opts, debug);}
       
@@ -177,6 +178,8 @@ namespace MISCPIC{
       string lut, lutbase, title, cbartype;
 
       gdImagePtr cbarptr, outim;
+
+      bool markRight;
 
       vector<int> rlut, glut, blut; //stores the lut;
       unsigned char *picr, *picg, *picb;

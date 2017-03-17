@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #define WANT_STREAM
 #define WANT_MATH
@@ -83,169 +83,35 @@ namespace FILM {
 
 FilmGlsOptions* FilmGlsOptions::gopt = NULL;
 
-void FilmGlsOptions::parse_command_line(int argc, char** argv, Log& logger)
-{
-  if(argc<2){
-    print_usage(argc,argv);
-    exit(1);
-  }
-  
-  int inp = 1;
-  int n=1;
-  string arg;
-  char first;
-  
-  while (n<argc) {
-    arg=argv[n];
-  
-    if (arg.size()<1) { n++; continue; }
-    first = arg[0];
-    if (first!='-' || inp==3) {
-      if(inp == 1)
-	gopt->inputfname = arg;
-      else if(inp == 2)
-	{
-	  if(ac_only)
-	    gopt->thresh = atof(argv[n]);
-	  else
-	    gopt->paradigmfname = arg;
-	}
-      else if(inp == 3 && !ac_only)
-	gopt->thresh = atof(argv[n]);
-      else throw Exception(("Mismatched argument "+arg).c_str());
-      n++;
-      inp++;
-      continue;
+  void FilmGlsOptions::parse_command_line(int argc, char** argv,Log& logger) {
+    //Do the parsing;
+    try {
+      for(int a = options.parse_command_line(argc, argv); a < argc; a++); 
+      if( help.value() || !options.check_compulsory_arguments() ) {
+	options.usage();
+	exit(2);
+      }  
     }
-    
-    // put options without arguments here
-    if ( arg == "-help" ) {
-      print_usage(argc,argv);
-      exit(0);
-    } else if ( arg == "-v" ) {
-      gopt->verbose = true;
-      n++;
-      continue;
-    } else if ( arg == "-ar" ) {
-      gopt->fitAutoRegressiveModel = true;
-      gopt->tukey = false;
-      n++;
-      continue;
-    } else if ( arg == "-ac" ) {
-      gopt->ac_only = true;
-      n++;
-      continue;
-    } else if ( arg == "-pava" ) {
-      gopt->pava = true;
-      gopt->tukey = false;
-      n++;
-      continue;
-    } else if ( arg == "-sa" ) {
-      gopt->smoothACEst = true;
-      n++;
-      continue;    
-    } else if ( arg == "-noest" ) {
-      gopt->noest = true;
-      n++;
-      continue;
-    } else if ( arg == "-output_pwdata" ) {
-      gopt->output_pwdata = true;
-      n++;
-      continue;
-    } 
-
-    if (n+1>=argc) 
-      throw Exception(("Lacking argument to option "+arg).c_str());
-
-    // put options with 1 argument here
-    if ( arg == "-ms") {
-      gopt->ms = atoi(argv[n+1]);
-      n+=2;
-    } else if ( arg == "-mf") {
-      gopt->meanInputFile = string(argv[n+1]);
-      n+=2;
-    } else if ( arg == "-mft") {
-      gopt->minimumTimepointFile = string(argv[n+1]);
-      n+=2;
-    } else if ( arg == "-ven" ) {
-      n++;
-      int size=1;
-	while(strspn(argv[n],"0123456789")==strlen(argv[n])) {
-	 voxelwise_ev_numbers.resize(size++,atoi(argv[n++]));      
-	 if (n>=argc) 
-	   throw Exception("Not enough arguments for -ven option");
-      }
-    } else if ( arg == "-vef" ) {
-      n++;
-      if (n+(signed)voxelwise_ev_numbers.size()>=argc)
-	throw Exception("Not enough arguments for -ven option");
-      voxelwiseEvFilenames.resize(voxelwise_ev_numbers.size()); 
-      for (int i=0;i<(int)voxelwise_ev_numbers.size();i++)
-	voxelwiseEvFilenames[i]=argv[n++];
-    } else if ( arg == "-rn" ) {
-      gopt->datadir = argv[n+1];      
-      n+=2;
-    } else if ( arg == "-tukey" ) {
-      gopt->tukeysize = atoi(argv[n+1]);
-      gopt->tukey = true;
-      n+=2;
-    } else if ( arg == "-mt" ) {
-      gopt->multitapersize = atoi(argv[n+1]);
-      gopt->tukey = false;
-      gopt->multitaper = true;
-      n+=2;
+    catch(X_OptionError& e) {
+      cerr<<e.what()<<endl;
+      cerr<<"try: film_gls --help"<<endl;
+      exit(1);
     }
-    else if ( arg == "-epith" ) {
-      gopt->epith = atoi(argv[n+1]);      
-      n+=2;
-    } else throw Exception(("Unrecognised option "+arg).c_str());
-  }  // while (n<argc)
+    if ( gopt->pava.set() + gopt->fitAutoRegressiveModel.set() + gopt->multitapersize.set() + gopt->tukeysize.set() > 1 ) {
+      cerr << "Error: Only one autocorrelation method can be selected." << endl;
+      exit(1);
+    }
+    if ( ( gopt->pava.set() || gopt->fitAutoRegressiveModel.set() || gopt->multitapersize.set() || gopt->tukeysize.set() ) && gopt->noest.set() ) {
+      cerr << "Error: Autocorrelation estimation is off, but an autocorrelation mode is selected." << endl;
+      exit(1);
+    }
 
-  logger.makeDir(gopt->datadir);
-  cout << "Log directory is: " << logger.getDir() << endl;
-  for(int a = 0; a < argc; a++)
-    logger.str() << argv[a] << " ";
-  logger.str() << endl << "---------------------------------------------" << endl << endl;
 
-  if (gopt->inputfname.size()<1) {
-    print_usage(argc,argv);
-    throw Exception("Input filename not found");
+
+    logger.makeDir(gopt->datadir.value());
+    cout << "Log directory is: " << logger.getDir() << endl;
+    for(int a = 0; a < argc; a++)
+      logger.str() << argv[a] << " ";
+    logger.str() << endl << "---------------------------------------------" << endl << endl;
   }
-  if (gopt->paradigmfname.size()<1 && !ac_only) {
-    print_usage(argc,argv);
-    throw Exception("Paradigm filename needs to be specified");
-  }
-
 }
-
-void FilmGlsOptions::print_usage(int argc, char *argv[])
-{
-  cout << "Usage: " << argv[0] << " [options] <groupfile> [optional:<paradigmfile>] <thresh>\n\n"
-       << "  Available options are:\n"
-       << "        -sa                                (smooths auto corr estimates)\n"
-       << "        -ms <num>                          (susan mask size)\n"
-       << "        -epith <num>                       (set susan brightness threshold - otherwise it is estimated)\n"
-       << "        -v                                 (outputs full data)\n"
-       << "        -ven                               ( List of numbers indicating voxelwise EVs position in the design matrix, list corresponds in order to files in -vef. caution BETA option)\n" 
-       << "        -vef                               ( List of 4D niftii files containing voxelwise EVs, list corresponds in order to numbers in -ven. caution BETA option)\n" 
-       << "        -ac                                (perform autocorrelation estimation only)" 
-       << "        -ar                                (fits autoregressive model - default " 
-       << "is to use tukey with M=sqrt(numvols))\n"
-       << "        -tukey <num>                       (uses tukey window to estimate autocorr with window size num - default "
-       << "is to use tukey with M=sqrt(numvols))\n"
-       << "        -mt <num>                          (uses multitapering with slepian tapers and num is the time-bandwidth product - default " 
-       << "is to use tukey with M=sqrt(numvols))\n"
-       << "        -pava                              (estimates autocorr using PAVA - default " 
-       << "is to use tukey with M=sqrt(numvols))\n"
-       << "        -noest                             (do not estimate auto corrs)\n"
-       << "        -mf <file>                         (re-estimate mean_func baseline - for use with perfusion subtraction)\n"
-       << "        -mft <file>                        (minimum timepoint file)\n"
-       << "        -output_pwdata                     (output prewhitened data and average design matrix)\n" 
-       << "        -rn <dir>                          (directory name to store results in, default is "
-       << gopt->datadir << ")\n"
-       << "        -help\n\n";
-}
-
-#ifndef NO_NAMESPACE
-}
-#endif

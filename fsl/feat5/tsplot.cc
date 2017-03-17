@@ -17,7 +17,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -66,7 +66,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 /* }}} */
 /* {{{ background theory */
@@ -296,17 +296,15 @@ extern "C" __declspec(dllexport) int _stdcall tsplot(char *CmdLn)
   int r;
   int argc;
   char **argv;
-  
-  parser(CmdLn, argc, argv);
 
-  ofstream     outputFile;
-  int          numEVs, npts, numContrasts=1, nftests=0, GRPHSIZE(600), PSSIZE(600); 
-  vector<double> normalisedContrasts, model, triggers;
-  string       fmriFileName, fslPath, featdir, vType, indexText;
-  ColumnVector NewimageVoxCoord(4),NiftiVoxCoord(4);
-  bool outputText(true), useCoordinate(false), prewhiten(false), useTriggers(false), customMask(false), modelFree(false), isHigherLevel(false), outputDataOnly(false);
-  bool zWeightClusters(true);
-  volume<float> immask;
+ofstream     outputFile;
+int          numEVs, npts, numContrasts=1, nftests=0, GRPHSIZE(600), PSSIZE(600); 
+vector<double> normalisedContrasts, model, triggers;
+ string       fmriFileName, fslPath, featdir, vType, indexText;
+ColumnVector NewimageVoxCoord(4),NiftiVoxCoord(4);
+bool outputText(true), useCoordinate(false), prewhiten(false), useTriggers(false), customMask(false), modelFree(false), isHigherLevel(false), outputDataOnly(false);
+bool zWeightClusters(true);
+volume<float> immask;
 
   NewimageVoxCoord << 0 << 0 << 0 << 1;
   NiftiVoxCoord << 0 << 0 << 0 << 1;
@@ -318,6 +316,8 @@ extern "C" __declspec(dllexport) int _stdcall tsplot(char *CmdLn)
 	  usage("");
 	  return 1;
   }
+  parser(CmdLn, argc, argv);
+
   featdir=string(argv[1]);
   fmriFileName=featdir+"/filtered_func_data";
   fslPath="";//string(getenv("FSLDIR"));
@@ -329,35 +329,56 @@ extern "C" __declspec(dllexport) int _stdcall tsplot(char *CmdLn)
     if (!strcmp(argv[argi], "-f")) /* alternative fmri data */
     {
       if (argc<argi+2)
-	usage("Error: no value given following -f");
+      {
+	     usage("Error: no value given following -f");
+         freeparser(argc, argv);
+      }
       fmriFileName=string(argv[++argi]);
     }
     else if (!strcmp(argv[argi], "-c")) /* alternative voxel position */
     {
       useCoordinate=true;
       if (argc<=(argi+=3)) /* options following c haven't been given */
-	  usage("Error: incomplete values given following -c");
+      {
+	     usage("Error: incomplete values given following -c");
+         freeparser(argc, argv);
+      }
       NiftiVoxCoord << atoi(argv[argi-2]) << atoi(argv[argi-1]) << atoi(argv[argi]) << 1;
     }
     else if (!strcmp(argv[argi], "-C")) /* output data only */
     {
       outputDataOnly=useCoordinate=true;
-      if (argc<=(argi+=4))
-	  usage("Error: incomplete values given following -C");
+	  if (argc <= (argi += 4))
+	  {
+		  usage("Error: incomplete values given following -C");
+		  freeparser(argc, argv);
+	  }
       NiftiVoxCoord << atoi(argv[argi-3]) << atoi(argv[argi-2]) << atoi(argv[argi-1]) << 1;
       outputName=string(argv[argi]);
     }
     else if (!strcmp(argv[argi], "-m")) /* alternative mask image */
     {
       customMask=true;
-      if (argc<argi+2) usage("Error: no mask image given following -m");    
-      if ( read_volume(immask,argv[++argi]) ) usage("Error: mask image chosen doesn't exist");      
+	  if (argc < argi + 2)
+	  {
+		  usage("Error: no mask image given following -m");
+		  freeparser(argc, argv);
+	  }
+	  if (read_volume(immask, argv[++argi]))
+	  {
+		  usage("Error: mask image chosen doesn't exist");
+		  freeparser(argc, argv);
+	  }
     }
     else if (!strcmp(argv[argi], "-o")) /* output dir */
     {
-      if (argc<argi+2) usage("Error: no value given following -o"); 
-      outputName=string(argv[++argi]);
-    }
+		if (argc < argi + 2)
+		{
+			usage("Error: no value given following -o");
+			freeparser(argc, argv);
+		}
+		outputName = string(argv[++argi]);
+	}
     else if (!strcmp(argv[argi], "-d")) outputText=false;
     else if (!strcmp(argv[argi], "-n")) zWeightClusters=false;   
     else if (!strcmp(argv[argi], "-p")) prewhiten=true; 
@@ -376,10 +397,12 @@ extern "C" __declspec(dllexport) int _stdcall tsplot(char *CmdLn)
     if(!outputFile.is_open())
     {
       cerr << "Can't open output data file " << outputName << endl;
+      freeparser(argc, argv);
       return 2;
     }
     for(int t=0; t<im.tsize(); t++) outputFile << scientific << im((int)NewimageVoxCoord(1),(int)NewimageVoxCoord(2),(int)NewimageVoxCoord(3),t) << endl;
     outputFile.close();
+    freeparser(argc, argv);
     return 3;
   }
 
@@ -478,7 +501,7 @@ volume4D<float> acs;
 	for(int z=0; z<im.zsize(); z++)
 	  for(int y=0; y<im.ysize(); y++)
 	    for(int x=0; x<im.xsize(); x++)
-	      if ( (imz(x,y,z)>maxz) && ( (!haveclusters) || (immask(x,y,z)>0) && (!prewhiten || acs(x,y,z,1)!=0 || acs(x,y,z,2)!=0) ) )
+	      if ( (imz(x,y,z)>maxz) && ( (!haveclusters) ||  ( (immask(x,y,z)>0) && (!prewhiten || acs(x,y,z,1)!=0 || acs(x,y,z,2)!=0) ) ) )
 	      {
 		/* make max Z be inside a cluster if we found a cluster map */
 		maxz=imz(x,y,z);
@@ -733,6 +756,7 @@ volume4D<float> acs;
       if(!outputFile.is_open())
       {
 	cerr << "Can't open output report file " << outputName << endl;
+    freeparser(argc, argv);
 	return(1);
       }
       outputFile << "<HTML>\n<TITLE>"<< statType << num2str(i) <<"</TITLE>\n<BODY BACKGROUND=\"file:"<< fslPath <<"/doc/images/fsl-bg.jpg\">\n<hr><CENTER>\n<H1>FEAT Time Series Report - "<< statType << num2str(i) <<"</H1>\n</CENTER>\n<hr><b>Full plots</b><p>\n"<< graphText;
@@ -748,6 +772,7 @@ volume4D<float> acs;
   if(!outputFile.is_open())
   {
       cerr << "Can't open output report file " << outputName << endl;
+      freeparser(argc, argv);
 	  return(1);
   }
   outputFile << "<HTML>\n<TITLE>FEAT Time Series Report</TITLE>\n<BODY BACKGROUND=\"file:" << fslPath << "/doc/images/fsl-bg.jpg\">\n<hr><CENTER>\n<H1>FEAT Time Series Report</H1>\n</CENTER>\n<hr>" << indexText << "<HR></BODY></HTML>" << endl << endl;
@@ -758,6 +783,7 @@ volume4D<float> acs;
   if(!outputFile.is_open())
   {
       cerr << "Can't open output report file " << outputName << endl;
+      freeparser(argc, argv);
       return(1);
   }
   outputFile << indexText << endl << endl;

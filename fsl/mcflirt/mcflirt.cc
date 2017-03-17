@@ -778,7 +778,12 @@ extern "C" __declspec(dllexport) int _stdcall mcflirt(char *CmdLn)
 
   // interpolate with final transform values
   for (int i=0; i < gOptions-> no_volumes; i++){
-    testvol = timeseries[i];
+    // initial testvol is used as the reference (for properties like sform)
+    if (gOptions-> reffileflag) {
+      testvol = extrefvol; 
+    } else {
+      testvol = timeseries[i];  
+    }
     if (gOptions-> sinc_final) {
       timeseries[i].setextrapolationmethod(extraslice);
       timeseries[i].setinterpolationmethod(sinc);
@@ -801,14 +806,19 @@ extern "C" __declspec(dllexport) int _stdcall mcflirt(char *CmdLn)
 
   if (gOptions-> statflag) run_and_save_stats(timeseries);
   if (gOptions-> tmpmatflag) {
-    if (gOptions-> reffileflag) {
+    if ( gOptions->reffileflag ) 
       decompose_mats(mat_index, mat_array0, extrefvol);
-    } else {
-      if (gOptions->refnum<0) gOptions->refnum=original_refvol;
+    else if ( gOptions->meanvol ) 
+      decompose_mats(mat_index, mat_array0, meanvol);
+    else {
+       if (!gOptions-> no_reporting) 
+	 cout << "refnum = " << gOptions->refnum << endl << "Original_refvol = " << original_refvol << endl;
+      if (gOptions->refnum<0) 
+	throw(runtime_error("Negative refnum encountered when not in refile/meanvol mode."));
       decompose_mats(mat_index, mat_array0, timeseries[gOptions-> refnum]);
     }
   }
-  //if (gOptions-> costmeas) eval_costs(refvol, timeseries, mat_array0, current_scale);
+  if (gOptions-> costmeas) eval_costs(refvol, timeseries, mat_array0, current_scale);
   if (!gOptions-> no_reporting) cerr << endl << "Saving motion corrected time series... " << endl;
   timeseries.setDisplayMaximumMinimum(timeseries.max(),timeseries.min());
   save_volume4D_dtype(timeseries, gOptions->outputfname, gOptions->datatype);

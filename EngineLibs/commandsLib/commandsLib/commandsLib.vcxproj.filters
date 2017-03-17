@@ -132,5 +132,11 @@
     <ClCompile Include="..\..\..\fsl\avwutils\fslcc.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\fsl\miscvis\pngappend.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\fsl\miscvis\slicer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

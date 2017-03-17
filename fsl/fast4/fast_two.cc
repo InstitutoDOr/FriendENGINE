@@ -1,9 +1,9 @@
 /*  FAST4 - FMRIB's Automated Segmentation Tool v4
 
-    John Vickers, Mark Jenkinson and Steve Smith
+    John Vickers, Mark Jenkinson, Matthew Webster and Steve Smith
     FMRIB Image Analysis Group
 
-    Copyright (C) 2005-2007 University of Oxford  */
+    Copyright (C) 2005-2012 University of Oxford  */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -16,7 +16,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -65,7 +65,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #define _GNU_SOURCE 1
 #define POSIX_SOURCE 1
@@ -76,7 +76,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-string title="FAST ( Version 4.1 )\nCopyright(c) 2004-8, University of Oxford";
+string title="FAST \nCopyright(c) 2004-2012, University of Oxford";
 string examples="fast [options] file(s)";
 string examples_multi_channel="fast [options] <image> [<image2> ... <imagen>]";
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -524,7 +524,7 @@ extern "C" __declspec(dllexport) int _stdcall fast(char *CmdLn)
       options.add(outputProbabilities);
       // line below stops the program if the help was requested or 
       // a compulsory option was not set
-      options.parse_command_line(argc, argv);
+      options.parse_command_line(argc, argv, 0, true);
       if ( argc<2 || (help.value()) || (!options.check_compulsory_arguments(true)) )
       {
 	options.usage();

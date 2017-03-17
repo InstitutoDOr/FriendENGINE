@@ -224,7 +224,7 @@ int fslcreatehd_main(int argc, char *argv[])
   FslGetDim(fslio,&x,&y,&z,&v);
   if ( bufsize != ( x * y * z * v * (FslGetDataType(fslio,&dt)/8)) ) {
     if (bufsize>0) free(buffer);  /* only if previously read */
-      buffer = (void *) calloc(x * y * z * v,FslGetDataType(fslio,&dt)/8);
+    buffer = (void *) calloc((size_t)x * y * z * v,FslGetDataType(fslio,&dt)/8);
   }
 
   /* write the data out - either from previous read or zeros */

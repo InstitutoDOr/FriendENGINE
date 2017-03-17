@@ -67,12 +67,17 @@
     innovation@isis.ox.ac.uk quoting reference DE/1112. */
 
 #include <string>
+#include <cstring>
 #include <cstdlib>
 #include <iostream>
 #include "gd.h"
+#include "miscmaths/miscmaths.h"
+#include "parser.h"
 
 using namespace std;
 
+namespace pngappend
+{
 void usage(void)
 {
   cerr << endl << "Usage: pngappend <input 1> <+|-> [n] <input 2> [<+|-> [n] <input n>]  output>" << endl;
@@ -88,17 +93,6 @@ void help()
   cerr<< endl << " pngappend  -  append PNG files horizontally and/or vertically into a new PNG (or GIF) file" << endl;
   usage();
 }
-
-
-bool isnum(const string& str)
-  {
-    // assumes that initial whitespace has been removed
-    bool out = true;
-    for(int ctr=0; ctr<(int)str.length(); ctr++){
-      if (!isdigit(str[ctr])){out = false;}
-    }
-    return out;
-  }
     
 int max (int a, int b)
 {
@@ -106,9 +100,12 @@ int max (int a, int b)
   else return a;
 }
 
-
-int main(int argc, char *argv[])
+extern "C" __declspec(dllexport) int _stdcall pngappend(char *CmdLn)
 {
+  int argc;
+  char **argv;
+  
+  parser(CmdLn, argc, argv);
   if ((argc<2)||(strcmp(argv[1],"-help")==0)||(strcmp(argv[1],"--help")==0)) help();
 
   if ((argc<3)) usage();
@@ -167,7 +164,7 @@ int main(int argc, char *argv[])
     argidx++;
 
     //read in new image
-    if(isnum(argv[argidx])){
+    if(MISCMATHS::isNumber(argv[argidx])){
       gap = atoi(argv[argidx]);
       argidx++;
     }
@@ -235,5 +232,7 @@ int main(int argc, char *argv[])
   gdImageDestroy(im_out);
   fclose(imageout);
 
+  freeparser(argc, argv);
   return 0;
+}
 }

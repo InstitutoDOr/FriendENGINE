@@ -21,9 +21,6 @@
     <ClCompile Include="..\..\..\..\fsl\avwutils\fslswapdim.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\fsl\cprob\bdtr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -406,6 +403,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\fsl\miscmaths\Simplex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -27,7 +27,7 @@ char extension[]="";
 char extension[] = "";
 #endif
 
-#define numPasses 100
+#define numPasses 10000
 
 // set socket data for response
 void FriendProcess::setSocketfd(int Sock)
@@ -438,17 +438,31 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 #ifdef dcm2niifunction
 		if (fileExists(inFile))
 		{
-			transformDicom(inFile, vdb.preprocDir);
+			if (isReadableSize(inFile, rifSize))
+			{
+				try
+				{
+					transformDicom(inFile, vdb.preprocDir);
+					fileFound = 1;
+				}
+				catch (...)
+				{
+					fileFound = 0;
+				};
+			}
 		}
 #else
 		if (fileExists(inFile) && fileExists(dcm2niiExe))
 		{
-			// executes the dcm2nii tool
-			stringstream osc;
-			osc << dcm2niiExe << " -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
-			fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
-			system(osc.str().c_str());
-			fileFound = 1;
+			if (isReadableSize(inFile, rifSize))
+			{
+				// executes the dcm2nii tool
+				stringstream osc;
+				osc << dcm2niiExe << " -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
+				fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
+				system(osc.str().c_str());
+				fileFound = 1;
+		    }
 		}
 #endif
 		else
@@ -661,6 +675,7 @@ void FriendProcess::runRealtimePipeline()
 	char format[30];
 	char msg[50];
    
+	rifSize = fileSize(vdb.rfiFile);
 	sprintf(auxConfigFile, "%sstudy_params%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
 	vdb.readedIni.SaveFile(auxConfigFile);
 	fprintf(stderr, "######################### processing pipeline begin ######################\n");

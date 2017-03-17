@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <iostream>
 #include <sstream>
@@ -203,7 +203,7 @@ namespace FILM {
     {
       Tracer trace("AutoCorrEstimator::fitAutoRegressiveModel");
       
-      cerr << "Fitting autoregressive model..." << endl;
+      cout << "Fitting autoregressive model..." << endl;
       
       const int maxorder = 15;
       const int minorder = 1;
@@ -262,7 +262,7 @@ namespace FILM {
 	      if(co > 200)
 		{
 		  co = 1;
-		  cerr << (float)i/(float)numTS << ",";
+		  cout<< (float)i/(float)numTS << ",";
 		}
 	      else
 		co++;
@@ -272,7 +272,7 @@ namespace FILM {
       write_ascii_matrix(LogSingleton::getInstance().appendDir("order"), order);
       write_ascii_matrix(LogSingleton::getInstance().appendDir("betas"), betas);
       countLargeE = 0;
-      cerr << " Completed" << endl; 
+      cout<< " Completed" << endl; 
       return(betas);
     }
 
@@ -315,16 +315,15 @@ namespace FILM {
       return order; 
     }
  
-  int AutoCorrEstimator::establishUsanThresh(const ColumnVector& epivol)
+  double AutoCorrEstimator::establishUsanThresh(const ColumnVector& epivol)
     {
-      int usanthresh = 100;      
       int num = epivol.Nrows();
       Histogram hist(epivol, max(num/200,1));
       hist.generate();
       float mode = hist.mode();
-      cerr << "mode = " << mode << endl;
+      cout<< "mode = " << mode << endl;
 
-      float sum = 0.0;
+      double sum = 0.0;
       int count = 0;
 
       // Work out standard deviation from mode for values greater than mode:
@@ -335,21 +334,15 @@ namespace FILM {
 	}
       }
 
-      int sig = (int)pow(sum/num, 0.5);
-      cerr << "sig = " << sig << endl;
-
-      usanthresh = sig/3;
-
-      return usanthresh;
+      double sig = pow(sum/num, 0.5);
+      cout<< "sig = " << static_cast<int>(sig) << endl;
+      return sig/3;
     } 
 
-  void AutoCorrEstimator::spatiallySmooth(const string& usanfname, const ColumnVector& epivol, int masksize, const string& epifname, int usan_thresh, const volume<float>& usan_vol, int lag) {
+  void AutoCorrEstimator::spatiallySmooth(const ColumnVector& epivol, int masksize, double usan_thresh, const volume<float>& usan_vol, int lag) {
     Tracer trace("AutoCorrEstimator::spatiallySmooth");
-    
     if(numTS<=1)
-      {
 	cerr << "Warning: Number of voxels = " << numTS << ". Spatial smoothing of autocorrelation estimates is not carried out" << endl;
-      }
     else
       {
 	
@@ -357,45 +350,69 @@ namespace FILM {
 	  lag = MISCMATHS::Min(40,int(sizeTS/4));
 
 	if(usan_thresh == 0) usan_thresh = establishUsanThresh(epivol); // Establish epi thresh to use:
-
 	volume4D<float> susan_vol(mask.xsize(),mask.ysize(),mask.zsize(),1);
 	volume<float> usan_area(mask.xsize(),mask.ysize(),mask.zsize());
 	volume<float> kernel;
 	volume<float> vol1(1,1,1);
 	kernel = gaussian_kernel3D(masksize,mask.xdim(),mask.ydim(),mask.zdim(),2.0);	
 	int factor = 10000;
-	cerr << "Spatially smoothing auto corr estimates" << endl;
+	cout<< "Spatially smoothing auto corr estimates" << endl;
 	
 	for(int i=2 ; i <= lag; i++)
 	  {
 	    // setup susan input
 	    susan_vol.setmatrix(acEst.Row(i),mask); 
 	    susan_vol*=factor;
-	    susan_convolve(susan_vol[0], susan_vol[0],kernel,1,0,1,&usan_area,usan_vol,usan_thresh*usan_thresh, vol1, 0);
+	    susan_vol[0]=susan_convolve(susan_vol[0],kernel,1,0,1,&usan_area,usan_vol,usan_thresh*(float)usan_thresh);
 	    // insert output back into acEst
             susan_vol/=factor;
 	    acEst.Row(i)=susan_vol.matrix(mask);
-	    cerr << ".";
+	    cout<< ".";
 	  }
 	
-	cerr << endl << "Completed" << endl;
+	cout<< endl << "Completed" << endl;
       }
   }
+
+  void AutoCorrEstimator::spatiallySmooth(fslSurface<float, unsigned int> surfaceData, const float sigma, const float extent,int lag) {
+   Tracer trace("AutoCorrEstimator::spatiallySmooth_GIFTI");
+   if(numTS<=1)
+     cerr << "Warning: Number of vertices = " << numTS << ". Spatial smoothing of autocorrelation estimates is not carried out" << endl;
+   else {	
+     if(lag==0)
+       lag = MISCMATHS::Min(40,int(sizeTS/4));
+     cout<< "Spatially smoothing auto corr estimates for surface" << endl;
+     for(int i=2 ; i <= lag; i++) {
+       vector<float> scalars;
+       for ( unsigned int point = 1; point<=surfaceData.getNumberOfVertices(); point++ )
+	 scalars.push_back( acEst(i,point) );
+       surfaceData.clearScalars();
+       surfaceData.insertScalars(scalars,0,"input field" );  //Add data to surface
+       sc_smooth_gaussian_geodesic(  surfaceData , 0, sigma, extent , false);
+       int point(1);
+       for (std::vector< float >::const_iterator i_sc = surfaceData.const_scbegin(0); i_sc != surfaceData.const_scend(0); i_sc++, point++)
+	 acEst(i,point) = *i_sc; // insert output back into acEst
+       cout<< ".";
+     }
+     cout<< endl << "Completed" << endl;
+   }
+}
+
   
   void AutoCorrEstimator::calcRaw(int lag) { 
     
-    cerr << "Calculating raw AutoCorrs...";      
+    cout<< "Calculating raw AutoCorrs...";      
 
     MISCMATHS::xcorr(xdata, acEst, lag, zeropad);
 
-    cerr << " Completed" << endl;  
+    cout<< " Completed" << endl;  
   }
   
   void AutoCorrEstimator::filter(const ColumnVector& filterFFT) {
 
     Tracer tr("AutoCorrEstimator::filter");
 
-    cerr << "Combining temporal filtering effects with AutoCorr estimates... ";
+    cout<< "Combining temporal filtering effects with AutoCorr estimates... ";
 
     // This function adjusts the autocorrelations as if the
     // xdata has been filtered by the passed in filterFFT
@@ -425,14 +442,14 @@ namespace FILM {
 	acEst.Column(i) = realifft.Rows(1,sizeTS)/realifft(1);
       }
 
-    cerr << " Completed" << endl;
+    cout<< " Completed" << endl;
     
   }
 
   void AutoCorrEstimator::multitaper(int M) {
     Tracer tr("AutoCorrEstimator::multitaper");
     
-    cerr << "Multitapering... ";
+    cout<< "Multitapering... ";
 
     Matrix slepians;
     getSlepians(M, sizeTS, slepians);
@@ -486,7 +503,7 @@ namespace FILM {
 	acEst.Column(i)=realifft.Rows(1,sizeTS)/varx;
       }
     countLargeE = 0;
-    cerr << "Completed" << endl;
+    cout<< "Completed" << endl;
   }
 
   void AutoCorrEstimator::getSlepians(int M, int sizeTS, Matrix& slepians) {
@@ -519,9 +536,9 @@ namespace FILM {
     
     Tracer tr("AutoCorrEstimator::tukey");
 
-    cerr << "Tukey M = " << M << endl;
+    cout<< "Tukey M = " << M << endl;
 
-    cerr << "Tukey estimates... ";
+    cout<< "Tukey estimates... ";
 	
     ColumnVector window(M);
 
@@ -537,14 +554,14 @@ namespace FILM {
 	
     }
     countLargeE = 0;
-    cerr << "Completed" << endl;
+    cout<< "Completed" << endl;
   }
 
   void AutoCorrEstimator::pava() {
     
     Tracer tr("AutoCorrEstimator::pava");
     
-    cerr << "Using New PAVA on AutoCorr estimates... ";
+    cout<< "Using New PAVA on AutoCorr estimates... ";
 
     for(int i = 1; i <= numTS; i++) {
 	int stopat = (int)sizeTS/2;
@@ -623,14 +640,14 @@ namespace FILM {
     }
     countLargeE = 0;
 
-    cerr << " Completed" << endl;
+    cout<< " Completed" << endl;
   }
   
   void AutoCorrEstimator::applyConstraints() {
 
     Tracer tr("AutoCorrEstimator::applyConstraints");
 
-    cerr << "Applying constraints to AutoCorr estimates... ";
+    cout<< "Applying constraints to AutoCorr estimates... ";
 
     for(int i = 1; i <= numTS; i++)
       {
@@ -681,7 +698,7 @@ namespace FILM {
 	      acEst(j,i) = 0;
 	  }
       }
-    cerr << "Completed" << endl;
+    cout<< "Completed" << endl;
   }
 
   void AutoCorrEstimator::getMeanEstimate(ColumnVector& ret)

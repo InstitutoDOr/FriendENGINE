@@ -1329,7 +1329,7 @@ extern "C" __declspec(dllexport) int _stdcall betsurf(char *CmdLn)
   int nb_pars = 0;
 
   try {
-    nb_pars = options.parse_command_line(argc, argv);
+    nb_pars = options.parse_command_line(argc, argv, 0, true);
   }
   catch(X_OptionError& e) {
     options.usage();

@@ -2891,6 +2891,9 @@ extern "C" __declspec(dllexport) int _stdcall flirt(char *CmdLn)
 	try {
 
 		parser(CmdLn, argc, argv);
+		global_scale1OK = true;
+		read_testvol = false;
+		global_sampling = 1.0f;
 
 		gOptions = new globaloptions();
 		gOptions->parse_command_line(argc, argv, version);
@@ -2949,6 +2952,7 @@ extern "C" __declspec(dllexport) int _stdcall flirt(char *CmdLn)
 				cout << "CoG for refvol is:  " << refvol.cog("scaled_mm").t();
 				cout << "CoG for testvol is:  " << testvol.cog("scaled_mm").t();
 			}
+
 
 			// CREATE THE VARIOUS SUB-SAMPLED REFERENCE VOLUMES FOR THE MULTI-SCALE
 
@@ -3121,6 +3125,7 @@ extern "C" __declspec(dllexport) int _stdcall flirt(char *CmdLn)
 
 			// re-read the initial volume, and transform it by the optimised result
 
+
 			Matrix reshaped;
 			if (gOptions->usrmat[0].size()>0) {
 				reshaped = (gOptions->usrmat[0])[0].SubMatrix(1, 1, 2, 17);
@@ -3178,7 +3183,6 @@ extern "C" __declspec(dllexport) int _stdcall flirt(char *CmdLn)
 				cerr << "Failed to calculate any transformation matrix" << endl;
 			}
 		}
-
 	}
 	catch (std::exception &e) {
 		cerr << e.what() << endl;

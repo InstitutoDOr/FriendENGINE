@@ -152,15 +152,6 @@ Interpolate interpolate;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-
-template <class T>
-inline float sqr(const T& a)
-{
-  return a * a;
-}
-
-
-
 // Standardise the residual field (assuming gaussianity)
 unsigned long standardise(volume<float>& mask, 
 			  volume4D<float>& R)
@@ -186,11 +177,11 @@ unsigned long standardise(volume<float>& mask,
 	      float R_it = R(x,y,z,t);
 	      
 	      Sx += R_it;
-	      SSx += sqr(R_it);
+	      SSx += Sqr(R_it);
 	    }
 	    
 	    float mean = Sx / M;
-	    float sdsq = (SSx - (sqr(Sx) / M)) / (M - 1) ;
+	    float sdsq = (SSx - (Sqr(Sx) / M)) / (M - 1) ;
 	    
 	    if (sdsq<=0) {
 	      // trap for differences between mask and invalid data
@@ -240,7 +231,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
 
   if(help.value()) {
     options.usage();
-    exit(EXIT_SUCCESS);
+	return(EXIT_SUCCESS);
   }
 
   if( !((zstatname.set() && residname.unset()) || (residname.set() && zstatname.unset())) ||
@@ -256,7 +247,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
     cerr << "You must specify the degrees of freedom for processing a 4d residual image." << endl; 
     cerr << "***************************************************************************" << endl;
     cerr << endl;
-    exit(EXIT_FAILURE);    
+	return(EXIT_FAILURE);
   }
 
   if(verbose.value()) {
@@ -294,7 +285,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
   if (!samesize(R[0],mask)) {
     cerr << "Mask and Data (residuals/zstat) volumes MUST be the same size!"
 	 << endl;
-    exit(EXIT_FAILURE);
+	return(EXIT_FAILURE);
   }
 
   if(verbose.value()) cerr << "Standardising....";
@@ -336,9 +327,9 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
 	    SSminus[Y] += R(x, y, z, t) * R(x, y-1, z, t);
 	    if (usez) SSminus[Z] += R(x, y, z, t) * R(x, y, z-1, t);
 
-	    S2[X] += 0.5 * (sqr(R(x, y, z, t)) + sqr(R(x-1, y, z, t)));
-	    S2[Y] += 0.5 * (sqr(R(x, y, z, t)) + sqr(R(x, y-1, z, t)));
-	    if (usez) S2[Z] += 0.5 * (sqr(R(x, y, z, t)) + sqr(R(x, y, z-1, t)));
+	    S2[X] += 0.5 * (Sqr(R(x, y, z, t)) + Sqr(R(x-1, y, z, t)));
+	    S2[Y] += 0.5 * (Sqr(R(x, y, z, t)) + Sqr(R(x, y-1, z, t)));
+	    if (usez) S2[Z] += 0.5 * (Sqr(R(x, y, z, t)) + Sqr(R(x, y, z-1, t)));
 	  }
 	}
 

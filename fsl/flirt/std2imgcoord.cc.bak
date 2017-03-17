@@ -125,6 +125,8 @@ globaloptions::globaloptions()
   mm = true;
 }
 
+// HACKY GLOBAL FOR TEST - MJ
+volume4D<float> fnirt4D;
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -263,7 +265,9 @@ ColumnVector NewimageCoord2NewimageCoord(const FnirtFileReader& fnirtfile, const
   ColumnVector retvec;
   if (fnirtfile.IsValid()) {
     // in the following affmat=highres2example_func.mat, fnirtfile=highres2standard_warp.nii.gz
-    retvec = NewimageCoord2NewimageCoord(fnirtfile.FieldAsNewimageVolume4D(true),false,
+    // retvec = NewimageCoord2NewimageCoord(fnirtfile.FieldAsNewimageVolume4D(true),false,
+   // HACKY GLOBAL TEST - MJ
+    retvec = NewimageCoord2NewimageCoord(fnirt4D,false,
 				     affmat,srcvol,destvol,srccoord);
   } else {
     retvec = NewimageCoord2NewimageCoord(affmat,srcvol,destvol,srccoord);
@@ -333,6 +337,7 @@ int main(int argc,char *argv[])
       cerr << "An error occured while reading file: " << globalopts.warpfname << endl;
       exit(EXIT_FAILURE);
     }
+    fnirt4D = fnirtfile.FieldAsNewimageVolume4D(true);  // HACKY GLOBAL MJ
   }
 
 
@@ -388,17 +393,14 @@ int main(int argc,char *argv[])
   // loop around reading coordinates and displaying output
 
 
- while ( (use_stdin && (!cin.eof())) || ((!use_stdin) && (!matfile.eof())) ) {
-    for (int j=1; j<=3; j++) {
-      if (use_stdin) { cin >> stdcoord(j); }
-      else { matfile >> stdcoord(j); }
-    } 
+  while ( (use_stdin && (!cin.eof())) || ((!use_stdin) && (matfile >> stdcoord(1) >> stdcoord(2) >> stdcoord(3))) ) {
     if  (use_stdin) {
+      cin >> stdcoord(1) >> stdcoord(2) >> stdcoord(3);
       // this is in case the pipe continues to input a stream of zeros
       if (oldstd == stdcoord)  return 0;
       oldstd = stdcoord;
     }
-
+    
     // map from stdvol space to img space 
     imgcoord = NewimageCoord2NewimageCoord(fnirtfile,affmat.i(),stdvol,imgvol,stdvol.newimagevox2mm_mat().i() * stdcoord);
     // now have imgcoord in newimage voxels in imgvol space

@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #ifndef EXPOSE_TREACHEROUS
 #define EXPOSE_TREACHEROUS           // To allow us to use .sampling_mat()
@@ -92,7 +92,7 @@ using namespace BASISFIELD;
 // COMMAND LINE OPTIONS
 
 namespace fnirtfileutils {
-string title="fnirtfileutils\nCopyright(c) 2007, University of Oxford (Jesper Andersson)";
+string title="fnirtfileutils\nCopyright(c) 2012, University of Oxford (Jesper Andersson)";
 string examples=string("fnirtfileutils --in=my_fnirtcoefs --ref=my_refvol --out=my_field\n") +
                 string("fnirtfileutils --in=my_fnirtcoefs --ref=my_refvol --jac=my_jacobians\n") + 
                 string("fnirtfileutils --in=my_fnirtcoefs --ref=my_refvol --out=my_field --withaff\n");
@@ -110,7 +110,7 @@ Option<string> refname(string("-r,--ref"), string(""),
 		       string("filename for reference volume"),
 		       false, requires_argument);
 Option<string> outname(string("-o,--out"), string(""),
-		       string("filename for output (field/coef) volume"),
+		       string("filename for output (field/coef) volume - uses relative warp convention"),
 		       false, requires_argument);
 Option<string> outformat(string("-f,--outformat"),string("field"),
 			 string("Output format [field spline], default=field"),

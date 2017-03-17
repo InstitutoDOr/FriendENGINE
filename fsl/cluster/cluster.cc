@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #ifndef EXPOSE_TREACHEROUS
 #define EXPOSE_TREACHEROUS
@@ -89,9 +89,9 @@ using namespace Utilities;
 using namespace NEWMAT;
 using namespace MISCMATHS;
 
-namespace cluster {
+namespace clusterCC {
 #include "newimage/fmribmain.h"
-string title="cluster (Version 1.3)\nCopyright(c) 2000-2008, University of Oxford (Mark Jenkinson, Matthew Webster)";
+string title="cluster \nCopyright(c) 2000-2013, University of Oxford (Mark Jenkinson, Matthew Webster)";
 string examples="cluster --in=<filename> --thresh=<value> [options]";
 
 Option<bool> verbose(string("-v,--verbose"), false, 
@@ -115,6 +115,9 @@ Option<bool> no_table(string("--no_table"), false,
 Option<bool> minclustersize(string("--minclustersize"), false,
 		      string("prints out minimum significant cluster size"),
 		      false, no_argument);
+Option<int> sizethreshold(string("--minextent"), 1,
+		      string("do not report clusters with less than extent voxels"),
+		      false, requires_argument);
 Option<int> voxvol(string("--volume"), 0,
 		   string("number of voxels in the mask"),
 		   false, requires_argument);
@@ -175,6 +178,9 @@ Option<string> stdvolname(string("--stdvol"), string(""),
 Option<string> warpname(string("--warpvol"), string(""),
 		       string("filename for warpfield"),
 		       false, requires_argument);
+Option<string> scalarname(string("--scalarname"), string(""),
+		       string("give name of scalars (e.g. Z) - to be used in printing output tables"),
+		       false, requires_argument);
 
 
 int num(const char x) { return (int) x; }
@@ -185,7 +191,41 @@ double num(const double x) { return x; }
 
 
 template <class T>
-struct triple { T x; T y; T z; };
+struct triple {
+T x,y,z;
+triple() {}
+triple(const T ix,const T iy,const T iz) : x(ix),y(iy),z(iz) {}
+};
+
+template <class T>
+struct Cluster {
+	Cluster();
+	int originalLabel;
+	int size;
+	T maxval;
+	float meanval;
+	triple<float> maxpos; //float as may be mm or vox
+	triple<float> cog;
+	float pval;
+	float logpval;
+};
+
+template <class T>
+Cluster<T>::Cluster() : originalLabel(0), size(0), maxval(0), meanval(0), pval(1), logpval(0) {
+  maxpos.x=maxpos.y=maxpos.z=cog.x=cog.y=cog.z=0;
+}
+
+template <class T>
+bool operator< (const Cluster<T> &c1, const Cluster<T> &c2)
+{
+    return c1.size < c2.size;
+}
+
+template <class T>
+bool operator< (const pair<T, triple<float> > &p1, const pair<T, triple<float> > &p2)
+{
+    return p1.first < p2.first;
+}
 
 template <class T, class S>
 void copyconvert(const vector<triple<T> >& oldcoords, 
@@ -201,32 +241,28 @@ void copyconvert(const vector<triple<T> >& oldcoords,
 }
 
 template <class T>
-void MultiplyCoordinateVector(vector<triple<T> >& coords, const Matrix& mat)
+void MultiplyCoordinateVector(triple<T> & coords, const Matrix& mat)
 {
   ColumnVector vec(4);
-  for (unsigned int n=0; n<coords.size(); n++) {
-    vec << coords[n].x << coords[n].y << coords[n].z << 1.0;
-    vec = mat * vec;     // apply voxel xfm
-    coords[n].x = vec(1);
-    coords[n].y = vec(2);
-    coords[n].z = vec(3);
-  }
+  vec << coords.x << coords.y << coords.z << 1.0;
+  vec = mat * vec;     // apply voxel xfm
+  coords.x = vec(1);
+  coords.y = vec(2);
+  coords.z = vec(3);
 }
 
 template <class T, class S>
-void TransformToReference(vector<triple<T> >& coordlist, const Matrix& affine, 
+void TransformToReference(triple<T> & coordlist, const Matrix& affine, 
 			  const volume<S>& source, const volume<S>& dest, const volume4D<float>& warp,bool doAffineTransform, bool doWarpfieldTransform)
 {
   ColumnVector coord(4);
-  for (unsigned int n=0; n<coordlist.size(); n++) {
-    coord << coordlist[n].x << coordlist[n].y << coordlist[n].z << 1.0;
-    if ( doAffineTransform && doWarpfieldTransform ) coord = NewimageCoord2NewimageCoord(affine,warp,true,source,dest,coord);
-    if ( doAffineTransform && !doWarpfieldTransform) coord = NewimageCoord2NewimageCoord(affine,source,dest,coord);
-    if ( !doAffineTransform && doWarpfieldTransform) coord = NewimageCoord2NewimageCoord(warp,true,source,dest,coord);
-    coordlist[n].x = coord(1);
-    coordlist[n].y = coord(2);
-    coordlist[n].z = coord(3);
-  }
+  coord << coordlist.x << coordlist.y << coordlist.z << 1.0;
+  if ( doAffineTransform && doWarpfieldTransform ) coord = NewimageCoord2NewimageCoord(affine,warp,true,source,dest,coord);
+  if ( doAffineTransform && !doWarpfieldTransform) coord = NewimageCoord2NewimageCoord(affine,source,dest,coord);
+  if ( !doAffineTransform && doWarpfieldTransform) coord = NewimageCoord2NewimageCoord(warp,true,source,dest,coord);
+  coordlist.x = coord(1);
+  coordlist.y = coord(2);
+  coordlist.z = coord(3);
 }
 
 template <class T>
@@ -273,89 +309,41 @@ bool checkIfLocalMaxima(const int& index, const volume<int>& labelim, const volu
 }
 
 template <class T>
-void get_stats(const volume<int>& labelim, const volume<T>& origim,
-	       vector<int>& size,
-	       vector<T>& maxvals, vector<float>& meanvals,
-	       vector<triple<int> >& max, vector<triple<float> >& cog,
-	       bool minv) 
+void get_stats(const volume<int>& labelim, const volume<T>& origim, vector<Cluster<T>>& clusters, bool minv)
 {
   int labelnum = labelim.max();
-  size.resize(labelnum+1,0);
-  maxvals.resize(labelnum+1, (T) 0);
-  meanvals.resize(labelnum+1,0.0f);
-  triple<int> zero;
-  zero.x = 0; zero.y = 0; zero.z = 0;
-  triple<float> zerof;
-  zerof.x = 0; zerof.y = 0; zerof.z = 0;
-  max.resize(labelnum+1,zero);
-  cog.resize(labelnum+1,zerof);
-  vector<float> sum(labelnum+1,0.0);
+  clusters.resize(labelnum);
   for (int z=labelim.minz(); z<=labelim.maxz(); z++) {
     for (int y=labelim.miny(); y<=labelim.maxy(); y++) {
       for (int x=labelim.minx(); x<=labelim.maxx(); x++) {
 	int idx = labelim(x,y,z);
-	T oxyz = origim(x,y,z);
-	size[idx]++;
-	cog[idx].x+=((float) oxyz)*x;
-	cog[idx].y+=((float) oxyz)*y;
-	cog[idx].z+=((float) oxyz)*z;
-	sum[idx]+=(float) oxyz;
-	if ( (size[idx]==1) || 
-	     ( (oxyz>maxvals[idx]) && (!minv) ) || 
-	     ( (oxyz<maxvals[idx]) && (minv) ) ) 
-	  {
-	    maxvals[idx] = oxyz;
-	    max[idx].x = x;
-	    max[idx].y = y;
-	    max[idx].z = z;
+	if ( idx-- ) {
+	  clusters[idx].originalLabel=idx+1; //slightly wasteful, but doesn't really matter
+	  T oxyz = origim(x,y,z);
+	  clusters[idx].size++;
+	  clusters[idx].cog.x+=((float) oxyz)*x;
+	  clusters[idx].cog.y+=((float) oxyz)*y;
+	  clusters[idx].cog.z+=((float) oxyz)*z;
+	  clusters[idx].meanval+=(float) oxyz;
+	  if ((clusters[idx].size==1) || ((oxyz>clusters[idx].maxval) && !minv ) || ((oxyz<clusters[idx].maxval) && minv )) {
+	    clusters[idx].maxval = oxyz;
+	    clusters[idx].maxpos.x = x;
+	    clusters[idx].maxpos.y = y;
+	    clusters[idx].maxpos.z = z;
 	  }
+	}
       }
     }
   }
-  for (int n=0; n<=labelnum; n++) {
-    if (size[n]>0.0) {
-      meanvals[n] = (sum[n]/((float) size[n]));
-    }
-    if (sum[n]>0.0) {
-      cog[n].x /= sum[n];
-      cog[n].y /= sum[n];
-      cog[n].z /= sum[n];
+  for (unsigned int n=0; n<clusters.size(); n++) {
+    if (clusters[n].size) {
+      clusters[n].cog.x /= clusters[n].meanval; //meanval is currently just sum
+      clusters[n].cog.y /= clusters[n].meanval;
+      clusters[n].cog.z /= clusters[n].meanval;
+      clusters[n].meanval /= clusters[n].size;
     }
   }
 }
-
-
-vector<int> get_sortindex(const vector<int>& vals)
-{
-  // return the mapping of old indices to new indices in the
-  //   new *ascending* sort of vals
-  int length=vals.size();
-  vector<pair<int, int> > sortlist(length);
-  for (int n=0; n<length; n++) {
-    sortlist[n] = pair<int, int>(vals[n],n);
-  }
-  sort(sortlist.begin(),sortlist.end());  // O(N.log(N))
-  vector<int> idx(length);
-  for (int n=0; n<length; n++) {
-    idx[n] = sortlist[n].second;
-  }
-  return idx;
-}
-
-
-void get_sizeorder(const vector<int>& size, vector<int>& sizeorder) 
-{
-  vector<int> sizecopy(size), idx;
-  idx = get_sortindex(sizecopy);
-
-  // second part of pair is now the prior-index of the sorted values
-  int length = size.size();
-  sizeorder.resize(length,0);
-  for (int n=0; n<length; n++) {
-    sizeorder[idx[n]] = n;    // maps old index to new
-  }
-}
-
 
 template <class T, class S>
 void relabel_image(const volume<int>& labelim, volume<T>& relabelim,
@@ -368,29 +356,15 @@ void relabel_image(const volume<int>& labelim, volume<T>& relabelim,
 	relabelim(x,y,z) = (T) newlabels[labelim(x,y,z)];
 }
 
-template <class T, class S>
-void print_results(const vector<int>& idx, 
-		   const vector<int>& size,
-		   const vector<int>& pthreshindex,
-		   const vector<float>& pvals,
-		   const vector<float>& logpvals,
-		   const vector<T>& maxvals,
-		   const vector<triple<S> >& maxpos,
-		   const vector<triple<float> >& cog,
-		   const vector<T>& copemaxval,
-		   const vector<triple<S> >& copemaxpos,
-		   const vector<float>& copemean,
+template <class T>
+void print_results(vector<Cluster<T> >& clusters,
+	vector<Cluster<T> >& clustersCope,
 		   const volume<T>& zvol, const volume<T>& cope, 
 		   const volume<int> &labelim)
 {
   bool doAffineTransform=false;
   bool doWarpfieldTransform=false;
   volume4D<float>  full_field;
-  int length=size.size();
-  vector<triple<float> > fmaxpos, fcopemaxpos, fcog;
-  copyconvert(maxpos,fmaxpos);
-  copyconvert(cog,fcog);
-  copyconvert(copemaxpos,fcopemaxpos);
   volume<T> stdvol;
   Matrix trans;
   const volume<T> *refvol = &zvol;
@@ -414,63 +388,58 @@ void print_results(const vector<int>& idx,
     doWarpfieldTransform=true;
   }
 
-  if ( doAffineTransform || doWarpfieldTransform ) { 
-    TransformToReference(fmaxpos,trans,zvol,stdvol,full_field,doAffineTransform,doWarpfieldTransform);
-    TransformToReference(fcog,trans,zvol,stdvol,full_field,doAffineTransform,doWarpfieldTransform);
-    if (copename.set()) TransformToReference(fcopemaxpos,trans,zvol,stdvol,full_field,doAffineTransform,doWarpfieldTransform);
+  if ( doAffineTransform || doWarpfieldTransform ) {
+    for (unsigned int n=0; n<clusters.size(); n++) {
+      TransformToReference(clusters[n].maxpos,trans,zvol,stdvol,full_field,doAffineTransform,doWarpfieldTransform);
+      TransformToReference(clusters[n].cog,trans,zvol,stdvol,full_field,doAffineTransform,doWarpfieldTransform);
+      if (copename.set()) TransformToReference(clustersCope[n].maxpos,trans,zvol,stdvol,full_field,doAffineTransform,doWarpfieldTransform);
+    }
   }
 
   if ( doAffineTransform ) refvol = &stdvol;
+  Matrix toDisplayCoord(refvol->niftivox2newimagevox_mat().i());
   if (mm.value()) {
-    if (verbose.value()) { 
-      cout << "Using matrix : " << endl << refvol->newimagevox2mm_mat() << endl; 
-    }
-    MultiplyCoordinateVector(fmaxpos,refvol->newimagevox2mm_mat());
-    MultiplyCoordinateVector(fcog,refvol->newimagevox2mm_mat());
-    if (copename.set()) MultiplyCoordinateVector(fcopemaxpos,refvol->newimagevox2mm_mat());  // used cope before
-  } else {
-    MultiplyCoordinateVector(fmaxpos,refvol->niftivox2newimagevox_mat().i());
-    MultiplyCoordinateVector(fcog,refvol->niftivox2newimagevox_mat().i());
-    if (copename.set()) MultiplyCoordinateVector(fcopemaxpos,refvol->niftivox2newimagevox_mat().i());   // used cope before
+    if (verbose.value()) 
+      cout << "Using matrix : " << endl << refvol->newimagevox2mm_mat() << endl;
+    toDisplayCoord=refvol->newimagevox2mm_mat();
   }
+  for (unsigned int n=0; n<clusters.size(); n++) {
+    MultiplyCoordinateVector(clusters[n].maxpos,toDisplayCoord);
+    MultiplyCoordinateVector(clusters[n].cog,toDisplayCoord);
+    if (copename.set()) MultiplyCoordinateVector(clustersCope[n].maxpos,toDisplayCoord);   // used cope before
+  }
+  
 
-  string units=" (vox)";
-  if (mm.value()) units=" (mm)";
+  string units(mm.value() ? " (mm)" : " (vox)");
   string tablehead;
   tablehead = "Cluster Index\tVoxels";
   if (pthresh.set()) tablehead += "\tP\t-log10(P)";
-  tablehead += "\tZ-MAX\tZ-MAX X" + units + "\tZ-MAX Y" + units + "\tZ-MAX Z" + units
-    + "\tZ-COG X" + units + "\tZ-COG Y" + units + "\tZ-COG Z" + units;
+  string z=scalarname.value()+"-";
+  if (z=="-") { z=""; }
+  tablehead += "\t"+z+"MAX\t"+z+"MAX X" + units + "\t"+z+"MAX Y" + units + "\t"+z+"MAX Z" + units
+    + "\t"+z+"COG X" + units + "\t"+z+"COG Y" + units + "\t"+z+"COG Z" + units;
   if (copename.set()) {
     tablehead+= "\tCOPE-MAX\tCOPE-MAX X" + units + "\tCOPE-MAX Y" + units + "\tCOPE-MAX Z" + units 
                  + "\tCOPE-MEAN";
   }
 
   if (!no_table.value()) cout << tablehead << endl;
-
-  for (int n=length-1; n>=1; n--) {
-    int index=idx[n];
-    int k = size[index];
-    float p = pvals[index];
-    if ( !no_table.value() && pthreshindex[index]>0 ) {
-      float mlog10p;
-      mlog10p = -logpvals[index];
-      cout << setprecision(3) << num(pthreshindex[index]) << "\t" << k << "\t"; 
-      if (!pthresh.unset()) { cout << num(p) << "\t" << num(mlog10p) << "\t"; }
-        cout << num(maxvals[index]) << "\t" 
-	   << num(fmaxpos[index].x) << "\t" << num(fmaxpos[index].y) << "\t" 
-	   << num(fmaxpos[index].z) << "\t"
-	   << num(fcog[index].x) << "\t" << num(fcog[index].y) << "\t" 
-	   << num(fcog[index].z);
+  for (int n=clusters.size()-1; n>=0 && !no_table.value(); n--) {
+      cout << setprecision(3) << num(n+1) << "\t" << clusters[n].size << "\t"; 
+      if (!pthresh.unset()) { cout << num(clusters[n].pval) << "\t" << num(-clusters[n].logpval) << "\t"; }
+        cout << num(clusters[n].maxval) << "\t" 
+	   << num(clusters[n].maxpos.x) << "\t" << num(clusters[n].maxpos.y) << "\t" 
+	   << num(clusters[n].maxpos.z) << "\t"
+	   << num(clusters[n].cog.x) << "\t" << num(clusters[n].cog.y) << "\t" 
+	   << num(clusters[n].cog.z);
       if (!copename.unset()) { 
-	  cout   << "\t" << num(copemaxval[index]) << "\t"
-	       << num(fcopemaxpos[index].x) << "\t" << num(fcopemaxpos[index].y) << "\t" 
-	       << num(fcopemaxpos[index].z) << "\t" << num(copemean[index]);
+	  cout   << "\t" << num(clustersCope[n].maxval) << "\t"
+	       << num(clustersCope[n].maxpos.x) << "\t" << num(clustersCope[n].maxpos.y) << "\t" 
+	       << num(clustersCope[n].maxpos.z) << "\t" << num(clustersCope[n].meanval);
 	}
         cout << endl;
-    }
+    
   }
-
   // output local maxima
   if (outlmax.set() || outlmaxim.set()) {
     string outlmaxfile="/dev/null";
@@ -478,81 +447,44 @@ void print_results(const vector<int>& idx,
     ofstream lmaxfile(outlmaxfile.c_str());
     if (!lmaxfile)
       cerr << "Could not open file " << outlmax.value() << " for writing" << endl;
-    lmaxfile << "Cluster Index\tZ\tx\ty\tz\t" << endl;
-    volume<int> lmaxvol;
+    string scalarnm=scalarname.value();
+    if (scalarnm=="") { scalarnm="Value"; }
+    lmaxfile << "Cluster Index\t"+scalarnm+"\tx\ty\tz\t" << endl;
+    volume<char> lmaxvol;
     copyconvert(zvol,lmaxvol);
     lmaxvol=0;
     zvol.setextrapolationmethod(zeropad);
-    for (int n=size.size()-1; n>=1; n--) {
-      int index=idx[n];
-      if (pthreshindex[index]>0) {
-	vector<int>   lmaxlistZ(size[index]);
-	vector<triple<float> > lmaxlistR(size[index]);
-	int lmaxlistcounter=0;
-	for (int z=labelim.minz(); z<=labelim.maxz(); z++)
-	  for (int y=labelim.miny(); y<=labelim.maxy(); y++)
-	    for (int x=labelim.minx(); x<=labelim.maxx(); x++)
-	      if ( checkIfLocalMaxima(index,labelim,zvol,numconnected.value(),x,y,z)) {
-		lmaxvol(x,y,z)=1;
-		lmaxlistZ[lmaxlistcounter]=(int)(1000.0*zvol(x,y,z));
-		lmaxlistR[lmaxlistcounter].x=x;
-		lmaxlistR[lmaxlistcounter].y=y;
-		lmaxlistR[lmaxlistcounter].z=z;
-		lmaxlistcounter++;
-	      }
-
-	lmaxlistZ.resize(lmaxlistcounter);
-	vector<int> lmaxidx = get_sortindex(lmaxlistZ);
-	if (peakdist.value()>0)
-	{
-	  for(int source=lmaxlistcounter-2;source>=0;source--)
+    for (int n=clusters.size()-1; n>=0; n--) {
+      vector<pair<T, triple<float> > > maxima;
+      for (int z=labelim.minz(); z<=labelim.maxz(); z++)
+	for (int y=labelim.miny(); y<=labelim.maxy(); y++)
+	  for (int x=labelim.minx(); x<=labelim.maxx(); x++)
+	    if ( checkIfLocalMaxima(clusters[n].originalLabel,labelim,zvol,numconnected.value(),x,y,z)) 
+	      maxima.push_back(make_pair(zvol(x,y,z),triple<float>(x,y,z)));
+      sort(maxima.rbegin(),maxima.rend());
+      if (peakdist.value()>0) {
+	for(unsigned int source=0;source<maxima.size();source++)
 	  {
-	    vector<triple<float> > sourcecoord(1), erasecoord(1);
-	    sourcecoord[0]=lmaxlistR[lmaxidx[source]];
-	    erasecoord[0]=sourcecoord[0];
+	    triple<float> sourcecoord(maxima[source].second);
 	    MultiplyCoordinateVector(sourcecoord,refvol->newimagevox2mm_mat());
-	    for(int clust=lmaxlistcounter-1;clust>source;clust--)
+	    for(typename vector<pair<T, triple<float> > >::iterator clust=maxima.begin()+source+1; clust !=maxima.end();)
 	    {
-	      vector<triple<float> > clustcoord(1);
-	      clustcoord[0]=lmaxlistR[lmaxidx[clust]];
+	      triple<float> clustcoord((*clust).second);
 	      MultiplyCoordinateVector(clustcoord,refvol->newimagevox2mm_mat());
-	      float dist = (sourcecoord[0].x-clustcoord[0].x)*(sourcecoord[0].x-clustcoord[0].x) + (sourcecoord[0].y-clustcoord[0].y )*(sourcecoord[0].y-clustcoord[0].y) + (sourcecoord[0].z-clustcoord[0].z)*(sourcecoord[0].z-clustcoord[0].z);
-	      dist = sqrt(dist);
-	      if (dist<peakdist.value()) {
-		lmaxvol(MISCMATHS::round(erasecoord[0].x),
-			MISCMATHS::round(erasecoord[0].y),
-			MISCMATHS::round(erasecoord[0].z))=0;
-		lmaxidx.erase(lmaxidx.begin()+source) ; 
-		lmaxlistcounter--;	
-		break;
-	      }
+	      float dist(sqrt((sourcecoord.x-clustcoord.x)*(sourcecoord.x-clustcoord.x) + (sourcecoord.y-clustcoord.y )*(sourcecoord.y-clustcoord.y) + (sourcecoord.z-clustcoord.z)*(sourcecoord.z-clustcoord.z)));
+	      clust = dist<peakdist.value() ? maxima.erase(clust) : clust+1;
 	    }
 	  }
-	}
-
-	// take a copy of coordinates in native space
-	vector<triple<float> > lmaxlistRcopy(size[index]);
-	lmaxlistRcopy = lmaxlistR;
-
-	// transform coordinates (if requested)
-	if ( doAffineTransform || doWarpfieldTransform ) TransformToReference(lmaxlistR,trans,zvol,stdvol,full_field,doAffineTransform,doWarpfieldTransform);
-  
-	if (mm.value()) MultiplyCoordinateVector(lmaxlistR,refvol->newimagevox2mm_mat());
-	else MultiplyCoordinateVector(lmaxlistR,refvol->niftivox2newimagevox_mat().i());
-	// display/store results
-	for (int i=lmaxlistcounter-1; i>MISCMATHS::Max(lmaxlistcounter-1-mx_cnt.value(),-1); i--) 
-	  {
-	    lmaxfile << setprecision(3) << pthreshindex[index] << "\t" << lmaxlistZ[lmaxidx[i]]/1000.0 << "\t" << 
-	      lmaxlistR[lmaxidx[i]].x << "\t" << lmaxlistR[lmaxidx[i]].y << "\t" << lmaxlistR[lmaxidx[i]].z << endl;
-	  }
-	// suppress the other local max in the output vol
-	for (int i=MISCMATHS::Max(lmaxlistcounter-1-mx_cnt.value(),-1); i>-1; i--) 
-	  {
-	    lmaxvol(MISCMATHS::round(lmaxlistRcopy[lmaxidx[i]].x),
-		    MISCMATHS::round(lmaxlistRcopy[lmaxidx[i]].y),
-		    MISCMATHS::round(lmaxlistRcopy[lmaxidx[i]].z))=0;
-	  }
-	
+      }
+      maxima.resize(std::min(maxima.size(),(size_t)mx_cnt.value()));
+      for(typename vector<pair<T, triple<float> > >::iterator point=maxima.begin(); point !=maxima.end(); ++point) { //output results
+	lmaxvol(MISCMATHS::round((*point).second.x),
+		MISCMATHS::round((*point).second.y),
+		MISCMATHS::round((*point).second.z))=1;
+	if ( doAffineTransform || doWarpfieldTransform ) TransformToReference((*point).second,trans,zvol,stdvol,full_field,doAffineTransform,doWarpfieldTransform);
+	MultiplyCoordinateVector((*point).second, toDisplayCoord);
+	lmaxfile << setprecision(3) << n+1 << "\t" << (*point).first << "\t" << 
+	  (*point).second.x << "\t" << (*point).second.y << "\t" << (*point).second.z << endl;
       }
     }
     lmaxfile.close();
@@ -561,7 +493,6 @@ void print_results(const vector<int>& idx,
       save_volume(lmaxvol,outlmaxim.value());
     }
   }
-
 }
 
 
@@ -570,11 +501,6 @@ template <class T>
 int fmrib_main(int argc, char *argv[])
 {
   volume<int> labelim;
-  vector<int> size;
-  vector<triple<int> > maxpos;
-  vector<triple<float> > cog;
-  vector<T> maxvals;
-  vector<float> meanvals;
   float th = thresh.value();
 
   // read in the volume
@@ -596,29 +522,25 @@ int fmrib_main(int argc, char *argv[])
   if (verbose.value())  print_volume_info(labelim,"Labelim");
   
   // process according to the output format
-  get_stats(labelim,zvol,size,maxvals,meanvals,maxpos,cog,minv.value());
-  if (verbose.value()) {cout<<"Number of labels = "<<size.size()<<endl;}
+  vector<Cluster<T>> clusters;
+  get_stats(labelim,zvol,clusters,minv.value());
+  int nOriginalLabels(clusters.size()+1); //0 is also a label of sorts
+  if (verbose.value()) cout<<"Number of labels = "<<clusters.size()<<endl;
 
   // process the cope image if entered
-  vector<int> copesize;
-  vector<triple<int> > copemaxpos;
-  vector<triple<float> > copecog;
-  vector<T> copemaxval;
-  vector<float> copemean;
+  vector<Cluster<T>> clustersCope;
   if (!copename.unset()) {
     read_volume(cope,copename.value());
-    get_stats(labelim,cope,copesize,copemaxval,copemean,copemaxpos,copecog,
-	      minv.value());
+    get_stats(labelim,cope,clustersCope,minv.value());
   }
 
+ sort(clusters.rbegin(),clusters.rend());        //Sort descending for threshold purposes
+ sort(clustersCope.rbegin(),clustersCope.rend());
+ 
+
   // re-threshold for p
-  int length = size.size();
-  size[0] = 0;  // force background to be ordered last
-  vector<int> pthreshsize;
-  vector<float> pvals(length), logpvals(length);
-  pthreshsize = size;
   int nozeroclust=0;
-  if (!pthresh.unset()) {
+  if (pthresh.set()) {
     if (verbose.value()) 
       cout<<"Re-thresholding with p-value"<<endl;
     Infer infer(dLh.value(), th, voxvol.value());
@@ -630,65 +552,80 @@ int fmrib_main(int argc, char *argv[])
       while (pmin>=pthresh.value()) pmin=exp(infer(++nmin)); 
       cout << "Minimum cluster size under p-threshold = " << nmin << endl;
     }
-    for (int n=1; n<length; n++) {
-      int k = size[n];
-      logpvals[n] = infer(k)/log(10);
-      pvals[n] = exp(logpvals[n]*log(10));
-      if (pvals[n]>pthresh.value()) {
-	pthreshsize[n] = 0;
+    for (unsigned int n=0; n<clusters.size(); n++) {
+      clusters[n].logpval = infer(clusters[n].size)/log(10);
+      clusters[n].pval = exp(clusters[n].logpval*log(10));
+      if (clusters[n].pval>pthresh.value()) 
 	nozeroclust++;
-      }
     }
   }
-  if (verbose.value()) {cout<<"Number of sub-p clusters = "<<nozeroclust<<endl;}
+  if (verbose.value()) cout<<"Number of sub-p clusters = "<<nozeroclust<<endl;
 
-  // get sorted index (will revert to cluster size if no pthresh)
-  vector<int> idx;
-  idx = get_sortindex(pthreshsize);
-  if (verbose.value()) {cout<<pthreshsize.size()<<" labels in sortedidx"<<endl;}
 
-  vector<int> threshidx(length);
-  for (int n=length-1; n>=1; n--) {
-    int index=idx[n];
-    if (pthreshsize[index]>0) 
-      threshidx[index] = n - nozeroclust;
+  unsigned int n=0;
+  for (; n<clusters.size(); n++) { //find first sub-p/size index
+    if ( pthresh.set() && clusters[n].pval>pthresh.value() ) break;
+    if ( sizethreshold.set() && clusters[n].size < sizethreshold.value() ) break;
   }
+  clusters.resize(n); //remove all clusters which are either sub p or sub sizethresh
+  clustersCope.resize(n);
+  reverse(clusters.begin(),clusters.end());        //Ascending for output
+  reverse(clustersCope.begin(),clustersCope.end());
+  if (verbose.value()) {cout<<clusters.size()<<" labels in sortedidx"<<endl;}
 
   // print table
-  print_results(idx, size, threshidx, pvals, logpvals, maxvals, maxpos, cog, copemaxval, copemaxpos, copemean, zvol, cope, labelim);
+  print_results(clusters, clustersCope, zvol, cope, labelim);
   
   labelim.setDisplayMaximumMinimum(0,0);
   // save relevant volumes
-  if (!outindex.unset()) {
+  if ( outindex.set() ) {
     volume<int> relabeledim;
-    relabel_image(labelim,relabeledim,threshidx);
-    save_volume(relabeledim,outindex.value());
+    vector<int> indexMap(nOriginalLabels,0);
+    for (unsigned int n=0; n<clusters.size(); n++)
+      indexMap[clusters[n].originalLabel]=n+1;
+    relabel_image(labelim,relabeledim,indexMap);
+    save_volume(relabeledim,outindex.value());  
   }
-  if (!outsize.unset()) {
+  if (outsize.set()) {
     volume<int> relabeledim;
-    relabel_image(labelim,relabeledim,pthreshsize);
+    vector<int> sizeMap(nOriginalLabels,0);
+    for (unsigned int n=0; n<clusters.size(); n++)
+      sizeMap[clusters[n].originalLabel]=clusters[n].size;
+    relabel_image(labelim,relabeledim,sizeMap);
     save_volume(relabeledim,outsize.value());
   }
-  if (!outmax.unset()) {
+  if (outmax.set()) {
     volume<T> relabeledim;
-    relabel_image(labelim,relabeledim,maxvals);
+    vector<T> maxMap(nOriginalLabels,0);
+    for (unsigned int n=0; n<clusters.size(); n++)
+      maxMap[clusters[n].originalLabel]=clusters[n].maxval;
+    relabel_image(labelim,relabeledim,maxMap);
     save_volume(relabeledim,outmax.value());
   }
-  if (!outmean.unset()) {
+  if (outmean.set()) {
     volume<float> relabeledim;
-    relabel_image(labelim,relabeledim,meanvals);
+    vector<float> meanMap(nOriginalLabels,0);
+    for (unsigned int n=0; n<clusters.size(); n++)
+      meanMap[clusters[n].originalLabel]=clusters[n].meanval;
+    relabel_image(labelim,relabeledim,meanMap);
     save_volume(relabeledim,outmean.value());
   }
-  if (!outpvals.unset()) {
+  if (outpvals.set()) {
     volume<float> relabeledim;
-    relabel_image(labelim,relabeledim,logpvals);
+    vector<float> pMap(nOriginalLabels,0);
+    for (unsigned int n=0; n<clusters.size(); n++)
+      pMap[clusters[n].originalLabel]=clusters[n].logpval;
+    relabel_image(labelim,relabeledim,pMap);
     save_volume(relabeledim,outpvals.value());
-  }
+    }
   if (!outthresh.unset()) {
     // Threshold the input volume st it is 0 for all non-clusters
     //   and maintains the same values otherwise
     volume<T> lcopy;
-    relabel_image(labelim,lcopy,threshidx);
+    vector<int> indexMap(nOriginalLabels,0);
+    for (unsigned int n=0; n<clusters.size(); n++)
+      indexMap[clusters[n].originalLabel]=n+1;
+    relabel_image(labelim,lcopy,indexMap);
     lcopy.binarise(1);
     save_volume(lcopy*zvol,outthresh.value());
   }
@@ -730,8 +667,10 @@ extern "C" __declspec(dllexport) int _stdcall cluster(char *CmdLn)
     options.add(minv);
     options.add(no_table);
     options.add(minclustersize);
+    options.add(sizethreshold);
     options.add(transformname);
     options.add(stdvolname);
+    options.add(scalarname);
     options.add(mx_cnt);
     options.add(verbose);
     options.add(help);

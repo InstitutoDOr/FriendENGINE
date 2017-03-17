@@ -57,6 +57,8 @@
     <ClCompile Include="..\..\..\fsl\melodic\melpca.cc" />
     <ClCompile Include="..\..\..\fsl\melodic\melreport.cc" />
     <ClCompile Include="..\..\..\fsl\miscvis\fsl_tsplot.cc" />
+    <ClCompile Include="..\..\..\fsl\miscvis\pngappend.cc" />
+    <ClCompile Include="..\..\..\fsl\miscvis\slicer.cc" />
     <ClCompile Include="..\..\..\fsl\susan\susan.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

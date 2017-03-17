@@ -673,7 +673,7 @@ namespace Melodic{
  		RowVector PercEV(PPCAest.Column(1).t());
 	  PercEV = cumsum(PercEV / sum(PercEV,2).AsScalar());
 
-		if(which == string("aut"))
+	  if(which == string("aut")) {
 			if(int(estimators(2)) < int(estimators(1)) && 
 				float(PercEV(int(estimators(2))))>0.8){
 				res=int(estimators(2));
@@ -681,7 +681,8 @@ namespace Melodic{
 			}else{
 				res = int(estimators(1));
 	      PPCA << PPCAest.Column(2);
-			}				
+			}
+	  }			
     if(which == string("lap")){
       res = int(estimators(1));
       PPCA << PPCAest.Column(2);

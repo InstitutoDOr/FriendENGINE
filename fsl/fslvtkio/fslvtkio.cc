@@ -1,3 +1,68 @@
+/*    Copyright (C) 2012 University of Oxford  */
+
+/*  Part of FSL - FMRIB's Software Library
+    http://www.fmrib.ox.ac.uk/fsl
+    fsl@fmrib.ox.ac.uk
+    
+    Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+    Imaging of the Brain), Department of Clinical Neurology, Oxford
+    University, Oxford, UK
+    
+    
+    LICENCE
+    
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
+    Oxford (the "Software")
+    
+    The Software remains the property of the University of Oxford ("the
+    University").
+    
+    The Software is distributed "AS IS" under this Licence solely for
+    non-commercial use in the hope that it will be useful, but in order
+    that the University as a charitable foundation protects its assets for
+    the benefit of its educational and research purposes, the University
+    makes clear that no condition is made or to be implied, nor is any
+    warranty given or to be implied, as to the accuracy of the Software,
+    or that it will be suitable for any particular purpose or for use
+    under any specific conditions. Furthermore, the University disclaims
+    all responsibility for the use which is made of the Software. It
+    further disclaims any liability for the outcomes arising from using
+    the Software.
+    
+    The Licensee agrees to indemnify the University and hold the
+    University harmless from and against any and all claims, damages and
+    liabilities asserted by third parties (including claims for
+    negligence) which arise directly or indirectly from the use of the
+    Software or the sale of any products based on the Software.
+    
+    No part of the Software may be reproduced, modified, transmitted or
+    transferred in any form or by any means, electronic or mechanical,
+    without the express permission of the University. The permission of
+    the University is not required if the said reproduction, modification,
+    transmission or transference is done without financial return, the
+    conditions of this Licence are imposed upon the receiver of the
+    product, and all original and amended source code is included in any
+    transmitted product. You may be held legally responsible for any
+    copyright infringement that is caused or encouraged by your failure to
+    abide by these terms and conditions.
+    
+    You are not permitted under this Licence to use this Software
+    commercially. Use for which any financial return is received shall be
+    defined as commercial use, and includes (1) integration of all or part
+    of the source code or the Software into a product for sale or license
+    by or on behalf of Licensee to third parties or (2) use of the
+    Software or any derivative of it for research with the final aim of
+    developing software products for sale or license to a third party or
+    (3) use of the Software or any derivative of it for research with the
+    final aim of developing non-software products for sale or license to a
+    third party, or (4) use of the Software to provide any service to an
+    external organisation for which payment is received. If you are
+    interested in using the Software commercially, please contact Isis
+    Innovation Limited ("Isis"), the technology transfer company of the
+    University, to negotiate a licence. Contact details are:
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+
+
 #include "fslvtkio.h"
 #include "meshclass/meshclass.h"
 #include "newimage/newimageall.h"
@@ -172,6 +237,23 @@ template vector<double> fslvtkIO::getPointsAsVector<double>();
 
 
 
+        ColumnVector fslvtkIO::getPointsAsColumnVector() const 
+{
+
+  ColumnVector pts(Points.Nrows() * Points.Ncols() );
+	
+  for (int i=0;i<Points.Nrows();i++)
+    for (int j=0;j<Points.Ncols();j++)
+	{
+		pts.element( i*Points.Ncols() + j ) = Points.element(i,j);
+	}
+  return pts;
+}
+
+
+
+
+
 
 
 Matrix fslvtkIO::getField(const string & name){
@@ -186,6 +268,23 @@ Matrix fslvtkIO::getField(const string & name){
 	
 	return fieldDataNum.at(ind);
 }
+	
+
+	
+	
+	void fslvtkIO::setField(const string & name, const Matrix & data){
+		//search for field index
+		
+		int ind=-1;
+		for (unsigned int i=0;i<fieldDataNumName.size();i++)
+			if (!strcmp(fieldDataNumName.at(i).c_str(),name.c_str()))
+				ind=i;
+		if (ind==-1)
+			throw fslvtkIOException("No field data of that name."); 
+		
+		fieldDataNum.at(ind)=data;
+	}
+	
 	Matrix fslvtkIO::getField(const string & name, unsigned int & indout ){
 		//search for field index
 		
@@ -202,6 +301,20 @@ Matrix fslvtkIO::getField(const string & name){
 	}
 	
 
+
+
+template<class T>
+vector<T> fslvtkIO::getScalars()
+{
+  vector<T> v_sc;
+  for (int i = 0 ; i < Scalars.Nrows(); ++i)
+    v_sc.push_back(Scalars.element(i,0));
+  return v_sc;
+}
+template vector<int> fslvtkIO::getScalars();
+template vector<unsigned int> fslvtkIO::getScalars();
+template vector<float> fslvtkIO::getScalars();
+template vector<double> fslvtkIO::getScalars();
 
 template<class T>
 void fslvtkIO::setScalars(const vector<T> & sc){
@@ -227,18 +340,25 @@ void fslvtkIO::addCellFieldData(const Matrix & M, const string & name, const str
 	cd_list.push_back(name);
 	cd_type.push_back(vtkAttType);
 }
+			
+void fslvtkIO::replaceFieldData(const Matrix& M,const string & name)
+{
+  unsigned int ind;
+  getField(name, ind);
+  fieldDataNum.at(ind)=M;
+}
 	
-	
-	
-	
-	void fslvtkIO::replaceFieldData(const Matrix& M,const string & name)
-	{
-		unsigned int ind;
-		getField(name, ind);
-		fieldDataNum.at(ind)=M;
-	}
-	
-	
+void fslvtkIO::addFieldData(const ReturnMatrix & M, const string & name, const string & type){
+  fieldDataNum.push_back(M);
+  fieldDataNumName.push_back(name);
+  fieldDataNumType.push_back(type);
+}
+
+void fslvtkIO::addFieldData(const Matrix & M, const string & name, const string & type){
+  fieldDataNum.push_back(M);
+  fieldDataNumName.push_back(name);
+  fieldDataNumType.push_back(type);
+}
 	
 template< class T >
 void fslvtkIO::addFieldData(const vector<T> & vM, const string & name, const string & type){
@@ -250,19 +370,25 @@ void fslvtkIO::addFieldData(const vector<T> & vM, const string & name, const str
 	fieldDataNumName.push_back(name);
 	fieldDataNumType.push_back(type);
 }
+
 template void fslvtkIO::addFieldData<float>(const vector<float> & vM, const string & name, const string & type);
 template void fslvtkIO::addFieldData<double>(const vector<double> & vM, const string & name, const string & type);
 template void fslvtkIO::addFieldData<unsigned int>(const vector<unsigned int> & vM, const string & name, const string & type);
 template void fslvtkIO::addFieldData<short>(const vector<short> & vM, const string & name, const string & type);
 template void fslvtkIO::addFieldData<int>(const vector<int> & vM, const string & name, const string & type);
 
-
-
-void fslvtkIO::addFieldData(const Matrix & M, const string & name, const string & type){
-	fieldDataNum.push_back(M);
-	fieldDataNumName.push_back(name);
-	fieldDataNumType.push_back(type);
+template< class T >
+void fslvtkIO::addFieldData(const T & m,const string & name, const string & type){
+  ColumnVector M(1);
+  M.element(0)=m;
+  fieldDataNum.push_back(M);
+  fieldDataNumName.push_back(name);
+  fieldDataNumType.push_back(type);
 }
+
+template void fslvtkIO::addFieldData<int>(const int & M, const string & name, const string & type);
+template void fslvtkIO::addFieldData<float>(const float & M, const string & name, const string & type);
+
 void fslvtkIO::addFieldData(vector< string > str, string name){
 	fieldDataStr.push_back(str);
 	fieldDataStrName.push_back(name);
@@ -286,6 +412,7 @@ void  fslvtkIO::writePointData(ofstream & fshape, const string & str_typename )
 					if (BINARY)
 					{
 						T val=Scalars.element(i,j);
+						Swap_Nbytes(1,sizeof(val),&val);	
 						fshape.write(reinterpret_cast<char *>(&val),sizeof(val));
 					}else
 					{
@@ -310,6 +437,8 @@ void  fslvtkIO::writePointData(ofstream & fshape, const string & str_typename )
 					if (BINARY)
 					{
 						T val=Vectors.element(i,j);
+						
+						Swap_Nbytes(1,sizeof(val),&val);	
 						fshape.write(reinterpret_cast<char *>(&val),sizeof(val));
 					}else
 					{
@@ -352,6 +481,11 @@ void  fslvtkIO::writePoints(ofstream & fshape, const string & str_typename ){
 				T tX=Points.element(i,0);
 				T tY=Points.element(i,1);
 				T tZ=Points.element(i,2);
+
+				Swap_Nbytes(1,sizeof(tX),&tX);	
+				Swap_Nbytes(1,sizeof(tY),&tY);	
+				Swap_Nbytes(1,sizeof(tZ),&tZ);	
+				
 				fshape.write(reinterpret_cast<char *>(&tX),sizeof(tX));
 				fshape.write(reinterpret_cast<char *>(&tY),sizeof(tY));
 				fshape.write(reinterpret_cast<char *>(&tZ),sizeof(tZ));
@@ -476,9 +610,11 @@ void  fslvtkIO::writePolygons(ofstream & fshape)
 					if (j==0)
 					{
 						unsigned int val=static_cast<unsigned int>(Polygons.Ncols());
+						Swap_Nbytes(1,sizeof(val),&val);	
 						fshape.write(reinterpret_cast<char *>(&val),sizeof(val));
 					}
 					unsigned int val=static_cast<unsigned int>(Polygons.element(i,j));
+					Swap_Nbytes(1,sizeof(val),&val);	
 					fshape.write(reinterpret_cast<char *>(&val),sizeof(val));
 				}else
 				{
@@ -546,6 +682,7 @@ void fslvtkIO::save(string s)
 	if (BINARY)
 	{
 		int test=42;
+		Swap_Nbytes(1,sizeof(test),&test);
 		fshape.write(reinterpret_cast<char *>(&test),sizeof(test));
 		fshape<<"this file was written using fslvtkio"<<endl<<"BINARY"<<endl<<"DATASET ";
 	}else
@@ -577,12 +714,13 @@ void fslvtkIO::save(string s)
 	{
 		fshape<<"FIELD FieldData"<<" "<<fieldDataNum.size()+fieldDataStr.size()<<endl;
 		//write out numerixc field data
-		if (fieldDataNum.size()>0)
+		if (fieldDataNum.size()>0) {
 			for (unsigned int i=0; i<fieldDataNum.size();i++)
 				if ((MAX_SET) && (static_cast<unsigned int>(fieldDataNum.at(i).Ncols())>MAX) ) //Maximum limits the number of allowable columns in the field data (used to limit saved modes of variation)
 					writeNumericField<float>(fshape, fieldDataNumName.at(i), "float", fieldDataNum.at(i).SubMatrix(1,fieldDataNum.at(i).Nrows(),1,MAX));
 				else
 					writeNumericField<float>(fshape, fieldDataNumName.at(i), "float", fieldDataNum.at(i));
+		}
 	}
 	
 				vector<string>::iterator name_i=fieldDataStrName.begin();
@@ -630,6 +768,7 @@ void fslvtkIO::writeNumericField(ofstream & fvtk, const string & name, const str
 			}else
 			{
 				T val=static_cast<T>(Data.element(i,j));
+				Swap_Nbytes(1,sizeof(val),&val);	
 				fvtk.write(reinterpret_cast<char*>(&val),sizeof(val));
 			}
 			

@@ -652,35 +652,30 @@ int save_volume_datatype(const volume<T>& source, const string& filename,short d
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       case DT_UNSIGNED_CHAR:
 	{
 	  volume<char> svol;
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       case DT_SIGNED_INT:
 	{
 	  volume<int> svol;
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       case DT_FLOAT:
 	{
 	  volume<float> svol;
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       case DT_DOUBLE:
 	{
 	  volume<double> svol;
 	  copyconvert(source,svol);
 	  return save_volume(svol,filename);
 	}
-	break;
       default:
 	ostringstream errmsg;
 	errmsg << "Fslread: DT " << datatype <<  " not supported";
@@ -706,35 +701,35 @@ int save_volume4D_datatype(const volume4D<T>& source, const string& filename,sho
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       case DT_UNSIGNED_CHAR:
 	{
 	  volume4D<char> svol;
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       case DT_SIGNED_INT:
 	{
 	  volume4D<int> svol;
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       case DT_FLOAT:
 	{
 	  volume4D<float> svol;
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       case DT_DOUBLE:
 	{
 	  volume4D<double> svol;
 	  copyconvert(source,svol);
 	  return save_volume4D(svol,filename);
 	}
-	break;
+	// break;
       default:
 	ostringstream errmsg;
 	errmsg << "Fslread: DT " << datatype <<  " not supported";

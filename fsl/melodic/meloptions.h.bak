@@ -1,12 +1,11 @@
-
-/*  MELODIC - Multivariate exploratory linear optimized decomposition into 
+ /*  MELODIC - Multivariate exploratory linear optimized decomposition into 
               independent components
     
     meloptions.h - class for command line options
 
-    Christian F. Beckmann, FMRIB Image Analysis Group
+    Christian F. Beckmann, FMRIB Analysis Group
     
-    Copyright (C) 1999-2008 University of Oxford */
+    Copyright (C) 1999-2013 University of Oxford */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -19,7 +18,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -68,8 +67,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
-
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #ifndef __MELODICOPTIONS_h
 #define __MELODICOPTIONS_h
@@ -116,12 +114,19 @@ class MelodicOptions {
   	Option<bool>   joined_whiten;
   	Option<bool>   joined_vn;
 	Option<bool>   dr_pca;
-	Option<float>	 vn_level;
+	Option<bool>   migp;
+	Option<int>    migpN;
+	Option<bool>   migp_shuffle;
+	Option<int>	   migp_factor;
+	Option<bool>   dr;
+	Option<bool>   dr_out;
+	Option<float>  vn_level;
   	Option<int>    numICs;
   	Option<string> approach;
   	Option<string> nonlinearity;
 
   	Option<bool>   varnorm;
+ 	Option<bool>   varnorm2;
   	Option<bool>   pbsc;
   	Option<bool>   pspec;
   	Option<string> segment;
@@ -140,21 +145,21 @@ class MelodicOptions {
   	Option<string> filter; 
 
   	Option<bool>   genreport;
-		Option<string> guireport;
-		Option<string> bgimage;
+	Option<string> guireport;
+	Option<string> bgimage;
   	Option<float>  tr;
   	Option<bool>   logPower;
-		Option<bool>   addsigchng;
-		Option<bool>   allPPCA;
-		Option<bool>   varplots;
-		Option<bool>   varvals;
+	Option<bool>   addsigchng;
+	Option<bool>   allPPCA;
+	Option<bool>   varplots;
+	Option<bool>   varvals;
 
-		Option<string> fn_Tdesign;
-		Option<string> fn_Tcon;
-		Option<string> fn_TconF;
-		Option<string> fn_Sdesign;
-		Option<string> fn_Scon;	
-		Option<string> fn_SconF;	
+	Option<string> fn_Tdesign;
+	Option<string> fn_Tcon;
+	Option<string> fn_TconF;
+	Option<string> fn_Sdesign;
+	Option<string> fn_Scon;	
+	Option<string> fn_SconF;	
 	
   	Option<bool>   output_all;
   	Option<bool>   output_unmix;
@@ -180,6 +185,7 @@ class MelodicOptions {
   	Option<float> nlconst1;
   	Option<float> nlconst2;
   	Option<float> smooth_probmap;
+	Option<string> insta_fn;
 
   	Option<bool> remove_meanvol;
   	Option<bool> remove_meantc;
@@ -189,7 +195,8 @@ class MelodicOptions {
   	Option<bool> guess_remderiv;
   	Option<bool> temporal;
 
-  	int retrystep;
+  	Option<float> retryfactor;
+  	Option<int> econ;
 
   	void parse_command_line(int argc, char** argv, Log& logger,  const string &p_version);
 
@@ -247,15 +254,33 @@ class MelodicOptions {
    pca_est(string("--dimest"), string("lap"),
 	   string("use specific dim. estimation technique: lap, bic, mdl, aic, mean (default: lap)"), 
 	   false, requires_argument),
-   joined_whiten(string("--sep_whiten"), true,
+   joined_whiten(string("--sep_whiten"), false,
 	   string("switch on separate whitening"), 
-	   false, no_argument),
+	   false, no_argument, false),
    joined_vn(string("--sep_vn"), true,
-   	   string("switch off joined variance nomalisation"), 
+   	   string("switch on separate variance nomalisation (as opposed to separate VN)"), 
        false, no_argument),
    dr_pca(string("--mod_pca"), true,
 	   string("switch off modified PCA for concat ICA"),
 	   false, no_argument, false),
+   migp(string("--migp"), false,
+	   string("switch on MIGP data reduction"),
+	   false, no_argument, false),	
+   migpN(string("--migpN"), 0,
+	   string("Number of internal Eigenmaps"),
+	   false, requires_argument, false),
+   migp_shuffle(string("--migp_shuffle"), true,
+	   string("Randomise MIGP file order (default: TRUE)"),
+	   false, no_argument, false),
+   migp_factor(string("--migp_factor"), 2,
+	   string("Internal Factor of mem-threshold relative to number of Eigenmaps (default: 2)"),
+       false, requires_argument, false),
+   dr(string("--dr"), false,
+	   string("Dual Regression (default: false)"),
+	   false, no_argument, false),
+   dr_out(string("--dr_out"), false,
+	   string("Dual Regression output for MIGP/concat ICA"),
+	   false, no_argument, false),	
    vn_level(string("--vn_level"), float(2.3),
 	   string("variance nomalisation threshold level (Z> value is ignored)"), 
 	   false, requires_argument, false),
@@ -263,7 +288,7 @@ class MelodicOptions {
 	   string("numer of IC's to extract (for deflation approach)"), 
 	   false, requires_argument),
    approach(string("-a,--approach"),  string("symm"),
-	   string("approach for decomposition, 2D: defl, symm (default), 3D: tica (default), concat"),
+	   string("approach for decomposition, 2D: defl, symm (default), 3D: tica, concat (default)"),
 	   false, requires_argument),
    nonlinearity(string("--nl"), string("pow3"),
 	   string("\tnonlinearity: gauss, tanh, pow3, pow4"), 
@@ -271,9 +296,12 @@ class MelodicOptions {
    varnorm(string("--vn,--varnorm"), true,
 	   string("switch off variance normalisation"), 
 	   false, no_argument),
+   varnorm2(string("--vn2"), true,
+		string("switch off 2nd level variance normalisation"), 
+		false, no_argument, false),
    pbsc(string("--pbsc"), false,
-	   string("        switch off conversion to percent BOLD signal change"), 
-	   false, no_argument),
+	   string("        switch on conversion to percent BOLD signal change"), 
+	   false, no_argument, false),
    pspec(string("--pspec"), false,
 	   string("        switch on conversion to powerspectra"), 
 	   false, no_argument, false),
@@ -283,16 +311,16 @@ class MelodicOptions {
    tsmooth(string("--spca"),  false,
 	   string("smooth the eigenvectors prior to IC decomposition"), 
 	    false, no_argument, false),
-   epsilon(string("--eps,--epsilon"), 0.00005,
+   epsilon(string("--eps"), 0.00005,
 	   string("minimum error change"), 
 	   false, requires_argument),
-   epsilonS(string("--epsS,--epsilonS"), 0.03,
+   epsilonS(string("--epsS"), 0.03,
 	   string("minimum error change for rank-1 approximation in TICA"), 
 	   false, requires_argument),
    maxNumItt(string("--maxit"),  500,
 	   string("\tmaximum number of iterations before restart"), 
 	   false, requires_argument),
-   maxRestart(string("--maxrestart"),  6,
+   maxRestart(string("--maxrestart"),  -1,
 	   string("maximum number of restarts\n"), 
 	   false, requires_argument),
    rank1interval(string("--rank1interval"),  10,
@@ -305,16 +333,16 @@ class MelodicOptions {
 	   string("\tswitch off mixture modelling on IC maps\n "), 
 	   false, no_argument),
    ICsfname(string("--ICs"), string(""),
-	   string("\tfilename of the IC components file for mixture modelling"), 
+	   string("\tinput filename of the IC components file for mixture modelling"), 
 	   false, requires_argument),
    filtermix(string("--mix"),  string(""),
-	   string("\tmixing matrix for mixture modelling / filtering"), 
+	   string("\tinput filename of mixing matrix for mixture modelling / filtering"), 
 	   false, requires_argument),
    smodename(string("--smode"),  string(""),
-	   string("\tmatrix of session modes for report generation"), 
+	   string("\tinput filename of matrix of session modes for report generation"), 
 	   false, requires_argument),
    filter(string("-f,--filter"),  string(""),
-	   string("component numbers to remove\n "), 
+	   string("list of component numbers to remove\n "), 
 	   false, requires_argument),
    genreport(string("--report"), false,
 	   string("generate Melodic web report"), 
@@ -413,7 +441,7 @@ class MelodicOptions {
 	   string("number of repeats (multistart)"), 
 	   false, requires_argument, false),
    seed(string("--seed"), -1,
-	   string("integer seed for melodic"), 
+	   string("integer seed for random number generator within melodic"), 
 	   false, requires_argument, false),
    nlconst1(string("--nl1,--nlconst1"),  1.0,
 	   string("nonlinear constant 1"), 
@@ -424,6 +452,9 @@ class MelodicOptions {
    smooth_probmap(string("--smooth_pm"),  0.0,
 	   string("width of smoothing kernel for probability maps"), 
 	   false, requires_argument, false),
+   insta_fn(string("--insta_fn"), string(""),
+	   string(" mask file name for instacorr calculation"),
+       false, requires_argument, false),
    remove_meanvol(string("--keep_meanvol"), true,
 	   string("do not subtract mean volume"), 
 	   false, no_argument, false),
@@ -438,11 +469,16 @@ class MelodicOptions {
 	   false, no_argument,false),
    guess_remderiv(string("--remove_deriv"),  false,
 	   string("removes every second entry in paradigm file (EV derivatives)"), 
-	   false, no_argument),
+	   false, no_argument, false),
    temporal(string("--temporal"),  false,
 	   string("perform temporal ICA"), 
 	   false, no_argument, false),
-   retrystep(3),
+   retryfactor(string("--retryfactor"), float(0.95),
+		string("multiplicative factor for determining new dim if estimated dim fails to converge"),
+		false, requires_argument, false),
+   econ(string("--econ"), 20000, 
+	   string("set ctrl parameter for helperfns econ mode"),
+       false, requires_argument, false),
    options(title, usageexmpl)
    {
      try {  
@@ -460,11 +496,18 @@ class MelodicOptions {
 	    options.add(joined_whiten);
 	    options.add(joined_vn);
 		options.add(dr_pca);
+		options.add(migp);
+		options.add(migpN);
+		options.add(migp_shuffle);
+		options.add(migp_factor);
+		options.add(dr);
+		options.add(dr_out);
 	    options.add(vn_level);
 	    options.add(numICs);
 	    options.add(approach);
 	    options.add(nonlinearity);
 	    options.add(varnorm);
+		options.add(varnorm2);
 	    options.add(pbsc);
 	    options.add(pspec);
 	    options.add(segment);
@@ -517,12 +560,15 @@ class MelodicOptions {
 	    options.add(nlconst1);
 	    options.add(nlconst2);
 	    options.add(smooth_probmap);
+		options.add(insta_fn);
 	    options.add(remove_meanvol);
 	    options.add(remove_meantc);
 	    options.add(remove_endslices);
 	    options.add(rescale_nht);
 	    options.add(guess_remderiv);
 	    options.add(temporal);
+		options.add(retryfactor);
+		options.add(econ);
      }
      catch(X_OptionError& e) {
        options.usage();

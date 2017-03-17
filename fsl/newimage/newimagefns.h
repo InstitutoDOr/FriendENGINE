@@ -1632,92 +1632,99 @@ template <class T, class S>
   volume<T> morphfilter(const volume<T>& source, const volume<S>& kernel,
 			const string& filtertype)
     {
-      // implements a whole range of filtering, set by the string filtertype:
-      //  dilateM (mean), dilateD (mode), median, max or dilate, min or erode, 
-      //  erodeS (set to zero if any neighbour is zero)
-      extrapolation oldex = source.getextrapolationmethod();
-      if ((oldex==boundsassert) || (oldex==boundsexception)) 
-	{ source.setextrapolationmethod(constpad); }
-      volume<T> result(source);
-      result = 0;
-
-      int nker;
-      {
-	volume<S> dummy(kernel);
-	dummy.binarise((S)0.5);  //new cast to avoid warnings for int-type templates when compiling
-	nker = (int) dummy.sum();
-      }
-      
-      int midx, midy, midz;
-      if (    (( (kernel.maxz() - kernel.minz()) % 2)==1) || 
-	      (( (kernel.maxy() - kernel.miny()) % 2)==1) ||
-	      (( (kernel.maxx() - kernel.minx()) % 2)==1) ) 
-	{
-	  cerr << "WARNING:: Off-centre morphfilter being performed as kernel"
-	       << " has even dimensions" << endl;
-	}
-      midz=(kernel.maxz() - kernel.minz())/2;
-      midy=(kernel.maxy() - kernel.miny())/2;
-      midx=(kernel.maxx() - kernel.minx())/2;
-      int count=1;
-
-      for (int z=result.minz(); z<=result.maxz(); z++) {
-	for (int y=result.miny(); y<=result.maxy(); y++) {
-	  for (int x=result.minx(); x<=result.maxx(); x++) {
-	    ColumnVector vals(nker);
-	    count=1;
-	    for (int mz=Max(kernel.minz(),result.minz()-z+midz); 
-		 mz<=Min(kernel.maxz(),result.maxz()-z+midz); mz++) {
-	      for (int my=Max(kernel.miny(),result.miny()-y+midy); 
-		   my<=Min(kernel.maxy(),result.maxy()-y+midy); my++) {
-		for (int mx=Max(kernel.minx(),result.minx()-x+midx); 
-		     mx<=Min(kernel.maxx(),result.maxx()-x+midx); mx++) {
-		  if (kernel(mx,my,mz)>0.5) {
-		    if ((filtertype!="dilateM" && filtertype!="dilateD") || source(x+mx-midx,y+my-midy,z+mz-midz)) vals(count++) = source(x+mx-midx,y+my-midy,z+mz-midz);
-		  }
-		}
-	      }
-	    }
-	    if (count>1) {
-	      ColumnVector littlevals;
-	      littlevals = vals.SubMatrix(1,count-1,1,1);
-	      if (filtertype=="median") {  
-		SortAscending(littlevals);                         //count/2 works for odd kernel (even count) count+1 gives edge compatibility
-		result(x,y,z) = (T)littlevals(Max(1,(count+1)/2)); //with steves IP, otherwise gives the IP median-1 element 
-	      } else if ((filtertype=="max") || (filtertype=="dilate")) result(x,y,z) = (T)littlevals.Maximum();
-	        else if ((filtertype=="min") || (filtertype=="erode"))   result(x,y,z) = (T)littlevals.Minimum();
-                else if (filtertype=="erodeS") {if (source(x,y,z)!=0 && littlevals.Minimum()==0) result(x,y,z) = 0; else result(x,y,z) = source(x,y,z);}
-                else if (filtertype=="dilateM") {if (source(x,y,z)==0) result(x,y,z) = (T)(littlevals.Sum()/--count); else result(x,y,z) = source(x,y,z);}
-                else if (filtertype=="dilateD") {if (source(x,y,z)==0){
-		SortDescending(littlevals); 
-                double max=littlevals(1);
-                int maxn=1;
-                double current=littlevals(1);
-                int currentn=1;
-                for(int i=2;i<count;i++)
+		// implements a whole range of filtering, set by the string filtertype:
+		//  dilateM (mean), dilateD (mode), median, max or dilate, min or erode, 
+		//  erodeS (set to zero if any neighbour is zero)
+		extrapolation oldex = source.getextrapolationmethod();
+		if ((oldex == boundsassert) || (oldex == boundsexception))
 		{
-		  if (littlevals(i)==current) currentn++;
-                  else
-		  {
-                    current=littlevals(i);
-		    if (currentn>maxn)
-		    {
-                      max=littlevals(i-1);
-                      maxn=currentn; 
-                    }
-                    currentn=1;
-                  }
-                }
-		result(x,y,z) = (T)max;} else result(x,y,z) = source(x,y,z);
+			source.setextrapolationmethod(constpad);
 		}
-	        else imthrow("morphfilter:: Filter type " + filtertype + "unsupported",7);
-	    }   else result(x,y,z) = source(x,y,z);  // THE DEFAULT CASE (leave alone)
-	  }
-	}
-      }
-      source.setextrapolationmethod(oldex);
-      return result;
-    }
+		volume<T> result(source);
+		result = 0;
+
+		int nker;
+		{
+			volume<S> dummy(kernel);
+			dummy.binarise((S)0.5);  //new cast to avoid warnings for int-type templates when compiling
+			nker = (int)dummy.sum();
+		}
+
+		int midx, midy, midz;
+		if ((((kernel.maxz() - kernel.minz()) % 2) == 1) ||
+			(((kernel.maxy() - kernel.miny()) % 2) == 1) ||
+			(((kernel.maxx() - kernel.minx()) % 2) == 1))
+		{
+			cerr << "WARNING:: Off-centre morphfilter being performed as kernel"
+				<< " has even dimensions" << endl;
+		}
+		midz = (kernel.maxz() - kernel.minz()) / 2;
+		midy = (kernel.maxy() - kernel.miny()) / 2;
+		midx = (kernel.maxx() - kernel.minx()) / 2;
+		int count = 1;
+
+		for (int z = result.minz(); z <= result.maxz(); z++) {
+			for (int y = result.miny(); y <= result.maxy(); y++) {
+				for (int x = result.minx(); x <= result.maxx(); x++) {
+					ColumnVector vals(nker);
+					count = 1;
+					for (int mz = Max(kernel.minz(), result.minz() - z + midz);
+						mz <= Min(kernel.maxz(), result.maxz() - z + midz); mz++) {
+						for (int my = Max(kernel.miny(), result.miny() - y + midy);
+							my <= Min(kernel.maxy(), result.maxy() - y + midy); my++) {
+							for (int mx = Max(kernel.minx(), result.minx() - x + midx);
+								mx <= Min(kernel.maxx(), result.maxx() - x + midx); mx++) {
+								if (kernel(mx, my, mz)>0.5) {
+									if ((filtertype != "dilateM" && filtertype != "dilateD") || source(x + mx - midx, y + my - midy, z + mz - midz)) vals(count++) = source(x + mx - midx, y + my - midy, z + mz - midz);
+								}
+							}
+						}
+					}
+					if (count>1) {
+						ColumnVector littlevals;
+						littlevals = vals.SubMatrix(1, count - 1, 1, 1);
+						if (filtertype == "median") {
+							SortAscending(littlevals);                         //count/2 works for odd kernel (even count) count+1 gives edge compatibility
+							result(x, y, z) = (T)littlevals(Max(1, (count + 1) / 2)); //with steves IP, otherwise gives the IP median-1 element 
+						}
+						else if ((filtertype == "max") || (filtertype == "dilate")) result(x, y, z) = (T)littlevals.Maximum();
+						else if ((filtertype == "min") || (filtertype == "erode"))   result(x, y, z) = (T)littlevals.Minimum();
+						else if (filtertype == "erodeS") { if (source(x, y, z) != 0 && littlevals.Minimum() == 0) result(x, y, z) = 0; else result(x, y, z) = source(x, y, z); }
+						else if (filtertype == "dilateM") { if (source(x, y, z) == 0) result(x, y, z) = (T)(littlevals.Sum() / --count); else result(x, y, z) = source(x, y, z); }
+						else if (filtertype == "dilateD") {
+							if (source(x, y, z) == 0){
+								SortDescending(littlevals);
+								double max = littlevals(1);
+								int maxn = 1;
+								double current = littlevals(1);
+								int currentn = 1;
+								for (int i = 2; i<count; i++)
+								{
+									if (littlevals(i) == current) currentn++;
+									else
+									{
+										current = littlevals(i);
+										if (currentn>maxn)
+										{
+											max = littlevals(i - 1);
+											maxn = currentn;
+										}
+										currentn = 1;
+									}
+								}
+								result(x, y, z) = (T)max;
+							}
+							else result(x, y, z) = source(x, y, z);
+						}
+						else imthrow("morphfilter:: Filter type " + filtertype + "unsupported", 7);
+					}
+					else result(x, y, z) = source(x, y, z);  // THE DEFAULT CASE (leave alone)
+				}
+			}
+		}
+		source.setextrapolationmethod(oldex);
+		return result;
+  }
 
 
 
@@ -2296,115 +2303,125 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
    template <class T>
      volume4D<T> bandpass_temporal_filter(volume4D<T>& source,double hp_sigma, double lp_sigma)
       { 
-	//cout << "hp " << hp_sigma << "lp " << lp_sigma << endl;
-         int hp_mask_size_PLUS, lp_mask_size_PLUS, hp_mask_size_MINUS, lp_mask_size_MINUS;
-         double *hp_exp=NULL, *lp_exp=NULL, *array, *array2;
-         volume4D<T> result(source);
+		  int hp_mask_size_PLUS, lp_mask_size_PLUS, hp_mask_size_MINUS, lp_mask_size_MINUS;
+		  double *hp_exp = NULL, *lp_exp = NULL, *array, *array2;
+		  volume4D<T> result(source);
 
-         if (hp_sigma<=0) hp_mask_size_MINUS=0;
-         else hp_mask_size_MINUS=(int)(hp_sigma*3);   /* this isn't a linear filter, so small hard cutoffs at ends don't matter */
-         hp_mask_size_PLUS=hp_mask_size_MINUS;
-         if (lp_sigma<=0) lp_mask_size_MINUS=0;
-         else lp_mask_size_MINUS=(int)(lp_sigma*20)+2; /* this will be small, so we might as well be careful */
-         lp_mask_size_PLUS=lp_mask_size_MINUS;
-
+		  if (hp_sigma <= 0) hp_mask_size_MINUS = 0;
+		  else hp_mask_size_MINUS = (int)(hp_sigma * 3);   /* this isn't a linear filter, so small hard cutoffs at ends don't matter */
+		  hp_mask_size_PLUS = hp_mask_size_MINUS;
+		  if (lp_sigma <= 0) lp_mask_size_MINUS = 0;
+		  else lp_mask_size_MINUS = (int)(lp_sigma * 20) + 2; /* this will be small, so we might as well be careful */
+		  lp_mask_size_PLUS = lp_mask_size_MINUS;
 
 
-         array=new double[source.tsize()+2*lp_mask_size_MINUS];
-	 array+=lp_mask_size_MINUS;
-         array2=new double[source.tsize()+2*lp_mask_size_MINUS];
-         array2+=lp_mask_size_MINUS;
 
-         if (hp_sigma>0)
-         {
-            hp_exp=new double[hp_mask_size_MINUS+hp_mask_size_PLUS+1];
-            hp_exp+=hp_mask_size_MINUS;
-            for(int t=-hp_mask_size_MINUS; t<=hp_mask_size_PLUS; t++)
-            hp_exp[t] = exp( -0.5 * ((double)(t*t)) / (hp_sigma*hp_sigma) );
-         }
+		  array = new double[source.tsize() + 2 * lp_mask_size_MINUS];
+		  array += lp_mask_size_MINUS;
+		  array2 = new double[source.tsize() + 2 * lp_mask_size_MINUS];
+		  array2 += lp_mask_size_MINUS;
 
-         if (lp_sigma>0)
-         {
-            double total=0;
-            lp_exp=new double[lp_mask_size_MINUS+lp_mask_size_PLUS+1];
-            lp_exp+=lp_mask_size_MINUS;
-            for(int t=-lp_mask_size_MINUS; t<=lp_mask_size_PLUS; t++)
-            {
-              lp_exp[t] = exp( -0.5 * ((double)(t*t)) / (lp_sigma*lp_sigma) );
-              total += lp_exp[t];
-            }
+		  if (hp_sigma>0)
+		  {
+			  hp_exp = new double[hp_mask_size_MINUS + hp_mask_size_PLUS + 1];
+			  hp_exp += hp_mask_size_MINUS;
+			  for (int t = -hp_mask_size_MINUS; t <= hp_mask_size_PLUS; t++)
+				  hp_exp[t] = exp(-0.5 * ((double)(t*t)) / (hp_sigma*hp_sigma));
+		  }
 
-            for(int t=-lp_mask_size_MINUS; t<=lp_mask_size_PLUS; t++)
-              lp_exp[t] /= total;
-         }
-         for(int z=0;z<source.zsize();z++)
-           for(int y=0;y<source.ysize();y++)	    
-	     for(int x=0;x<source.xsize();x++)
-	     {
-               for(int t=0; t<source.tsize(); t++) array[t] = (double)source.value(x,y,z,t);
-               if (hp_sigma>0)
-               {
-                 int done_c0=0;
-                 double c0=0;
-                 for(int t=0; t<source.tsize(); t++)
-                 {
-                    int tt;
-                    double c, w, A=0, B=0, C=0, D=0, N=0, tmpdenom;
-                    for(tt=MAX(t-hp_mask_size_MINUS,0); tt<=MIN(t+hp_mask_size_PLUS,source.tsize()-1); tt++)
-                    {
-                      int dt=tt-t;
-                      w = hp_exp[dt];
-                      A += w * dt;
-                      B += w * array[tt];
-                      C += w * dt * dt;
-                      D += w * dt * array[tt];
-                      N += w;
-                    }
-                    tmpdenom=C*N-A*A;
-                    if (tmpdenom!=0)
-	            {
-	               c = (B*C-A*D) / tmpdenom;
-	               if (!done_c0)
-	               {
-	                 c0=c;
-	                 done_c0=1;
-	               }
-	               array2[t] = c0 + array[t] - c;
-	             }
-	             else  array2[t] = array[t];
-	          }
-                  memcpy(array,array2,sizeof(double)*source.tsize());
-	       }
-	       /* {{{ apply lowpass filter to 1D array */
-               if (lp_sigma>0)
-               {
-          /* {{{ pad array at ends */
-                 for(int t=1; t<=lp_mask_size_MINUS; t++)
-                 {
-                    array[-t]=array[0];
-                    array[source.tsize()-1+t]=array[source.tsize()-1];
-                 }
-                 for(int t=0; t<source.tsize(); t++)
-                 { 
-                    double total=0;
-		    double sum(0);
-                    int tt;
-                    for(tt=MAX(t-lp_mask_size_MINUS,0); tt<=MIN(t+lp_mask_size_PLUS,source.tsize()-1); tt++) {
-		      total += array[tt] * lp_exp[tt-t];
-		      sum+=lp_exp[tt-t];
-		    }
-		    if (sum>0)
-		      array2[t] = total/sum;
-		    else
-		      array2[t] = total;
-                 }
-                  memcpy(array,array2,sizeof(double)*source.tsize());
-	       }
-	  /* {{{ write 1D array back to input 4D data */
-               for(int t=0; t<source.tsize(); t++) result.value(x,y,z,t)= (T)array[t];
-	     }
-	 return result;
-      }
+		  if (lp_sigma>0)
+		  {
+			  double total = 0;
+			  lp_exp = new double[lp_mask_size_MINUS + lp_mask_size_PLUS + 1];
+			  lp_exp += lp_mask_size_MINUS;
+			  for (int t = -lp_mask_size_MINUS; t <= lp_mask_size_PLUS; t++)
+			  {
+				  lp_exp[t] = exp(-0.5 * ((double)(t*t)) / (lp_sigma*lp_sigma));
+				  total += lp_exp[t];
+			  }
+
+			  for (int t = -lp_mask_size_MINUS; t <= lp_mask_size_PLUS; t++)
+				  lp_exp[t] /= total;
+		  }
+		  for (int z = 0; z<source.zsize(); z++)
+			  for (int y = 0; y<source.ysize(); y++)
+				  for (int x = 0; x<source.xsize(); x++)
+				  {
+					  for (int t = 0; t<source.tsize(); t++) array[t] = (double)source.value(x, y, z, t);
+					  if (hp_sigma>0)
+					  {
+						  int done_c0 = 0;
+						  double c0 = 0;
+						  double mean(0);
+
+						  for (int t = 0; t<source.tsize(); t++)
+						  {
+							  int tt;
+							  double c, w, A = 0, B = 0, C = 0, D = 0, N = 0, tmpdenom;
+							  for (tt = MAX(t - hp_mask_size_MINUS, 0); tt <= MIN(t + hp_mask_size_PLUS, source.tsize() - 1); tt++)
+							  {
+								  int dt = tt - t;
+								  w = hp_exp[dt];
+								  A += w * dt;
+								  B += w * array[tt];
+								  C += w * dt * dt;
+								  D += w * dt * array[tt];
+								  N += w;
+							  }
+							  tmpdenom = C*N - A*A;
+							  if (tmpdenom != 0)
+							  {
+								  c = (B*C - A*D) / tmpdenom;
+								  if (!done_c0)
+								  {
+									  c0 = c;
+									  done_c0 = 1;
+								  }
+								  array2[t] = c0 + array[t] - c;
+							  }
+							  else  array2[t] = array[t];
+							  mean += array2[t];
+						  }
+						  if (1)
+						  {
+							  //Demean timeseries
+							  mean /= source.tsize();
+							  for (int t = 0; t<source.tsize(); t++)
+								  array2[t] -= mean;
+						  }
+						  memcpy(array, array2, sizeof(double)*source.tsize());
+					  }
+					  /* {{{ apply lowpass filter to 1D array */
+					  if (lp_sigma>0)
+					  {
+						  /* {{{ pad array at ends */
+						  for (int t = 1; t <= lp_mask_size_MINUS; t++)
+						  {
+							  array[-t] = array[0];
+							  array[source.tsize() - 1 + t] = array[source.tsize() - 1];
+						  }
+						  for (int t = 0; t<source.tsize(); t++)
+						  {
+							  double total = 0;
+							  double sum(0);
+							  int tt;
+							  for (tt = MAX(t - lp_mask_size_MINUS, 0); tt <= MIN(t + lp_mask_size_PLUS, source.tsize() - 1); tt++) {
+								  total += array[tt] * lp_exp[tt - t];
+								  sum += lp_exp[tt - t];
+							  }
+							  if (sum>0)
+								  array2[t] = total / sum;
+							  else
+								  array2[t] = total;
+						  }
+						  memcpy(array, array2, sizeof(double)*source.tsize());
+
+					  }
+					  /* {{{ write 1D array back to input 4D data */
+					  for (int t = 0; t<source.tsize(); t++) result.value(x, y, z, t) = (T)array[t];
+				  }
+		  return result;
+	 }
 
 
   ///////////////////////////////////////////////////////////////////////////

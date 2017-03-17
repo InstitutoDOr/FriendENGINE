@@ -353,7 +353,7 @@ ReturnMatrix calc_ttc(volume<float>& in){
 		Corr << tmp * tmp.t() / tmp.Ncols();
 		DiagonalMatrix tmpD;
 	    EigenValues(Corr,tmpD,res);	
-		res = fliplr(res.Columns(res.Ncols()-tc_order.value()+1 , res.Ncols())) * std::sqrt((float)tmp.Nrows());	
+		res = fliplr(res.Columns(res.Ncols()-tc_order.value()+1 , res.Ncols())) * std::sqrt(tmp.Nrows());	
 		
 		Matrix res2 = mean(tmp,2);
 

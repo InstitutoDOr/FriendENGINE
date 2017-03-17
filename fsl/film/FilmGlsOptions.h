@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,19 +64,15 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #if !defined(__FilmGlsOptions_h)
 #define __FilmGlsOptions_h
-
 #include <string>
-#include <math.h>
-#include <iostream>
-#include <fstream>
 #include <stdlib.h>
 #include <stdio.h>
+#include "utils/options.h"
 #include "utils/log.h"
-#include <vector>
 
 using namespace Utilities;
 
@@ -85,96 +81,158 @@ namespace FILM {
 class FilmGlsOptions {
  public:
   static FilmGlsOptions& getInstance();
-  void reiniciagopt();
   ~FilmGlsOptions() { delete gopt; }
-
-  string inputfname;
-  string paradigmfname;
-  string epifname;
-  string datadir;
-  string meanInputFile;
-  string minimumTimepointFile;
-
-  string neffsfname;
   
-  bool verbose;
-  bool smoothACEst;
-  bool fitAutoRegressiveModel;
-  bool tukey;
-  bool pava;
-  bool multitaper;
-  bool noest;
-  bool ac_only;
-  bool output_pwdata;
+  Option<bool> ac_only;
+  Option<float> thresh;  
+  Option<bool> fitAutoRegressiveModel;
+  Option<bool> help;
+  Option<bool> noest;
+  Option<bool> output_pwdata;
+  Option<bool> pava;
+  Option<bool> smoothACEst;
+  Option<bool> verbose;
+  Option<string> datadir;
+  Option<string> analysisMode;
+  Option<string> inputDataName;
+  Option<string> inputDataName2;
+  Option<string> meanInputFile;
+  Option<string> minimumTimepointFile;
+  Option<string> paradigmfname;
+  Option<string> contrastFile;
+  Option<string> fContrastFile;
+  Option<int> epith;
+  Option<int> ms;
+  Option<int> tukeysize;
+  Option<float> multitapersize;
+  Option<vector<int> > voxelwise_ev_numbers;
+  Option<vector<string> > voxelwiseEvFilenames;
 
-  int tukeysize;
-  float multitapersize;
-
-  int trimscans;
-  float thresh;
-  int ms;
-  short maxshort;
-  int epith; 
-  std::vector<int> voxelwise_ev_numbers;
-  std::vector<string> voxelwiseEvFilenames;
-
-  void parse_command_line(int argc, char** argv, Log& logger);
-
- private:
+  void parse_command_line(int argc, char** argv,Log& logger);
+  
+private:
   FilmGlsOptions();
-  
   const FilmGlsOptions& operator=(FilmGlsOptions&);
   FilmGlsOptions(FilmGlsOptions&);
-      
+  OptionParser options; 
   static FilmGlsOptions* gopt;
-
-  void print_usage(int argc, char *argv[]);
-  
 };
 
-inline FilmGlsOptions& FilmGlsOptions::getInstance(){
-  if(gopt == NULL)
-    gopt = new FilmGlsOptions();
-  
-  return *gopt;
+inline FilmGlsOptions& FilmGlsOptions::getInstance() {
+   if(gopt == NULL)
+     gopt = new FilmGlsOptions();
+   return *gopt;
 }
 
-inline FilmGlsOptions::FilmGlsOptions()
-{
-	reiniciagopt();
-}
+ 
+inline FilmGlsOptions::FilmGlsOptions() :
+  ac_only(string("--ac"), false,
+        string("\tperform autocorrelation estimation only"),
+        false, no_argument),
+  thresh(string("--thr"),0,
+	 string("~<num>\tinitial threshold to apply to input data"),
+	 false, requires_argument),
+  fitAutoRegressiveModel(string("--ar"), false,
+	string("\tfits autoregressive model - default is to use tukey with M=sqrt(numvols)"),
+        false, no_argument),
+  help(string("--help"), false,
+	string("\tprints this message"),
+        false, no_argument),
+  noest(string("--noest"), false,
+	string("\tdo not estimate auto corrs"),
+	false, no_argument),
+  output_pwdata(string("--outputPWdata"), false,
+	string("\toutput prewhitened data and average design matrix"),
+	false, no_argument),
+  pava(string("--pava"), false,
+	string("\testimates autocorr using PAVA - default is to use tukey with M=sqrt(numvols)"),
+	false, no_argument),
+  smoothACEst(string("--sa"), false,
+	string("\tsmooths auto corr estimates"),
+	false, no_argument),
+  verbose(string("-v"), false,
+	string("\toutputs full data"),
+	false, no_argument),
+  datadir(string("--rn"), string("results"),
+       string("~<file>\tdirectory name to store results in, default is results"),
+       false, requires_argument),
+  analysisMode(string("--mode"), string("volumetric"),
+       string("~<mode>\tanalysis mode, options are volumetric ( default ) or surface. Caution: surface-based functionality is still BETA"), false, requires_argument),
+  inputDataName(string("--in"), string(""),string("~<file>\tinput data file ( NIFTI for volumetric, GIFTI for surface )"),true, requires_argument),
+  inputDataName2(string("--in2"), string(""),string("~<file>\tinput surface for autocorr smoothing in surface-based analyses"),false, requires_argument),
+   meanInputFile(string("--mf"), string(""),
+       string("~<file>\tre-estimate mean_func baseline - for use with perfusion subtraction"),
+       false, requires_argument), 
+   minimumTimepointFile(string("--mft"), string(""),
+       string("~<file>\tminimum timepoint file"),
+       false, requires_argument),
+   paradigmfname(string("--pd"), string(""),
+       string("~<file>\tparadigm file"),
+        false, requires_argument),
+   contrastFile(string("--con"), string(""),
+       string("~<file>\tt-contrasts file"),
+        false, requires_argument),
+   fContrastFile(string("--fcon"), string(""),
+       string("~<file>\tf-contrasts file"),
+        false, requires_argument),
 
-inline void FilmGlsOptions::reiniciagopt()
-{ 
-  // set up defaults
-  neffsfname = "neffs";
-  datadir = "results";
-  epifname = "epivolume";
-  thresh = 0;
-  inputfname = "";  
-  paradigmfname = "";
-  meanInputFile="";
-  minimumTimepointFile="";
-  epith = 0;
-  
-  ms = 4;
-  maxshort = 32000;
-  fitAutoRegressiveModel = false;
-  tukeysize = 0;  
-  multitapersize = 4.0;
-  
-  smoothACEst = false;
-  verbose = false;
-  pava = false;
-  tukey = true;
-  multitaper = false;
-  noest = false;  
-  ac_only = false;
-  output_pwdata = false;
-}
+   epith(string("--epith"), 0,
+        string("~<num>\tsusan brightness threshold for volumetric analysis/smoothing sigma for surface analysis"),
+        false, requires_argument),
+   ms(string("--ms"), 4,
+        string("~<num>\tsusan mask size for volumetric analysis/smoothing extent for surface analysis"),
+        false, requires_argument),
+   tukeysize(string("--tukey"), 0,
+        string("~<num>\tuses tukey window to estimate autocorr with window size num - default is to use tukey with M=sqrt(numvols)"),
+        false, requires_argument),
+   multitapersize(string("--mt"), -1,
+        string("~<num>\tuses multitapering with slepian tapers and num is the time-bandwidth product - default is to use tukey with M=sqrt(numvols)"),
+        false, requires_argument),
+   voxelwise_ev_numbers(string("--ven"), vector<int>(), 
+         string("\tlist of numbers indicating voxelwise EVs position in the design matrix (list order corresponds to files in vxf option). Caution BETA option, only use with volumetric analysis."), 
+         false, requires_argument),
+   voxelwiseEvFilenames(string("--vef"), vector<string>(), 
+         string("\tlist of 4D images containing voxelwise EVs (list order corresponds to numbers in vxl option). Caution BETA option, only use with volumetric analysis."), 
+			false, requires_argument),
+  options("film_gls","film_gls")
+   {
+     try {
+       options.add(ac_only);
+       options.add(thresh);
+       options.add(fitAutoRegressiveModel);
+       options.add(help);
+       options.add(noest);
+       options.add(output_pwdata);
+       options.add(pava);
+       options.add(smoothACEst);
+       options.add(verbose);
+       options.add(datadir);      
+       options.add(analysisMode);
+       options.add(inputDataName);
+       options.add(inputDataName2);
+       options.add(meanInputFile);
+       options.add(minimumTimepointFile);
+       options.add(paradigmfname);
+       options.add(contrastFile);
+       options.add(fContrastFile); 
+       options.add(epith);
+       options.add(ms);
+       options.add(tukeysize);
+       options.add(multitapersize);
+       options.add(voxelwise_ev_numbers);
+       options.add(voxelwiseEvFilenames);
+     }
+     catch(X_OptionError& e) {
+       options.usage();
+       cerr << endl << e.what() << endl;
+     } 
+     catch(std::exception &e) {
+       cerr << e.what() << endl;
+     }    
+     
+   }
 
 }
-
 #endif
 
 

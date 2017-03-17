@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
  
 #include "libvis/miscpic.h"
 #include "parser.h"
@@ -88,6 +88,7 @@ void usage(void)
   printf("-t       : produce semi-transparent (dithered) edges.\n");
   printf("-n       : use nearest-neighbour interpolation for output.\n");
   printf("-u       : do not put left-right labels in output.\n\n");
+  printf("-c       : add a red dot marker to top right of image");
 
   printf("Output options:\n");
   printf("[-x/y/z <slice> <filename>]      : output sagittal, coronal or axial slice\n     (if <slice> >0 it is a fraction of image dimension, if <0, it is an absolute slice number)\n");
@@ -95,7 +96,7 @@ void usage(void)
   printf("[-A <width> <filename>]          : output _all_ axial slices into one image of _max_ width <width>\n");
   printf("[-S <sample> <width> <filename>] : as -A but only include every <sample>'th slice\n\n");
 
-  exit(1);
+  //exit(1);
 }
 
 int fmrib_main(int argc, char* argv[])
@@ -147,7 +148,42 @@ int fmrib_main(int argc, char* argv[])
   //End of parsing
 
   volume<float> inputVolume, secondaryVolume(1,1,1); 
-  read_volume(inputVolume,nonOptionInputs[0]);
+  try
+  {
+    read_volume(inputVolume,nonOptionInputs[0]);
+  }
+  catch (...)
+  {
+    cout << "Error in slicer input, exiting..." << endl;
+    return(1);
+  }
+  //Fix -x option for neurological images
+  for (unsigned int option=0;option<miscpicOptions.size();option++)
+    {
+    if ( miscpicOptions[option].compare(0,2,"-x") == 0 ) {
+      string subString(miscpicOptions[option].substr(3,string::npos));
+      string filename(subString);
+      filename.erase(0,filename.find(' ')+1);
+      subString.erase(subString.find(' '),string::npos); //This substring contains the slice number ( in nifti format )
+      if ( subString[0] == '-' ) {
+	int sliceNumber=-atof(subString.c_str());
+	ColumnVector v0(4);
+	v0 << sliceNumber << 0 << 0 << 1.0;
+	v0 = inputVolume.niftivox2newimagevox_mat() * v0;
+        sliceNumber=-MISCMATHS::round(v0(1));
+	miscpicOptions[option]="-x "+num2str(sliceNumber)+" "+filename;
+      } else {
+	double sliceNumber=atof(subString.c_str())*inputVolume.maxx();
+	ColumnVector v0(4);
+	v0 << sliceNumber << 0 << 0 << 1.0;
+	v0 = inputVolume.niftivox2newimagevox_mat() * v0;
+        sliceNumber=v0(1)/(float)inputVolume.maxx();
+	sliceNumber=std::max(std::min(sliceNumber,1.0),0.0);
+	miscpicOptions[option]="-x "+num2str(sliceNumber)+" "+filename;
+      }
+    }
+  }
+
   if ( nonOptionInputs.size()>1 && FslFileExists(nonOptionInputs[1].c_str()) ) 
     read_volume(secondaryVolume,nonOptionInputs[1]);
 

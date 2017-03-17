@@ -167,8 +167,8 @@ MelodicOptions* MelodicOptions::gopt = NULL;
   		if (!remove_meanvol.value()){
     		varnorm.set_T(false);
   		}
-  		if (filter.value().length()>0){
-    		if (filtermix.value().length()<0){
+  		if (filter.set()){
+    		if (filtermix.set()){
       		cerr << "ERROR:: no mixing matrix for filtering (use --mix='filename') \n\n"; 
       		print_usage(argc,argv);
       		exit(2);

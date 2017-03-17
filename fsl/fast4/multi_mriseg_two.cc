@@ -16,7 +16,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -65,7 +65,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "multi_mriseg_two.h" 
 #include "newimage/newimageall.h"
@@ -355,7 +355,7 @@ double inner=0.0f;
     for(int n=-1;n<=1;n++)
 	for(int m=-1;m<=1;m++)
 	     for(int l=-1;l<=1;l++)
-		if((m_mask(x+l, y+m, z+n)==1))
+		if(m_mask(x+l, y+m, z+n)==1)
 		  inner+=MRFWeightsAM(l,m,n)*m_post.value(x+l, y+m, z+n, c);
    return inner;
 }
@@ -1560,7 +1560,7 @@ void ZMRIMULTISegmentation::WeightedKMeans()
   m_mean.ReSize(noclasses+1, numberofchannels);m_mean=0.0;
   m_co_variance=new Matrix[noclasses+1];
   m_inv_co_variance=new Matrix[noclasses+1];
-  for(int i=1;i<noclasses+1;i++)
+  for(int i=1;i<=noclasses;i++)
     {
       m_co_variance[i].ReSize(numberofchannels, numberofchannels);
       m_inv_co_variance[i].ReSize(numberofchannels, numberofchannels);
@@ -1568,10 +1568,10 @@ void ZMRIMULTISegmentation::WeightedKMeans()
       m_inv_co_variance[i]=0.0f;
 
     }
-  for(int n=1;n<numberofchannels+1;n++)
+  for(int n=1;n<=numberofchannels;n++)
    {
       float perc=1.0/((float)(noclasses+1.0));
-      for(int c=1;c<noclasses+1;c++)
+      for(int c=1;c<=noclasses;c++)
 	{
           if ( (int)inputMeans.size() == (noclasses*numberofchannels) ) m_mean(c, n)=log(inputMeans[c+noclasses*(n-1)-1]); 
 	  else m_mean(c, n)=m_Mricopy[n].percentile((float)(perc*c), m_maskc);

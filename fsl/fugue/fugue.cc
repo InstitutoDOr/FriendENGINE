@@ -1,8 +1,8 @@
 /*  fugue.cc
 
-    Mark Jenkinson, FMRIB Image Analysis Group
+    Mark Jenkinson and Matthew Webster, FMRIB Image Analysis Group
 
-    Copyright (C) 2000-2008 University of Oxford  */
+    Copyright (C) 2000-2012 University of Oxford  */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #ifndef EXPOSE_TREACHEROUS
 #define EXPOSE_TREACHEROUS
@@ -80,7 +80,7 @@
 using namespace Utilities;
 
 namespace fugue {
-string title="fugue (Version 2.5 in d minor)\nFMRIB's Utility for Geometric Unwarping of EPIs\nCopyright(c) 2000-2008, University of Oxford (Mark Jenkinson)";
+string title="fugue \nFMRIB's Utility for Geometric Unwarping of EPIs\nCopyright(c) 2000-2008, University of Oxford (Mark Jenkinson)";
 string examples="fugue -i <epi> -p <unwrapped phase map> -d <dwell-to-asym-ratio> -u <result> [options]\nfugue  -i <unwarped-image> -p <unwrapped phase map> -d <dwell-to-asym-ratio> -w <epi-like-result> [options]\nfugue -p <unwrapped phase map> -d <dwell-to-asym-ratio> --saveshift=<shiftmap> [options]";
 
 Option<bool> verbose(string("-v,--verbose"), false, 
@@ -88,6 +88,9 @@ Option<bool> verbose(string("-v,--verbose"), false,
 		     false, no_argument);
 Option<bool> help(string("-h,--help"), false,
 		  string("display this message"),
+		  false, no_argument);
+Option<bool> nocheck(string("--nocheck"), false,
+		  string("turn off all checking"),
 		  false, no_argument);
 Option<bool> medianfilter(string("-m,--median"), false,
 		  string("apply 2D median filtering"),
@@ -768,6 +771,17 @@ int get_dwell_and_asym(float& dwellval, float& asymval) {
     }
   }
 
+  if (needdwell) {
+    if (dwellval>0.2) {
+      if (nocheck.unset()) {
+	cerr << "ERROR:: dwell time should be in seconds but the value of " << dwellval << "is unusually large and maybe incorrectly specified in units of milliseconds." << endl;
+	cerr << "Try running with the value " << dwellval/1000.0 << endl;
+	cerr << "Alternatively, to force the code to use the exact value as specified, re-run with the --nocheck option on" << endl;
+	exit(EXIT_FAILURE);
+      }
+    }
+  }
+
   // otherwise all is OK
   return 0;
 }
@@ -790,12 +804,6 @@ int do_unwarping()
   }
 
   unwarpdir_value = unwarpdir.value();
-  // swap x direction for neurological files (to keep consistent with
-  //  original nifti voxel coordinates)
-  if ((invol.tsize()>0) && (!invol[0].RadiologicalFile)) {
-    if (unwarpdir_value=="x") { unwarpdir_value="x-"; }
-    else if (unwarpdir_value=="x-") { unwarpdir_value="x"; }
-  }
 
   if (maskfname.set()) {
     if (verbose.value()) { cout << "Reading mask volume" << endl; }
@@ -1008,6 +1016,7 @@ extern "C" __declspec(dllexport) int _stdcall fugue(char *CmdLn)
     options.add(unmaskedfmap);
     options.add(unmaskedshift);
     options.add(nokspace);
+    options.add(nocheck);
     options.add(verbose);
     options.add(help);
     

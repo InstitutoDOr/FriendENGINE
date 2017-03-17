@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 // Calculates an estimated signal loss from a b0map
 // Can also use this for separate left-right gradient estimation (internal function)
@@ -86,7 +86,7 @@ namespace sigloss {
 // The two strings below specify the title and example usage that is
 //  printed out as the help or usage message
 
-string title="sigloss (Version 1.0)\nCopyright(c) 2004, University of Oxford (Mark Jenkinson)\nEstimates signal loss from a field map (in rad/s) - possibly saved by fugue\n";
+string title="sigloss \nCopyright(c) 2004, University of Oxford (Mark Jenkinson)\nEstimates signal loss from a field map (in rad/s) - possibly saved by fugue\n";
 string examples="sigloss [options] -i b0map -m mask -s sigloss_estimate";
 
 // Each (global) object below specificies as option and can be accessed

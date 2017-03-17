@@ -119,6 +119,16 @@ namespace Melodic{
     	tmpData = RawData.matrix(Mask);
 		memmsg(" after reshape ");	  
 	}    
+
+  // If a time series model design was specified, check 
+  // that the data dimensions match the model dimensions
+  if (Tdes.Storage() && (tmpData.Nrows() != Tdes.Nrows())) {
+
+    cerr << "ERROR: " << fname << " " << 
+      "- data dimensions (" << tmpData.Nrows() << ") "  << 
+      "do not match model dimensions (" << Tdes.Nrows() << ")" << endl;
+    return tmpData;
+  } 
         
     //convert to percent BOLD signal change
     if(opts.pbsc.value()){
@@ -396,7 +406,7 @@ namespace Melodic{
 
 		if(opts.pca_dim.value() > alldat.Nrows()-2){
 			cerr << "ERROR:: too many components selected \n\n";
-			exit(2);
+			return;
 		}
 
 		for(int ctr = 1; ctr < numfiles; ctr++){
@@ -406,7 +416,7 @@ namespace Melodic{
 			else{
 				    if(opts.approach.value()==string("tica")){
 						cerr << "ERROR:: data dimensions do not match, TICA not possible \n\n";
-						exit(2); 
+						return; 
 					}
 
 					if(tmpData.Ncols() == alldat.Ncols()){
@@ -664,7 +674,7 @@ namespace Melodic{
 		read_volume(background,opts.bgimage.value());
     	if(!samesize(Mean,background)){
         	cerr << "ERROR:: background image and data have different dimensions  \n\n";
-        	exit(2);
+        	return;
     	}
 	}else{
 		background = Mean;
@@ -672,7 +682,7 @@ namespace Melodic{
 		
     if(!samesize(Mean,Mask)){
       cerr << "ERROR:: mask and data have different dimensions  \n\n";
-      exit(2);
+      return ;
     }
 
     //reset mean
@@ -691,7 +701,7 @@ namespace Melodic{
 	
 		if(!samesize(Mean,tmp_im[0])){
 	        	cerr << "ERROR:: instacorr mask and data have different voxel dimensions  \n\n";
-	        	exit(2);
+	        	return;
 		}	
 		insta_mask = tmp_im.matrix(Mask); 
 	}
@@ -733,8 +743,20 @@ namespace Melodic{
 		TconF = read_ascii_matrix(opts.fn_TconF.value());
 	if(opts.fn_SconF.value().length()>0)
 		SconF = read_ascii_matrix(opts.fn_SconF.value());
-		
-	if(numfiles>1 && Sdes.Storage() == 0){
+
+  // Check that the number of input 
+  // files matches the session design
+  if (Sdes.Storage()) {
+    if (Sdes.Nrows() != numfiles) {
+      cerr << "ERROR: Number of input files (" << numfiles << ") " <<
+        "does not match subject/session design (" << Sdes.Nrows() << ")" << endl;
+      return;
+    }
+  }			
+  
+  // Or create a default session design 
+  // if one was not specified
+  else if(numfiles>1){		
  		Sdes = ones(numfiles,1);
 		if(Scon.Storage() == 0){
 			Scon = ones(1,1);
@@ -872,7 +894,7 @@ namespace Melodic{
     mixMatrix = read_ascii_matrix(opts.filtermix.value());
     if (mixMatrix.Storage()<=0) {
       cerr <<" Please specify the mixing matrix correctly" << endl;
-      exit(2);
+      return 2;
     }
     
     unmixMatrix = pinv(mixMatrix);

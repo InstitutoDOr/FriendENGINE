@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "unwarpfns.h"
 
@@ -986,7 +986,7 @@ volume<float> unwrap(const volume<float>& phasemap,
     int r,s;
     r = (*it).first.first;
     s = (*it).first.second;
-	int Krs = MISCMATHS::round((*it).second.K);
+    int Krs = MISCMATHS::round((*it).second.K);
     conmap.erase(it);
     // merge s into r (note that r<s due to insertion into constraintmap)
     for (int p=1; p<=nclass; p++) {
@@ -1048,16 +1048,12 @@ volume<float> unwrap2D(const volume<float>& phasemap,
   uphase = 0;
   uphase.activateROI();
 
-  volume<float> pslice, uslice, olduslice, udiff, mslice, oldmslice;
+  volume<float> pslice, uslice, udiff, mslice;
   volume<int> lslice;
 
   for (int z=zmin; z<=zmax; z++) {
     if (verbose) cout << "SLICE NUMBER " << z << endl;
 
-    if (z>zmin) {
-      olduslice = uslice;
-      oldmslice = mslice;
-    }
     // get slices from phasemap and label
     phasemap.setROIlimits(phasemap.minx(),phasemap.miny(),z,
 			  phasemap.maxx(),phasemap.maxy(),z);
@@ -1118,7 +1114,7 @@ volume<float> unwrap2D(const volume<float>& phasemap,
       int m=MISCMATHS::round(median_diff/(2.0*M_PI));
       for (int y=label.miny(); y<=label.maxy(); y++) {
 	for (int x=label.minx(); x<=label.maxx(); x++) {
-	  if (label(x,y,z)>0) { uphase(x,y,z+1) -= m*2.0*M_PI; }
+	  if (label(x,y,z+1)>0) { uphase(x,y,z+1) -= m*2.0*M_PI; }
 	}
       }
     }
@@ -1211,7 +1207,7 @@ volume<float> limit_pixshift(const volume<float>& pixshift,
 	}
       }
       if (n>2) {
-		  ycom = MISCMATHS::round(sum / ((float)n));
+	ycom = MISCMATHS::round(sum/((float) n));
       }
 	
       for (int y=ycom; y<pixshift.ysize()-1; y++) {

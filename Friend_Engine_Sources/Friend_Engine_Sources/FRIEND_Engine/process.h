@@ -1,4 +1,4 @@
-#ifdef CUDAENGINE
+#ifdef RTCORRECTION
 #include "realTimeCorrection.cuh"
 #endif
 
@@ -21,7 +21,7 @@ private:
 	char exePath[BUFF_SIZE];
 	int passes;
 
-#ifdef CUDAENGINE
+#ifdef RTCORRECTION
 	RealTimeCorrection rtc;
 	void *mask;
 	float *volumeVector;
@@ -71,6 +71,8 @@ private:
 	// process one volume in the pipeline
 	void realtimePipelineStep(char *rtPrefix, char *format, char *actualbaseline);
 public:
+
+	int rifSize;
 
 	// config file functions
 	void readConfigFile(char *configFile);

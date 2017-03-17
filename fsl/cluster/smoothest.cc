@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <cmath>
 #include <iostream>
@@ -174,14 +174,14 @@ unsigned long standardise(volume<float>& mask,
 	    double Sx = 0.0, SSx = 0.0;
 	    
 	    for ( int t = 0; t < M; t++ ) {
-	      float R_it = R(x,y,z,t);
+	      double R_it = R(x,y,z,t);
 	      
 	      Sx += R_it;
 	      SSx += Sqr(R_it);
 	    }
 	    
-	    float mean = Sx / M;
-	    float sdsq = (SSx - (Sqr(Sx) / M)) / (M - 1) ;
+	    double mean = Sx / M;
+	    double sdsq = (SSx - (Sqr(Sx) / M)) / (M - 1) ;
 	    
 	    if (sdsq<=0) {
 	      // trap for differences between mask and invalid data
@@ -203,7 +203,7 @@ unsigned long standardise(volume<float>& mask,
 
 
 string title = "\
-smoothest (Version 2.1)\nCopyright(c) 2000-2002, University of Oxford (Dave Flitney and Mark Jenkinson)";
+smoothest \nCopyright(c) 2000-2002, University of Oxford (Dave Flitney and Mark Jenkinson)";
 
 string examples = "\
 \tsmoothest -d <number> -r <filename> -m <filename>\n\
@@ -306,7 +306,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
   // Estimate the smoothness of the normalised residual field
   // see TR00DF1 for mathematical description of the algorithm.
   enum {X = 0, Y, Z};
-  float SSminus[3] = {0, 0, 0}, S2[3] = {0, 0, 0};
+  double SSminus[3] = {0, 0, 0}, S2[3] = {0, 0, 0};
 
   int zstart=1;
   if (!usez) zstart=0;
@@ -333,8 +333,8 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
 	  }
 	}
 
-  float norm = 1.0/(float) N;
-  float v = dof.value();	// v - degrees of freedom (nu)  
+  double norm = 1.0/(double) N;
+  double v = dof.value();	// v - degrees of freedom (nu)  
   if(R.tsize() > 1) {
     if(verbose.value()) {
       cerr << "Non-edge voxels = " << N << endl;
@@ -374,7 +374,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
   }
 
   // Convert to sigma squared
-  float sigmasq[3];
+  double sigmasq[3];
 
   sigmasq[X] = -1.0 / (4 * log(fabs(SSminus[X]/S2[X])));
   sigmasq[Y] = -1.0 / (4 * log(fabs(SSminus[Y]/S2[Y])));
@@ -385,7 +385,7 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
   // Furthermore, W_i = 1/(2.lambda_i) = sigma_i^2 => 
   //   det(Lambda) = det( lambda_i ) = det ( (2 W_i)^-1 ) = (2^D det(W))^-1
   //   where D = number of dimensions (2 or 3)
-  float dLh;
+  double dLh;
   if (usez) { dLh=pow(sigmasq[X]*sigmasq[Y]*sigmasq[Z], -0.5)*pow(8, -0.5); }
   else { dLh = pow(sigmasq[X]*sigmasq[Y], -0.5)*pow(4, -0.5); }
 
@@ -395,12 +395,12 @@ extern "C" __declspec(dllexport) int _stdcall smoothest(char *CmdLn)
   if(R.tsize() > 1) dLh *= SMOOTHEST::interpolate(v);
 
   // Convert to full width half maximum
-  float FWHM[3];
+  double FWHM[3];
   FWHM[X] = sqrt(8 * log(2) * sigmasq[X]);
   FWHM[Y] = sqrt(8 * log(2) * sigmasq[Y]);
   if (usez) { FWHM[Z] = sqrt(8 * log(2) * sigmasq[Z]); }
   else { FWHM[Z]=0; }
-  float resels = FWHM[X] * FWHM[Y];
+  double resels = FWHM[X] * FWHM[Y];
   if (usez) resels *= FWHM[Z];
 
   if(verbose.value()) {

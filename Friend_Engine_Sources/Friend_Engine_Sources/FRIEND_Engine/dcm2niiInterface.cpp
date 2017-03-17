@@ -33,6 +33,7 @@ void transformDicom(char *filename, char *outdir)
 
 	changeFileExt(filename, "", auxFile);
 	extractFileName(auxFile, opts.filename);
+	opts.isVerbose = 2;
 	if (0)
 	{
 		strcpy(opts.indir, filename);

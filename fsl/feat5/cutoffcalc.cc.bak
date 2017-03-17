@@ -92,8 +92,8 @@ Option<bool> verbose(string("-v,--verbose"), false,
 Option<bool> help(string("-h,--help"), false,
 		  string("display this message"),
 		  false, no_argument);
-Option<float> varthreshold(string("-t,--thresh"), 0.99,
-		  string("Threshold for retained variance (default=0.99)"),
+Option<float> varthreshold(string("-t,--thresh"), 0.9,
+		  string("Threshold for retained variance (default=0.9)"),
 		  false, requires_argument);
 Option<float> tr(string("--tr"), 3,
 		  string("Time between successive data points (default=3.0s)"),

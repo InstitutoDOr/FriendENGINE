@@ -75,9 +75,10 @@
 using namespace NEWIMAGE;
 
 namespace fslstats {
-void print_usage(const string& progname) {
-  cout << "Usage: fslstats [-t] <input> [options]" << endl << endl; 
-  cout << "-t will give a separate output line for each 3D volume of a 4D timeseries" << endl; 
+int print_usage(const string& progname) {
+  cout << "Usage: fslstats [preoptions] <input> [options]" << endl << endl; 
+  cout << "preoption -t will give a separate output line for each 3D volume of a 4D timeseries" << endl;
+  cout << "preoption -K < indexMask > will generate seperate n submasks from indexMask, for indexvalues 1..n where n is the maximum index value in indexMask, and generate statistics for each submask" << endl;
   cout << "Note - options are applied in order, e.g. -M -l 10 -M will report the non-zero mean, apply a threshold and then report the new nonzero mean" << endl << endl;
   cout << "-l <lthresh> : set lower threshold" << endl;
   cout << "-u <uthresh> : set upper threshold" << endl;
@@ -105,6 +106,7 @@ void print_usage(const string& progname) {
   cout << "-h <nbins>   : output a histogram (for the thresholded/masked voxels only) with nbins" << endl; 
   cout << "-H <nbins> <min> <max>   : output a histogram (for the thresholded/masked voxels only) with nbins and histogram limits of min and max" << endl << endl;
   cout << "Note - thresholds are not inclusive ie lthresh<allowed<uthresh" << endl;
+  return 1;
 }
 
 // Some specialised nonzero functions just for speedup
@@ -583,45 +585,44 @@ int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode, const str
 
 extern "C" __declspec(dllexport) int _stdcall fslstats(char *CmdLn)
 {
-  int argc;
-  char **argv;
-  
-  parser(CmdLn, argc, argv);
+	int argc;
+	char **argv;
 
-  Tracer tr("main");
-  string progname(argv[0]);
-  int retval(-1);
-  bool timeseriesMode(false);
-  string indexMask("");
-  while ( argc > 2 && ( string(argv[1])=="-t" || string(argv[1]) =="-K" ) ) {
-    if ( string(argv[1])=="-t" )
-      timeseriesMode=true;
-    if ( string(argv[1])=="-K" ) {
-      indexMask=string(argv[2]);
-      argv++;
-      argc--;
-    }
-    argv++;
-    argc--;
-    timeseriesMode=true;
-  }
-  
+	parser(CmdLn, argc, argv);
 
-  try {
-    if (argc < 3 ) { 
-      print_usage(progname);
-      freeparser(argc, argv);
-      return 1; 
-    }
-    retval = fmrib_main_float(argc,argv,timeseriesMode, indexMask);
-  } catch(std::exception &e) {
-    cerr << e.what() << endl;
-  } catch (...) {
-    // do nothing - just exit without garbage message
-  }
+	Tracer tr("main");
+	string progname(argv[0]);
+	int retval(-1);
+	bool timeseriesMode(false);
+	string indexMask("");
+	while (argc > 2 && (string(argv[1]) == "-t" || string(argv[1]) == "-K"))
+	{
+		if (string(argv[1]) == "-t")
+			timeseriesMode = true;
+		if (string(argv[1]) == "-K")
+		{
+			indexMask = string(argv[2]);
+			argv++;
+			argc--;
+		}
+		argv++;
+		argc--;
+		timeseriesMode = true;
+	}
 
-  freeparser(argc, argv);
-  return retval;
-  
+	try {
+		if (argc < 3) {
+			print_usage(progname);
+			freeparser(argc, argv);
+			return 1;
+		}
+		retval = fmrib_main_float(argc, argv, timeseriesMode, indexMask);
+	}
+	catch (std::exception &e) {
+		cerr << e.what() << endl;
+	}
+
+	freeparser(argc, argv);
+	return retval;
 }
 }

@@ -1,4 +1,4 @@
-/*  glimGls.h
+ /*  glimGls.h
 
     Mark Woolrich and Matthew Webster, FMRIB Image Analysis Group
 
@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #if !defined(__glimgls_h)
 #define __glimgls_h
@@ -75,6 +75,7 @@
 #define WANT_MATH
 
 #include "newimage/newimageall.h"
+#include "fslsurface/fslsurfaceio.h"
 
 using namespace NEWMAT;
 
@@ -85,27 +86,31 @@ namespace FILM {
   class GlimGls
     {
     public:
-      GlimGls(const int pnumTS, const int psizeTS, const int pnumParams);
+      GlimGls(const int pnumTS, const int psizeTS, const int pnumParams, const int pnContrasts, const int pnFContrasts);
      
-      void setData(const ColumnVector& p_y, const Matrix& p_x, const int ind);       
-      void Save(const NEWIMAGE::volume<float>& mask,const float reftdim);
+      void setData(const ColumnVector& p_y, const Matrix& p_x, const int ind, const Matrix& tContrasts, const Matrix& fContrasts);       
+      void Save(const NEWIMAGE::volume<float>& mask, NEWIMAGE::volume4D<float>& saveVolume,fslsurface_name::fslSurface<float, unsigned int>& saveSurface,const string& saveMode,const float reftdim=1.0);
+      void saveData(const string& outputName, const Matrix& data, NEWIMAGE::volume4D<float>& saveVolume, const NEWIMAGE::volume<float>& volumeMask, const  bool setVolumeRange, const bool setVolumeTdim, const int outputTdim, const bool setIntent, const int intentCode,  fslsurface_name::fslSurface<float, unsigned int>& saveSurface, const string& saveToVolume);
       ColumnVector& getResiduals() { return r; }
       void CleanUp();
 
     private:
-
-      void SetCorrection(const Matrix& corr, const int ind);
 
       GlimGls(const GlimGls&);
       GlimGls& operator=(const GlimGls& p_glimgls);
    
       int numTS;
       int sizeTS;
+      int nContrasts;
+      int nFContrasts;
+      vector<int> fDof;
       int numParams;
 
       // Data to be saved:
-      Matrix corrections;
       Matrix b;
+      Matrix copes;
+      Matrix varcopes;
+      Matrix fstats;
       RowVector sigmaSquareds;
       float dof;
       ColumnVector r;

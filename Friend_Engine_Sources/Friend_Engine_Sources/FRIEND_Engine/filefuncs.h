@@ -1,6 +1,18 @@
 #ifndef FILEFUNCS_H
 #define FILEFUNCS_H
 #include "defs.h"
+#include <vector>
+
+using namespace std;
+
+// returns the list of directories in dirSource
+void listDirectory(char *dirSource, vector<string>&entries);
+
+// returns the first entry of a directory
+string returnFirstFile(char *dirSource);
+
+// returns the first element of a list that has the given substring 
+string searchSubstringInList(vector<string>&entries, char *substring, char *noSearchSubString = NULL);
 
 // merge to files in binary mode
 void mergeFiles(const char *fromfileA, const char *fromfileB, const char *tofile);
@@ -25,6 +37,11 @@ int returnFileNameExists(char *fileName, char *fileNameExists);
 
 // checks if a file exists
 int fileExists(char *arquivo);
+
+// file Size
+int fileSize(char *filename);
+
+bool isReadableSize(char *fileName, int size);
 
 // returns the path of `fileName`. Note `output` must have at least the same size than `fileName`
 void extractFilePath(char *file, char *saida);

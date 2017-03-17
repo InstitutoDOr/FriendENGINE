@@ -2,9 +2,72 @@
 //
 // fnirtfns.cpp
 //
-// Jesper Andersson, FMRIB Image Analysis Group
+// Jesper Andersson and Matthew Webster, FMRIB Image Analysis Group
 //
 //
+/*    Copyright (C) 2012-2015 University of Oxford  */
+
+/*  Part of FSL - FMRIB's Software Library
+    http://www.fmrib.ox.ac.uk/fsl
+    fsl@fmrib.ox.ac.uk
+    
+    Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+    Imaging of the Brain), Department of Clinical Neurology, Oxford
+    University, Oxford, UK
+    
+    
+    LICENCE
+    
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
+    Oxford (the "Software")
+    
+    The Software remains the property of the University of Oxford ("the
+    University").
+    
+    The Software is distributed "AS IS" under this Licence solely for
+    non-commercial use in the hope that it will be useful, but in order
+    that the University as a charitable foundation protects its assets for
+    the benefit of its educational and research purposes, the University
+    makes clear that no condition is made or to be implied, nor is any
+    warranty given or to be implied, as to the accuracy of the Software,
+    or that it will be suitable for any particular purpose or for use
+    under any specific conditions. Furthermore, the University disclaims
+    all responsibility for the use which is made of the Software. It
+    further disclaims any liability for the outcomes arising from using
+    the Software.
+    
+    The Licensee agrees to indemnify the University and hold the
+    University harmless from and against any and all claims, damages and
+    liabilities asserted by third parties (including claims for
+    negligence) which arise directly or indirectly from the use of the
+    Software or the sale of any products based on the Software.
+    
+    No part of the Software may be reproduced, modified, transmitted or
+    transferred in any form or by any means, electronic or mechanical,
+    without the express permission of the University. The permission of
+    the University is not required if the said reproduction, modification,
+    transmission or transference is done without financial return, the
+    conditions of this Licence are imposed upon the receiver of the
+    product, and all original and amended source code is included in any
+    transmitted product. You may be held legally responsible for any
+    copyright infringement that is caused or encouraged by your failure to
+    abide by these terms and conditions.
+    
+    You are not permitted under this Licence to use this Software
+    commercially. Use for which any financial return is received shall be
+    defined as commercial use, and includes (1) integration of all or part
+    of the source code or the Software into a product for sale or license
+    by or on behalf of Licensee to third parties or (2) use of the
+    Software or any derivative of it for research with the final aim of
+    developing software products for sale or license to a third party or
+    (3) use of the Software or any derivative of it for research with the
+    final aim of developing non-software products for sale or license to a
+    third party, or (4) use of the Software to provide any service to an
+    external organisation for which payment is received. If you are
+    interested in using the Software commercially, please contact Isis
+    Innovation Limited ("Isis"), the technology transfer company of the
+    University, to negotiate a licence. Contact details are:
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <cstdlib>
 #include <cmath>
@@ -75,7 +138,8 @@ fnirt_clp::fnirt_clp(const Utilities::Option<string>&                     pref,
                      const Utilities::Option<float>&                      pbiaslambda,
                      const Utilities::Option<bool>&                       pverbose,
                      const Utilities::Option<int>&                        pdebug,
-                     const Utilities::Option<string>&                     p_hess_prec)
+                     const Utilities::Option<string>&                     p_hess_prec,
+                     const Utilities::Option<string>&                     p_interp_type)
   : ref(pref.value()), obj(pobj.value()), inwarp(pinwarp.value()), in_int(pin_int.value()), coef(pcoef.value()), objo(pobjo.value()), 
     fieldo(pfieldo.value()), jaco(pjaco.value()), refo(prefo.value()), into(pinto.value()), logo(plogo.value()), 
     refm(prefm.value()), objm(pobjm.value()), ref_pl(pref_pl.value()), obj_pl(pobj_pl.value()), rimf((primf.value()==0) ? false : true), 
@@ -124,8 +188,17 @@ fnirt_clp::fnirt_clp(const Utilities::Option<string>&                     pref,
   }
 
   // Read and assert affine matrix
-  if (paff.value().empty()) aff = NEWMAT::IdentityMatrix(4);
-  else {
+  if (paff.value().empty() && pinwarp.value().empty()) aff = NEWMAT::IdentityMatrix(4);
+  else if (!paff.value().empty()) {
+    if (!pinwarp.value().empty()) { // If we have both affine and non-linear starting guess
+      NEWIMAGE::FnirtFileReader    reader;
+      try { reader.Read(pinwarp.value()); }
+      catch (...) { throw fnirt_error(string("fnirt_clp: Problems reading initial warp file ")+pinwarp.value()); }
+      NEWMAT::Matrix tmp_aff = reader.AffineMat();
+      if ((tmp_aff-NEWMAT::IdentityMatrix(4)).MaximumAbsoluteValue() > 1e-6) { // This means we have a potential conflict
+        throw fnirt_error("fnirt_clp: Dual affine transform (in --aff and --inwarp)");
+      }
+    }
     ifstream  ifs(paff.value().c_str());
     if (!ifs.fail()) {
       aff = MISCMATHS::read_ascii_matrix(ifs);
@@ -134,10 +207,21 @@ fnirt_clp::fnirt_clp(const Utilities::Option<string>&                     pref,
       throw fnirt_error(string("fnirt_clp: Invalid affine matrix ")+paff.value()+string(" passed as argument to --aff"));
     }
   }
+  else { // This means we (only) have a non-linear initial guess
+    NEWIMAGE::FnirtFileReader    reader;
+    try { reader.Read(pinwarp.value()); }
+    catch (...) { throw fnirt_error(string("fnirt_clp: Problems reading initial warp file ")+pinwarp.value()); }
+    aff = reader.AffineMat();
+  }
+
+
   // Assert the categorical parameters
   if (p_hess_prec.value() == "float") hess_prec = BFMatrixFloatPrecision;
   else if (p_hess_prec.value() == "double") hess_prec = BFMatrixDoublePrecision;
   else throw fnirt_error("fnirt_clp: --numprec takes values float or double");
+  if (p_interp_type.value() == "linear") interp_type = LinearInterp;
+  else if (p_interp_type.value() == "spline") interp_type = SplineInterp;
+  else throw fnirt_error("fnirt_clp: --interp takes values linear or spline");
   if (debug > 3) throw fnirt_error("fnirt_clp: --debug takes values 0, 1, 2 or 3");
   if (pcf.value() == "ssd") cf = SSD;
   else throw fnirt_error("fnirt_clp: Invalid cost-function option");
@@ -146,7 +230,6 @@ fnirt_clp::fnirt_clp(const Utilities::Option<string>&                     pref,
   else throw fnirt_error("fnirt_clp: Invalid basis option");
   if (pnlm.value() == "lm") nlm = NL_LM;
   else if (pnlm.value() == "scg") nlm = NL_SCG;
-  else if (pnlm.value() == "cg") nlm = NL_CG;
   else throw fnirt_error("fnirt_clp: Invalid minimisation option");
   if (pregmod.value() == "membrane_energy") regmod = MembraneEnergy;
   else if (pregmod.value() == "bending_energy") regmod = BendingEnergy;
@@ -249,6 +332,11 @@ fnirt_clp::fnirt_clp(const Utilities::Option<string>&                     pref,
   else if (puseobjm.value().size() == 1) for (unsigned int i=0; i<nlev; i++) useobjmask[i] = (puseobjm.value()[0] ? true : false);
 
   //
+  // Make sure we are not trying to estimate intensities with Scaled Conjugate-gradient.
+  //
+  if (nlm == NL_SCG) for (unsigned int i=0; i<nlev; i++) if (estint[i]) throw fnirt_error("fnirt_clp: Cannot estimate intensity mapping with Scaled Conjugate Gradient method");
+
+  //
   // Assert and parse parameters pertaining to intensity mapping.
   //
   if (!pintmod.value().compare(string("none"))) imt = NONE;
@@ -271,7 +359,9 @@ fnirt_clp::fnirt_clp(const Utilities::Option<string>&                     pref,
   else if (imt == LOCAL_BIAS_WITH_GLOBAL_NON_LINEAR && (intord = static_cast<unsigned int>(pintord.value())) > 5) {
     throw fnirt_error("fnirt_clp: Argument to --intorder, cannot use polynomial of order > 5 for intensity mapping when also modelling intensity bias");
   }
-
+  else if (imt == LOCAL_NON_LINEAR && (intord = static_cast<unsigned int>(pintord.value())) > 5) {
+    throw fnirt_error("fnirt_clp: Argument to --intorder, cannot use polynomial of order > 5 for intensity mapping when also modelling local non-linear mappings");
+  }
   
   double pxs[] = {vref.xdim(), vref.ydim(), vref.zdim()};
   int    dim[] = {vref.xsize(), vref.ysize(), vref.zsize()};
@@ -324,6 +414,7 @@ fnirt_clp::fnirt_clp(const Utilities::Option<string>&                     pref,
       for (int i=0; i<3; i++) {
         bias_ksp[l][i] = (ss[0]/ss[l]) * tmpksp[i];
       }
+      // cout << "level = " << l << ", bias_ksp[0] = " << bias_ksp[l][0] << ", bias_ksp[1] = " << bias_ksp[l][1] << ", bias_ksp[2] = " << bias_ksp[l][2] << endl;
     }
   }
   else if (bf == DCT) {
@@ -349,7 +440,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
       string("name of file containing initial non-linear warps"), false, Utilities::requires_argument);
 
   Utilities::Option<string> in_intname(string("--intin"), string(""),
-      string("\tname of file/files containing initial intensity maping"), false, Utilities::requires_argument);
+      string("\tname of file/files containing initial intensity mapping"), false, Utilities::requires_argument);
 
   Utilities::Option<string> coefname(string("--cout"), string(""),
       string("\tname of output file with field coefficients"), false, Utilities::requires_argument);
@@ -402,11 +493,11 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
 
   vector<int> applyrefmaskdefault(4,1);
   Utilities::Option<vector<int> > applyrefmask(string("--applyrefmask"),applyrefmaskdefault,
-      string("Use specified refmask if set, deafult 1 (true)"),false,Utilities::requires_argument);
+      string("Use specified refmask if set, default 1 (true)"),false,Utilities::requires_argument);
 
   vector<int> applyobjmaskdefault(4,1);
   Utilities::Option<vector<int> > applyobjmask(string("--applyinmask"),applyobjmaskdefault,
-      string("Use specified inmask if set, deafult 1 (true)"),false,Utilities::requires_argument);
+      string("Use specified inmask if set, default 1 (true)"),false,Utilities::requires_argument);
 
   Utilities::Option<int> imprefflag(string("--imprefm"), 1,
       string("If =1, use implicit masking based on value in --ref image. Default =1"),false, Utilities::requires_argument);
@@ -421,7 +512,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
       string("Value to mask out in --in image. Default =0.0"),false, Utilities::requires_argument);
 
   Utilities::Option<string> minimisationmethod(string("--minmet"), string("lm"),
-      string("non-linear minimisation method [lm | scg | cg] (Leveberg-Marquardt, Scaled Conjugate Gradient or Conjugate Gradient)"), 
+      string("non-linear minimisation method [lm | scg] (Levenberg-Marquardt or Scaled Conjugate Gradient)"), 
       false, Utilities::requires_argument);
 
   vector<int> maxiterdefault(4,0);
@@ -439,7 +530,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
       string("(approximate) resolution (in mm) of warp basis in x-, y- and z-direction, default 10,10,10"), false, Utilities::requires_argument);
 
   Utilities::Option<int> splineorder(string("--splineorder"), 3,
-      string("Order of spline, 2->Qadratic spline, 3->Cubic spline. Default=3"),false, Utilities::requires_argument);
+      string("Order of spline, 2->Quadratic spline, 3->Cubic spline. Default=3"),false, Utilities::requires_argument);
 
   vector<float> objsmoothdefault(4,0);
   objsmoothdefault[0] = 6.0; objsmoothdefault[1] = 4.0; objsmoothdefault[2] = 2.0; objsmoothdefault[3] = 2.0;
@@ -457,7 +548,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
 
   vector<float> lambdadefault(0);
   Utilities::Option<vector<float> > lambda(string("--lambda"),lambdadefault,
-      string("Weight of regularisation, default depending on --ssqlambda and --regmod switches. See user documetation."), 
+      string("Weight of regularisation, default depending on --ssqlambda and --regmod switches. See user documentation."), 
       false, Utilities::requires_argument);
 
   Utilities::Option<int> ssqlambda(string("--ssqlambda"),true,string("If set (=1), lambda is weighted by current ssq, default 1"),
@@ -478,7 +569,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
 
   int intensityorderdefault = 5;
   Utilities::Option<int> intensityorder(string("--intorder"),intensityorderdefault,
-      string("Order of poynomial for mapping intensities, default 5"),false,Utilities::requires_argument);
+      string("Order of polynomial for mapping intensities, default 5"),false,Utilities::requires_argument);
    
   vector<float> biasresdefault(3,50.0);
   Utilities::Option<vector<float> > biasfieldres(string("--biasres"),biasresdefault,
@@ -493,10 +584,13 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
   vector<int> estintdefault(4,1);
   estintdefault[3] = 0;
   Utilities::Option<vector<int> > estimateintensity(string("--estint"),estintdefault,
-      string("Estimate intensity-mapping if set, deafult 1 (true)"),false,Utilities::requires_argument);
+      string("Estimate intensity-mapping if set, default 1 (true)"),false,Utilities::requires_argument);
 
   Utilities::Option<string> numprec(string("--numprec"),string("double"),
       string("Precision for representing Hessian, double or float. Default double"),false,Utilities::requires_argument);
+
+  Utilities::Option<string> interpolation(string("--interp"),string("linear"),
+      string("Image interpolation model, linear or spline. Default linear"),false,Utilities::requires_argument);
 
   Utilities::Option<string> configfile(string("--config"),string(""),
       string("Name of configuration field with settings for some/all fnirt parameters"),false,Utilities::requires_argument);
@@ -505,10 +599,10 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
       string("display help info"), false, Utilities::no_argument);
 
   Utilities::Option<bool> verbose(string("-v,--verbose"), false,
-      string("Print diagonostic information while running"), false, Utilities::no_argument);
+      string("Print diagnostic information while running"), false, Utilities::no_argument);
 
   Utilities::HiddenOption<int> debug(string("--debug"), 0,
-      string("Save debug information while running, levels 0 (no info), 1 (some info), 3 (little more info) or 3 (LOTS of info)"), false, Utilities::requires_argument);
+      string("Save debug information while running, levels 0 (no info), 1 (some info), 2 (little more info) or 3 (LOTS of info)"), false, Utilities::requires_argument);
 
   // Some explanatory text
 
@@ -548,7 +642,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
     options.add(impobjval);
     // options.add(costfunction);         Cost-function option hidden for now
     // options.add(basis);                Basis-set hidden for now
-    // options.add(minimisationmethod);   Minimisation-method option hidden for now
+    options.add(minimisationmethod);      
     options.add(maxiter);
     options.add(subsampling);
     options.add(warpres);
@@ -568,6 +662,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
     options.add(biasfieldlambda);
     options.add(estimateintensity);
     options.add(numprec);
+    options.add(interpolation);
     options.add(verbose);
     options.add(debug);
     options.add(help);
@@ -586,8 +681,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
 
     string   final_configname;
     if (configname.set()) {
-//      final_configname = existing_conf_file(configname.value());
-      final_configname = configname.value();
+      final_configname = existing_conf_file(configname.value());
       if (!final_configname.length()) {
         cerr << "Cannot find config-file " << configname.value() << endl;
         exit(EXIT_FAILURE);
@@ -622,7 +716,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
                                                      basis,minimisationmethod,maxiter,subsampling,warpres,splineorder,objsmoothing,
                                                      refsmoothing,regularisationmodel,lambda,ssqlambda,mpl_lambda,jacrange,userefderiv,intensitymodel,
                                                      estimateintensity,intensityorder,biasfieldres,biasfieldregmod,
-                                                     biasfieldlambda,verbose,debug,numprec));
+                                                     biasfieldlambda,verbose,debug,numprec,interpolation));
   }
   catch(fnirt_error& e) {
     options.usage();
@@ -671,6 +765,7 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
     logfs << biasfieldres << endl;
     logfs << biasfieldlambda << endl;
     logfs << numprec << endl;
+    logfs << interpolation << endl;
     logfs << userefderiv << endl;    
     logfs.close();
   }
@@ -682,11 +777,28 @@ boost::shared_ptr<fnirt_clp> parse_fnirt_command_line(unsigned int   narg,
   return(clp);  
 }
 
+/////////////////////////////////////////////////////////////////////
+//
+// This routines will use the constrain_topology function from
+// warpfns to make sure the Jacobians of the field is within
+// the prescribed range. The break statement will be executed if
+// subsequent calls to ForceJacobianRange produces identical
+// results. This indicates a disagreement between the continous
+// Jacobian calculated within fnirt and the discrete representation
+// used by constrain_topology. Effectively, constrain_topology
+// considers the field to already be within the Jacobian bounds
+// and will make no further changes. This will/may happen for very
+// high resolution fields with very small regions (single voxels)
+// outside the permitted range.
+//
+/////////////////////////////////////////////////////////////////////
+
 bool constrain_warpfield(const SSD_fnirt_CF&   cf,
                          const fnirt_clp&      clp,
                          unsigned int          max_try)
 {
   std::pair<double,double> range = cf.JacobianRange();
+  std::pair<double,double> last_range = range;
   if (clp.Verbose()) cout << "Jacobian range is " << range.first << " -- " << range.second << endl;
 
   unsigned int n_try=0;
@@ -695,6 +807,8 @@ bool constrain_warpfield(const SSD_fnirt_CF&   cf,
     cf.ForceJacobianRange(clp.JacLowerBound(),clp.JacUpperBound());
     range = cf.JacobianRange();
     if (clp.Verbose()) cout << "Jacobian range is " << range.first << " -- " << range.second << endl;
+    if (std::fabs(last_range.first-range.first) < 1e-6 || std::fabs(last_range.second-range.second) < 1e-6) break;
+    last_range = range;
     n_try++;
   } 
 
@@ -713,18 +827,30 @@ vector<boost::shared_ptr<basisfield> > init_warpfield(const fnirt_clp&  clp)
       reader.Read(clp.InWarp());
     }
     catch (...) {
-      cerr << "Problems reading initial warp file " << clp.InWarp() << endl;
-      exit(EXIT_FAILURE);
+      throw fnirt_error(string("Problems reading initial warp file ")+clp.InWarp());
     }
-    if (clp.RefSize() != reader.FieldSize()) {
-      cerr << "Field in file " << clp.InWarp() << " not of same size as image in " << clp.Ref() << endl;
-      exit(EXIT_FAILURE);
+    if (clp.RefSize() != reader.FieldSize() || clp.RefVxs() != reader.VoxelSize()) {
+      // Different size fields. Check if it maybe is up/down-sampling.
+      if ((std::fabs(reader.FieldSize()[0]*reader.VoxelSize()[0] - clp.RefSize()[0]*clp.RefVxs()[0]) > 1e-3) || 
+          (std::fabs(reader.FieldSize()[1]*reader.VoxelSize()[1] - clp.RefSize()[1]*clp.RefVxs()[1]) > 1e-3) || 
+          (std::fabs(reader.FieldSize()[2]*reader.VoxelSize()[2] - clp.RefSize()[2]*clp.RefVxs()[2]) > 1e-3)) {
+        // This means FOV is different, i.e. not just up/down-sampling
+	if (clp.RefSize() != reader.FieldSize()) throw fnirt_error(string("Field in file ")+clp.InWarp()+string(" not of same size as image in ")+clp.Ref());
+        if (clp.RefVxs() != reader.VoxelSize()) throw fnirt_error(string("Field in file ")+clp.InWarp()+string(" has different voxel size from image in ")+clp.Ref());
+      } 
+      else { // We will assume this means that it is just a matter of up/down-sampling
+        if (clp.Basis() == FNIRT::Spline) {
+          if (clp.Verbose()) cout << "Resampling --inwarp field" << endl;
+          for (unsigned int fi=0; fi<3; fi++) {
+            field[fi] = boost::shared_ptr<splinefield>(new splinefield(clp.RefSize(),clp.RefVxs(),clp.FullResKsp(),clp.SplineOrder()));
+            BASISFIELD::splinefield original = reader.FieldAsSplinefield(fi);
+            make_field_with_same_fov(original,field[fi]);
+	  }
+	}
+	else throw fnirt_error(string("FNIRT cannot zoom DCT --inwarp field ")+clp.InWarp());
+      }
     }
-    if (clp.RefVxs() != reader.VoxelSize()) {
-      cerr << "Field in file " << clp.InWarp() << " has different voxel size from image in " << clp.Ref() << endl;
-      exit(EXIT_FAILURE);
-    }
-    if (clp.Basis() == FNIRT::Spline) {
+    else if (clp.Basis() == FNIRT::Spline) {
       for (int i=0; i<3; i++) field[i] = boost::shared_ptr<splinefield>(new splinefield(reader.FieldAsSplinefield(i,clp.FullResKsp())));
     }
     else if (clp.Basis() == FNIRT::DCT) {  
@@ -775,17 +901,38 @@ boost::shared_ptr<IntensityMapper> init_intensity_mapper(const fnirt_clp&  clp)
     boost::shared_ptr<basisfield>  fld;  // Null-pointer
     if (clp.Basis() == Spline) {
       if (mapreader.HasLocal()) {
-        if (mapreader.LocalFieldSize()!=clp.RefSize()) {
-          throw fnirt_error("init_intensity_mapper: Intensity Mapper file has different matrix-size from --ref");
+        if (mapreader.LocalFieldSize()!=clp.RefSize() || mapreader.LocalFieldVoxelSize()!=clp.RefVxs()) { // This means dimensions are not identical
+          if ((std::fabs(mapreader.LocalFieldSize()[0]*mapreader.LocalFieldVoxelSize()[0] - clp.RefSize()[0]*clp.RefVxs()[0]) > 1e-3) || 
+              (std::fabs(mapreader.LocalFieldSize()[1]*mapreader.LocalFieldVoxelSize()[1] - clp.RefSize()[1]*clp.RefVxs()[1]) > 1e-3) || 
+              (std::fabs(mapreader.LocalFieldSize()[2]*mapreader.LocalFieldVoxelSize()[2] - clp.RefSize()[2]*clp.RefVxs()[2]) > 1e-3)) { // This means FOV is different
+            if (mapreader.LocalFieldSize()!=clp.RefSize()) throw fnirt_error("init_intensity_mapper: Intensity Mapper file has different matrix-size from --ref");
+            if (mapreader.LocalFieldVoxelSize()!=clp.RefVxs()) throw fnirt_error("init_intensity_mapper: Intensity Mapper file has different voxel-size from --ref");
+	  }
+	  else { // This means FOV is the same, so we'll assume up/down-sampling
+            fld = boost::shared_ptr<BASISFIELD::basisfield>(new BASISFIELD::splinefield(clp.RefSize(),clp.RefVxs(),clp.FullResIntKsp()));
+	    std::vector<unsigned int>  ksp(3); // To avoid possible loss of resolution
+            ksp[0] = static_cast<unsigned int>((clp.RefVxs()[0]/mapreader.LocalFieldVoxelSize()[0])*clp.FullResIntKsp()[0]);
+            ksp[1] = static_cast<unsigned int>((clp.RefVxs()[1]/mapreader.LocalFieldVoxelSize()[1])*clp.FullResIntKsp()[1]);
+            ksp[2] = static_cast<unsigned int>((clp.RefVxs()[2]/mapreader.LocalFieldVoxelSize()[2])*clp.FullResIntKsp()[2]);
+            if (mapreader.NLocalFields()==1) {
+	      if (clp.Verbose()) cout << "Resampling --intin field" << endl;
+	      BASISFIELD::splinefield original = mapreader.GetLocalAsSingleSplinefield(ksp);
+	      make_field_with_same_fov(original,fld);
+	    }
+	    else if (mapreader.NLocalFields()>1) {
+	      if (clp.Verbose()) cout << "Resampling --intin field" << endl;
+              BASISFIELD::splinefield original = mapreader.GetLocalAsSingleSplinefield(ksp,1);
+	      make_field_with_same_fov(original,fld);
+	    }
+	  }
 	}
-        if (mapreader.LocalFieldVoxelSize()!=clp.RefVxs()) {
-	  throw fnirt_error("init_intensity_mapper: Intensity Mapper file has different voxel-size from --ref");
-	}
-	if (mapreader.NLocalFields()==1) {
-          fld = boost::shared_ptr<basisfield>(new splinefield(mapreader.GetLocalAsSingleSplinefield(clp.FullResIntKsp())));
-        }
-        else if (mapreader.NLocalFields()>1) {
-          fld = boost::shared_ptr<basisfield>(new splinefield(mapreader.GetLocalAsSingleSplinefield(clp.FullResIntKsp(),1)));
+	else { // Dimensions are identical
+	  if (mapreader.NLocalFields()==1) {
+            fld = boost::shared_ptr<basisfield>(new splinefield(mapreader.GetLocalAsSingleSplinefield(clp.FullResIntKsp())));
+          }
+          else if (mapreader.NLocalFields()>1) {
+            fld = boost::shared_ptr<basisfield>(new splinefield(mapreader.GetLocalAsSingleSplinefield(clp.FullResIntKsp(),1)));
+	  }
 	}
       }
       else {
@@ -802,17 +949,38 @@ boost::shared_ptr<IntensityMapper> init_intensity_mapper(const fnirt_clp&  clp)
     boost::shared_ptr<BASISFIELD::basisfield>  fld;  // Null-pointer
     if (clp.Basis() == Spline) {
       if (mapreader.HasLocal()) {
-        if (mapreader.LocalFieldSize()!=clp.RefSize()) {
-          throw fnirt_error("init_intensity_mapper: Intensity Mapper file has different matrix-size from --ref");
+        if (mapreader.LocalFieldSize()!=clp.RefSize() || mapreader.LocalFieldVoxelSize()!=clp.RefVxs()) { // This means dimensions are not identical
+          if ((std::fabs(mapreader.LocalFieldSize()[0]*mapreader.LocalFieldVoxelSize()[0] - clp.RefSize()[0]*clp.RefVxs()[0]) > 1e-3) || 
+              (std::fabs(mapreader.LocalFieldSize()[1]*mapreader.LocalFieldVoxelSize()[1] - clp.RefSize()[1]*clp.RefVxs()[1]) > 1e-3) || 
+              (std::fabs(mapreader.LocalFieldSize()[2]*mapreader.LocalFieldVoxelSize()[2] - clp.RefSize()[2]*clp.RefVxs()[2]) > 1e-3)) { // This means FOV is different
+            if (mapreader.LocalFieldSize()!=clp.RefSize()) throw fnirt_error("init_intensity_mapper: Intensity Mapper file has different matrix-size from --ref");
+            if (mapreader.LocalFieldVoxelSize()!=clp.RefVxs()) throw fnirt_error("init_intensity_mapper: Intensity Mapper file has different voxel-size from --ref");
+	  }
+	  else { // This means FOV is the same, so we'll assume up/down-sampling
+            fld = boost::shared_ptr<BASISFIELD::basisfield>(new BASISFIELD::splinefield(clp.RefSize(),clp.RefVxs(),clp.FullResIntKsp()));
+	    std::vector<unsigned int>  ksp(3); // To avoid possible loss of resolution
+            ksp[0] = static_cast<unsigned int>((clp.RefVxs()[0]/mapreader.LocalFieldVoxelSize()[0])*clp.FullResIntKsp()[0]);
+            ksp[1] = static_cast<unsigned int>((clp.RefVxs()[1]/mapreader.LocalFieldVoxelSize()[1])*clp.FullResIntKsp()[1]);
+            ksp[2] = static_cast<unsigned int>((clp.RefVxs()[2]/mapreader.LocalFieldVoxelSize()[2])*clp.FullResIntKsp()[2]);
+            if (mapreader.NLocalFields()==1) {
+	      if (clp.Verbose()) cout << "Resampling --intin field" << endl;
+	      BASISFIELD::splinefield original = mapreader.GetLocalAsSingleSplinefield(ksp);
+	      make_field_with_same_fov(original,fld);
+	    }
+	    else if (mapreader.NLocalFields()>1) {
+	      if (clp.Verbose()) cout << "Resampling --intin field" << endl;
+              BASISFIELD::splinefield original = mapreader.GetLocalAsSingleSplinefield(ksp,1);
+	      make_field_with_same_fov(original,fld);
+	    }
+	  }
 	}
-        if (mapreader.LocalFieldVoxelSize()!=clp.RefVxs()) {
-	  throw fnirt_error("init_intensity_mapper: Intensity Mapper file has different voxel-size from --ref");
-	}
-	if (mapreader.NLocalFields()==1) {
-          fld = boost::shared_ptr<basisfield>(new splinefield(mapreader.GetLocalAsSingleSplinefield(clp.FullResIntKsp())));
-        }
-        else if (mapreader.NLocalFields()>1) {
-          fld = boost::shared_ptr<basisfield>(new splinefield(mapreader.GetLocalAsSingleSplinefield(clp.FullResIntKsp(),1)));
+	else { // Dimensions are identical
+	  if (mapreader.NLocalFields()==1) {
+            fld = boost::shared_ptr<basisfield>(new splinefield(mapreader.GetLocalAsSingleSplinefield(clp.FullResIntKsp())));
+          }
+          else if (mapreader.NLocalFields()>1) {
+            fld = boost::shared_ptr<basisfield>(new splinefield(mapreader.GetLocalAsSingleSplinefield(clp.FullResIntKsp(),1)));
+	  }
 	}
       }
       else {
@@ -833,9 +1001,44 @@ boost::shared_ptr<IntensityMapper> init_intensity_mapper(const fnirt_clp&  clp)
     mymapper = boost::shared_ptr<IntensityMapper>(new SSDIntensityMapper(se,fld,clp.IntLambda()));
   }
   else if (clp.IntMapType() == LOCAL_NON_LINEAR) {
-    throw fnirt_error("init_intensity_mapper: Local non-linear not yet implemented");
+    std::vector<boost::shared_ptr<basisfield> >  fld(clp.IntMapOrder());
+    if (clp.Basis() == Spline) {
+      if (mapreader.HasLocal()) {
+      }
+      else {  // Brand new fields
+        for (unsigned int i=0; i<clp.IntMapOrder(); i++) {
+          fld[i] = boost::shared_ptr<BASISFIELD::basisfield>(new BASISFIELD::splinefield(clp.RefSize(),clp.RefVxs(),clp.FullResIntKsp()));
+          if (i==1) fld[i]->SetToConstant(1.0);  // Make it linear to start out with
+        }
+      }
+    }
+    else if (clp.Basis() == DCT) {
+      cout << "NYI" << endl;
+    }
+    mymapper = boost::shared_ptr<IntensityMapper>(new SSDIntensityMapper(fld,clp.IntLambda()));
   }
   return(mymapper);
+}
+
+void make_field_with_same_fov(const BASISFIELD::splinefield&                   in,
+                              boost::shared_ptr<BASISFIELD::basisfield>        out)
+{
+  NEWIMAGE::volume<float>  volout(out->FieldSz_x(),out->FieldSz_y(),out->FieldSz_z());
+  volout.setdims(out->Vxs_x(),out->Vxs_y(),out->Vxs_z());
+
+  double zf = out->Vxs_z() / in.Vxs_z();
+  double yf = out->Vxs_y() / in.Vxs_y();
+  double xf = out->Vxs_x() / in.Vxs_x();
+  for (unsigned int k=0; k<out->FieldSz_z(); k++) {
+    for (unsigned int j=0; j<out->FieldSz_y(); j++) {
+      for (unsigned int i=0; i<out->FieldSz_x(); i++) {
+        volout(i,j,k) = in.Peek(static_cast<double>(xf*i),static_cast<double>(yf*j),static_cast<double>(zf*k));
+      }
+    }
+  }
+  out->Set(volout);
+
+  return;
 }
 
 void set_nlpars(NonlinParam&  nlp)

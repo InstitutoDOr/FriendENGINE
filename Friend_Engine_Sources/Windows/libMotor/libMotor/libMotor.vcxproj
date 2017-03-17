@@ -85,7 +85,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\fsl\avwutils\fslmaths.cc" />
     <ClCompile Include="..\..\..\..\fsl\avwutils\fslswapdim.cc" />
-    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cc" />
+    <ClCompile Include="..\..\..\..\fsl\bet2\bet2.cpp" />
     <ClCompile Include="..\..\..\..\fsl\cprob\bdtr.c" />
     <ClCompile Include="..\..\..\..\fsl\cprob\btdtr.c" />
     <ClCompile Include="..\..\..\..\fsl\cprob\chdtr.c" />

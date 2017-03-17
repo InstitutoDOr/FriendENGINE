@@ -274,7 +274,7 @@ void GifReadFile(FILE *fout, char *fname, int firstImage)
 	Xgetc(fp); /* the extension code */
 	for ( i = Xgetc(fp); i > 0; i-- ) Xgetc(fp);
 	while ( ( i = Xgetc(fp) ) > 0 ) {
-	  for ( i = i ; i > 0; i-- ) Xgetc(fp);
+	  for ( ; i > 0; i-- ) Xgetc(fp);
 	}
 	break;
       default:
@@ -507,17 +507,18 @@ void GifScreenHeader(FILE *fp, FILE *fout, int firstTime)
       gifCmap[i].cmap.blue  = temp = Xgetc(fp);
       if (firstTime) fputc(temp, fout);
 
-    if(firstTime && (global.trans.type==TRANS_RGB && global.trans.valid==0) )
-      if (global.trans.red == gifCmap[i].cmap.red &&
-	  global.trans.green == gifCmap[i].cmap.green &&
-	  global.trans.blue == gifCmap[i].cmap.blue) {
-	if(debugFlag > 1) fprintf(stderr, " Transparent match at %d\n", i);
-	global.trans.map = i;
-	global.trans.valid = 1;
+      if(firstTime && (global.trans.type==TRANS_RGB && global.trans.valid==0) ) {
+	if (global.trans.red == gifCmap[i].cmap.red &&
+	    global.trans.green == gifCmap[i].cmap.green &&
+	    global.trans.blue == gifCmap[i].cmap.blue) {
+	  if(debugFlag > 1) fprintf(stderr, " Transparent match at %d\n", i);
+	  global.trans.map = i;
+	  global.trans.valid = 1;
+	}
+	else
+	  if(debugFlag > 1) fprintf(stderr, "No transp. RGB=(%x,%x,%x)\n",
+	     gifCmap[i].cmap.red, gifCmap[i].cmap.green, gifCmap[i].cmap.blue);
       }
-      else
-	if(debugFlag > 1) fprintf(stderr, "No transp. RGB=(%x,%x,%x)\n",
-	 gifCmap[i].cmap.red, gifCmap[i].cmap.green, gifCmap[i].cmap.blue);
     }
   }
 }
@@ -688,7 +689,7 @@ void CalcTrans(char *string)
   }
   else {
     /* it's an RGB value */
-    int r, g, b;
+    unsigned int r, g, b;
     string++;
     if (debugFlag > 1) fprintf(stderr, "String is %s\n", string);
     if(3 == sscanf(string, "%2x%2x%2x", &r, &g, &b)) {

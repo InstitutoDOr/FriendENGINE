@@ -10,7 +10,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -59,7 +59,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #define _GNU_SOURCE 1
 #define POSIX_SOURCE 1
@@ -89,6 +89,9 @@ string examples="cutoffcalc [options] -i design.mat";
 Option<bool> verbose(string("-v,--verbose"), false,
 		     string("switch on diagnostic messages"),
 		     false, no_argument);
+Option<bool> debug(string("--debug"), false,
+		     string("switch on debugging messages"),
+		     false, no_argument);
 Option<bool> help(string("-h,--help"), false,
 		  string("display this message"),
 		  false, no_argument);
@@ -101,26 +104,40 @@ Option<float> tr(string("--tr"), 3,
 Option<float> limit(string("--limit"), 90.0,
 		  string("Lower limit on period due to autocorr estimation (default=90s)"),
 		  false, requires_argument);
+Option<float> example_sig(string("--example_sig"), 0,
+		  string("Example sigma (in sec) to produce output called example_filt.mtx"),
+		  false, requires_argument);
 Option<string> inname(string("-i,--in"), string(""),
 		  string("input design matrix"),
 		  true, requires_argument);
 int nonoptarg;
 
 ////////////////////////////////////////////////////////////////////////////
+
+
+volume4D<float> demeaned_bpf(volume4D<float>& vin, double sig1, double sig2)
+{
+  volume4D<float> vout;
+  vout=bandpass_temporal_filter(vin,sig1,sig2);
+  vout -= meanvol(vout);
+  return vout;
+}
+
 double min_std_ratio(double sigma, volume4D<float>& vorig, const volume<float>& std0)
 {
   static volume4D<float> vtmp;
   static volume<float> std1;
   double stdratio(1.0);
-  vtmp=bandpass_temporal_filter(vorig,sigma,0.0);
+  vtmp=demeaned_bpf(vorig,sigma,0.0);
   std1 = stddevvol(vtmp);
   float maxstd=std0.max();
   for (int z=0; z<=std0.maxz(); z++) { 
     for (int y=0; y<=std0.maxy(); y++) { 
       for (int x=0; x<=std0.maxx(); x++) { 
 	if (std0(x,y,z)>1e-12*maxstd) {  // in case there are zero regressors
-	  std1(x,y,z) = std1(x,y,z) / std0(x,y,z);
+	  std1(x,y,z) /= std0(x,y,z);
 	} else {
+	  cout << "Default stdratio chosen as std1 = " << std1(x,y,z) << " and std0 = " << std0(x,y,z) << " with max(std0) = " << maxstd << endl;
 	  std1(x,y,z) = 1.0;  // always passes test
 	}
       }
@@ -132,56 +149,71 @@ double min_std_ratio(double sigma, volume4D<float>& vorig, const volume<float>& 
 
 int do_work(int argc, char* argv[])
 {
- Matrix dm(read_vest(inname.value()));
+  Matrix dm(read_vest(inname.value())), dm_minfilt;
  remmean(dm);
- volume4D<float> vorig;
+ volume4D<float> vorig, vtmp;
  volume<float> std0, mask(dm.Ncols(),1,1);
  mask=1.0;
- vorig.setmatrix(dm,mask);
- std0 = stddevvol(vorig);
  float sig2sec = tr.value()*2.0;
  float lowersig = limit.value()/sig2sec;  // convert secs to sigma
  float uppersig = 3*dm.Nrows();
  float sigma(uppersig), stdratio(1.0);
  float usig(uppersig), lsig(lowersig), hsig;
+ vorig.setmatrix(dm,mask);
+ vtmp=demeaned_bpf(vorig,10*uppersig,0.0);
+ dm_minfilt=vtmp.matrix(mask);
+ std0 = stddevvol(vtmp);  // use a very minimal amount of smoothing as even for huge sigma the filter REMOVES ALL LINEAR COMPONENTS!
+
  // sanity check at ends
  if (min_std_ratio(usig,vorig,std0)<=varthreshold.value()) {
    if (verbose.value()) { cout << "Failed to meet threshold criterion: extreme period still removes too much variance" << endl; } 
+   if (verbose.value()) { cout << "sigma = " << usig*sig2sec << " , stdratio = " << min_std_ratio(usig,vorig,std0) << endl; }
    cout << usig*sig2sec << endl;
    return 0;
  }
+
  if (min_std_ratio(lsig,vorig,std0)>varthreshold.value()) {
    if (verbose.value()) { cout << "Using lowest period in range" << endl; }
+   if (verbose.value()) { cout << "sigma = " << lsig*sig2sec << " , stdratio = " << min_std_ratio(lsig,vorig,std0) << endl; }
    cout << lsig*sig2sec << endl;
    return 0;
  }
  do {
    hsig=MISCMATHS::round((lsig+usig)/2);  // force hsig to equal usig when lsig and usig differ by 1
    stdratio=min_std_ratio(hsig,vorig,std0);
+   if (verbose.value()) { cout << "sigma = " << hsig*sig2sec << " , stdratio = " << stdratio << endl; }
    if (stdratio>varthreshold.value()) { usig=hsig; }
    else { lsig=hsig; }
  } while ((usig-lsig)>1);
  
- if (verbose.value()) { cout << "Sigma bounds are " << lsig << " and " << usig << endl; }
+ if (verbose.value()) { cout << "Sigma bounds are " << lsig*sig2sec << " and " << usig*sig2sec << endl; }
  if (verbose.value()) { cout << "stdratios are " << min_std_ratio(lsig,vorig,std0) << " and " << min_std_ratio(usig,vorig,std0) << endl; }
 
  sigma=usig;
 
  if (verbose.value()) { cout << "FEAT highpass filter value (in seconds) should be: " << endl; }
  cout << sigma*sig2sec << endl;
- volume4D<float> vtmp;
- if ( verbose.value() ) { 
-   vtmp=bandpass_temporal_filter(vorig,sigma,0);
-   float baseSum=(dm-vtmp.matrix(mask)).SumSquare();
-   Matrix base=vtmp.matrix(mask);
-   for (float factor=0.6;factor<=1.6;factor+=0.1)
+
+ if ( debug.value() ) { 
+   vtmp=demeaned_bpf(vorig,sigma,0);
+   float baseSum=(dm_minfilt-vtmp.matrix(mask)).SumSquare();
+   Matrix base=dm_minfilt;
+   //Matrix base=vtmp.matrix(mask);
+   for (float factor=0.01;factor<=2.0;factor+=0.01)
    {
-     vtmp=bandpass_temporal_filter(vorig,sigma*factor,0);
+     vtmp=demeaned_bpf(vorig,sigma*factor,0);
      if (verbose.value()) {
        //cout << factor << "\t" << ((dm-vtmp.matrix(mask)).SumSquare())/baseSum << endl;
-       cout << factor << "\t" << ((base-vtmp.matrix(mask)).SumSquare())/baseSum << endl;
+       cout << factor*sigma*sig2sec << "\t" << ((base-vtmp.matrix(mask)).SumSquare())/baseSum << endl;
      }
    }
+ }
+
+ if (example_sig.set()) {
+   vtmp=demeaned_bpf(vorig,example_sig.value()/sig2sec,0);
+   Matrix outmat;
+   outmat=vtmp.matrix(mask);
+   write_ascii_matrix(outmat,"example_filt.mtx");
  }
 
  return 0;
@@ -202,7 +234,9 @@ int main(int argc,char *argv[])
    options.add(varthreshold);
    options.add(tr);
    options.add(limit);
+   options.add(example_sig);
    options.add(verbose);
+   options.add(debug);
    options.add(help);
 
    nonoptarg = options.parse_command_line(argc, argv);

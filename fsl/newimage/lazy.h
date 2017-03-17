@@ -120,10 +120,10 @@ private:
 private:
   unsigned int getnewtag() const { return tagnum++; }
 
-  const bool is_whole_cache_valid() const 
+  bool is_whole_cache_valid() const 
     { return validflag; }
 
-  const bool is_cache_entry_valid(const unsigned int tag) const 
+  bool is_cache_entry_valid(const unsigned int tag) const 
     { return validcache[tag]; }
   void set_cache_entry_validity(const unsigned int tag, const bool newflag) const 
     { validcache[tag] = newflag; }

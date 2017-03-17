@@ -881,6 +881,7 @@ extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
   if (mask.value())
     {
       string maskstr = out+"_mask";
+      brainmask.setDisplayMaximumMinimum(1,0);
 	  if (save_volume((short)1-brainmask, maskstr.c_str())<0)  { freeparser(argc, argv); return -1;}
     }
   

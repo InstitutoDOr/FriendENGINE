@@ -12,7 +12,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,7 +61,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <iostream>
 #include <string>
@@ -88,7 +88,7 @@ using namespace MISCMATHS;
 using namespace fslvtkio;
 
 namespace firstutils {
-string title="firt_utils (Version 1.2) University of Oxford (Brian Patenaude)";
+string title="firt_utils University of Oxford (Brian Patenaude)";
 string examples="first_utils [options] -i input -o output ";
 
 
@@ -97,6 +97,9 @@ Option<bool> verbose(string("-v,--verbose"), false,
 		     false, no_argument);
 Option<bool> help(string("-h,--help"), false,
 		  string("display this message"),
+		  false, no_argument);
+Option<bool> debug(string("--debug"), false,
+		  string("\tturn on debugging mode"),
 		  false, no_argument);
 Option<bool> overlap(string("--overlap"), false,
 		     string("Calculates Dice overlap."),
@@ -134,6 +137,9 @@ Option<bool> useRigidAlign(string("--useRigidAlign"), false,
 
 Option<bool> useNorm(string("--useNorm"), false,
 		     string("Normalize volumes measurements."),
+		     false, no_argument);
+Option<bool> surfaceVAout(string("--surfaceout"), false,
+		     string("Output vertex analysis on the surface (old method)"),
 		     false, no_argument);
 
 
@@ -526,6 +532,8 @@ void getBounds(Mesh m, int *bounds, float xdim, float ydim, float zdim){
 }
 
 
+
+
 void draw_segment(volume<short>& image, const Pt& p1, const Pt& p2, int label)
 {
   double xdim = (double) image.xdim();
@@ -546,6 +554,96 @@ void draw_segment(volume<short>& image, const Pt& p1, const Pt& p2, int label)
       Pt p = p2 + i* n;
       image((int) floor((p.X)/xdim +.5),(int) floor((p.Y)/ydim +.5),(int) floor((p.Z)/zdim +.5)) = label;
     }
+}
+
+
+
+void draw_scalar_segment(volume<float>& image, volume<float>& nvol, const Pt& p1, const Pt& p2, float s1, float s2)
+{
+  double xdim = (double) image.xdim();
+  double ydim = (double) image.ydim();
+  double zdim = (double) image.zdim();
+
+  //in new version of bet2
+  double mininc = min(xdim,min(ydim,zdim)) * .25;
+
+
+	
+  Vec n = (p1 - p2);
+  double d = n.norm();
+  n.normalize();
+  //	double l = d*4;
+  for (double i=0; i<=d; i+=mininc)
+    {
+      Pt p = p2 + i* n;
+      float interp_s = s2 + i/d*(s1-s2);
+      image(MISCMATHS::round(p.X/xdim),MISCMATHS::round(p.Y/ydim),MISCMATHS::round(p.Z/zdim)) += interp_s;
+      nvol(MISCMATHS::round(p.X/xdim),MISCMATHS::round(p.Y/ydim),MISCMATHS::round(p.Z/zdim)) += 1.0f;
+    }
+}
+
+
+void set_scalars(Mesh& m, const ColumnVector& sc)
+{
+  if (sc.Nrows()!=m.nvertices()) {
+    cerr << "ERROR in set_scalars:: mismatch in number of vertices ("<<m.nvertices()<<") and size of scalar vector ("<<sc.Nrows()<<")"<<endl;
+    exit(EXIT_FAILURE);
+  }
+  int count=1;
+  for (vector<Mpoint*>::iterator i = m._points.begin(); i!=m._points.end(); i++ ){  // loop over vertices
+    (*i)->set_value(sc(count++));
+  }	
+  return;
+}
+
+
+volume<float> draw_scalar_mesh(const volume<float>& image, const Mesh &m, const ColumnVector& sc)
+{
+
+  Mesh localMesh;
+  localMesh = m;
+  if (sc.Nrows()>0) set_scalars(localMesh,sc);  // allow empty vector (zero size) to be passed in and values already in mesh to be used instead of scalars
+
+  double xdim = (double) image.xdim();
+  double ydim = (double) image.ydim();
+  double zdim = (double) image.zdim();
+
+  double mininc = min(xdim,min(ydim,zdim)) * .25;
+
+  volume<float> res = image;
+  res=0.0f;
+  volume<float> nvol = res;
+
+  for (list<Triangle*>::const_iterator i = localMesh._triangles.begin(); i!=localMesh._triangles.end(); i++)
+    {
+      Pt p1 = (*i)->get_vertice(1)->get_coord();
+      Pt p2 = (*i)->get_vertice(2)->get_coord();
+      Vec n = (*(*i)->get_vertice(0) - *(*i)->get_vertice(1));
+      double d = n.norm();
+      n.normalize();
+	       
+      float s0,s1,s2;
+      s0=(*i)->get_vertice(0)->get_value();
+      s1=(*i)->get_vertice(1)->get_value();
+      s2=(*i)->get_vertice(2)->get_value();
+		
+      for (double j=0; j<=d ;  j+=mininc)
+	{
+	  Pt p = p1  + (double)j* n;
+	  float s = s1 + j/d*(s0-s1);  
+	  draw_scalar_segment(res, nvol, p, p2, s, s2);
+	} 
+    }
+
+  res=divide(res,nvol,nvol);
+  return res;
+}
+
+
+volume<float> draw_scalar_mesh(const volume<float>& image, const Mesh &m)
+{
+  ColumnVector dummy;
+  return draw_scalar_mesh(image,m,dummy);
 }
 
 
@@ -593,7 +691,7 @@ volume<short> make_mask_from_meshInOut(const volume<float> & image, const Mesh& 
 	
 	
 	
-  // THIS EXCLUDEDS THE ACTUAL MESH
+  // THIS EXCLUDES THE ACTUAL MESH
   volume<short> otl=mask;
   getBounds(m,bounds,xdim,ydim,zdim);
   vector<Pt> current;
@@ -1335,9 +1433,9 @@ Matrix rigid_linear_xfm(Matrix Data,ColumnVector meanm, Mesh mesh, bool writeToF
       //Data is right (in Horn), Ref is left
       //calculate length vectors and sum
       float sumr=0, suml=0;
-      for (int i=0;i<DataDM.Nrows();i++){
-	suml+=(DataDM.element(0,i)*DataDM.element(0,i) + DataDM.element(1,i)*DataDM.element(1,i) +DataDM.element(0,i)*DataDM.element(1,i) );
-	sumr+=(RefDM.element(0,i)*RefDM.element(0,i) + RefDM.element(1,i)*RefDM.element(1,i) +RefDM.element(0,i)*RefDM.element(1,i) );
+      for (int i=0;i<DataDM.Ncols();i++){
+	suml+=(DataDM.element(0,i)*DataDM.element(0,i) + DataDM.element(1,i)*DataDM.element(1,i) +DataDM.element(2,i)*DataDM.element(2,i) );
+	sumr+=(RefDM.element(0,i)*RefDM.element(0,i) + RefDM.element(1,i)*RefDM.element(1,i) +RefDM.element(2,i)*RefDM.element(2,i) );
       }
       scale=sqrt(sumr/suml);
     }
@@ -1386,6 +1484,8 @@ Matrix rigid_linear_xfm(Matrix Data,ColumnVector meanm, Mesh mesh, bool writeToF
       DataMean.element(1,i/3)=vMy.at(subject);
       DataMean.element(2,i/3)=vMz.at(subject);
     }
+
+    // TODO TODO process the normal vectors through this too and formulate a new mean
     ///APPLY TRANSFORMATION
     Matrix Reg(3,Data.Nrows()/3);//=R*DataRS+(RefMean-R*DataMean);
     //difference between 6dof and 7dof
@@ -1427,8 +1527,49 @@ Matrix rigid_linear_xfm(Matrix Data,ColumnVector meanm, Mesh mesh, bool writeToF
 }
 
 
-Matrix recon_meshesMNI( shapeModel* model1, Matrix bvars, ColumnVector* meanm, Mesh * meshout,vector<Mesh>* vMeshes){
+Mesh setup_avMesh(const Mesh& m, const Matrix& MeshVerts) {
+  // input m must have the right topology (i.e. triangles) and MeshVerts must contain the coordinates in the first column
+  //   with order of iterated points in m and the rows in MeshVerts corresponding (by a factor of 3 as X,Y,Z are stored sequentially for each point)
+  Mesh avMesh;
+  Matrix avVerts;
+  avVerts=mean(MeshVerts,2);  // form the average coordinate location across the whole group
+  avMesh=m;
+  int count=0;
+  for (vector<Mpoint*>::iterator i = avMesh._points.begin(); i!=avMesh._points.end(); i++ ){  // loop over vertices
+    Pt newpt;
+    newpt.X = avVerts.element(count,0);
+    newpt.Y = avVerts.element(count+1,0);
+    newpt.Z = avVerts.element(count+2,0);
+    (*i)->_update_coord = newpt;  // <MJrant>  clunky way of doing what should be: set_coord(const Pt &newpt)   </MJrant>
+    (*i)->update();
+    count+=3;
+  }	
+  return avMesh;
+}
 
+
+Matrix calc_avNormals(Mesh& avMesh) {  
+  // TODO - would like this to be const but can't get it to compile like that!
+  // TODO - i.e. Matrix calc_avNormals(Mesh& const avMesh) {  
+
+  // input m must have the right topology (i.e. triangles) and MeshVerts must contain the coordinates in the first column
+  //   with order of iterated points in m and the rows in MeshVerts corresponding (by a factor of 3 as X,Y,Z are stored sequentially for each point)
+  Matrix avNormals(avMesh.nvertices()*3,1);
+  int count=0;
+  for (vector<Mpoint*>::iterator i = avMesh._points.begin(); i!=avMesh._points.end(); i++ ){  // loop over vertices
+    Vec norm;
+    norm=(*i)->local_normal();
+    avNormals.element(count,0) = norm.X;
+    avNormals.element(count+1,0) = norm.Y;
+    avNormals.element(count+2,0) = norm.Z;
+    count+=3;
+  }	
+  return avNormals;
+}
+
+
+Matrix recon_meshesMNI( shapeModel* model1, Matrix bvars, ColumnVector* meanm, Mesh * meshout,vector<Mesh>* vMeshes, Mesh& avMesh){
+  // note that meshout may be the same as avMesh  (MJ:not yet verified)
 
   vMeshes->clear();
   //want to return mean mesh in vector form
@@ -1446,7 +1587,6 @@ Matrix recon_meshesMNI( shapeModel* model1, Matrix bvars, ColumnVector* meanm, M
 	  meanm->element(3*cumnum+count+1)=(*i)->get_coord().Y;
 	  meanm->element(3*cumnum+count+2)=(*i)->get_coord().Z;
 	  count+=3;
-
 	}
 	cumnum+=model1->smean.size();	
       }
@@ -1458,11 +1598,13 @@ Matrix recon_meshesMNI( shapeModel* model1, Matrix bvars, ColumnVector* meanm, M
   //int M=model1->getNumberOfSubjects();
   int Tpts=model1->smean.size()/3;
   Matrix MeshVerts(3*Tpts,bvars.Ncols());
+  Mesh m;
   //this is different than mnumber of subjects which were used to create model
   //int numSubs=bvars.Ncols();
   //this loads all mesh point into a matrix to do stats on....
   //cout<<"generate and load vertices into matrix "<<endl;
-  for (int j=0;j<bvars.Ncols();j++){
+  int NumSubjects=bvars.Ncols();
+  for (int j=0;j<NumSubjects;j++){  // loop over subjects
     //for each subject
     vector<float> vars;
     for (int i=0; i<bvars.Nrows();i++){
@@ -1470,12 +1612,12 @@ Matrix recon_meshesMNI( shapeModel* model1, Matrix bvars, ColumnVector* meanm, M
     }
     //keep track of number of points preceding
     int cumnum=0;
-    for (int sh=0; sh<1;sh++){
+    for (int sh=0; sh<1;sh++){  // an ex-loop?  Pining for the fjords?
       //cout<<"cumnum "<<cumnum<<endl;
-      Mesh m=convertToMesh(model1->getDeformedGrid(vars),model1->cells);	
+      m=convertToMesh(model1->getDeformedGrid(vars),model1->cells);	
       vMeshes->push_back(m);
       int count=0;
-      for (vector<Mpoint*>::iterator i = m._points.begin(); i!=m._points.end(); i++ ){
+      for (vector<Mpoint*>::iterator i = m._points.begin(); i!=m._points.end(); i++ ){  // loop over vertices
 	MeshVerts.element(3*cumnum+count,j)=(*i)->get_coord().X;
 	MeshVerts.element(3*cumnum+count+1,j)=(*i)->get_coord().Y;
 	MeshVerts.element(3*cumnum+count+2,j)=(*i)->get_coord().Z;
@@ -1484,12 +1626,12 @@ Matrix recon_meshesMNI( shapeModel* model1, Matrix bvars, ColumnVector* meanm, M
       cumnum+=model1->smean.size();	
     }	
   }
-
+  avMesh = setup_avMesh(m,MeshVerts);
   return MeshVerts;
-
 }
 
-Matrix recon_meshesNative( const string & modelname, const Matrix & bvars, ColumnVector & meanm, Mesh & meshout, const vector<string> & subjectnames, const vector< vector< vector<float> > > & flirtmats,vector<Mesh> & vMeshes){
+
+Matrix recon_meshesNative( const string & modelname, const Matrix & bvars, ColumnVector & meanm, Mesh & meshout, const vector<string> & subjectnames, const vector< vector< vector<float> > > & flirtmats,vector<Mesh> & vMeshes, Mesh& avMesh){
   vMeshes.clear();
   //fslvtkIO* fin = new fslvtkIO(modelname,static_cast<fslvtkIO::DataType>(0));
   shapeModel* model1=loadAndCreateShapeModel(modelname);
@@ -1531,7 +1673,9 @@ Matrix recon_meshesNative( const string & modelname, const Matrix & bvars, Colum
   //this is different than mnumber of subjects which were used to create model
   //this loads all mesh point into a matrix to do stats on....
   //	cout<<"generate and load vertices into matrix "<<endl;
-  for (int j=0;j<bvars.Ncols();j++){
+  int NumSubjects=bvars.Ncols();
+  Mesh m;
+  for (int j=0;j<NumSubjects;j++){  // loop over subjects
     volume<float> t1im;
     //for each subject
     vector<float> vars;
@@ -1540,8 +1684,8 @@ Matrix recon_meshesNative( const string & modelname, const Matrix & bvars, Colum
     }
     //keep track of number of points preceding
     int cumnum=0;
-    for (int sh=0; sh<1;sh++){
-      Mesh m=convertToMesh(model1->getDeformedGrid(vars),model1->cells);	
+    for (int sh=0; sh<1;sh++){  // an ex-loop?  Pining for the fjords?
+      m=convertToMesh(model1->getDeformedGrid(vars),model1->cells);	
       meshReg(m, flirtmats.at(j));
 		
       vMeshes.push_back(m);
@@ -1555,8 +1699,7 @@ Matrix recon_meshesNative( const string & modelname, const Matrix & bvars, Colum
       cumnum+=model1->smean.size()/3;	
     }	
   }
-
-
+  avMesh = setup_avMesh(m,MeshVerts);
   return MeshVerts;
 	
 }
@@ -1635,6 +1778,7 @@ void do_work_bvars(){
   //Choose the space in which to reconstruct the meshes
   Mesh modelMeanMesh;
   ColumnVector CVmodelMeanMesh;
+  Mesh avMesh;
   if (useReconNative.value()){
     flirtmats.open(flirtmatsname.value().c_str());
 						
@@ -1645,12 +1789,12 @@ void do_work_bvars(){
     }
 						
     //Reconstruct in native space of the image (it recons the mni then applies flirt matrix)
-    MeshVerts=recon_meshesNative( mname, bvars, CVmodelMeanMesh, modelMeanMesh,subjectnames, vec_fmats, vMeshes);
+    MeshVerts=recon_meshesNative( mname, bvars, CVmodelMeanMesh, modelMeanMesh,subjectnames, vec_fmats, vMeshes, avMesh);
 	  cout<<"done recon"<<endl;
   }
   else if(useReconMNI.value()){
     //flirt matrix is not applied
-    MeshVerts=recon_meshesMNI( model1, bvars, &CVmodelMeanMesh, &modelMeanMesh,&vMeshes);
+    MeshVerts=recon_meshesMNI( model1, bvars, &CVmodelMeanMesh, &modelMeanMesh,&vMeshes, avMesh);
   }else{
     //you must choose a method of reconstruction
     cerr<<"choose a mesh reconstruction method"<<endl;
@@ -1658,9 +1802,10 @@ void do_work_bvars(){
   }
   //Added in any realignment of meshes here
   if (useRigidAlign.value()){
-    //use a least-squares alignment of the meshes (in this case to the mean as defined by the model
+    //use a least-squares alignment of the meshes (in this case to the mean as defined by the model)
     MeshVerts=rigid_linear_xfm(MeshVerts,CVmodelMeanMesh, modelMeanMesh, false);
   }
+  avMesh=setup_avMesh(avMesh,MeshVerts);  // update for new coords (as rigid_linear_xfm may have been run)
   //****************END RECONSTRUCTION AND ALIGNMENT*********************/
   //****************DEMEAN DESIGN MATRIX AND ADD ONE COLUMNS*********************/
 					
@@ -1712,6 +1857,9 @@ void do_work_bvars(){
   }
 					
   //cout<<"done processing design"<<endl;
+
+  //**************** NON-VERTEX ANALYSIS HERE *********************/
+
   if (!vertexAnalysis.value()){
 						
     //calculate volumes
@@ -1795,7 +1943,95 @@ void do_work_bvars(){
       }
     }
 						
-  }else{  // VERTEX ANALYSIS FROM HERE
+  }else{  
+
+  //**************** VERTEX ANALYSIS HERE *********************/
+
+    // At this point the mesh is appropriately transformed and coordinates are in MeshVerts and corresponding average mesh is avMesh
+    
+    // Code for the case where we want the scalar volumetric output (dot product with normal vector)
+    Matrix avNormals;
+    avNormals = calc_avNormals(avMesh);
+    int NumSubjects=MeshVerts.Ncols();
+    Matrix ScalarVals(MeshVerts.Nrows()/3,MeshVerts.Ncols());
+    ScalarVals=0;
+    volume4D<float> volscalar;
+    int nverts=MeshVerts.Nrows()/3;
+    if (!surfaceVAout.value()) {
+      // do not output on the surface, instead do the new default of outputting a volume with the scalar normal dot product values (for use with randomise)
+      volume<float> refim;
+      if (useReconMNI.value()) { read_volume(refim,string(getenv("FSLDIR")) + "/data/standard/MNI152_T1_1mm"); } 
+      else { read_volume(refim,string(getenv("FSLDIR")) + "/data/standard/MNI152_T1_1mm"); } 
+      volume<float> maskvol(refim);
+      maskvol=0.0f;
+      volume4D<float> volnormals;
+      if (debug.value()) {
+	volnormals.addvolume(maskvol);
+	volnormals.addvolume(maskvol);
+	volnormals.addvolume(maskvol);
+      }
+      Matrix avCoords;
+      avCoords=mean(MeshVerts,2);  // form the average coordinate location across the whole group
+      for (int m=1; m<=MeshVerts.Nrows(); m+=3) { // vertex number (times 3)
+	float xav=avCoords(m,1);
+	float yav=avCoords(m+1,1);
+	float zav=avCoords(m+2,1);
+	// convert to voxel coordinates
+	int xvav=MISCMATHS::round(xav/refim.xdim()), yvav=MISCMATHS::round(yav/refim.ydim()), zvav=MISCMATHS::round(zav/refim.zdim());
+	for (int n=1; n<=NumSubjects; n++) {  // subject number
+	  int vnum=(m+2)/3;  // careful to make this one for first vertex
+	  float dotprod=0.0;
+	  // convert to voxel coords (from FSL-style mm coords, which is what I assume everything is in internally - MJ)
+	  float xcoord=MeshVerts(m,n);
+	  float ycoord=MeshVerts(m+1,n);
+	  float zcoord=MeshVerts(m+2,n);
+	  // project coordinate difference onto normal
+	  // NB: normals are unit length here (based on local_normal() returning this in recon_* functions)
+	  dotprod += avNormals(m,1)*(xcoord-xav);
+	  dotprod += avNormals(m+1,1)*(ycoord-yav);
+	  dotprod += avNormals(m+2,1)*(zcoord-zav);
+	  ScalarVals(vnum,n)=dotprod;
+	  if (debug.value()) { 
+	    volnormals(xvav,yvav,zvav,0)=avNormals(m,1);
+	    volnormals(xvav,yvav,zvav,1)=avNormals(m+1,1);
+	    volnormals(xvav,yvav,zvav,2)=avNormals(m+2,1);
+	  }
+	}
+      }
+      for (int n=1; n<=NumSubjects; n++) {
+	volscalar.addvolume(draw_scalar_mesh(refim,avMesh,ScalarVals.Column(n)));
+      }
+      save_volume4D(volscalar,outname.value());
+      maskvol=variancevol(volscalar);
+      maskvol.binarise(1e-8);
+      save_volume(maskvol,fslbasename(outname.value())+"_mask");
+      if (debug.value()) { save_volume4D(volnormals,fslbasename(outname.value())+"_normals"); }
+    }
+
+    // save vertex Matrix if requested (format is all x-coords, then all y-coords, then all z-coords in each column - one subject per row)
+    if (saveVertices.set()) {
+      Matrix ReshapedVerts(MeshVerts.Nrows(),MeshVerts.Ncols());
+      int newm=1;
+      for (int m=1; m<=ReshapedVerts.Nrows(); m+=3) { // vertex number (times 3)
+	for (int n=1; n<=ReshapedVerts.Ncols(); n++) {  // subject number
+	  ReshapedVerts(newm,n)=MeshVerts(m,n);
+	  ReshapedVerts(newm+nverts,n)=MeshVerts(m+1,n);
+	  ReshapedVerts(newm+2*nverts,n)=MeshVerts(m+2,n);
+	}
+	newm++;
+      }
+      write_ascii_matrix(fslbasename(saveVertices.value())+"_mat.txt",ReshapedVerts);
+      volume4D<float> vertices(ReshapedVerts.Nrows()/3,3,1,ReshapedVerts.Ncols());
+      vertices.setmatrix(ReshapedVerts.t());
+      save_volume4D(vertices,saveVertices.value());
+    }
+    
+    if (!surfaceVAout.value()) {
+      return;  // finish here if not outputting things to the surface (with the MVGLM tests)
+    }
+    
+    
+          // Note: "target" is the design matrix (!)
 	  ColumnVector CVnorm(target.Nrows());
 	  // if chosen can include a normalization EV (i.e. control for size) ...useful for vertex shape statistics
 	  if (useNorm.value()){
@@ -1904,25 +2140,6 @@ void do_work_bvars(){
 				  cout<<endl;
 				  count++;
 			  }
-		  }
-		  
-		  // save vertex Matrix if requested
-		  if (saveVertices.set()) {
-			  Matrix ReshapedVerts(MeshVerts.Nrows(),MeshVerts.Ncols());
-			  int nverts=MeshVerts.Nrows()/3;
-			  int newm=1;
-			  for (int m=1; m<=ReshapedVerts.Nrows(); m+=3) {
-				  for (int n=1; n<=ReshapedVerts.Ncols(); n++) {
-					  ReshapedVerts(newm,n)=MeshVerts(m,n);
-					  ReshapedVerts(newm+nverts,n)=MeshVerts(m+1,n);
-					  ReshapedVerts(newm+2*nverts,n)=MeshVerts(m+2,n);
-				  }
-				  newm++;
-			  }
-			  write_ascii_matrix(fslbasename(saveVertices.value())+"_mat.txt",ReshapedVerts);
-			  volume4D<float> vertices(ReshapedVerts.Nrows()/3,3,1,ReshapedVerts.Ncols());
-			  vertices.setmatrix(ReshapedVerts.t());
-			  save_volume4D(vertices,saveVertices.value());
 		  }
 		  
 		  //use multivariate test on each vertex
@@ -2247,6 +2464,7 @@ int main(int argc,char *argv[])
     options.add(overlap);
     options.add(meshname);
     options.add(useNorm);
+    options.add(surfaceVAout);
     options.add(outname);
     options.add(thresh);
     options.add(meshLabel);
@@ -2256,18 +2474,19 @@ int main(int argc,char *argv[])
     options.add(useReconNative);
     options.add(useRigidAlign);
     options.add(designname);
-	options.add(reconMeshFromBvars);
-	options.add(readBvars);
+    options.add(reconMeshFromBvars);
+    options.add(readBvars);
     options.add(meshToVol);
     options.add(centreOrigin);
     options.add(saveVertices);
     options.add(verbose);
     options.add(usePCAfilter);
     options.add(numModes);
-    options.add(help);
     options.add(singleBoundaryCorr);
-	options.add(doMVGLM);
-	  options.add(concatBvars);
+    options.add(doMVGLM);
+    options.add(concatBvars);
+    options.add(debug);
+    options.add(help);
 
     nonoptarg = options.parse_command_line(argc, argv);
 		

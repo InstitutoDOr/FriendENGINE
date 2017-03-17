@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <string>
 #include <iostream>
@@ -161,13 +161,20 @@ void parse_command_line(int argc, char* argv[])
   int n=1;
   string arg;
   char first;
+  bool initmatset=false;
 
   while (n<argc) {
     arg=argv[n];
     if (arg.size()<1) { n++; continue; }
     first = arg[0];
     if (first!='-') {
-      globalopts.initmatfname = arg;
+      if (initmatset) {
+	cerr << "Unknown option " << arg << endl << endl;
+	return; //(2);
+      } else {
+	globalopts.initmatfname = arg;
+	initmatset=true;
+      }
       n++;
       continue;
     }
@@ -188,8 +195,8 @@ void parse_command_line(int argc, char* argv[])
 
     if (n+1>=argc) 
       { 
-	cerr << "Lacking argument to option " << arg << endl;
-	break; 
+	cerr << "Lacking argument to option " << arg << endl << endl;
+	return; //(2); 
       }
 
     // put options with 1 argument here
@@ -210,7 +217,7 @@ void parse_command_line(int argc, char* argv[])
       n+=2;
       continue;
     } else { 
-      cerr << "Unrecognised option " << arg << endl;
+      cerr << "Unrecognised option " << arg << endl << endl;
 	  return; // (-1);
     } 
 
@@ -218,7 +225,7 @@ void parse_command_line(int argc, char* argv[])
 
   if (globalopts.initmatfname.size()<1) {
     cerr << "Input matrix filename not found" << endl << endl;
-    print_usage(argc,argv);
+    //print_usage(argc,argv);
 	return; // (2);
   }
 }

@@ -70,11 +70,11 @@
 #define NOMINMAX
 #include <cstdlib>
 #include <cmath>
+#include <algorithm>
 #include "miscmaths.h"
 #include "miscprob.h"
 #include "stdlib.h"
 #include "newmatio.h"
-#include <algorithm>
 
 using namespace std;
 
@@ -98,7 +98,6 @@ namespace MISCMATHS {
         
     return str;
   }
-
 
 
   float Sinc(const float x) {
@@ -127,18 +126,22 @@ namespace MISCMATHS {
     return true; 
   } 
 
+  // Use this to skip all lines that contain non-numeric entries, and return the first line starting with a number
+  //  and the file pointer is reset to the beginning of the first line that starts with a number
   string skip_alpha(ifstream& fs) 
   {
     string cline;
     while (!fs.eof()) {
       streampos curpos = fs.tellg();
+      // read a line, then turn it into a stream in order to read out the first token
       getline(fs,cline);
-      cline += " "; // force extra entry in parsing
+      cline += " "; // force extra entry in parsing (ensure at least one token is read)
       istringstream ss(cline.c_str());
       string firstToken="";
-      ss >> firstToken; //Put first non-whitespace sequence into cc
+      ss >> firstToken; // Put first non-whitespace sequence into firstToken
       if (isNumber(firstToken)) {
-	if (!fs.eof()) { fs.seekg(curpos); } else { fs.clear(); fs.seekg(0,ios::beg); }
+	if (fs.eof()) { fs.clear(); }  // should only be executed if the file had no valid line terminators
+	fs.seekg(curpos); 
 	return cline;
       }
     }
@@ -178,17 +181,21 @@ namespace MISCMATHS {
     Matrix mat(nrows,ncols);
     mat = 0.0;
     string ss="";
-  
+    double newnum;
+
     ss = skip_alpha(fs);
     for (int r=1; r<=nrows; r++) {
+      istringstream sline(ss.c_str());
       for (int c=1; c<=ncols; c++) {
-	if (!fs.eof()) {
-	  fs >> ss;
-	  while ( !isNumber(ss) && !fs.eof() ) {
-	    fs >> ss;
-	  }
-	  mat(r,c) = atof(ss.c_str());
+	sline >> newnum;
+	if ( sline.eof() ) {
+	  throw Exception("Could not find enough numbers in matrix file");
 	}
+	mat(r,c) = newnum;
+      }	
+      if ( r!=nrows ) {				
+	getline(fs,ss);  // this is processed now, so move the stream past it
+	ss = skip_alpha(fs);
       }
     }
     mat.Release();
@@ -231,14 +238,14 @@ namespace MISCMATHS {
     }
     nColumns--;
 
+    // count the number of lines that start with a number (don't worry if they don't have enough numbers at this stage)
     do {
       getline(fs,currentLine);
       currentLine += " "; // force extra entry in parsing
       istringstream ss(currentLine.c_str()); 
       string firstToken("");
       ss >> firstToken; //Put first non-whitespace sequence into cc
-      if (!isNumber(firstToken)) break;  // stop processing when non-numeric line found
-      nRows++;  // add new row to matrix
+      if (isNumber(firstToken)) nRows++;  // add new row to matrix
     } while (!fs.eof());
     
     // now know the size of matrix
@@ -355,10 +362,12 @@ namespace MISCMATHS {
   
   int write_ascii_matrix(const Matrix& mat, ofstream& fs, int precision)
   {
+    fs.unsetf(ios::floatfield);  // use fixed or scientific notation as appropriate
     if (precision>0)  { 
-      fs.setf(ios::scientific | ios::showpos); 
       fs.precision(precision); 
-    } 
+    } else {
+      fs.precision(10);    // default precision
+    }
 #ifdef PPC64	
     int n=0;
 #endif
@@ -571,10 +580,13 @@ namespace MISCMATHS {
       }
     }
 
-  ReturnMatrix pinv(const Matrix& mat)
+  ReturnMatrix pinv(const Matrix& mat2)
     {
       // calculates the psuedo-inverse using SVD
       // note that the right-pinv(x') = pinv(x).t()
+      Matrix mat(mat2);
+      if ( mat2.Ncols() > mat2.Nrows() )
+	mat=mat.t();
       Tracer tr("pinv");
       DiagonalMatrix D;
       Matrix U, V;
@@ -586,14 +598,16 @@ namespace MISCMATHS {
 	else D(n,n) = 0.0; // reduce the number of columns because too close to singular
       }
       Matrix pinv = V * D * U.t();
+      if ( mat2.Ncols() > mat2.Nrows() )
+	pinv=pinv.t();
       pinv.Release();
       return pinv;
     }
 
-  int MISCMATHS::rank(const Matrix& X)
+  int rank(const Matrix& X)
     {
-      // calculates the MISCMATHS::rank of matrix X
-      Tracer tr("MISCMATHS::rank");
+      // calculates the rank of matrix X
+      Tracer tr("rank");
 
       DiagonalMatrix eigenvals;
       SVD(X,eigenvals);
@@ -606,7 +620,7 @@ namespace MISCMATHS {
 	if (eigenvals(i+1)>tolerance)
 	  therank++;
 
-      // cout << "tolerance = " << tolerance << "\n" << "eigenvalues = " << eigenvals << "\n" << "MISCMATHS::rank = " << therank << endl;
+      // cout << "tolerance = " << tolerance << "\n" << "eigenvalues = " << eigenvals << "\n" << "rank = " << therank << endl;
 
       return therank;
     }
@@ -677,6 +691,54 @@ namespace MISCMATHS {
       matnew.Release();
       return matnew;
     }
+
+  bool strict_less_than(pair<double, int> x, pair<double, int> y) { return x.first < y.first; }
+
+  vector<int> get_sortindex(const Matrix& vals, const string& mode, int col)
+  {
+    // mode is either "new2old" or "old2new"
+    // return the mapping of old and new indices in the *ascending* sort of vals (from column=col)
+    int length=vals.Nrows();
+    vector<pair<double, int> > sortlist(length);
+    for (int n=0; n<length; n++) {
+      sortlist[n] = pair<double, int>((double) vals(n+1,col),n+1);
+    }
+    sort(sortlist.begin(),sortlist.end(),strict_less_than);  // O(N.log(N))
+    vector<int> idx(length);
+    for (int n=0; n<length; n++) {
+      if (mode=="old2new") {
+	//  here idx[n] is the where in the ordered list the old n'th row is mapped to (i.e. idx[n] = rank)
+	idx[sortlist[n].second-1] = n+1;
+      } else if (mode=="new2old") {
+	// here idx[n] is the the old row number of the n'th ordered item (i.e. idx[n] is old row number with rank = n)
+	idx[n] = sortlist[n].second;  
+      } else {
+	cerr << "ERROR:: unknown mode in get_sortidx = " << mode << endl; 
+      }
+    }
+    return idx;
+  }
+
+  Matrix apply_sortindex(const Matrix& vals, vector<int> sidx, const string& mode)
+  {
+    // mode is either "new2old" or "old2new"
+    // apply the index mapping from get_sortindex to the whole matrix (swapping rows)
+    Matrix res(vals);
+    res=0.0;
+    int ncols=vals.Ncols();
+    for (unsigned int n=0; n<sidx.size(); n++) {
+      int row = sidx[n];
+      if (mode=="old2new") {
+	res.SubMatrix(row,row,1,ncols)=vals.SubMatrix(n+1,n+1,1,ncols);
+      } else if (mode=="new2old") {
+	res.SubMatrix(n+1,n+1,1,ncols)=vals.SubMatrix(row,row,1,ncols);
+      } else {
+	cerr << "ERROR:: unknown mode in apply_sortidx = " << mode << endl; 
+      }
+    }
+    return res;
+  }
+
 
 
   //------------------------------------------------------------------------//
@@ -1204,9 +1266,8 @@ float interp1(const ColumnVector& x, const ColumnVector& y, float xi)
     if(xi <= x.Minimum()) 
       ans = y(1); 
     else{
-      int ind=1;
-      while(xi >= x(ind))
-	ind++;      
+      int ind=2;
+      while(xi >= x(ind)) { ind++; }
       float xa = x(ind-1), xb = x(ind), ya = y(ind-1), yb = y(ind);
       ans = ya + (xi - xa)/(xb - xa) * (yb - ya);
     }
@@ -1420,6 +1481,15 @@ ReturnMatrix abs(const Matrix& mat)
   return res;
 }
 
+void abs_econ(Matrix& mat)
+{
+	for (int mc=1; mc<=mat.Ncols(); mc++) {
+	    for (int mr=1; mr<=mat.Nrows(); mr++) {
+	      mat(mr,mc)=std::abs(mat(mr,mc));
+	    }
+	}
+}
+
 ReturnMatrix sqrt(const Matrix& mat)
 {
   Matrix res = mat;
@@ -1436,6 +1506,21 @@ ReturnMatrix sqrt(const Matrix& mat)
   }
   res.Release();
   return res;
+}
+
+void sqrt_econ(Matrix& mat)
+{
+  bool neg_flag = false;
+  for (int mc=1; mc<=mat.Ncols(); mc++) {
+    for (int mr=1; mr<=mat.Nrows(); mr++) {
+      if(mat(mr,mc)<0){ neg_flag = true; }
+      mat(mr,mc)=std::sqrt(std::abs(mat(mr,mc)));
+    }
+  }
+  if(neg_flag){
+    //cerr << " Matrix contained negative elements" << endl;
+    //cerr << " return sqrt(abs(X)) instead" << endl;
+  }
 }
 
 ReturnMatrix sqrtm(const Matrix& mat)
@@ -1466,6 +1551,21 @@ ReturnMatrix log(const Matrix& mat)
   return res; 
 }
 
+void log_econ(Matrix& mat)
+{
+  bool neg_flag = false;
+  for (int mc=1; mc<=mat.Ncols(); mc++) {
+    for (int mr=1; mr<=mat.Nrows(); mr++) {
+      if(mat(mr,mc)<0){ neg_flag = true; }
+      mat(mr,mc)=std::log(std::abs(mat(mr,mc)));
+    }
+  }
+  if(neg_flag){
+    //  cerr << " Matrix contained negative elements" << endl;
+    //  cerr << " return log(abs(X)) instead" << endl;
+  }
+}
+
 ReturnMatrix exp(const Matrix& mat)
 {
   Matrix res = mat;
@@ -1476,6 +1576,15 @@ ReturnMatrix exp(const Matrix& mat)
   }
   res.Release();
   return res;
+}
+
+void exp_econ(Matrix& mat)
+{
+  for (int mc=1; mc<=mat.Ncols(); mc++) {
+    for (int mr=1; mr<=mat.Nrows(); mr++) {
+      mat(mr,mc)=std::exp(mat(mr,mc));
+    }
+  }
 }
 
   // optimised code for calculating matrix exponential
@@ -1557,6 +1666,15 @@ ReturnMatrix tanh(const Matrix& mat)
   return res;
 }
 
+void tanh_econ(Matrix& mat)
+{
+  for (int mc=1; mc<=mat.Ncols(); mc++) {
+    for (int mr=1; mr<=mat.Nrows(); mr++) {
+      mat(mr,mc)=std::tanh(mat(mr,mc));
+    }
+  }
+}
+
 ReturnMatrix pow(const Matrix& mat, const double exp)
 {
   Matrix res = mat;
@@ -1567,6 +1685,15 @@ ReturnMatrix pow(const Matrix& mat, const double exp)
   }
   res.Release();
   return res;
+}
+
+void pow_econ(Matrix& mat, const double exp)
+{
+  for (int mc=1; mc<=mat.Ncols(); mc++) {
+    for (int mr=1; mr<=mat.Nrows(); mr++) {
+      mat(mr,mc)=std::pow(mat(mr,mc),exp);
+    }
+  }
 }
 
 ReturnMatrix max(const Matrix& mat)
@@ -1651,60 +1778,107 @@ ReturnMatrix min(const Matrix& mat)
 
 ReturnMatrix sum(const Matrix& mat, const int dim)
 {
-  Matrix tmp;
+  Matrix res;
 
-  if (dim == 1) {tmp=mat;}
-  else {tmp=mat.t();}
-  Matrix res(1,tmp.Ncols());
-  res = 0.0;  
-  for (int mc=1; mc<=tmp.Ncols(); mc++) {
-    for (int mr=1; mr<=tmp.Nrows(); mr++) {
-      res(1,mc) += tmp(mr,mc);
-    }
-  }
-  if (!(dim == 1)) {res=res.t();}
+  if (dim == 1){
+		res = zeros(1,mat.Ncols());
+		for (int mc=1; mc<=mat.Ncols(); mc++) {
+		    for (int mr=1; mr<=mat.Nrows(); mr++) {
+		      	res(1,mc) += mat(mr,mc);
+		    }
+		}
+	}
+	else{
+		res = zeros(mat.Nrows(),1);
+		for (int mr=1; mr<=mat.Nrows(); mr++) {
+		    for (int mc=1; mc<=mat.Ncols(); mc++) {
+		      	res(mr,1) += mat(mr,mc);
+		    }
+		}
+	}
+
   res.Release();
   return res;
+}
+
+ReturnMatrix mean(const Matrix& mat, const RowVector& weights, const int dim) //weights are considered to be in the "direction" of dim and normalised to sum 1
+{
+	Matrix res;	
+  	if (dim == 1){
+		res = zeros(1,mat.Ncols());
+		for (int mc=1; mc<=mat.Ncols(); mc++) {
+		    for (int mr=1; mr<=mat.Nrows(); mr++) {
+		      res(1,mc) += weights(mr)*mat(mr,mc);
+		    }
+		}
+  	}
+  	else{
+		res = zeros(mat.Nrows(),1);
+		for (int mr=1; mr<=mat.Nrows(); mr++) {
+		    for (int mc=1; mc<=mat.Ncols(); mc++) {
+		      	res(mr,1) += weights(mc)*mat(mr,mc);
+		    }
+		}
+  	}
+	res.Release();
+	return res;
 }
 
 ReturnMatrix mean(const Matrix& mat, const int dim)
 {
-  Matrix tmp;
-  if (dim == 1) {tmp=mat;}
-  else {tmp=mat.t();}
-
-  int N = tmp.Nrows();
-
-  Matrix res(1,tmp.Ncols());
-  res = 0.0;  
-  for (int mc=1; mc<=tmp.Ncols(); mc++) {
-    for (int mr=1; mr<=tmp.Nrows(); mr++) {
-      res(1,mc) += tmp(mr,mc)/N;
-    }
-  }
-  if (!(dim == 1)) {res=res.t();}
-
-  res.Release();
-  return res;
+	Matrix res;	
+	int N;
+  	if (dim == 1){
+		res = zeros(1,mat.Ncols());
+		N = mat.Nrows();
+		for (int mc=1; mc<=mat.Ncols(); mc++) {
+		    for (int mr=1; mr<=mat.Nrows(); mr++) {
+				res(1, mc) += mat(mr, mc) / N;
+		    }
+		}
+  	}
+  	else{
+		res = zeros(mat.Nrows(),1);
+		N = mat.Ncols();
+		for (int mr=1; mr<=mat.Nrows(); mr++) {
+		    for (int mc=1; mc<=mat.Ncols(); mc++) {
+		      	res(mr,1) += mat(mr,mc)/N;
+		    }
+		}
+  	}
+	res.Release();
+	return res;
 }
 
+
 ReturnMatrix var(const Matrix& mat, const int dim)
-{
-  Matrix tmp;
-  if (dim == 1) {tmp=mat;}
-  else {tmp=mat.t();}
-  int N = tmp.Nrows();
-  Matrix res(1,tmp.Ncols());
-  res = 0.0;
+{ 
+	Matrix res, matmean;
+	matmean = mean(mat,dim);	
+	int N;
+  	if (dim == 1){
+		res = zeros(1,mat.Ncols());
+		N = mat.Nrows();
+		if(N>1){
+			for (int mc=1; mc<=mat.Ncols(); mc++) {
+		    	for (int mr=1; mr<=mat.Nrows(); mr++) {
+		      		res(1,mc) += (mat(mr,mc) - matmean(1,mc)) * (mat(mr,mc) - matmean(1,mc))/(N-1);
+				}
+		    }
+		}
+  	}
+  	else{
+		res = zeros(mat.Nrows(),1);
+		N = mat.Ncols();
+		if(N>1){    
+			for (int mr=1; mr<=mat.Nrows(); mr++) {
+		    	for (int mc=1; mc<=mat.Ncols(); mc++) {
+		      		res(mr,1) += (mat(mr,mc) -matmean(mr,1))* (mat(mr,mc)-matmean(mr,1))/(N-1);
+				}
+		    }
+		}
+  	}
 
-  if(N>1){    
-    tmp -= ones(tmp.Nrows(),1)*mean(tmp,1);   
-    for (int mc=1; mc<=tmp.Ncols(); mc++) 
-      for (int mr=1; mr<=tmp.Nrows(); mr++) 
-        res(1,mc) += tmp(mr,mc) / (N-1) * tmp(mr,mc);
-  }
-
-  if (!(dim == 1)) {res=res.t();}
   res.Release();
   return res;
 }
@@ -1852,24 +2026,57 @@ ReturnMatrix neq(const Matrix& mat1,const Matrix& mat2)
 
 ReturnMatrix SD(const Matrix& mat1,const Matrix& mat2) 
 {
-  Matrix ret(mat1.Nrows(), mat1.Ncols());
+	Matrix ret(mat1.Nrows(), mat1.Ncols());
+	if ((mat1.Nrows() != mat2.Nrows()) ||
+		(mat1.Ncols() != mat2.Ncols()))
+	{
+		cerr << "MISCMATHS::SD - matrices are of different dimensions" << endl;
+		return ret; //exit (-1);
+	}
+	for (int r = 1; r <= mat1.Nrows(); r++) {
+		for (int c = 1; c <= mat1.Ncols(); c++) {
+			if (mat2(r, c) == 0)
+				ret(r, c) = 0;
+			else
+				ret(r, c) = mat1(r, c) / mat2(r, c);
+		}
+	}
+
+	ret.Release();
+	return ret;
+}
+
+void SD_econ(Matrix& mat1,const Matrix& mat2) 
+{
   if((mat1.Nrows() != mat2.Nrows()) ||
      (mat1.Ncols() != mat2.Ncols()) ){
     cerr <<"MISCMATHS::SD - matrices are of different dimensions"<<endl;
-	return ret; //exit (-1);
+    //exit(-1);
+    return;
   }
-  
   for (int r = 1; r <= mat1.Nrows(); r++) {
     for (int c =1; c <= mat1.Ncols(); c++) {
       if( mat2(r,c)==0)
-	ret(r,c)=0;
+	mat1(r,c)=0;
       else
-	ret(r,c) = mat1(r,c)/mat2(r,c);
+	mat1(r,c) = mat1(r,c)/mat2(r,c);
     }
   }
+}
 
-  ret.Release();
-  return ret;
+void SP_econ(Matrix& mat1,const Matrix& mat2) 
+{
+  if((mat1.Nrows() != mat2.Nrows()) ||
+     (mat1.Ncols() != mat2.Ncols()) ){
+    cerr <<"MISCMATHS::SD - matrices are of different dimensions"<<endl;
+    //exit(-1);
+    return;
+  }
+  for (int r = 1; r <= mat1.Nrows(); r++) {
+    for (int c =1; c <= mat1.Ncols(); c++) {
+		mat1(r,c) = mat1(r,c) * mat2(r,c);
+    }
+  }
 }
 
 //Deprecate?
@@ -1894,43 +2101,40 @@ ReturnMatrix mni_to_imgvox(const ColumnVector& mni,const ColumnVector& mni_origi
   return img_vox;
 }
 
+void remmean_econ(Matrix& mat, const int dim)
+{
+	Matrix matmean;
+	remmean(mat, matmean, dim);
+}
+
+void remmean(Matrix& mat, Matrix& matmean, const int dim)
+{
+	matmean = mean(mat,dim);
+  	if (dim == 1){
+ 		for (int mr=1; mr<=mat.Nrows(); mr++)
+			mat.Row(mr) -= matmean.AsRow();
+  	}
+  	else{
+		for (int mc=1; mc<=mat.Ncols(); mc++)
+			mat.Column(mc) -= matmean.AsColumn(); 
+  	}
+}
+
+void remmean(const Matrix& mat, Matrix& demeanedmat, Matrix& Mean,  const int dim)
+{ 
+	demeanedmat = mat;
+	remmean(demeanedmat,Mean, dim);
+}
 
 ReturnMatrix remmean(const Matrix& mat, const int dim)
 { 
-  Matrix res;
-  if (dim == 1) {res=mat;}
-  else {res=mat.t();}
-
-  Matrix Mean;
-  Mean = mean(res);
-
-  for (int ctr = 1; ctr <= res.Nrows(); ctr++) {
-    for (int ctr2 =1; ctr2 <= res.Ncols(); ctr2++) {
-      res(ctr,ctr2)-=Mean(1,ctr2);
-    }
-  }
-  if (dim != 1) {res=res.t();}
+  Matrix res = mat;
+  remmean_econ(res,dim);
   res.Release();
   return res;
 }
 
-
-void remmean(const Matrix& mat, Matrix& demeanedmat, Matrix& Mean,  const int dim)
-{ 
-  if (dim == 1) {demeanedmat=mat;}
-  else {demeanedmat=mat.t();}
-
-  Mean = mean(demeanedmat);
-
-  for (int ctr = 1; ctr <= demeanedmat.Nrows(); ctr++) {
-    for (int ctr2 =1; ctr2 <= demeanedmat.Ncols(); ctr2++) {
-      demeanedmat(ctr,ctr2)-=Mean(1,ctr2);
-    }
-  }
-  if (dim != 1){demeanedmat = demeanedmat.t();Mean = Mean.t();}
-}
-
-ReturnMatrix cov(const Matrix& mat, const int norm)
+ReturnMatrix oldcov(const Matrix& mat, const int norm)
 { 
   SymmetricMatrix res;
   Matrix tmp;
@@ -1945,17 +2149,84 @@ ReturnMatrix cov(const Matrix& mat, const int norm)
   return res; 
 }
 
-ReturnMatrix corrcoef(const Matrix& mat, const int norm)
-{ 
+ReturnMatrix cov(const Matrix& data, const bool sampleCovariance, int econ) 
+{
+  //This assumes vectors are stored using column order in data
   SymmetricMatrix res;
-  SymmetricMatrix C;
-  C = cov(mat,norm);
-  Matrix D;
-  D=diag(C);
-  D=pow(sqrt(D*D.t()),-1);
-  res << SP(C,D);
+  res << zeros(data.Ncols(),data.Ncols()); 
+  Matrix meanM(mean(data));
+  int N=data.Nrows();
+  if (sampleCovariance && N>1) 
+    N--;
+  if ( econ < 1 )
+    econ=data.Nrows();
+  for(int startRow=1; startRow <= data.Nrows(); startRow+=econ) {
+    Matrix suba=data.SubMatrix(startRow,Min(startRow+econ-1,data.Nrows()),1,data.Ncols());
+    for (int row=1; row <= suba.Nrows(); row++) 
+      suba.Row(row)-=meanM;
+    res << res + suba.t()*suba/N;
+  }
   res.Release();
   return res; 
+}
+
+
+ReturnMatrix cov_r(const Matrix& data, const bool sampleCovariance, int econ) 
+{
+  //This assumes vectors are stored using row order in data
+  SymmetricMatrix res;
+  res << zeros(data.Nrows(),data.Nrows()); 
+  Matrix meanM(mean(data,2));
+  int N=data.Ncols();
+  if (sampleCovariance && N>1) 
+    N--;
+  if ( econ < 1 )
+    econ=data.Ncols();
+  for(int startCol=1; startCol <= data.Ncols(); startCol+=econ) {
+    Matrix suba=data.SubMatrix(1,data.Nrows(),startCol,Min(startCol+econ-1,data.Ncols()));
+    for (int col=1; col <= suba.Ncols(); col++) 
+       suba.Column(col)-=meanM;
+    res << res + suba*suba.t()/N;
+  }
+  res.Release();
+  return res; 
+}
+
+ReturnMatrix cov_r(const Matrix& data, const Matrix& weights2, int econ) 
+{
+  //This assumes vectors are stored using row order in data, weights are a single "row". No bool flag as biased vs unbiased isn't relevant here
+  RowVector weights=((weights2/weights2.Sum()).AsRow());
+  SymmetricMatrix res;
+  res << zeros(data.Nrows(),data.Nrows()); 
+  Matrix meanM(mean(data,weights,2));
+  double N=(1-weights.SumSquare());//As weights.Sum() is equal to 1
+  if ( econ < 1 )
+    econ=data.Ncols();
+  for(int startCol=1; startCol <= data.Ncols(); startCol+=econ) {
+    Matrix suba=data.SubMatrix(1,data.Nrows(),startCol,Min(startCol+econ-1,data.Ncols()));
+    for (int col=1; col <= suba.Ncols(); col++) {
+       suba.Column(col)-=meanM;
+       suba.Column(col)*=sqrt(weights(startCol+col-1));
+    }
+    res << res + suba*suba.t()/N;
+  }
+  res.Release();
+  return res; 
+}
+
+
+
+
+ReturnMatrix corrcoef(const Matrix& mat, const bool norm)
+{ 
+  	SymmetricMatrix res;
+	res = cov(mat,norm);
+	Matrix D;
+	D=diag(res);
+	D=sqrt(D*D.t());
+	res << SD(res,D);
+	res.Release();
+	return res;
 }
 
 ReturnMatrix flipud(const Matrix& mat)
@@ -2003,9 +2274,12 @@ void powerspectrum(const Matrix &Mat1, Matrix &Result, bool useLog)
       ColumnVector tmpPow;
       
       RealFFT(tmpCol,FtmpCol_real,FtmpCol_imag);
-      tmpPow = pow(FtmpCol_real,2)+pow(FtmpCol_imag,2);
+	  pow(FtmpCol_real,2);
+      pow(FtmpCol_imag,2);
+
+      tmpPow = FtmpCol_real+FtmpCol_imag;
       tmpPow = tmpPow.Rows(2,tmpPow.Nrows());
-      if(useLog){tmpPow = log(tmpPow);}
+      if(useLog){log(tmpPow);}
       if(res.Storage()==0){res= tmpPow;}else{res|=tmpPow;}
     }
     Result=res;
@@ -2155,7 +2429,7 @@ ReturnMatrix read_vest(string p_fname)
     {
       for(int j = 1; j <= numWaves; j++)    
 	{
-	  if (!in.eof()) in >> p_mat(i,j);
+	  if (!in.eof()) in >> ws >> p_mat(i,j) >> ws;
 	  else throw Exception(string(p_fname+" has insufficient data points").c_str());
 	}
     }
@@ -2197,9 +2471,16 @@ void ols(const Matrix& data,const Matrix& des,const Matrix& tc, Matrix& cope,Mat
 }
 
 float ols_dof(const Matrix& des){
+  if ( des.Nrows() > 4000 ) //Use the simple version as huge designs require too much RAM in the full calculation
+    return des.Nrows() - des.Ncols();
+  try {
   Matrix pdes = pinv(des);
   Matrix R=IdentityMatrix(des.Nrows())-des*pdes;
-  return R.Trace();
+  return R.Trace();}
+  catch (...) {
+    cerr << "ols_dof: Error in determining the trace, resorting to basic calculation" << endl;
+  }
+  return des.Nrows() - des.Ncols();
 }
 
 int conjgrad(ColumnVector& x, const Matrix& A, const ColumnVector& b, int maxit,

@@ -113,12 +113,12 @@ namespace Melodic {
 
     int itt_ctr,itt_ctr2=1,cum_itt=0,newmaxitts = opts.maxNumItt.value(); 
     double minAbsSin = 1.0, minAbsSin2 = 1.0;
-    if(opts.approach.value() == string("tica"))
+    if(opts.approach.value() == string("tica")) {
       opts.maxNumItt.set_T(opts.rank1interval.value());
-
-    rank1_old = melodat.get_dewhite()*redUMM;
-    rank1_old = melodat.expand_dimred(rank1_old);
-    rank1_old = krapprox(rank1_old,int(rank1_old.Nrows()/melodat.get_numfiles())); 
+      rank1_old = melodat.get_dewhite()*redUMM;
+      rank1_old = melodat.expand_dimred(rank1_old);
+      rank1_old = krapprox(rank1_old,int(rank1_old.Nrows()/melodat.get_numfiles()));
+    }
     do{// TICA loop
       itt_ctr = 1;
       do{ // da loop!!!
@@ -269,8 +269,8 @@ namespace Melodic {
 					w = w / norm2(w);  
 
 					//termination condition : angle between old and new < epsilon
-					if((norm2(w-w_old) < 0.001*opts.epsilon.value())&&(itt_ctr>10) || 
-	   				(norm2(w+w_old) < 0.001*opts.epsilon.value())&&(itt_ctr>10)){
+					if(((norm2(w-w_old) < 0.001*opts.epsilon.value())&&(itt_ctr>10)) || 
+					   ((norm2(w+w_old) < 0.001*opts.epsilon.value())&&(itt_ctr>10))){
 	 					break;
 				  	}
         	//cout << norm2(w-w_old) << "   " << norm2(w+w_old) << endl;

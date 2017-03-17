@@ -6,6 +6,67 @@
 //
 // Copyright (C) 2007 University of Oxford 
 //
+/*  Part of FSL - FMRIB's Software Library
+    http://www.fmrib.ox.ac.uk/fsl
+    fsl@fmrib.ox.ac.uk
+    
+    Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+    Imaging of the Brain), Department of Clinical Neurology, Oxford
+    University, Oxford, UK
+    
+    
+    LICENCE
+    
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
+    Oxford (the "Software")
+    
+    The Software remains the property of the University of Oxford ("the
+    University").
+    
+    The Software is distributed "AS IS" under this Licence solely for
+    non-commercial use in the hope that it will be useful, but in order
+    that the University as a charitable foundation protects its assets for
+    the benefit of its educational and research purposes, the University
+    makes clear that no condition is made or to be implied, nor is any
+    warranty given or to be implied, as to the accuracy of the Software,
+    or that it will be suitable for any particular purpose or for use
+    under any specific conditions. Furthermore, the University disclaims
+    all responsibility for the use which is made of the Software. It
+    further disclaims any liability for the outcomes arising from using
+    the Software.
+    
+    The Licensee agrees to indemnify the University and hold the
+    University harmless from and against any and all claims, damages and
+    liabilities asserted by third parties (including claims for
+    negligence) which arise directly or indirectly from the use of the
+    Software or the sale of any products based on the Software.
+    
+    No part of the Software may be reproduced, modified, transmitted or
+    transferred in any form or by any means, electronic or mechanical,
+    without the express permission of the University. The permission of
+    the University is not required if the said reproduction, modification,
+    transmission or transference is done without financial return, the
+    conditions of this Licence are imposed upon the receiver of the
+    product, and all original and amended source code is included in any
+    transmitted product. You may be held legally responsible for any
+    copyright infringement that is caused or encouraged by your failure to
+    abide by these terms and conditions.
+    
+    You are not permitted under this Licence to use this Software
+    commercially. Use for which any financial return is received shall be
+    defined as commercial use, and includes (1) integration of all or part
+    of the source code or the Software into a product for sale or license
+    by or on behalf of Licensee to third parties or (2) use of the
+    Software or any derivative of it for research with the final aim of
+    developing software products for sale or license to a third party or
+    (3) use of the Software or any derivative of it for research with the
+    final aim of developing non-software products for sale or license to a
+    third party, or (4) use of the Software to provide any service to an
+    external organisation for which payment is received. If you are
+    interested in using the Software commercially, please contact Isis
+    Innovation Limited ("Isis"), the technology transfer company of the
+    University, to negotiate a licence. Contact details are:
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <cstdlib>
 #include <iostream>
@@ -215,9 +276,9 @@ const
 	  ovol(i,j,k) = _sfld[0]->Peek(bi+i);
           double ival = ivol(i,j,k);
           double prod = 1.0;
-          for (unsigned int order=0; order<_sfac.size(); order++) {
+          for (unsigned int order=1; order<_sfld.size(); order++) {
 	    prod *= ival;
-            ovol(i,j,k) += _sfld[i]->Peek(bi+i) * prod;
+            ovol(i,j,k) += _sfld[order]->Peek(bi+i) * prod;
 	  }
 	}
       }
@@ -242,6 +303,12 @@ const
   if (!Fixed()) {
     for (unsigned int i=0; i<_sfld.size(); i++) {
       memen += _lambda * _sfld[i]->BendEnergy();
+      /*
+      if (_sfld.size()==1) memen = _lambda * _sfld[i]->BendEnergy();
+      else {
+        memen += _lambda * pow(10.0,i-1.0) * _sfld[i]->BendEnergy();
+      }
+      */
     }
   }
   return(memen);
@@ -396,10 +463,13 @@ NEWMAT::ReturnMatrix SSDIntensityMapper::Gradient(const NEWIMAGE::volume<float>&
     ref_power.copyproperties(ref);
     ref_power = 1.0;
     grad.Rows(1,_sfld[0]->CoefSz()) = - _sfld[0]->Jte(ref_power,diff,mask);
+    grad.Rows(1,_sfld[0]->CoefSz()) += 0.5 * _lambda * _sfld[0]->BendEnergyGrad();
+    //grad.Rows(1,_sfld[0]->CoefSz()) += 0.5 * _lambda * 0.1 * _sfld[0]->BendEnergyGrad();
     for (unsigned int i=1; i<_sfld.size(); i++) {
       ref_power *= ref;
-      grad.Rows(i*_sfld.size()+1,(i+1)*_sfld.size()) = - _sfld[i]->Jte(ref_power,diff,mask);
-      grad.Rows(i*_sfld.size()+1,(i+1)*_sfld.size()) += 0.5 * _lambda * _sfld[i]->BendEnergyGrad();
+      grad.Rows(i*_sfld[0]->CoefSz()+1,(i+1)*_sfld[0]->CoefSz()) = - _sfld[i]->Jte(ref_power,diff,mask);
+      grad.Rows(i*_sfld[0]->CoefSz()+1,(i+1)*_sfld[0]->CoefSz()) += 0.5 * _lambda * _sfld[i]->BendEnergyGrad();
+      //grad.Rows(i*_sfld[0]->CoefSz()+1,(i+1)*_sfld[0]->CoefSz()) += 0.5 * _lambda * pow(10.0,i-1.0) * _sfld[i]->BendEnergyGrad();
     }
   }
 
@@ -509,12 +579,13 @@ const
     // "matrix" of matrices.
     for (unsigned int i=0; i<_sfld.size(); i++) {
       if (i) ref_power_i *= ref;
-      JtJ[i].resize(i+1);
+      JtJ[i].resize(_sfld.size());
       ref_power_j = ref_power_i;
       for (unsigned int j=i; j<_sfld.size(); j++) {
         if (j==i) {
           boost::shared_ptr<MISCMATHS::BFMatrix>   reg = _sfld[i]->BendEnergyHess(prec);
           reg->MulMeByScalar(0.5 * _lambda);
+          // reg->MulMeByScalar(0.5 * _lambda * pow(10.0,i-1.0));
           JtJ[i][j] = _sfld[i]->JtJ(ref_power_i,mask,prec);
           JtJ[i][j]->AddToMe(*reg);
 	}
@@ -524,21 +595,21 @@ const
 	}
       }
     }
-    // Concatenate left->right so that the first column
-    // of each row has the concatenation of all matrices
-    // in that row.
-    for (unsigned int row=0; row<_sfld.size(); row++) {
-      for (unsigned int i=1; i<=row; i++) {
-        JtJ[row][0]->HorConcat2MyRight(*(JtJ[row][i]));
+    // Concatenate top->bottom so that the top element
+    // of each column has the concatenation of all
+    // matrices of that column.
+    for (unsigned int col=0; col<_sfld.size(); col++) {
+      for (unsigned int row=1; row<=col; row++) {
+        JtJ[0][col]->VertConcatBelowMe(*JtJ[row][col]);
       }
-      for (unsigned int i=row+1; i<_sfld.size(); i++) {
-        JtJ[row][0]->HorConcat2MyRight(*(JtJ[i][row]));
-      }
+      for (unsigned int col2=col+1; col2<_sfld.size(); col2++) {
+        JtJ[0][col]->VertConcatBelowMe(*JtJ[col][col2]);
+      } 
     }
-    // Concatenates top->bottom into hess
-    hess = JtJ[0][0];    
-    for (unsigned int row = 1; row<_sfld.size(); row++) {
-      hess->VertConcatBelowMe(*(JtJ[row][0]));
+    // Concatenate top row left->right to yield full Hessian
+    hess = JtJ[0][0];
+    for (unsigned int col=1; col<_sfld.size(); col++) {
+      hess->HorConcat2MyRight(*JtJ[0][col]);
     }
   }
 
@@ -624,10 +695,10 @@ const
     NEWIMAGE::volume<float>   ref_power(ref.xsize(),ref.ysize(),ref.zsize());
     ref_power.copyproperties(ref);
     ref_power = 1.0;
-    hess = dfield.JtJ(dima,*(_sfld[0]),ref_power,mask,prec);
+    hess = dfield.JtJ(dima,*(_sfld[0]),-ref_power,mask,prec);                        // Sign
     for (unsigned int i=1; i<_sfld.size(); i++) {
       ref_power *= ref;
-      hess->HorConcat2MyRight(*(dfield.JtJ(dima,*(_sfld[i]),ref_power,mask,prec)));
+      hess->HorConcat2MyRight(*(dfield.JtJ(dima,*(_sfld[i]),-ref_power,mask,prec))); // Sign
     }
   }
 

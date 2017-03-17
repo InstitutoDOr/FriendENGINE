@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #if !defined(__AutoCorrEstimator_h)
 #define __AutoCorrEstimator_h
@@ -76,9 +76,11 @@
 
 #include "miscmaths/miscmaths.h"
 #include "newimage/newimageall.h"
+#include "fslsurface/fslsurface.h"
 
 using namespace NEWMAT;
 using namespace MISCMATHS;
+using namespace fslsurface_name;
 
 namespace FILM {
      
@@ -109,14 +111,15 @@ namespace FILM {
 	}
 
       void calcRaw(int lag = 0);
-      void spatiallySmooth(const string& usanfname, const ColumnVector& epivol, int masksize, const string& epifname, int usanthresh, const NEWIMAGE::volume<float>& usan_vol, int lag=0);
+      void spatiallySmooth(const ColumnVector& epivol, int masksize, double usanthresh, const NEWIMAGE::volume<float>& usan_vol, int lag=0);
+      void spatiallySmooth(const fslSurface<float, unsigned int> surfaceData, const float sigma, const float extent, int lag=0); 
       void applyConstraints();
       void filter(const ColumnVector& filterFFT);
       Matrix fitAutoRegressiveModel();
       void pava();
       void preWhiten(const ColumnVector& in, ColumnVector& ret, int i, Matrix& dmret, bool highfreqremovalonly=false);
       void setDesignMatrix(const Matrix& dm);
-      int establishUsanThresh(const ColumnVector& epivol);
+      double establishUsanThresh(const ColumnVector& epivol);
 
       void getMeanEstimate(ColumnVector& ret);
 

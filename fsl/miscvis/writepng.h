@@ -28,7 +28,9 @@
             published by O'Reilly and Associates.
 
   ---------------------------------------------------------------------------*/
-
+#if defined(PNG_LIBPNG_VER_MINOR) && PNG_LIBPNG_VER_MINOR >= 5
+# include <zlib.h>
+#endif
 #ifndef TRUE
 #  define TRUE 1
 #  define FALSE 0
@@ -40,7 +42,7 @@
 #endif
 
 #ifdef DEBUG
-//#  define Trace(x)  {fprintf x ; fflush(stderr); fflush(stdout);}
+#  define Trace(x)  {fprintf x ; fflush(stderr); fflush(stdout);}
 #else
 #  define Trace(x)  ;
 #endif

@@ -55,14 +55,14 @@ void GifDecode(FILE *fp, UBYTE *pix, GifImageHdr gifimage)
   GifClearTable();
 
   if ( (buffCount = Xgetc(fp)) == 0 ) {
-    sprintf(charBuff, "End of image # %d before it began!\n", count);
-    TheEnd1(charBuff);
+    sprintf( (char *)charBuff, "End of image # %d before it began!\n", count);
+    TheEnd1( (char *)charBuff);
   }
 
   while(buffCount > 0) {
     if ( fread(charBuff, 1, buffCount, fp) != buffCount ) { 
-      sprintf(charBuff, "Premature end of file; Image # %d\n", count);
-      TheEnd1(charBuff);
+      sprintf( (char *)charBuff, "Premature end of file; Image # %d\n", count);
+      TheEnd1( (char *)charBuff);
     }
     for(chPos = charBuff; buffCount-- > 0; chPos++) {
       need += (int) *chPos << bits;
@@ -114,13 +114,13 @@ void GifDecode(FILE *fp, UBYTE *pix, GifImageHdr gifimage)
       }   /* end of extracting codes */
     }   /* end of reading a block of data */
     if ( (buffCount = Xgetc(fp)) == 0 ) {
-      sprintf(charBuff, "End of image # %d without EOI\n", count);
-      TheEnd1(charBuff);
+      sprintf( (char *)charBuff, "End of image # %d without EOI\n", count);
+      TheEnd1( (char *)charBuff);
     }
   }
 
 skipRest: 
-  if (debugFlag) fprintf(stderr, "Ending GifDecode, written: %d=%d\n",
+  if (debugFlag) fprintf(stderr, "Ending GifDecode, written: %ld=%d\n",
 	  interlaced && (pix-picture == 0) ? imgsize : pix - picture, imgsize);
   return ;
 }
