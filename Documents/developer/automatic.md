@@ -1,14 +1,12 @@
 # FRIEND ENGINE FRAMEWORK
 > Functional Real-Time Interactive Endogenous Neuromodulation and Decoding
 
-## Developer documentation
-
 D'Or Institute for Research and Education (IDOR) - Neuroinformatics Workgroup
 
 http://idor.org
 
 
-## INDEX
+## Developer documentation
 
 1. COPYRIGHT AND SOFTWARE
 2. LICENSE
