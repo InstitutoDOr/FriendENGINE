@@ -25,3 +25,13 @@
 *.i*86
 *.x86_64
 *.hex
+*.tlog
+*.log
+*.idb
+*.pdb
+*.suo
+*.sdf
+*.opensdf
+*.ilk
+*.exp
+*.deps
