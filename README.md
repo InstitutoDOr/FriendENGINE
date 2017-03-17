@@ -1,11 +1,13 @@
+<img align="right" height="60" src="Documents/logo.png">
+
 # FRIEND Engine Framework
 > Functional Real-Time Interactive Endogenous Neuromodulation and Decoding (FRIEND) Engine Framework
 
 D'Or Institute for Research and Education (IDOR) - Neuroinformatics Workgroup
-Check our site: http://idor.org
-More from our group: https://github.com/InstitutoDOr
 
-<img align="right" src="Documents/logo.png">
+Check our site: http://idor.org
+
+More from our group: https://github.com/InstitutoDOr
 
 ---
 
