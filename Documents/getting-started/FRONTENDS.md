@@ -1,9 +1,11 @@
 ## FRONTENDS
 
-* MATLAB
-* Unity
-* Presentation
-* Python
+**Note : All frontends listed here are example frontends. To be used in a real experiment, you need to handle all the presentation of stimuli and time issues.**
+
+* [MATLAB](#matlab)
+* [Unity](#unity)
+* [Presentation](#presentation)
+* [Python](#python)
 
 ### FRONTEND STATE MACHINE
 
@@ -46,11 +48,11 @@ Undefined function 'tcpip' for input arguments of type 'char'.
 
 Error in Friend>Friend\_OpeningFcn (line 100)
 mainThread = tcpip(host, port);
-Error in gui\_mainfcn (line 221)
-    feval(gui\_State.gui\_OpeningFcn, gui\_hFigure, [],
-    guidata(gui\_hFigure), varargin{:});
+Error in gui_mainfcn (line 221)
+    feval(gui_State.gui_OpeningFcn, gui_hFigure, [],
+    guidata(gui_hFigure), varargin{:});
 Error in Friend (line 42)
-    gui\_mainfcn(gui\_State, varargin{:});
+    gui_mainfcn(gui_State, varargin{:});
 ```
 
 This frontend is a two pass execution. In the first execution, click in localizer button, and a localizer run, will be executed, creating a roi file derived from the GLM calculation. After the executtion is finished, close the frontend and execute it again, clicking in the feedback button this time. It will use the ROI file to calculate the feedback information.
@@ -70,7 +72,7 @@ The Big Environment Pack (http://u3d.as/content/philipp-schmidt/big-environment-
 
 The frontend expects the engine to be already executing on localhost by default. For other IP and port modify:
 
-[frontends\Unity\Medieval\Assets\Scripts\movimentaPrimeiroBloco.cs](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/Medieval/Assets/Scripts/movimentaPrimeiroBloco.cs)
+[frontends\Unity\Medieval\Assets\Scripts\movimentaPrimeiroBloco.cs](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/Unity/Medieval/Assets/Scripts/movimentaPrimeiroBloco.cs)
 
 ```c#
 private String HostData="127.0.0.1";
@@ -78,7 +80,7 @@ private Int32 Port=5678;
 ```
 
 Information about the plug-in used is at:
-[frontends\Unity\Medieval\Assets\Scripts\FriendEngineComm.cs](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/Medieval/Assets/Scripts/FriendEngineComm.cs)
+[frontends\Unity\Medieval\Assets\Scripts\FriendEngineComm.cs](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/Unity/Medieval/Assets/Scripts/FriendEngineComm.cs)
 
 ```c#
 mainThread.writeSocket ("PLUGIN");
@@ -87,7 +89,7 @@ mainThread.writeSocket ("libROI");
 
 To open the Medieval frontend:
 
-> Unity > Open Project > Open Other > [FES\frontends\Unity\Medieval](https://github.com/InstitutoDOr/FriendENGINE/tree/master/frontends/Medieval) directory > Done
+> Unity > Open Project > Open Other > [FES\frontends\Unity\Medieval](https://github.com/InstitutoDOr/FriendENGINE/tree/master/frontends/Unity/Medieval) directory > Done
 
 This frontend is a medieval virtual reality scenario in which the avatar, i.e. the participant, hovers over a path and stops in predetermined locations, blocked by a massive rock. Using the same finger tapping neurofeedback procedure exemplified in the Matlab® frontend (alternating rest and finger tapping blocks), and the same libROI plug-in, the feedback information to the participant is now given in a different way. As the participant moves across the scenario and stops right before the rock, he needs to perform the finger tapping task as instructed (as quickly as possible). If the percentage BOLD signal change returned by the engine reaches a predefined threshold the rock levitates, thus unblocking the path so that the journey continues (see figure below). If the threshold is not reached, the player stays at the same location until the next try, i.e. the next activation block. This scenario was constructed using objects from the iTween and iTween path editor (http://itween.pixelplacement.com/index.php) and the Big Environment pack, available in the Unity
 
@@ -96,7 +98,7 @@ This frontend is a medieval virtual reality scenario in which the avatar, i.e. t
 
 #### FINGERTAP FRONTEND
 
-Unity ? Open Project ? Open Other ? [FES\frontends\Unity\FingerTap](https://github.com/InstitutoDOr/FriendENGINE/tree/master/frontends/FingerTap) directory ? Done
+Unity > Open Project > Open Other > [frontends\Unity\FingerTap](https://github.com/InstitutoDOr/FriendENGINE/tree/master/frontends/Unity/FingerTap) directory > Done
 
 The frontend expects the engine to be already executing on localhost by default. For other IP and port modify:
 
@@ -119,6 +121,12 @@ mainThread.writeSocket ("libMotor");
 The finger tapping experiment intercalates blocks of rest and finger tapping. The participant is asked to perform finger tapping with either their left or right hand, alternating with resting blocks. Two ROIs located in the primary motor cortex area of the left and right cerebral hemisphere are used by the libMotor plug-in to calculate the percent BOLD signal change in the left and right ROIs in the same way as the libROI plug-in in the Medieval example. The FingerTap frontend compares the feedback values between both ROIs in such a way that the greater one will inform which hand of the avatar, showed by the frontend, will perform the finger tapping animation. If successfully performed, this conveys a clear impression that the participant is controlling the hands of the avatar with his/her own hands. The avatar and hand animations were implemented using the VR Hands Unity asset ( [https://serrarens.nl/passervr/downloads/vr-hands/](https://serrarens.nl/passervr/downloads/vr-hands/)).
 
 
+<a name="presentation"></a>
+#### PRESENTATION FRONTEND
+
+[frontends/Presentation/NFB_FRIEND_ENGINE/](https://github.com/InstitutoDOr/FriendENGINE/tree/master/frontends/Presentation/NFB_FRIEND_ENGINE)
+
+
 <a name="python"></a>
 #### PYTHON FRONTEND (Python 2.7)
 
@@ -136,5 +144,3 @@ Execution of the frontend should follow the steps:
 1. Execute:  python frontendROI.py 1
 2. A functional localization processing is executed
 3. Execute:  python frontendROI.py 2 to perform neurofeedback processing
-
-**Note : All frontends listed here are example frontends. To be used in a real experiment, you need to handle all the presentation of stimuli and time issues.**
