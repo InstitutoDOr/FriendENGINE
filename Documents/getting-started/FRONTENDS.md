@@ -46,7 +46,7 @@ Warning for Matlab academic license: as the Instrument Control Toolbox for TCP/I
 
 Undefined function 'tcpip' for input arguments of type 'char'.
 
-Error in Friend>Friend\_OpeningFcn (line 100)
+Error in Friend>Friend_OpeningFcn (line 100)
 mainThread = tcpip(host, port);
 Error in gui_mainfcn (line 221)
     feval(gui_State.gui_OpeningFcn, gui_hFigure, [],
@@ -102,7 +102,7 @@ Unity > Open Project > Open Other > [frontends\Unity\FingerTap](https://github.c
 
 The frontend expects the engine to be already executing on localhost by default. For other IP and port modify:
 
-[Frontends\Unity\FingerTap\Assets\Scripts\motorScript.cs](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/FingerTap/Assets/Scripts/motorScript.cs)
+[Frontends\Unity\FingerTap\Assets\Scripts\motorScript.cs](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/Unity/FingerTap/Assets/Scripts/motorScript.cs)
 
 ```c#
 private String HostData = "127.0.0.1;
@@ -111,7 +111,7 @@ private Int32 Port = 5678
 
 Information about the plug-in used is at:
 
-[Frontends\Unity\FingerTap\Assets\Scripts\MotorComm.cs](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/FingerTap/Assets/Scripts/FriendEngineComm.cs)
+[Frontends\Unity\FingerTap\Assets\Scripts\MotorComm.cs](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/Unity/FingerTap/Assets/Scripts/FriendEngineComm.cs)
 
 ```c#
 mainThread.writeSocket ("PLUGIN");
@@ -122,17 +122,17 @@ The finger tapping experiment intercalates blocks of rest and finger tapping. Th
 
 
 <a name="presentation"></a>
-#### PRESENTATION FRONTEND
+### PRESENTATION FRONTEND
 
 [frontends/Presentation/NFB_FRIEND_ENGINE/](https://github.com/InstitutoDOr/FriendENGINE/tree/master/frontends/Presentation/NFB_FRIEND_ENGINE)
 
 
 <a name="python"></a>
-#### PYTHON FRONTEND (Python 2.7)
+### PYTHON FRONTEND (Python 2.7)
 
 The frontend expects the engine to be already executing on localhost by default. For information about the plug-in or to modify IP and port see:
 
-[Frontends\Python\frontend.py](https://github.com/InstitutoDOr/FriendENGINE/blob/master/frontends/Python/frontend.py)
+[Frontends\Python](https://github.com/InstitutoDOr/FriendENGINE/tree/master/frontends/Python)
 
 ```python
 mainThread.send('PLUGIN\n');

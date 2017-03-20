@@ -6,9 +6,8 @@
 
 D'Or Institute for Research and Education (IDOR) - Neuroinformatics Workgroup
 
-Check our site: http://idor.org
-
-More from our group: https://github.com/InstitutoDOr
+* http://idor.org
+* Other tools from our group: https://github.com/InstitutoDOr
 
 
 ## Docs
