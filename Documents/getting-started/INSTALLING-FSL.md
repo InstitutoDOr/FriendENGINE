@@ -19,7 +19,7 @@ sudo apt-get install fsl-complete
 
 Download from [http://fsl.fmrib.ox.ac.uk/fsldownloads/fsldownloadmain.html](http://fsl.fmrib.ox.ac.uk/fsldownloads/fsldownloadmain.html)
 
-![Download FSL](imgs/figure-4.png)
+![Download FSL](imgs/figure-2.png)
 
 
 Extract the downloaded file in /usr/local/fsl
