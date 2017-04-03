@@ -6,6 +6,67 @@
 //
 // Copyright (C) 2007 University of Oxford 
 //
+/*  Part of FSL - FMRIB's Software Library
+    http://www.fmrib.ox.ac.uk/fsl
+    fsl@fmrib.ox.ac.uk
+    
+    Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+    Imaging of the Brain), Department of Clinical Neurology, Oxford
+    University, Oxford, UK
+    
+    
+    LICENCE
+    
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
+    Oxford (the "Software")
+    
+    The Software remains the property of the University of Oxford ("the
+    University").
+    
+    The Software is distributed "AS IS" under this Licence solely for
+    non-commercial use in the hope that it will be useful, but in order
+    that the University as a charitable foundation protects its assets for
+    the benefit of its educational and research purposes, the University
+    makes clear that no condition is made or to be implied, nor is any
+    warranty given or to be implied, as to the accuracy of the Software,
+    or that it will be suitable for any particular purpose or for use
+    under any specific conditions. Furthermore, the University disclaims
+    all responsibility for the use which is made of the Software. It
+    further disclaims any liability for the outcomes arising from using
+    the Software.
+    
+    The Licensee agrees to indemnify the University and hold the
+    University harmless from and against any and all claims, damages and
+    liabilities asserted by third parties (including claims for
+    negligence) which arise directly or indirectly from the use of the
+    Software or the sale of any products based on the Software.
+    
+    No part of the Software may be reproduced, modified, transmitted or
+    transferred in any form or by any means, electronic or mechanical,
+    without the express permission of the University. The permission of
+    the University is not required if the said reproduction, modification,
+    transmission or transference is done without financial return, the
+    conditions of this Licence are imposed upon the receiver of the
+    product, and all original and amended source code is included in any
+    transmitted product. You may be held legally responsible for any
+    copyright infringement that is caused or encouraged by your failure to
+    abide by these terms and conditions.
+    
+    You are not permitted under this Licence to use this Software
+    commercially. Use for which any financial return is received shall be
+    defined as commercial use, and includes (1) integration of all or part
+    of the source code or the Software into a product for sale or license
+    by or on behalf of Licensee to third parties or (2) use of the
+    Software or any derivative of it for research with the final aim of
+    developing software products for sale or license to a third party or
+    (3) use of the Software or any derivative of it for research with the
+    final aim of developing non-software products for sale or license to a
+    third party, or (4) use of the Software to provide any service to an
+    external organisation for which payment is received. If you are
+    interested in using the Software commercially, please contact Isis
+    Innovation Limited ("Isis"), the technology transfer company of the
+    University, to negotiate a licence. Contact details are:
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <cstdlib>
 #include <iostream>
@@ -81,8 +142,9 @@ void fnirt_CF::common_construction(std::vector<boost::shared_ptr<BASISFIELD::bas
 
   // Since no smoothing or subsampling has yet to be applied to the ref image we point
   // the smoothed and subsampled version straight back to the original. Dito for obj.
-  svref = vref;
-  ssvref = vref; 
+  svref = vref; ssvref = vref; 
+  interp = LinearInterp;   // Use linear interpolation as default
+  vobj->setinterpolationmethod(translate_interp_type(interp));
   svobj = vobj;
   // Initialise objects that will be used during the minimisation
   // robj is used for resampling vobj. Set size to that of ssvref
@@ -146,69 +208,101 @@ void fnirt_CF::SaveDefFields(std::string fname) const
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void fnirt_CF::SaveJacobian(std::string fname) const
+void fnirt_CF::SaveJacobian(const std::string &fname) const
 {
   NEWIMAGE::volume<float>   jac(RefSz_x(),RefSz_y(),RefSz_z());
   jac = Ref();        // To get header-info
   jac = 0.0;          // Blank it
-  deffield2jacobian(DefField(0),DefField(1),DefField(2),jac);
+  deffield2jacobian(DefField(0),DefField(1),DefField(2),jac); // Defined in fnirt_file_reader.h
 
   if (Verbose()) cout << "Saving Jacobian map to " << fname << endl;
+  jac.setDisplayMaximumMinimum(0.0,0.0);
   save_volume(jac,fname);
 }
 
-void fnirt_CF::SaveDefCoefs(std::string fname) const
+void fnirt_CF::SaveDefCoefs(const std::string &fname) const
 {
   if (Verbose()) cout << "Saving Coefficient fields to " << fname << endl;
 
   NEWIMAGE::FnirtFileWriter  write_it(fname,DefField(0),DefField(1),DefField(2),AffineMat());
 }
 
-void fnirt_CF::SaveRobj(std::string fname) const
+void fnirt_CF::SaveRobj(const std::string &fname) const
 {
+  const NEWIMAGE::volume<float>&  robj=Robj();
+  robj.setDisplayMaximumMinimum(0.0,0.0);
   if (Verbose()) cout << "Saving Warped --in file to " << fname << endl;
-  save_volume(Robj(),fname);
+  save_volume(robj,fname);
 }
 
-void fnirt_CF::SaveScaledRef(std::string fname) const
+void fnirt_CF::SaveScaledRef(const std::string &fname) const
 {
   NEWIMAGE::volume<float>        sref = Ref();  // To get all header info
   sref = 0.0;                                   // Blank it
   ScaledRef(sref);                              // Fill with scaled ref values
   if (Verbose()) cout << "Saving scaled --ref file to " << fname << endl;
+  sref.setDisplayMaximumMinimum(0.0,0.0);
   save_volume(sref,fname);
 }
 	     
-void fnirt_CF::SaveRef(std::string fname) const
+void fnirt_CF::SaveRef(const std::string &fname) const
 {
   if (Verbose()) cout << "Saving --ref file to " << fname << endl;
   save_volume(Ref(),fname);
 }
 
-void fnirt_CF::SaveMask(std::string fname) const
+void fnirt_CF::SaveMask(const std::string &fname) const
 {
+  const NEWIMAGE::volume<char>&  mask = Mask();
+  mask.setDisplayMaximumMinimum(0.0,0.0);
   if (Verbose()) cout << "Saving mask in --ref space to " << fname << endl;
-  save_volume(Mask(),fname);
+  save_volume(mask,fname);
 }
 
-void fnirt_CF::SaveDataMask(std::string fname) const
+void fnirt_CF::SaveMaskedDiff(const std::string &fname) const
+{
+  if (Verbose()) cout << "Saving masked difference between --ref and --in to " << fname << endl;
+
+  NEWIMAGE::volume<float>        mdiff = Ref();
+  const NEWIMAGE::volume<char>&  mask = Mask();
+  mdiff = 0.0;
+  ScaledRef(mdiff);
+  mdiff = Robj() - mdiff;
+  for (unsigned int k=0; k<RefSz_z(); k++) {
+    for (unsigned int j=0; j<RefSz_y(); j++) {
+      for (unsigned int i=0; i<RefSz_x(); i++) {
+        if (!mask(i,j,k)) {
+          mdiff(i,j,k) = 0.0;
+        }
+      }
+    }
+  }
+
+  mdiff.setDisplayMaximumMinimum(0.0,0.0);
+  save_volume(mdiff,fname);
+}
+
+void fnirt_CF::SaveDataMask(const std::string &fname) const
 {
   if (Verbose()) cout << "Saving data-mask in --ref space to " << fname << endl;
+  datamask->setDisplayMaximumMinimum(0.0,0.0);
   save_volume(*datamask,fname);
 }
 
-void fnirt_CF::SaveRobjMask(std::string fname) const
+void fnirt_CF::SaveRobjMask(const std::string &fname) const
 {
   if (robjmask) {
     if (Verbose()) cout << "Saving warped --inmask in --ref space to " << fname << endl;
+    robjmask->setDisplayMaximumMinimum(0.0,0.0);
     save_volume(*robjmask,fname);
   }
 }
 
-void fnirt_CF::SaveObjMask(std::string fname) const
+void fnirt_CF::SaveObjMask(const std::string &fname) const
 {
   if (objmask) {
     if (Verbose()) cout << "Saving --inmask to " << fname << endl;
+    objmask->setDisplayMaximumMinimum(0.0,0.0);
     save_volume(*objmask,fname);
   }
 }
@@ -218,7 +312,7 @@ std::pair<double,double> fnirt_CF::JacobianRange() const
   NEWIMAGE::volume<float>   jac(RefSz_x(),RefSz_y(),RefSz_z());
   jac = Ref();        // To get header-info
   jac = 0.0;          // Blank it
-  deffield2jacobian(DefField(0),DefField(1),DefField(2),jac);
+  deffield2jacobian(DefField(0),DefField(1),DefField(2),AffineMat(),jac); // Defined in fnirt_file_reader.h
   std::pair<double,double>  rng;
   rng.first = jac.min();
   rng.second = jac.max();
@@ -228,16 +322,49 @@ std::pair<double,double> fnirt_CF::JacobianRange() const
 
 void fnirt_CF::ForceJacobianRange(double minj, double maxj) const
 {
-  NEWIMAGE::volume4D<float>   defvol(RefSz_x(),RefSz_y(),RefSz_z(),3);
+  // To speed things up the field will be extended outside
+  // the "valid" FOV to a size that allows for a fast FFT.
+  unsigned int Nx, Ny, Nz;
+  Nx = good_fft_size(RefSz_x()); Ny = good_fft_size(RefSz_y()); Nz = good_fft_size(RefSz_z());
+  // cout << "Original size is: " << RefSz_x() << ", " << RefSz_y() << ", " << RefSz_z() << endl;
+  // cout << "Good size is: " << Nx << ", " << Ny << ", " << Nz << endl;
+  unsigned int xoff, yoff, zoff;
+  xoff = (Nx-RefSz_x())/2; yoff = (Ny-RefSz_y())/2; zoff = (Nz-RefSz_z())/2; 
+  NEWIMAGE::volume4D<float>   defvol(Nx,Ny,Nz,3);
   defvol.setdims(RefVxs_x(),RefVxs_y(),RefVxs_z(),1);
-  for (unsigned int i=0; i<3; i++) defvol[i] = (*df)[i];
+  for (unsigned int v=0; v<3; v++) {
+    for (unsigned int k=0; k<Nz; k++) {
+      for (unsigned int j=0; j<Ny; j++) {
+	for (unsigned int i=0; i<Nx; i++) {
+          defvol[v](i,j,k) = df_field[v]->PeekWide(i-xoff,j-yoff,k-zoff);
+	}
+      }
+    }
+  }
+
   // Use MJ's routines to constrain range of Jacobians.
   // N.B. that the range is not "guaranteed".
+  for (unsigned int i=0; i<3; i++) add_affine_part(AffineMat(),i,defvol[i]);
   convertwarp_rel2abs(defvol);
   constrain_topology(defvol,minj,maxj);
   convertwarp_abs2rel(defvol);
+  for (unsigned int i=0; i<3; i++) remove_affine_part(AffineMat(),i,defvol[i]);
+
+  // Cut out part of constrained field that corresponds
+  // to the "valid" FOV.
+  NEWIMAGE::volume4D<float>   cvol(RefSz_x(),RefSz_y(),RefSz_z(),3);
+  cvol.setdims(RefVxs_x(),RefVxs_y(),RefVxs_z(),1);
+  for (unsigned int v=0; v<3; v++) {
+    for (unsigned int k=0; k<RefSz_z(); k++) {
+      for (unsigned int j=0; j<RefSz_y(); j++) {
+	for (unsigned int i=0; i<RefSz_x(); i++) {
+          cvol[v](i,j,k) = defvol[v](i+xoff,j+yoff,k+zoff);
+	}
+      }
+    }
+  }
   // Set the constrained field as our "new" field
-  SetDefField(defvol);
+  SetDefField(cvol);
 }
 
 void fnirt_CF::SubsampleRef(const std::vector<unsigned int>& ss)
@@ -324,7 +451,8 @@ void fnirt_CF::IntensityScaleObj(double sfac)
   *vobj *= sfac;      // Scale
 
   if (obj_fwhm) {     // If there is a smoothed version, smooth scaled image
-    svobj = boost::shared_ptr<NEWIMAGE::volume<float> >(new NEWIMAGE::volume<float>(smooth(*vobj,obj_fwhm/sqrt(8.0*log(2.0)))));
+    svobj = masked_smoothing(*vobj,obj_fwhm,objmask);
+    // svobj = boost::shared_ptr<NEWIMAGE::volume<float> >(new NEWIMAGE::volume<float>(smooth(*vobj,obj_fwhm/sqrt(8.0*log(2.0)))));
   }
   robj_updated = false;
 }
@@ -337,7 +465,8 @@ void fnirt_CF::SmoothObj(double fwhm)
       svobj = vobj;
     }
     else {
-      svobj = boost::shared_ptr<NEWIMAGE::volume<float> >(new NEWIMAGE::volume<float>(smooth(*vobj,fwhm/sqrt(8.0*log(2.0)))));
+      svobj = masked_smoothing(*vobj,fwhm,objmask);
+      // svobj = boost::shared_ptr<NEWIMAGE::volume<float> >(new NEWIMAGE::volume<float>(smooth(*vobj,fwhm/sqrt(8.0*log(2.0)))));
     }
     robj_updated = false;
   }    
@@ -382,6 +511,7 @@ void fnirt_CF::SetObjMask(const boost::shared_ptr<NEWIMAGE::volume<char> > mask)
   }
   objmask = mask;
   copybasicproperties(*vobj,*objmask);
+  if (obj_fwhm) svobj = masked_smoothing(*vobj,obj_fwhm,objmask);
   robjmask = boost::shared_ptr<NEWIMAGE::volume<char> >(new NEWIMAGE::volume<char>(RefSz_x(),RefSz_y(),RefSz_z()));
   copybasicproperties(*ssvref,*robjmask);
   robjmask_updated = false;
@@ -416,6 +546,9 @@ NEWMAT::ColumnVector fnirt_CF::GetScaleParams() const
 void fnirt_CF::update_robj() const
 {
   if (!robj_updated) {
+    if (translate_interp_type(svobj->getinterpolationmethod()) != InterpolationType()) {
+      svobj->setinterpolationmethod(translate_interp_type(InterpolationType()));
+    }
     general_transform(*svobj,aff,*df,*robj,*datamask);
     robj_updated = true;
     totmask_updated = false;
@@ -425,6 +558,7 @@ void fnirt_CF::update_robj() const
 void fnirt_CF::update_robjmask() const
 {
   if (objmask && !robjmask_updated) {
+    if (objmask->getinterpolationmethod() != NEWIMAGE::trilinear) objmask->setinterpolationmethod(NEWIMAGE::trilinear);
     general_transform(*objmask,aff,*df,*robjmask);
     robjmask_updated = true;
     totmask_updated = false;
@@ -447,6 +581,9 @@ const NEWIMAGE::volume4D<float>& fnirt_CF::RobjDeriv() const
   if (!robj_deriv_updated) { // If the derivatives doesn't reflect current df field
     // When we are doing this we might as well update robj 
     // and data mask as well.
+    if (translate_interp_type(svobj->getinterpolationmethod()) != InterpolationType()) {
+      svobj->setinterpolationmethod(translate_interp_type(InterpolationType()));
+    }
     general_transform_3partial(*svobj,aff,*df,*robj,*robj_deriv,*datamask);
     (*robj_deriv)[0] /= ObjVxs_x();
     (*robj_deriv)[1] /= ObjVxs_y();
@@ -478,7 +615,12 @@ const NEWIMAGE::volume4D<float>& fnirt_CF::RefDeriv() const
     ref_deriv->copyproperties(*ssvref);
     NEWIMAGE::volume<float>    skrutt(RefSz_x(),RefSz_y(),RefSz_z());    
     skrutt.copyproperties(*ssvref);
+    NEWIMAGE::interpolation  old_interp;
+    if (translate_interp_type(old_interp = ssvref->getinterpolationmethod()) != InterpolationType()) {
+      ssvref->setinterpolationmethod(translate_interp_type(InterpolationType()));
+    }
     affine_transform_3partial(*ssvref,IdentityMatrix(4),skrutt,*ref_deriv);
+    if (ssvref->getinterpolationmethod() != old_interp) ssvref->setinterpolationmethod(old_interp);
     (*ref_deriv)[0] /= RefVxs_x();
     (*ref_deriv)[1] /= RefVxs_y();
     (*ref_deriv)[2] /= RefVxs_z();
@@ -637,6 +779,60 @@ void fnirt_CF::subsample_refmask(const std::vector<unsigned int>  nms,
   }
 }
 
+boost::shared_ptr<NEWIMAGE::volume<float> > fnirt_CF::masked_smoothing(const NEWIMAGE::volume<float>&              vol,
+                                                                       double                                      fwhm,
+                                                                       boost::shared_ptr<NEWIMAGE::volume<char> >  mask)
+{
+  boost::shared_ptr<NEWIMAGE::volume<float> > tmpvol = boost::shared_ptr<NEWIMAGE::volume<float> >(new NEWIMAGE::volume<float>(vol));
+  if (mask) {
+    NEWIMAGE::volume<float> tmpmask = vol;
+    // Copy mask to float representation and set
+    // everything outside mask to zero in image.
+    for (int k=0; k<tmpvol->zsize(); k++) {
+      for (int j=0; j<tmpvol->ysize(); j++) {
+        for (int i=0; i<tmpvol->xsize(); i++) {
+          (*tmpvol)(i,j,k) = ((*mask)(i,j,k)) ? (*tmpvol)(i,j,k) : 0.0;
+          tmpmask(i,j,k) = ((*mask)(i,j,k)) ? 1.0 : 0.0; 
+        }
+      }
+    }
+    // Smooth image and mask alike
+    tmpmask = smooth(tmpmask,fwhm/sqrt(8.0*log(2.0)));
+    *tmpvol = smooth(*tmpvol,fwhm/sqrt(8.0*log(2.0)));
+    // Mask and re-normalize
+    for (int k=0; k<tmpvol->zsize(); k++) {
+      for (int j=0; j<tmpvol->ysize(); j++) {
+        for (int i=0; i<tmpvol->xsize(); i++) {
+          (*tmpvol)(i,j,k) = ((*mask)(i,j,k)) ? (*tmpvol)(i,j,k)/tmpmask(i,j,k) : 0.0;
+        }
+      }
+    }
+  }
+  else {
+    *tmpvol = smooth(vol,fwhm/sqrt(8.0*log(2.0)));
+  }  
+  return(tmpvol);
+}
+
+unsigned int fnirt_CF::good_fft_size(unsigned int isz) const
+{
+  // This is a set of numbers that can be factorised into small integers, and wich I have 
+  // verified experimentally that newmat fft does well on. They are closely spaced between
+  // 64 and 512 which is the range I expect this routine to be called for.
+  unsigned int gsz[] = {4,6,8,10,12,14,16,20,24,28,32,40,48,56,60,64,75,80,90,98,100,104,
+                        108,112,117,121,125,128,135,144,145,150,153,160,162,169,175,180,
+                        189,192,196,200,208,216,225,240,245,250,256,270,272,275,288,289,
+                        294,300,304,315,320,325,336,338,343,350,360,363,375,384,392,400,
+                        405,416,420,432,441,448,450,459,475,480,484,490,500,504,507,512,
+                        525,550,600,650,700,750,800,850,900,950,1000,1024,1280,1536,1792,
+                        2048,2560,3072,3584,4096,5120,6144,7168,8192};
+  unsigned int n = sizeof(gsz)/sizeof(gsz[0]);
+
+  for (unsigned int i=0; i<n; i++) if (gsz[i] >= isz) return(gsz[i]);
+  return(isz); // IF we're here isz was too big
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Member functions for class SSD_fnirt_CF
@@ -693,16 +889,21 @@ double SSD_fnirt_CF::cf(const NEWMAT::ColumnVector& p) const
     SaveRobj(string("FnirtDebugRobj_")+DebugString());
     SaveScaledRef(string("FnirtDebugScaledRef_")+DebugString());
     SaveJacobian(string("FnirtDebugJacobian_")+DebugString());
-    if (Debug() > 1) {    
+    SaveDefCoefs(string("FnirtDebugDefCoefs_")+DebugString());
+    if (Debug() > 1) {
+      SaveMaskedDiff(string("FnirtDebugMaskedDiff_")+DebugString());    
       SaveMask(string("FnirtDebugMask_")+DebugString());
       SaveDataMask(string("FnirtDebugDataMask_")+DebugString());
       SaveRobjMask(string("FnirtDebugRobjMask_")+DebugString());
+      SaveObjMask(string("FnirtDebugObjMask_")+DebugString());
+      SaveDefFields(string("FnirtDebugDefFields_")+DebugString());
+      SaveIntensityMapping(string("FnirtDebugIntMap_")+DebugString());
     }
     LocalSetVerbose(old_verbose);
   }
 
   double cost = ssd;
-  if (Verbose()) cout << "SSD = " << ssd;
+  if (Verbose()) cout << "SSD = " << ssd << "\tn = " << n;
 
   double disp_reg = 0.0;
   for (int i=0; i<3; i++) {
@@ -855,7 +1056,7 @@ boost::shared_ptr<MISCMATHS::BFMatrix> SSD_fnirt_CF::hess(const NEWMAT::ColumnVe
     if (reg) reg->Clear();
     if (RegularisationModel() == MembraneEnergy) reg = DefField(0).MemEnergyHess(HessianPrecision());
     else if (RegularisationModel() == BendingEnergy) reg = DefField(0).BendEnergyHess(HessianPrecision());
-    if (Debug() > 1) reg->Print(string("FnirtDebugRegHess_")+DebugString()+string(".txt"));
+    if (Debug() > 2) reg->Print(string("FnirtDebugRegHess_")+DebugString()+string(".txt"));
   }
   dxTdx->AddToMe(*reg,Lambda()/double(n));
   dyTdy->AddToMe(*reg,Lambda()/double(n));
@@ -865,13 +1066,13 @@ boost::shared_ptr<MISCMATHS::BFMatrix> SSD_fnirt_CF::hess(const NEWMAT::ColumnVe
   if (MPL()) {
     boost::shared_ptr<MISCMATHS::BFMatrix> mplH = MPL()->SSD_Hessian(0,DefField(0),HessianPrecision());
     dxTdx->AddToMe(*mplH,MatchingPointsLambda());
-    if (Debug() > 1) mplH->Print(string("FnirtDebugMPL_x_Hess_")+DebugString()+string(".txt"));
+    if (Debug() > 2) mplH->Print(string("FnirtDebugMPL_x_Hess_")+DebugString()+string(".txt"));
     mplH = MPL()->SSD_Hessian(1,DefField(1),HessianPrecision());
     dyTdy->AddToMe(*mplH,MatchingPointsLambda());
-    if (Debug() > 1) mplH->Print(string("FnirtDebugMPL_y_Hess_")+DebugString()+string(".txt"));
+    if (Debug() > 2) mplH->Print(string("FnirtDebugMPL_y_Hess_")+DebugString()+string(".txt"));
     mplH = MPL()->SSD_Hessian(2,DefField(2),HessianPrecision());
     dzTdz->AddToMe(*mplH,MatchingPointsLambda());
-    if (Debug() > 1) mplH->Print(string("FnirtDebugMPL_z_Hess_")+DebugString()+string(".txt"));
+    if (Debug() > 2) mplH->Print(string("FnirtDebugMPL_z_Hess_")+DebugString()+string(".txt"));
   }
 
   // Put all the bits together, and lets put them all in dxTdx.
@@ -915,7 +1116,7 @@ boost::shared_ptr<MISCMATHS::BFMatrix> SSD_fnirt_CF::hess(const NEWMAT::ColumnVe
     
   if (UsingRefDeriv()) last_hess = dxTdx;
 
-  if (Debug() > 1) dxTdx->Print(string("FnirtDebugHessian_")+DebugString()+string(".txt"));
+  if (Debug() > 2) dxTdx->Print(string("FnirtDebugHessian_")+DebugString()+string(".txt"));
 
   return(dxTdx);
 }

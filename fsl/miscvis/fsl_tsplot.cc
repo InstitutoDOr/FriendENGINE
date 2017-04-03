@@ -166,6 +166,9 @@ int nonoptarg;
 int do_work(int argc, char* argv[]) 
 {
   Matrix in;
+  fprintf(stderr, "%d\n", (int)inname.value().size());
+  fprintf(stderr, "%s\n", inname.value().at(0).c_str());
+
   in=read_ascii_matrix(inname.value().at(0));
   for (int i = 1; i < (int)inname.value().size(); i++){
     Matrix tmp;
@@ -232,56 +235,58 @@ int do_work(int argc, char* argv[])
 extern "C" __declspec(dllexport) int _stdcall fsl_tsplot(char *CmdLn)
 {
 
-  int argc;
-  char **argv;
-  
-  parser(CmdLn, argc, argv);
+	int argc;
+	char **argv;
 
-  Tracer tr("main");
-  OptionParser options(title, examples);
+	parser(CmdLn, argc, argv);
 
-  try {
-    // must include all wanted options here (the order determines how
-    //  the help message is printed)
-    options.add(inname);
-    options.add(outname);
-    options.add(ptitle);
-    options.add(labelname);
-    options.add(labels);
-    options.add(ymin);
-    options.add(ymax);
-    options.add(xtitle);
-    options.add(ytitle);
-    options.add(ysize);
-    options.add(xsize);
-    options.add(TR);
-    options.add(prec);
-    options.add(sci);
-    options.add(start);
-    options.add(finish);    
-    options.parse_command_line(argc, argv);
+	Tracer tr("main");
+	OptionParser options(title, examples);
 
-    // line below stops the program if the help was requested or 
-    //  a compulsory option was not set
-    if ( (help.value()) || (!options.check_compulsory_arguments(true)) )
-      {
-	options.usage();
-    freeparser(argc, argv);
-	return(EXIT_FAILURE);
-      }
-    
-  }  catch(X_OptionError& e) {
-    options.usage();
-    cerr << endl << e.what() << endl;
-                                                     return(EXIT_FAILURE);
-  } catch(std::exception &e) {
-    cerr << e.what() << endl;
-  } 
+	try {
+		// must include all wanted options here (the order determines how
+		//  the help message is printed)
+		options.add(inname);
+		options.add(outname);
+		options.add(ptitle);
+		options.add(labelname);
+		options.add(labels);
+		options.add(ymin);
+		options.add(ymax);
+		options.add(xtitle);
+		options.add(ytitle);
+		options.add(ysize);
+		options.add(xsize);
+		options.add(TR);
+		options.add(prec);
+		options.add(sci);
+		options.add(start);
+		options.add(finish);
+		options.parse_command_line(argc, argv);
 
-  // Call the local functions
-  int r=do_work(argc,argv);
-  freeparser(argc, argv);
-  return r;
+		// line below stops the program if the help was requested or 
+		//  a compulsory option was not set
+		if ((help.value()) || (!options.check_compulsory_arguments(true)))
+		{
+			options.usage();
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
+
+	}
+	catch (X_OptionError& e) {
+		options.usage();
+		cerr << endl << e.what() << endl;
+		return(EXIT_FAILURE);
+	}
+	catch (std::exception &e) {
+		cerr << e.what() << endl;
+	}
+
+	// Call the local functions
+	int r = do_work(argc, argv);
+	freeparser(argc, argv);
+	return r;
 }
 
 }

@@ -91,7 +91,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AdditionalIncludeDirectories>.\fslexec\fslexec;.;.\newmat;.\libprob;.\boost;.\niftiio;.\gd;.\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINDOWS;WIN32;_DEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -116,7 +116,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>e:\desenv\0rodrigo\conquest\fsl;e:\desenv\0rodrigo\conquest\fsl\newmat;e:\desenv\0rodrigo\conquest\fsl\libprob;e:\desenv\0rodrigo\conquest\fsl\boost;e:\desenv\0rodrigo\conquest\fsl\niftiio;E:\desenv\0rodrigo\conquest\fsl\gd;E:\desenv\0rodrigo\conquest\fsl\zlib;e:\desenv\0rodrigo\conquest\fsl\fslexec\fslexec;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINDOWS;WIN32;_DEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -138,8 +138,8 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>.\fslexec\fslexec;.;.\newmat;.\libprob;.\boost;.\niftiio;.\gd;.\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\fslexec\fslexec;.;.\newmat;.\libprob;.\boost;.\niftiio;.\gd;.\zlib;..\..\libexpat\expat\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS;FSLDLL;WIN32;NDEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -173,7 +173,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>.\fslexec\fslexec;.;.\newmat;.\libprob;.\boost;.\niftiio;.\gd;.\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WINDOWS;WIN32;NDEBUG;_WINDOWS;_USRDLL;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
@@ -198,16 +198,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bet2\bet2.cpp" />
+    <ClCompile Include="miscmaths\Simplex.cpp" />
     <ClCompile Include="zlib\adler32.c" />
     <ClCompile Include="fugue\applywarp.cc" />
     <ClCompile Include="flirt\applyxfm4D.cc" />
-    <ClCompile Include="film\AutoCorrEstimator.cc" />
     <ClCompile Include="flirt\avscale.cc" />
     <ClCompile Include="newmat\bandmat.cpp" />
     <ClCompile Include="miscmaths\base2z.cc" />
     <ClCompile Include="basisfield\basisfield.cpp" />
     <ClCompile Include="cprob\bdtr.c" />
-    <ClCompile Include="bet2\bet2.cc" />
     <ClCompile Include="bet2\betsurf.cpp" />
     <ClCompile Include="miscmaths\bfmatrix.cpp" />
     <ClCompile Include="cprob\btdtr.c" />
@@ -254,8 +254,6 @@
     <ClCompile Include="feat5\feat_model.cc" />
     <ClCompile Include="feat5\featlib.cc" />
     <ClCompile Include="newmat\fft.cpp" />
-    <ClCompile Include="film\film_gls.cc" />
-    <ClCompile Include="filmbabe\filmbabe.cc" />
     <ClCompile Include="filmbabe\filmbabe_manager.cc" />
     <ClCompile Include="filmbabe\filmbabe_vb_flobs.cc" />
     <ClCompile Include="filmbabe\filmbabeoptions.cc" />
@@ -269,7 +267,6 @@
     <ClCompile Include="fugue\fnirtfileutils.cpp" />
     <ClCompile Include="fnirt\fnirtfns.cpp" />
     <ClCompile Include="fsl.cpp" />
-    <ClCompile Include="avwutils\fsl2ascii.cc" />
     <ClCompile Include="miscvis\fsl_boxplot.cc" />
     <ClCompile Include="melodic\fsl_glm.cc" />
     <ClCompile Include="miscvis\fsl_histogram.cc" />
@@ -306,7 +303,6 @@
     <ClCompile Include="cprob\gdtr.c" />
     <ClCompile Include="newimage\generalio.cc" />
     <ClCompile Include="melodic\ggmix.cc" />
-    <ClCompile Include="film\glimGls.cc" />
     <ClCompile Include="film\glm.cc" />
     <ClCompile Include="flirt\globaloptions.cc" />
     <ClCompile Include="mcflirt\Globaloptionsmc.cc" />

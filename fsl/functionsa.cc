@@ -247,7 +247,8 @@ int _axial2(char *innam, char *outnam)
 
 	 affmat = invol.swapmat(newx,newy,newz);
      for (int t=0; t<invol.tsize(); t++) {
-       invol[t].basic_swapdimensions(newx,newy,newz,false);
+		 //invol[t].basic_swapdimensions(newx, newy, newz, false);
+		 invol[t].swapdimensions(newx, newy, newz);
      }
 
      if (outname!="") {
@@ -358,7 +359,8 @@ int _axial3(char *innam, char *outnam)
 
 	 affmat = invol.swapmat(newx,newy,newz);
      for (int t=0; t<invol.tsize(); t++) {
-       invol[t].basic_swapdimensions(newx,newy,newz,false);
+		 //invol[t].basic_swapdimensions(newx, newy, newz, false);
+		 invol[t].swapdimensions(newx, newy, newz);
      }
 
      if (outname!="") {
@@ -1243,8 +1245,9 @@ int _axial(char *innam, char *outnam)
      }
   
      for (int t=0; t<invol.tsize(); t++) {
-       invol[t].basic_swapdimensions(newx,newy,newz,false);
-     }
+       //invol[t].basic_swapdimensions(newx,newy,newz,false);
+	   invol[t].swapdimensions(newx, newy, newz, false);
+	 }
 
      if (outname!="") {
         retval = save_orig_volume4D(invol,outname);
@@ -1412,6 +1415,16 @@ extern "C" __declspec(dllexport) void _stdcall mem_loadMatriz(Matrix * &mat, cha
 {
 	mat = new Matrix;
 	*mat = read_ascii_matrix(arquivo);
+}
+
+extern "C" __declspec(dllexport) void _stdcall mem_saveMatriz(Matrix * &mat, char *arquivo)
+{
+	write_ascii_matrix(*mat, arquivo);
+}
+
+extern "C" __declspec(dllexport) void _stdcall mem_saveArrayMatriz(vector<Matrix> *mat_array, int index, char *arquivo)
+{
+	write_ascii_matrix((*mat_array)[index], arquivo);
 }
 
 extern "C" __declspec(dllexport) void _stdcall mem_desalocaArrayMatriz(vector<Matrix> * mat)

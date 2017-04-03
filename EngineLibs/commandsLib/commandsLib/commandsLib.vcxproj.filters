@@ -138,5 +138,14 @@
     <ClCompile Include="..\..\..\fsl\miscvis\slicer.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\fsl\fast4\fast_two.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\fsl\fast4\mriseg_two.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\fsl\fast4\multi_mriseg_two.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

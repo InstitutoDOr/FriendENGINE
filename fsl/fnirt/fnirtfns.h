@@ -5,6 +5,70 @@
 // Jesper Andersson, FMRIB Image Analysis Group
 //
 //
+/*    Copyright (C) 2012 University of Oxford  */
+
+/*  Part of FSL - FMRIB's Software Library
+    http://www.fmrib.ox.ac.uk/fsl
+    fsl@fmrib.ox.ac.uk
+    
+    Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+    Imaging of the Brain), Department of Clinical Neurology, Oxford
+    University, Oxford, UK
+    
+    
+    LICENCE
+    
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
+    Oxford (the "Software")
+    
+    The Software remains the property of the University of Oxford ("the
+    University").
+    
+    The Software is distributed "AS IS" under this Licence solely for
+    non-commercial use in the hope that it will be useful, but in order
+    that the University as a charitable foundation protects its assets for
+    the benefit of its educational and research purposes, the University
+    makes clear that no condition is made or to be implied, nor is any
+    warranty given or to be implied, as to the accuracy of the Software,
+    or that it will be suitable for any particular purpose or for use
+    under any specific conditions. Furthermore, the University disclaims
+    all responsibility for the use which is made of the Software. It
+    further disclaims any liability for the outcomes arising from using
+    the Software.
+    
+    The Licensee agrees to indemnify the University and hold the
+    University harmless from and against any and all claims, damages and
+    liabilities asserted by third parties (including claims for
+    negligence) which arise directly or indirectly from the use of the
+    Software or the sale of any products based on the Software.
+    
+    No part of the Software may be reproduced, modified, transmitted or
+    transferred in any form or by any means, electronic or mechanical,
+    without the express permission of the University. The permission of
+    the University is not required if the said reproduction, modification,
+    transmission or transference is done without financial return, the
+    conditions of this Licence are imposed upon the receiver of the
+    product, and all original and amended source code is included in any
+    transmitted product. You may be held legally responsible for any
+    copyright infringement that is caused or encouraged by your failure to
+    abide by these terms and conditions.
+    
+    You are not permitted under this Licence to use this Software
+    commercially. Use for which any financial return is received shall be
+    defined as commercial use, and includes (1) integration of all or part
+    of the source code or the Software into a product for sale or license
+    by or on behalf of Licensee to third parties or (2) use of the
+    Software or any derivative of it for research with the final aim of
+    developing software products for sale or license to a third party or
+    (3) use of the Software or any derivative of it for research with the
+    final aim of developing non-software products for sale or license to a
+    third party, or (4) use of the Software to provide any service to an
+    external organisation for which payment is received. If you are
+    interested in using the Software commercially, please contact Isis
+    Innovation Limited ("Isis"), the technology transfer company of the
+    University, to negotiate a licence. Contact details are:
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+
 
 #ifndef fnirtfns_h
 #define fnirtfns_h
@@ -101,6 +165,7 @@ private:
   bool                                         verbose;
   unsigned int                                 debug;
   BFMatrixPrecisionType                        hess_prec;
+  FnirtInterpolationType                       interp_type;
 
 public:
   fnirt_clp(const Utilities::Option<std::string>&                     pref,
@@ -148,7 +213,8 @@ public:
             const Utilities::Option<float>&                           pbiaslambda,
             const Utilities::Option<bool>&                            pverbose,
             const Utilities::Option<int>&                             pdebug,
-            const Utilities::Option<std::string>&                     p_hess_prec);
+            const Utilities::Option<std::string>&                     p_hess_prec,
+            const Utilities::Option<std::string>&                     p_interp_type);
   ~fnirt_clp() {}
   const std::string& Obj() const {return(obj);}
   const std::string& Ref() const {return(ref);}
@@ -156,7 +222,7 @@ public:
   const std::string& InInt() const {return(in_int);}
   const std::string& CoefFname() const {
     // If no name has been supplied we will derive it from the obj image name.
-    if (!coef.length()) coef = FNIRT::path(obj) + FNIRT::filename(obj) + string("_warpcoef") + FNIRT::extension(obj);
+    if (!coef.length()) coef = FNIRT::path(obj) + FNIRT::filename(obj) + string("_warpcoef");
     return(coef);
   }
   const std::string& LogFname() {
@@ -181,6 +247,7 @@ public:
   CostFunctionType CostFunction() const {return(cf);}
   BasisFieldType Basis() const {return(bf);}
   BFMatrixPrecisionType HessianPrecision() const {return(hess_prec);}
+  FnirtInterpolationType InterpolationModel() const {return(interp_type);}
   unsigned int SplineOrder() const {return(spordr);}
   MISCMATHS::NLMethod MinimisationMethod() const {return(nlm);}
   const NEWMAT::Matrix& Affine() const {return(aff);}
@@ -212,7 +279,8 @@ public:
   std::vector<unsigned int> FullResIntKsp() const {
     if (bf != Spline) throw fnirt_error("fnirt_clp::FullResIntKsp: Knot-spacing not defined for DCT basis");
     std::vector<unsigned int>  full_ksp = IntKnotSpacing(NoLevels());
-    for (unsigned int i=0; i<full_ksp.size(); i++) full_ksp[i] /= SubSampling(NoLevels());
+    // for (unsigned int i=0; i<full_ksp.size(); i++) full_ksp[i] /= SubSampling(NoLevels());
+    for (unsigned int i=0; i<full_ksp.size(); i++) full_ksp[i] *= SubSampling(NoLevels());
     return(full_ksp);
   }
   unsigned int SubSampling(unsigned int lev) const {
@@ -305,6 +373,9 @@ bool constrain_warpfield(const SSD_fnirt_CF&   cf,
 std::vector<boost::shared_ptr<BASISFIELD::basisfield> > init_warpfield(const fnirt_clp&  clp);
 
 boost::shared_ptr<IntensityMapper> init_intensity_mapper(const fnirt_clp&  clp);
+
+void make_field_with_same_fov(const BASISFIELD::splinefield&                   in,
+                              boost::shared_ptr<BASISFIELD::basisfield>        out);
 
 boost::shared_ptr<NEWIMAGE::volume<char> > make_mask(const string&                   fname, 
                                                      MaskType                        mt, 

@@ -38,6 +38,9 @@
     <ClCompile Include="..\..\..\fsl\cluster\cluster.cc" />
     <ClCompile Include="..\..\..\fsl\cluster\connectedcomp.cc" />
     <ClCompile Include="..\..\..\fsl\cluster\smoothest.cc" />
+    <ClCompile Include="..\..\..\fsl\fast4\fast_two.cc" />
+    <ClCompile Include="..\..\..\fsl\fast4\mriseg_two.cc" />
+    <ClCompile Include="..\..\..\fsl\fast4\multi_mriseg_two.cc" />
     <ClCompile Include="..\..\..\fsl\feat5\feat_model.cc" />
     <ClCompile Include="..\..\..\fsl\flirt\convert_xfm.cc" />
     <ClCompile Include="..\..\..\fsl\flirt\flirt.cc" />

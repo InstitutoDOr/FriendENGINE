@@ -69,7 +69,12 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #else
+#ifdef WINDOWS
+#include <windows.h>
+#include <GL/gl.h>
+#else
 #include <OpenGL/gl.h>
+#endif
 #endif
 #include <cmath>
 

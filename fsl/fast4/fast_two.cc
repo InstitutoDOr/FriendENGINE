@@ -166,107 +166,107 @@ Option<bool> help(string("-h,--help"), false,
 // Local functions
 int prior_registration(string inname, string main_prior_vol, NEWIMAGE::volume<float>& pCSF, NEWIMAGE::volume<float>& pGM, NEWIMAGE::volume<float>& pWM)
 {
-string csfPriorName, grayPriorName, whitePriorName;
-  if(alternatePriors.unset())
-  {
-    string priorRootName=string(getenv("FSLDIR")) + "/data/standard/tissuepriors/avg152T1_";
-    csfPriorName = priorRootName+"csf";
-    grayPriorName = priorRootName+"gray";
-    whitePriorName = priorRootName+"white";
-  } 
-  else 
-  {
-    csfPriorName = alternatePriors.value(0);
-    grayPriorName = alternatePriors.value(1);
-    whitePriorName = alternatePriors.value(2);
-  }
-
-  int bapused=0;
-  if((bapriori.value()!=""))
-      bapused= 1;
-  if((nclass.value()!=2)&&(nclass.value()!=3)&(bapused!=0))
-    {
-      bapused=0;
-      cerr<< "Apriori can only be used for 2 or 3-class segmentation\n";
-    }
-  if(bapused>0)
-    {
-      if(fsl_imageexists(csfPriorName))
-	read_volume(pCSF, csfPriorName);
-      else
-        {
-	  cerr<< "prior image " << csfPriorName << " is not found! priors are not used!\n";
-	  bapused = 0;
-        }
-
-      if(fsl_imageexists(grayPriorName))
-	read_volume(pGM, grayPriorName);
-      else
-        {  
-	  cerr<< "prior image " << grayPriorName << " is not found! priors are not used!\n";
-	  bapused = 0;
-        }
-
-      if(fsl_imageexists(whitePriorName))
-	read_volume(pWM, whitePriorName);
-      else
-        {  
-	  cerr<< "prior image " << whitePriorName << " is not found! priors are not used!\n";
-	  bapused = 0;
-        }
-    }
-    if(bapused>0)
-      {
-	char reg[1024];
-	sprintf(reg, "flirt -ref %s -in %s -out %s -applyxfm -init %s", inname.c_str(), csfPriorName.c_str(), (main_prior_vol+"_csf_stdspace").c_str(),  bapriori.value().c_str());
-        if(verbose.value())
-	  cout<<reg<<endl;
-	flirt(reg);
-	sprintf(reg, "flirt -ref %s -in %s -out %s -applyxfm -init %s", inname.c_str(), grayPriorName.c_str(), (main_prior_vol+"_gm_stdspace").c_str(),  bapriori.value().c_str());
-	if(verbose.value())
-	  cout<<reg<<endl;
-        flirt(reg);
-	sprintf(reg, "flirt -ref %s -in %s -out %s -applyxfm -init %s", inname.c_str(), whitePriorName.c_str(), (main_prior_vol+"_wm_stdspace").c_str(),  bapriori.value().c_str());
-	if(verbose.value())
-	  cout << reg << endl;
-	flirt(reg);
-      }
-      if(bapused>0)
-      {
-	if(fsl_imageexists((main_prior_vol+"_csf_stdspace")))
-	  read_volume(pCSF, (main_prior_vol+"_csf_stdspace"));	    
-	else
-        {  
-          cerr << "csf prior image not transformed correctly! priors are not used!\n";
-          bapused = 0;
-          return -1;
+	string csfPriorName, grayPriorName, whitePriorName;
+	if (alternatePriors.unset())
+	{
+		string priorRootName = string(getenv("FSLDIR")) + "/data/standard/tissuepriors/avg152T1_";
+		csfPriorName = priorRootName + "csf";
+		grayPriorName = priorRootName + "gray";
+		whitePriorName = priorRootName + "white";
 	}
-	if(fsl_imageexists(main_prior_vol+"_gm_stdspace"))
-	  read_volume(pGM, main_prior_vol+"_gm_stdspace");	    
 	else
-	{  
-	  cerr << "grey matter prior image not transformed correctly! priors are not used!\n";
-	  bapused = 0;
-	  return -1;
+	{
+		csfPriorName = alternatePriors.value(0);
+		grayPriorName = alternatePriors.value(1);
+		whitePriorName = alternatePriors.value(2);
 	}
-	if(fsl_imageexists(main_prior_vol+"_wm_stdspace"))
-	  read_volume(pWM, main_prior_vol+"_wm_stdspace");
+
+	int bapused = 0;
+	if ((bapriori.value() != ""))
+		bapused = 1;
+	if ((nclass.value() != 2) && (nclass.value() != 3)&(bapused != 0))
+	{
+		bapused = 0;
+		cerr << "Apriori can only be used for 2 or 3-class segmentation\n";
+	}
+	if (bapused>0)
+	{
+		if (fsl_imageexists(csfPriorName))
+			read_volume(pCSF, csfPriorName);
+		else
+		{
+			cerr << "prior image " << csfPriorName << " is not found! priors are not used!\n";
+			bapused = 0;
+		}
+
+		if (fsl_imageexists(grayPriorName))
+			read_volume(pGM, grayPriorName);
+		else
+		{
+			cerr << "prior image " << grayPriorName << " is not found! priors are not used!\n";
+			bapused = 0;
+		}
+
+		if (fsl_imageexists(whitePriorName))
+			read_volume(pWM, whitePriorName);
+		else
+		{
+			cerr << "prior image " << whitePriorName << " is not found! priors are not used!\n";
+			bapused = 0;
+		}
+	}
+	if (bapused>0)
+	{
+		char reg[1024];
+		sprintf(reg, "flirt -ref %s -in %s -out %s -applyxfm -init %s", inname.c_str(), csfPriorName.c_str(), (main_prior_vol + "_csf_stdspace").c_str(), bapriori.value().c_str());
+		if (verbose.value())
+			cout << reg << endl;
+		flirt(reg);
+		sprintf(reg, "flirt -ref %s -in %s -out %s -applyxfm -init %s", inname.c_str(), grayPriorName.c_str(), (main_prior_vol + "_gm_stdspace").c_str(), bapriori.value().c_str());
+		if (verbose.value())
+			cout << reg << endl;
+		flirt(reg);
+		sprintf(reg, "flirt -ref %s -in %s -out %s -applyxfm -init %s", inname.c_str(), whitePriorName.c_str(), (main_prior_vol + "_wm_stdspace").c_str(), bapriori.value().c_str());
+		if (verbose.value())
+			cout << reg << endl;
+		flirt(reg);
+	}
+	if (bapused>0)
+	{
+		if (fsl_imageexists((main_prior_vol + "_csf_stdspace")))
+			read_volume(pCSF, (main_prior_vol + "_csf_stdspace"));
+		else
+		{
+			cerr << "csf prior image not transformed correctly! priors are not used!\n";
+			bapused = 0;
+			return -1;
+		}
+		if (fsl_imageexists(main_prior_vol + "_gm_stdspace"))
+			read_volume(pGM, main_prior_vol + "_gm_stdspace");
+		else
+		{
+			cerr << "grey matter prior image not transformed correctly! priors are not used!\n";
+			bapused = 0;
+			return -1;
+		}
+		if (fsl_imageexists(main_prior_vol + "_wm_stdspace"))
+			read_volume(pWM, main_prior_vol + "_wm_stdspace");
+		else
+		{
+			cerr << "white matter prior image not transformed correctly! priors are not used!\n";
+			bapused = 0;
+			return -1;
+		}
+		if (talaraichiterations.value())
+			bapused = 2;
+	}
 	else
-	{  
-	  cerr << "white matter prior image not transformed correctly! priors are not used!\n";
-	  bapused = 0;
-	  return -1;
+	{
+		pCSF = volume<float>();
+		pGM = volume<float>();
+		pWM = volume<float>();
 	}
-	if(talaraichiterations.value())
-	bapused=2;
-      }
-      else
-      {
-        pCSF=volume<float>();
-	pGM=volume<float>();
-	pWM=volume<float>();
-      }
-      return bapused;
+	return bapused;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -487,73 +487,73 @@ int segmentMultiChannel(int argc, char* argv[])
 
 extern "C" __declspec(dllexport) int _stdcall fast(char *CmdLn)
 {
-  int r;
-  int argc;
-  char **argv;
-  
-  parser(CmdLn, argc, argv);
+	int r;
+	int argc;
+	char **argv;
 
-  Tracer tr("main");
-  OptionParser options(title, examples);
-  try 
-    {
-      // must include all wanted options here (the order determines how
-      // the help message is printed)
-      options.add(nclass);
-      options.add(nbiter);;
-      options.add(nblowpass);
-      options.add(typeofimage);
-      options.add(fbeta);
-      options.add(segments);
-      options.add(bapriori);
-      options.add(alternatePriors);
-      options.add(nopve);
-      options.add(outputBias);
-      options.add(outputCorrected);
-      options.add(removeBias);
-      options.add(nchannel);
-      options.add(outname);
-      options.add(talaraichiterations);
-      options.add(inititer);
-      options.add(fpveMRFmixeltype);
-      options.add(initfixity);
-      options.add(Hyp);
-      options.add(verbose);
-      options.add(help);
-      options.add(manualsegmentation);
-      options.add(outputProbabilities);
-      // line below stops the program if the help was requested or 
-      // a compulsory option was not set
-      options.parse_command_line(argc, argv, 0, true);
-      if ( argc<2 || (help.value()) || (!options.check_compulsory_arguments(true)) )
-      {
-	options.usage();
-	exit(EXIT_FAILURE);
-      }
-      if (nopve.value()) pve.set_value("0");
-    }
-  catch(X_OptionError& e)
-    {
-      options.usage();
-      cerr << endl << e.what() << endl;
-      freeparser(argc, argv);
-	  return(EXIT_FAILURE);
-    } 
-  catch(std::exception &e)
-    {
-      cerr << e.what() << endl;
-    } 
-  if (Hyp.value()<0) 
-  {
-    cerr << "ERROR: Segmentation smoothness must be positive. Exiting" << endl;;
-    freeparser(argc, argv);
-    return(1);
-  }
-  // Call the local functions
-  if(nchannel.value()==1)
-    r= segmentSingleChannel(argc,argv);
-  r= segmentMultiChannel(argc, argv);
-  freeparser(argc, argv);
-  return r;
+	parser(CmdLn, argc, argv);
+
+	Tracer tr("main");
+	OptionParser options(title, examples);
+	try
+	{
+		// must include all wanted options here (the order determines how
+		// the help message is printed)
+		options.add(nclass);
+		options.add(nbiter);;
+		options.add(nblowpass);
+		options.add(typeofimage);
+		options.add(fbeta);
+		options.add(segments);
+		options.add(bapriori);
+		options.add(alternatePriors);
+		options.add(nopve);
+		options.add(outputBias);
+		options.add(outputCorrected);
+		options.add(removeBias);
+		options.add(nchannel);
+		options.add(outname);
+		options.add(talaraichiterations);
+		options.add(inititer);
+		options.add(fpveMRFmixeltype);
+		options.add(initfixity);
+		options.add(Hyp);
+		options.add(verbose);
+		options.add(help);
+		options.add(manualsegmentation);
+		options.add(outputProbabilities);
+		// line below stops the program if the help was requested or 
+		// a compulsory option was not set
+		options.parse_command_line(argc, argv, 0, true);
+		if (argc<2 || (help.value()) || (!options.check_compulsory_arguments(true)))
+		{
+			options.usage();
+			exit(EXIT_FAILURE);
+		}
+		if (nopve.value()) pve.set_value("0");
+	}
+	catch (X_OptionError& e)
+	{
+		options.usage();
+		cerr << endl << e.what() << endl;
+		freeparser(argc, argv);
+		return(EXIT_FAILURE);
+	}
+	catch (std::exception &e)
+	{
+		cerr << e.what() << endl;
+	}
+	if (Hyp.value()<0)
+	{
+		cerr << "ERROR: Segmentation smoothness must be positive. Exiting" << endl;;
+		freeparser(argc, argv);
+		return(1);
+	}
+	// Call the local functions
+	if (nchannel.value() == 1)
+		r = segmentSingleChannel(argc, argv);
+	r = segmentMultiChannel(argc, argv);
+	freeparser(argc, argv);
+	return r;
 }
 

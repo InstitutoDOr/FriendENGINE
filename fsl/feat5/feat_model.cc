@@ -759,11 +759,11 @@ namespace featmodel {
 		// }}}
 		// {{{ read arguments and prepare variables 
 
+		parser(CmdLn, argc, argv);
 		if (argc<2) {
 			cout << "Usage: feat_model <design_name_root> [confound matrix text file]" << endl;
 			return(1);
 		}
-		parser(CmdLn, argc, argv);
 
 		Matrix motionparams(0, 0);
 		if (argc == 3)

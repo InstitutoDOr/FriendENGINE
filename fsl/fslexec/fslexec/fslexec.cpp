@@ -17,7 +17,7 @@ extern "C" __declspec(dllimport) int _stdcall fazsusan(char *vol, char *saida, c
 extern "C" __declspec(dllimport) int _stdcall Filtra4D(char *Vol4D, int *indices, int tamindices, char *Saida);
 extern "C" __declspec(dllimport) int _stdcall NormalizaPorBaseLine(char *Vol4D, char *arqintervalos, char *condicaobasal, char *Saida);
 extern "C" __declspec(dllimport) int _stdcall fsl_glm(char *CmdLn);
-extern "C" __declspec(dllimport) int _stdcall film_gls(char *CmdLn);
+//extern "C" __declspec(dllimport) int _stdcall film_gls(char *CmdLn);
 extern "C" __declspec(dllimport) int _stdcall fslroi(char *CmdLn);
 extern "C" __declspec(dllimport) int _stdcall flirt(char *CmdLn);
 extern "C" __declspec(dllimport) int _stdcall mcflirt(char *CmdLn);
@@ -404,10 +404,12 @@ int main(int argc, char* argv[])
 
 	   char *cmd = _strupr(argv[1]);
 	   if (strcmp(cmd, "FSL_GLM") == 0) fsl_glm(cmdln);
-	   else if (strcmp(cmd, "FILM_GLS") == 0) 
+	   /*
+	   else if (strcmp(cmd, "FILM_GLS") == 0)
 	   {
-		   film_gls(cmdln);
+	   film_gls(cmdln);
 	   }
+	   */
 	   else if (strcmp(cmd, "FLIRT") == 0) flirt(cmdln);
 	   else if (strcmp(cmd, "MCFLIRT") == 0) mcflirt(cmdln);
 	   else if (strcmp(cmd, "FSLMERGE") == 0)

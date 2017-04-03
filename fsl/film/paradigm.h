@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #if !defined(__paradigm_h)
 #define __paradigm_h
@@ -97,7 +97,8 @@ namespace FILM {
       Paradigm(Paradigm& par) { operator=(par); }
 
       // getters and setters:
-      NEWMAT::Matrix getDesignMatrix(long voxel=1); 
+      NEWMAT::Matrix getDesignMatrix();
+      NEWMAT::Matrix getDesignMatrix(const long voxel,const NEWIMAGE::volume<float>& mask, const vector<long>& labels); 
       void setDesignMatrix(const NEWMAT::Matrix& pdesignMatrix) { designMatrix = pdesignMatrix; }
       void setDesignMatrix(const int nTimepoints) { designMatrix.ReSize(nTimepoints,1); designMatrix=1; }
 
@@ -117,6 +118,7 @@ namespace FILM {
       NEWMAT::Matrix fcontrasts;
       vector<NEWMAT::Matrix> voxelwiseEv;
       vector<int> voxelwiseEvTarget;
+      vector<int> voxelwiseMode; //0 same size as input, 1 input.Xx1x1 2 input.1xYx1 3 input.1x1xZ
     };
 
 }

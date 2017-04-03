@@ -24,9 +24,6 @@
     <ClCompile Include="flirt\applyxfm4D.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="film\AutoCorrEstimator.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="flirt\avscale.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -40,9 +37,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cprob\bdtr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bet2\bet2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bet2\betsurf.cpp">
@@ -144,12 +138,6 @@
     <ClCompile Include="newmat\fft.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="film\film_gls.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="filmbabe\filmbabe.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="filmbabe\filmbabe_manager.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -187,9 +175,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fsl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="avwutils\fsl2ascii.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="miscvis\fsl_boxplot.cc">
@@ -298,9 +283,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="melodic\ggmix.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="film\glimGls.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="film\glm.cc">
@@ -655,6 +637,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zlib\zutil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bet2\bet2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="miscmaths\Simplex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

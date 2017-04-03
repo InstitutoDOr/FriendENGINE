@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include <fstream>
 #include "paradigm.h"
@@ -129,17 +129,41 @@ void Paradigm::loadVoxelwise(const vector<int>& voxelwiseEvNumber, const vector<
     if(voxelwiseEvTarget[i]>designMatrix.Ncols())
       throw Exception("voxelwiseEvTarget is greater than number of design EVs)");
     read_volume4D(input,voxelwiseEvName.at(i));
-    voxelwiseEv[i]=input.matrix(mask);
+    voxelwiseMode.push_back(-1);
+    if ( samesize(input[0],mask) ) voxelwiseMode[i]=0;
+    else if ( input.xsize() == mask.xsize() && input.ysize() == 1 && input.zsize() == 1 ) voxelwiseMode[i]=1;
+    else if ( input.xsize() == 1 && input.ysize() == mask.ysize() && input.zsize() == 1 ) voxelwiseMode[i]=2;
+    else if ( input.xsize() == 1 && input.ysize() == 1 && input.zsize() == mask.zsize() ) voxelwiseMode[i]=3;
+    if ( voxelwiseMode[i]==0 )
+      voxelwiseEv[i]=input.matrix(mask);
+    else
+      voxelwiseEv[i]=input.matrix();
   }
   doingVoxelwise=true;
 }
 
-NEWMAT::Matrix Paradigm::getDesignMatrix(long voxel) 
+NEWMAT::Matrix Paradigm::getDesignMatrix( ) 
+{ 
+  Matrix output=designMatrix;
+  return output; 
+}
+
+NEWMAT::Matrix Paradigm::getDesignMatrix(const long voxel, const volume<float>& mask, const vector<long>& labels ) 
 { 
   Matrix output=designMatrix;
   if (doingVoxelwise) 
     for (unsigned int ev=0; ev<voxelwiseEvTarget.size(); ev++)
-      output.Column(voxelwiseEvTarget[ev])=voxelwiseEv[ev].Column(voxel);
+    {
+      if ( voxelwiseMode[ev]==0 )
+	output.Column(voxelwiseEvTarget[ev])=voxelwiseEv[ev].Column(voxel);
+      else {
+	//cerr << voxel << " " << labels.size() << endl;
+	//cerr << "Looking up voxel number:" << coordinates[0] << " " << coordinates[1] << " " << coordinates[2] << endl;
+	//cerr << coordinates[voxelwiseMode[ev]-1]+1 << endl;
+	vector<int> coordinates=mask.labelToCoord(labels[voxel-1]);
+	output.Column(voxelwiseEvTarget[ev])=voxelwiseEv[ev].Column(coordinates[voxelwiseMode[ev]-1]+1);
+      }
+    }
   return output; 
 }
 

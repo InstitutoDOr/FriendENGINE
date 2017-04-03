@@ -173,11 +173,11 @@ typedef struct
 #define DENORMAL 1
 
 /* Define to ask for infinity support, else undefine. */
-#define INFINITIES 0
+#define INFINITIES 1
 
 /* Define to ask for support of numbers that are Not-a-Number,
    else undefine.  This may automatically define INFINITIES in some files. */
-#define NANS 0
+#define NANS 1
 
 /* Define to distinguish between -0.0 and +0.0.  */
 #define MINUSZERO 1

@@ -6,6 +6,67 @@
 //
 // Copyright (C) 2007 University of Oxford 
 //
+/*  Part of FSL - FMRIB's Software Library
+    http://www.fmrib.ox.ac.uk/fsl
+    fsl@fmrib.ox.ac.uk
+    
+    Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+    Imaging of the Brain), Department of Clinical Neurology, Oxford
+    University, Oxford, UK
+    
+    
+    LICENCE
+    
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
+    Oxford (the "Software")
+    
+    The Software remains the property of the University of Oxford ("the
+    University").
+    
+    The Software is distributed "AS IS" under this Licence solely for
+    non-commercial use in the hope that it will be useful, but in order
+    that the University as a charitable foundation protects its assets for
+    the benefit of its educational and research purposes, the University
+    makes clear that no condition is made or to be implied, nor is any
+    warranty given or to be implied, as to the accuracy of the Software,
+    or that it will be suitable for any particular purpose or for use
+    under any specific conditions. Furthermore, the University disclaims
+    all responsibility for the use which is made of the Software. It
+    further disclaims any liability for the outcomes arising from using
+    the Software.
+    
+    The Licensee agrees to indemnify the University and hold the
+    University harmless from and against any and all claims, damages and
+    liabilities asserted by third parties (including claims for
+    negligence) which arise directly or indirectly from the use of the
+    Software or the sale of any products based on the Software.
+    
+    No part of the Software may be reproduced, modified, transmitted or
+    transferred in any form or by any means, electronic or mechanical,
+    without the express permission of the University. The permission of
+    the University is not required if the said reproduction, modification,
+    transmission or transference is done without financial return, the
+    conditions of this Licence are imposed upon the receiver of the
+    product, and all original and amended source code is included in any
+    transmitted product. You may be held legally responsible for any
+    copyright infringement that is caused or encouraged by your failure to
+    abide by these terms and conditions.
+    
+    You are not permitted under this Licence to use this Software
+    commercially. Use for which any financial return is received shall be
+    defined as commercial use, and includes (1) integration of all or part
+    of the source code or the Software into a product for sale or license
+    by or on behalf of Licensee to third parties or (2) use of the
+    Software or any derivative of it for research with the final aim of
+    developing software products for sale or license to a third party or
+    (3) use of the Software or any derivative of it for research with the
+    final aim of developing non-software products for sale or license to a
+    third party, or (4) use of the Software to provide any service to an
+    external organisation for which payment is received. If you are
+    interested in using the Software commercially, please contact Isis
+    Innovation Limited ("Isis"), the technology transfer company of the
+    University, to negotiate a licence. Contact details are:
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 
 #ifndef fnirt_costfunctions_h
@@ -25,6 +86,7 @@
 
 namespace FNIRT {
 
+enum FnirtInterpolationType {LinearInterp, SplineInterp, UnknownInterp};
 enum RegularisationType {MembraneEnergy, BendingEnergy, LinearEnergy};
 
 class FnirtException: public std::exception
@@ -87,6 +149,8 @@ public:
   virtual int NPar() const = 0;
   // Get current set of parameters
   virtual NEWMAT::ReturnMatrix Par() const = 0;
+  // Set model for interpolation
+  virtual void SetInterpolationModel(FnirtInterpolationType it) {interp = it; vobj->setinterpolationmethod(translate_interp_type(it)); svobj->setinterpolationmethod(translate_interp_type(it)); }
   // Set model to use for regularisation of field
   virtual void SetRegularisationModel(RegularisationType  pregmod) {regmod = pregmod;} 
   // Set relative weight of (membrane energy) regularisation
@@ -131,27 +195,30 @@ public:
 
   // Routines to save fields as "fields" or as coefficient volumes
   virtual void SaveDefFields(std::string fname) const;
-  virtual void SaveDefCoefs(std::string fname) const;
+  virtual void SaveDefCoefs(const std::string &fname) const;
 
   // Save Jacobian of displacement field. For diagnostic purposes
-  virtual void SaveJacobian(std::string fname) const;
+  virtual void SaveJacobian(const std::string &fname) const;
 
   // Save a copy of the resampled object image.
-  virtual void SaveRobj(std::string fname) const;
+  virtual void SaveRobj(const std::string &fname) const;
 
   // Save a copy of "working copy" of reference volume. For debugging mainly
-  virtual void SaveRef(std::string fname) const;
+  virtual void SaveRef(const std::string &fname) const;
 
   // Save a copy of "working copy" of reference volume after intensity scaling. For debugging mainly
-  virtual void SaveScaledRef(std::string fname) const;
+  virtual void SaveScaledRef(const std::string &fname) const;
 
   // Save a copy of "working copy" of mask volume. For debugging mainly
-  virtual void SaveMask(std::string fname) const;
+  virtual void SaveMask(const std::string &fname) const;
+
+  // Save a copy of "working copy" of ScaledRef-Robj masked by mask
+  virtual void SaveMaskedDiff(const std::string &fname) const;
 
   // Save a copy of "working copy" of various components of the mask volume. For debugging mainly
-  virtual void SaveDataMask(std::string fname) const;
-  virtual void SaveRobjMask(std::string fname) const;
-  virtual void SaveObjMask(std::string fname) const;
+  virtual void SaveDataMask(const std::string &fname) const;
+  virtual void SaveRobjMask(const std::string &fname) const;
+  virtual void SaveObjMask(const std::string &fname) const;
 
   // Set intensity mapping to be fixed, i.e. not part of the 
   // parameters we are trying to estimate.
@@ -219,6 +286,9 @@ protected:
 
   // Get read access to initial affine guess.
   virtual const NEWMAT::Matrix& AffineMat() const {return(aff); }
+
+  // Find out what interpolation model to use
+  virtual FnirtInterpolationType InterpolationType() const {return(interp);}
 
   // Find out what regularisation model to use
   virtual RegularisationType RegularisationModel() const {return(regmod);}
@@ -332,7 +402,8 @@ private:
   double                                                   mpl_lambda;         // Relative weight of landmark-list
   bool                                                     ssd_lambda;         // Set if lambda is to be multiplied by latest ssd
   bool                                                     use_ref_derivs;     // Use derivatives of reference image
-  BFMatrixPrecisionType                                    hess_prec;
+  BFMatrixPrecisionType                                    hess_prec;          // Can be float or double
+  FnirtInterpolationType                                   interp;             // Interpolation model trilinear/spline
   mutable bool                                             verbose;            // Print diagnostic information
   unsigned int                                             debug;              // Level of debug info to save
 
@@ -364,6 +435,9 @@ private:
 
   // Utility functions for use only in this class
 
+  NEWIMAGE::interpolation translate_interp_type(FnirtInterpolationType it) const { if (it==LinearInterp) return(NEWIMAGE::trilinear); else return(NEWIMAGE::spline); }
+  FnirtInterpolationType translate_interp_type(NEWIMAGE::interpolation it) const { if (it==NEWIMAGE::trilinear) return(LinearInterp); else if (it==NEWIMAGE::spline) return(SplineInterp); else return(UnknownInterp); }
+
   // Convert subsampling-factor to new matrix size
   std::vector<unsigned int> ss2ms(const std::vector<unsigned int>& ss) const
   {
@@ -387,6 +461,12 @@ private:
   void subsample_refmask(const std::vector<unsigned int>  nms,
                          const std::vector<double>        nvxs);
 
+  boost::shared_ptr<NEWIMAGE::volume<float> > masked_smoothing(const NEWIMAGE::volume<float>&              vol,
+                                                               double                                      fwhm,
+                                                               boost::shared_ptr<NEWIMAGE::volume<char> >  mask);
+
+  unsigned int good_fft_size(unsigned int isz) const;
+
   // Tasks common to both constructors
   void common_construction(std::vector<boost::shared_ptr<BASISFIELD::basisfield> >& pdf_field);
 
@@ -404,8 +484,8 @@ private:
 // Here comes the first proper cost function. It inherits all the functionality from
 // fnirt_CF regarding maskin, initialisation etc. In addition it implements the sum-of-squared
 // differences cost-function, its gradient and its hessian. The parameters are the parameters
-// for the x-, y- and z-displacement fields, in that order, followed by a global scaling
-// parameter that is also estimated.
+// for the x-, y- and z-displacement fields, in that order, followed by intensity scaling
+// parameters that are also estimated.
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
