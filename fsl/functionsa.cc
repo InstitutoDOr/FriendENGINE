@@ -471,11 +471,11 @@ int _samefov(char *base, char *mask, char *saida)
   volume<T> Base;
   read_volume(Base,string(base));
 
-  volume<T> Mask;
-  read_volume(Mask,string(mask));
+  volume4D<T> Mask;
+  read_volume4D(Mask,string(mask));
  
 
-   volume<T>masksamefov(Base.xsize(),Base.ysize(),Base.zsize());
+   volume4D<T>masksamefov(Base.xsize(),Base.ysize(),Base.zsize(), Mask.tsize());
    masksamefov.copyproperties(Base);
 
    // Volume Base
@@ -513,28 +513,30 @@ int _samefov(char *base, char *mask, char *saida)
 	     a21=transf(2,1), a22=transf(2,2), a23=transf(2,3), a24=transf(2,4),
 	     a31=transf(3,1), a32=transf(3,2), a33=transf(3,3), a34=transf(3,4);
 
-   for(int z=Base.minz(); z<=Base.maxz();z++){
-     for(int y=Base.miny(); y<=Base.maxy();y++){
-       for(int x=Base.minx(); x<=Base.maxx();x++)
-	   {
-		   mx = x+(maskorig[0]-baseorig[0]);
-		   my = y+(maskorig[1]-baseorig[1]);
-		   mz = z+(maskorig[2]-baseorig[2]);
+   for (int t = Mask.mint(); t <= Mask.maxt(); t++){
+	   for (int z = Base.minz(); z <= Base.maxz(); z++){
+		   for (int y = Base.miny(); y <= Base.maxy(); y++){
+			   for (int x = Base.minx(); x <= Base.maxx(); x++)
+			   {
+				   mx = x + (maskorig[0] - baseorig[0]);
+				   my = y + (maskorig[1] - baseorig[1]);
+				   mz = z + (maskorig[2] - baseorig[2]);
 
-		   mx = a11*x + a12*y + a13*z + a14;
-		   my = a21*x + a22*y + a23*z + a24;
-		   mz = a31*x + a32*y + a33*z + a34;
+				   mx = a11*x + a12*y + a13*z + a14;
+				   my = a21*x + a22*y + a23*z + a24;
+				   mz = a31*x + a32*y + a33*z + a34;
 
-		   if ((mx >= Mask.minx()) && (mx <= Mask.maxx()) && 
-			   (my >= Mask.miny()) && (my <= Mask.maxy()) && 
-			   (mz >= Mask.minz()) && (mz < Mask.maxz()))
-			        masksamefov(x,y,z) = Mask(mx, my, mz);
-		   else masksamefov(x,y,z) = 0;
+				   if ((mx >= Mask.minx()) && (mx <= Mask.maxx()) &&
+					   (my >= Mask.miny()) && (my <= Mask.maxy()) &&
+					   (mz >= Mask.minz()) && (mz < Mask.maxz()))
+					   masksamefov(x, y, z, t) = Mask(mx, my, mz, t);
+				   else masksamefov(x, y, z, t) = 0;
 
+			   }
+		   }
 	   }
-	 }
    }
-   save_volume(masksamefov, string(saida));
+   save_volume4D(masksamefov, string(saida));
    return 1;
 }
 
