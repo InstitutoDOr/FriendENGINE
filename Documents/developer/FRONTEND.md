@@ -1,0 +1,3 @@
+## FRONTEND PARAMETERS CONFIGURATION
+
+In all these game examples, there is, in the engine directory, a ready configured studyparams.txt file, that is read by default by the engine and all the volume files already placed into the input directory referenced by the studyparams.txt file. To read the volume files in a real-time online setup, a researcher needs to configure the arrival of images in the input directory in the same way as for the standalone version of FRIEND.
