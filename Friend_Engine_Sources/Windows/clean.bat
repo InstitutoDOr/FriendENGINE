@@ -140,7 +140,9 @@ del   ..\..\fsl\fsl.opensdf
 echo Removing intermediate files and directories of gdlib
 rmdir ..\..\fsl\gdlib\release /s /q
 rmdir ..\..\fsl\gdlib\debug /s /q
+rmdir ..\..\fsl\gdlib\x64 /s /q
 rmdir ..\..\fsl\gdlib\gdlib\Release /s /q
 rmdir ..\..\fsl\gdlib\gdlib\debug /s /q
+rmdir ..\..\fsl\gdlib\gdlib\x64 /s /q
 del   ..\..\fsl\gdlib\gdlib.sdf
 del   ..\..\fsl\gdlib\gdlib.v12.suo /AH
