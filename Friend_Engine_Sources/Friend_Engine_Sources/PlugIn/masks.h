@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include "newimage/newimageall.h"
+#include "logObject.h"
 
 using namespace NEWIMAGE;
 using namespace std;

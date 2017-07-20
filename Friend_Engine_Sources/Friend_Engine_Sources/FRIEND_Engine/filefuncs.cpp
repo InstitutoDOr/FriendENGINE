@@ -376,6 +376,37 @@ int fileExists(char *fileName)
    return resp;
 }
 
+// window rename directory
+#ifdef WINDOWS
+int renameDirectory(char *fileName, char *destFileName)
+{
+	includeTrailingPathDelimiter(fileName);
+	includeTrailingPathDelimiter(destFileName);
+#ifdef WIN64
+	size_t wn = mbsrtowcs(NULL, (const char **)&fileName, 0, NULL);
+	wchar_t *bufFilename = new wchar_t[wn + 1];  // value-initialize to 0 (see below)
+	wn = mbsrtowcs(bufFilename, (const char **)&fileName, wn + 1, NULL);
+
+	wn = mbsrtowcs(NULL, (const char **)&destFileName, 0, NULL);
+	wchar_t *bufDestFilename = new wchar_t[wn + 1];  // value-initialize to 0 (see below)
+	wn = mbsrtowcs(bufDestFilename, (const char **)&destFileName, wn + 1, NULL);
+
+	int resp = 0;
+	if ((bufFilename != NULL) && (bufDestFilename != NULL))
+	{
+		resp = MoveFileW((LPWSTR)bufFilename, (LPWSTR)bufDestFilename);
+	}
+	if (bufFilename != NULL) delete[] bufFilename;
+	if (bufDestFilename != NULL) delete[] bufDestFilename;
+
+	return resp;
+	
+#else
+	return MoveFileA(fileName, destFileName);
+#endif
+}
+#endif
+
 // move a file respecting the extension
 int moveFile(char *fileName, char *destFilename)
 {

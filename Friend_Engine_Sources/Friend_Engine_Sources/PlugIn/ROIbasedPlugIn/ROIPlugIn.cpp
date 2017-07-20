@@ -19,7 +19,7 @@ int roiProcessing::initialization(studyParams &vdb)
 {
 	if (vdb.readedIni.IsEmpty())
 	{
-		fprintf(stderr, "the studyparams.txt file was not read.\n");
+		vdb.logObject->writeLog(1, "the studyparams.txt file was not read.\n");
 		return 1;
 	}
 
@@ -28,9 +28,9 @@ int roiProcessing::initialization(studyParams &vdb)
 	targetValue = vdb.readedIni.GetDoubleValue("FRIEND", "ActivationLevel");
 	int masktype = vdb.readedIni.GetLongValue("FRIEND", "ActivationLevelMaskType");
 
-	fprintf(stderr, "mnimask = %s\n", vdb.mniMask);
-	fprintf(stderr, "mnitemp = %s\n", vdb.mniTemplate);
-	fprintf(stderr, "masktype = %d\n", masktype);
+	vdb.logObject->writeLog(1, "mnimask = %s\n", vdb.mniMask);
+	vdb.logObject->writeLog(1, "mnitemp = %s\n", vdb.mniTemplate);
+	vdb.logObject->writeLog(1, "masktype = %d\n", masktype);
 	if ((fileExists(vdb.mniMask)) && (fileExists(vdb.mniTemplate)) && (masktype == 2))
 	{
 		char outputFile[500], prefix[500] = "_RFI2", name[500];
@@ -41,7 +41,7 @@ int roiProcessing::initialization(studyParams &vdb)
 
 		sprintf(outputFile, "%s%s%s.nii", vdb.inputDir, name, vdb.trainFeatureSuffix);
 
-		fprintf(stderr, "Calculating the native template %s\n", outputFile);
+		vdb.logObject->writeLog(1, "Calculating the native template %s\n", outputFile);
 		// bringing mni mask to subject space
 		MniToSubject(vdb.rfiFile, vdb.mniMask, vdb.mniTemplate, outputFile, prefix);
 
@@ -51,16 +51,16 @@ int roiProcessing::initialization(studyParams &vdb)
 	else if ((fileExists(vdb.mniMask)) && (masktype == 1))
 	{
 		// loads the reference mask
-		fprintf(stderr, "Loading native space mask %s\n", vdb.mniMask);
+		vdb.logObject->writeLog(1, "Loading native space mask %s\n", vdb.mniMask);
 		meanCalculation.loadReference(vdb.mniMask);
 	}    
 	else
 	{
 		if (!fileExists(vdb.mniMask))
-			fprintf(stderr, "!!!!!!!   File not found %s.\n", vdb.mniMask);
+			vdb.logObject->writeLog(1, "!!!!!!!   File not found %s.\n", vdb.mniMask);
 
 		if (!fileExists(vdb.mniTemplate))
-			fprintf(stderr, "!!!!!!!   File not found %s.\n", vdb.mniTemplate);
+			vdb.logObject->writeLog(1, "!!!!!!!   File not found %s.\n", vdb.mniTemplate);
 	};
 	lastBaselineValue = 0;
     return 0;
@@ -109,7 +109,7 @@ int roiProcessing::processVolume(studyParams &vdb, int index, float &classnum, f
       // enforcing 0..1 range
       //if (projection > 1) projection = 1;
       //else if (projection < 0) projection = 0;
-	   fprintf(stderr, "Feedback value = %f\n", feedbackValue);
+	   vdb.logObject->writeLog(1, "Feedback value = %f\n", feedbackValue);
    }
    return 0;
 }

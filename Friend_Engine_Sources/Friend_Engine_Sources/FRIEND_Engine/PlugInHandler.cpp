@@ -39,7 +39,7 @@ void PluginHandler::unLoadLibrary()
    {
 #ifndef WINDOWS
       if (dlclose(handler))
-         fprintf(stderr, "dlclose error : %s\n", dlerror());
+         logObject->writeLog(1, "dlclose error : %s\n", dlerror());
 #else
 	   FreeLibrary((HMODULE) handler);
 #endif
@@ -77,37 +77,37 @@ void PluginHandler::loadFunctions(char *library, char *trainFunc, char *testFunc
 #endif
    if (handler != NULL) // library loaded. trying to import the functions
    {
-      fprintf(stderr, "Found library : %s\n", library);
+      logObject->writeLog(1, "Found library : %s\n", library);
       
       trainFunction = (TrainFunction) dlsym((HMODULE)handler, trainFunc);
       
-      if (trainFunction == NULL) fprintf(stderr, "train function not loaded.\n");
+      if (trainFunction == NULL) logObject->writeLog(1, "train function not loaded.\n");
       
       testFunction = (TestFunction) dlsym((HMODULE)handler, testFunc);
       
-      if (testFunction == NULL) fprintf(stderr, "test function not loaded.\n");
+      if (testFunction == NULL) logObject->writeLog(1, "test function not loaded.\n");
       
       finalFunction = (FinalizationFunction) dlsym((HMODULE)handler, finalFunc);
       
-      if (finalFunction == NULL) fprintf(stderr, "final function not loaded.\n");
+      if (finalFunction == NULL) logObject->writeLog(1, "final function not loaded.\n");
       
       initFunction = (InitializationFunction) dlsym((HMODULE)handler, initFunc);
       
-      if (initFunction == NULL) fprintf(stderr, "init function not loaded.\n");
+      if (initFunction == NULL) logObject->writeLog(1, "init function not loaded.\n");
       
       volumeFunction = (VolumeFunction) dlsym((HMODULE)handler, volumeFunc);
       
-      if (volumeFunction == NULL) fprintf(stderr, "volume function not loaded.\n");
+      if (volumeFunction == NULL) logObject->writeLog(1, "volume function not loaded.\n");
       
       afterPreprocFunction = (AfterPreprocessingFunction) dlsym((HMODULE)handler, afterPreprocFunc);
       
-      if (afterPreprocFunction == NULL) fprintf(stderr, "after Preprocessing function not loaded.\n");
+      if (afterPreprocFunction == NULL) logObject->writeLog(1, "after Preprocessing function not loaded.\n");
    }
    else // fail in importing library
    {
-      fprintf(stderr, "Error loading library : %s\n", library);
+      logObject->writeLog(1, "Error loading library : %s\n", library);
 #ifndef WINDOWS
-      fprintf(stderr, "Error : %s\n", dlerror());
+      logObject->writeLog(1, "Error : %s\n", dlerror());
 #endif      
 
       trainFunction = NULL;

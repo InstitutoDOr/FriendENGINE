@@ -19,32 +19,6 @@
 #include "vardb.h"
 #include "utils.h"
 
-// create log file
-void studyParams::initializeLogFile()
-{
-	char logName[500];
-	sprintf(logName, "%s%c%s%s.txt", logDir, PATHSEPCHAR, "outputLog", trainFeatureSuffix);
-	outputLog = fopen(logName, "wt+");
-}
-
-// closes the log file
-void studyParams::closeLogFile()
-{
-	if (outputLog)
-		fclose(outputLog);
-}
-
-// writes the message in the log file
-void studyParams::writeLog(int inScreen, const char * format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	vfprintf(outputLog, format, args);
-	if (inScreen)
-		vfprintf(stderr, format, args);
-	va_end(args);
-}
-
 // returns the class of a volume index. It calls the respective DesignObject function
 int studyParams::getClass(int idx)
 {
@@ -186,7 +160,7 @@ void studyParams::readConfigFile(char *configFile)
     SI_Error rc = ini.LoadFile(configFile);
     if (rc < 0)
     {
-        fprintf(stderr, "Error reading config file = %s\n", configFile);
+        logObject->writeLog(1, "Error reading config file = %s\n", configFile);
         return;
     }
 	strcpy(configFileNameRead, configFile);
@@ -200,7 +174,7 @@ void studyParams::readConfigBuffer(char *buffer, int size)
     SI_Error rc = ini.LoadData(buffer, size);
     if (rc < 0)
     {
-        fprintf(stderr, "Error reading config buffer");
+        logObject->writeLog(1, "Error reading config buffer");
         return;
     }
     readConfig(ini);
@@ -287,7 +261,7 @@ void studyParams::saveConfigBuffer(char *buffer, int size, char *configfile)
     SI_Error rc = ini.LoadData(buffer, size);
     if (rc < 0)
     {
-        fprintf(stderr, "Error reading Config Buffer");
+        logObject->writeLog(1, "Error reading Config Buffer");
         return;
     }
     readConfig(ini);
@@ -297,49 +271,49 @@ void studyParams::saveConfigBuffer(char *buffer, int size, char *configfile)
 // creates the necessary directories
 void studyParams::createDirectories()
 {
-	fprintf(stderr, "Creating study dir\n");
+	logObject->writeLog(1, "Creating study dir\n");
 #ifdef WIN32
 	_mkdir(studyDir);
 #else
 	mkdir(studyDir, 0777); // notice that 777 is different than 0777
 #endif
 
-	fprintf(stderr, "Creating subject dir\n");
+	logObject->writeLog(1, "Creating subject dir\n");
 #ifdef WIN32
 	_mkdir(outputDir);
 #else
 	mkdir(outputDir, 0777); // notice that 777 is different than 0777
 #endif
 
-	fprintf(stderr, "Creating activation dir\n");
+	logObject->writeLog(1, "Creating activation dir\n");
 #ifdef WIN32
 	_mkdir(activationsDir);
 #else
 	mkdir(activationsDir, 0777); // notice that 777 is different than 0777
 #endif
 
-	fprintf(stderr, "Creating input dir\n");
+	logObject->writeLog(1, "Creating input dir\n");
 #ifdef WIN32
 	_mkdir(inputDir);
 #else
 	mkdir(inputDir, 0777); // notice that 777 is different than 0777
 #endif
 
-	fprintf(stderr, "Creating glm dir\n");
+	logObject->writeLog(1, "Creating glm dir\n");
 #ifdef WIN32
 	_mkdir(glmDir);
 #else
 	mkdir(glmDir, 0777); // notice that 777 is different than 0777
 #endif
 
-	fprintf(stderr, "Creating log dir\n");
+	logObject->writeLog(1, "Creating log dir\n");
 #ifdef WIN32
 	_mkdir(logDir);
 #else
 	mkdir(logDir, 0777); // notice that 777 is different than 0777
 #endif
 
-	fprintf(stderr, "Creating preproc dir\n");
+	logObject->writeLog(1, "Creating preproc dir\n");
 #ifdef WIN32
 	_mkdir(preprocDir);
 #else
@@ -401,18 +375,18 @@ void studyParams::prepRealtimeVars()
    snprintf(preprocDir, buffSize, "%s%s%c", outputDir, "preproc", PATHSEPCHAR);
 
    // setting Design object internal variables
-    fprintf(stderr, "reading design file %s\n", designFile);
+    logObject->writeLog(1, "reading design file %s\n", designFile);
     interval.readDesignFile(designFile);
-	fprintf(stderr, "Copying information to Design Object\n");
+	logObject->writeLog(1, "Copying information to Design Object\n");
 	strcpy(interval.glmDir, glmDir);
     strcpy(interval.baselineCondition, baselineCondition);
-	fprintf(stderr, "generating contrasts \n");
+	logObject->writeLog(1, "generating contrasts \n");
     interval.generateContrasts(conditionContrasts, 0);
     sprintf(fsfFile, "%s%s%s%s", glmDir, subject, trainFeatureSuffix, ".fsf");
     sprintf(parFile, "%s%s%s%s", glmDir, "confounds", trainFeatureSuffix, ".txt");
     sprintf(rmsFile, "%s%s%s%s", logDir, "rms_abs", trainFeatureSuffix, ".rms");
     getPreprocVolumePrefix(preprocVolumePrefix);
-	fprintf(stderr, "Number of conditions : %d\n", interval.conditionNames.size() > 0);
+	logObject->writeLog(1, "Number of conditions : %d\n", interval.conditionNames.size() > 0);
 }
 
 // sets the value of a variable. Not used right now

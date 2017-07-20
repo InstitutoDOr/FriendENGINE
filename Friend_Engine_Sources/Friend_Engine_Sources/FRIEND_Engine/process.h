@@ -20,6 +20,8 @@ private:
 	// holds the engine executable path
 	char exePath[BUFF_SIZE];
 	int passes;
+	double lastTimeCheck;
+	double checkTimeThreshold;
 
 #ifdef RTCORRECTION
 	RealTimeCorrection rtc;

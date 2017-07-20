@@ -16,6 +16,9 @@
 #include "socket2.h"
 #include "fslio/fslio.h"
 #include "session.h"
+#include <string.h>
+#include <fstream>
+#include "logObject.h"
 
 // handles all information needed for FRIEND engine and plugins to work properly, like file names, config file parameters, communication socket.
 class studyParams
@@ -77,7 +80,6 @@ public:
    
    // session variable
    Session *sessionPointer;
-   FILE *outputLog;
 
    // returns the noise corrected file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
    void getMCNoiseCorrectedVolumeFormat(char *format);
@@ -168,18 +170,12 @@ public:
    // initializating control variables
    void initializeStates();
 
-   // create log file
-   void initializeLogFile();
+   // holds the logging variable
+   LogObject *logObject;
 
-   // closes the log file
-   void closeLogFile();
+   studyParams() { mcflirtParams[0] = '\0'; strcpy(mcflirtParams, "-plots -mats -rmsabs"); betParameters[0] = '\0'; strcpy(betParameters, "-f 0.3 -o"); sessionPointer = NULL; doEstimation = 1; logObject = NULL; };
 
-   // writes the message in the log file
-   void writeLog(int inScreen, const char * format, ...);
-
-   studyParams() { mcflirtParams[0] = '\0'; strcpy(mcflirtParams, "-plots -mats -rmsabs"); betParameters[0] = '\0'; strcpy(betParameters, "-f 0.3 -o"); sessionPointer = NULL; outputLog = NULL; doEstimation = 1; };
-
-   virtual ~studyParams() { closeLogFile(); };
+   virtual ~studyParams() { };
     
     
 };

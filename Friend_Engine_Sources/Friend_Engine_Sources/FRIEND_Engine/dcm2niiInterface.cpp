@@ -33,7 +33,26 @@ void transformDicom(char *filename, char *outdir)
 
 	changeFileExt(filename, "", auxFile);
 	extractFileName(auxFile, opts.filename);
-	opts.isVerbose = 2;
+//	opts.isVerbose = 2;
+	if (0)
+	{
+		strcpy(opts.indir, filename);
+		nii_loadDir(&opts);
+	}
+	else singleDICOM(&opts, filename);
+}
+
+void transformDicom2(char *filename, char *output)
+{
+	TDCMopts opts;
+	char auxFile[1024], outdir[1024];
+
+	extractFilePath(output, outdir);
+	defaultOptions(opts, outdir);
+
+	changeFileExt(output, "", auxFile);
+	extractFileName(auxFile, opts.filename);
+//	opts.isVerbose = 2;
 	if (0)
 	{
 		strcpy(opts.indir, filename);

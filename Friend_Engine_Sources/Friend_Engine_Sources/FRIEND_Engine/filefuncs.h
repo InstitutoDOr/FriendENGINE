@@ -46,6 +46,11 @@ bool isReadableSize(char *fileName, int size);
 // returns the path of `fileName`. Note `output` must have at least the same size than `fileName`
 void extractFilePath(char *file, char *saida);
 
+// window rename directory
+#ifdef WINDOWS
+int renameDirectory(char *fileName, char *destFileName);
+#endif
+
 // move a file respecting the extension
 int moveFile(char *fileName, char *destFilename);
 

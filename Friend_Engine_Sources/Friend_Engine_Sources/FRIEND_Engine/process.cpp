@@ -5,6 +5,8 @@
 #include <fstream>
 #include <sstream>
 #include "filefuncs.h"
+#include "utils.h"
+
 #ifdef CUDAENGINE
 #include "volumeUtils.h"
 #endif
@@ -72,10 +74,7 @@ int isGoodDesign(char *fileName)
 
 		float inv_condition = eigenvals.Minimum() / eigenvals.Maximum();
 
-		if (eigenvals.Minimum()<1e-16)
-		{
-			fprintf(stderr, "Invalid design matrix.\n");
-		}
+		if (eigenvals.Minimum()<1e-16){}
 		else result = 1;
 	}
 	else if (real_X.Ncols() == 1) result = 1;
@@ -95,7 +94,7 @@ void FriendProcess::glm()
    // confirming that all variables are set
    if (!vdb.rPrepVars) prepRealtimeVars();
 
-   fprintf(stderr, "Generating 4D File\n");
+   vdb.logObject->writeLog(1, "Generating 4D File\n");
    vdb.getFinalVolumeFormat(prefix);
    vdb.getPreprocVolumePrefix(Pref);
    
@@ -119,14 +118,14 @@ void FriendProcess::glm()
 #endif
 
    // generating the rotation graph png
-   fprintf(stderr, "Generating rotation movement graphics\n");
+   vdb.logObject->writeLog(1, "Generating rotation movement graphics\n");
    CmdLn.str("");
    CmdLn << "fsl_tsplot -i " << vdb.parFile << " -t \"MCFLIRT estimated rotations (radians)\" -u 1 --start=1 --finish=3 -a x,y,z -w 640 -h 144 -o " << vdb.logDir << "rot" << vdb.trainFeatureSuffix << ".png";
 
    fsl_tsplot((char *)CmdLn.str().c_str());
 
    // generating the translations graph png
-   fprintf(stderr, "Generating translations movement graphics\n");
+   vdb.logObject->writeLog(1, "Generating translations movement graphics\n");
    CmdLn.str("");
    CmdLn << "fsl_tsplot -i " << vdb.parFile << " -t \"MCFLIRT estimated translations (mm)\" -u 1 --start=4 --finish=6 -a x,y,z -w 640 -h 144 -o " << vdb.logDir << "trans" << vdb.trainFeatureSuffix << ".png";
 
@@ -134,7 +133,7 @@ void FriendProcess::glm()
 
 #ifndef USEBROCCOLI
    // generating the rms graph png
-   fprintf(stderr, "Generating rms graphics\n");
+   vdb.logObject->writeLog(1, "Generating rms graphics\n");
    CmdLn.str("");
    CmdLn << "fsl_tsplot -i " << vdb.rmsFile << " -t \"MCFLIRT estimated mean displacement (mm)\" -u 1 --start=1 --finish=1 -a absolute -w 640 -h 144 -o " << vdb.logDir << "rms" << vdb.trainFeatureSuffix << ".png";
 
@@ -142,7 +141,7 @@ void FriendProcess::glm()
 #endif
 
    // copying the concatenated movements parameter file to log dir
-   fprintf(stderr, "Copying confound files\n");
+   vdb.logObject->writeLog(1, "Copying confound files\n");
    CmdLn.str("");
    CmdLn << vdb.logDir << "confounds" <<  vdb.trainFeatureSuffix << ".txt";
    //CmdLn << "/bin/cp -p " << vdb.parFile << " " << vdb.logDir << "confounds" <<  vdb.trainFeatureSuffix << ".txt";
@@ -153,14 +152,14 @@ void FriendProcess::glm()
    // generating the design matrix file
    if (vdb.interval.conditionNames.size() > 0)
    {
-	  fprintf(stderr, "Generating conditions files.\n");
+	  vdb.logObject->writeLog(1, "Generating conditions files.\n");
 	  vdb.interval.generateConditionsBoxCar(vdb.glmDir);
-	  fprintf(stderr, "Generating FSF file.\n");
+	  vdb.logObject->writeLog(1, "Generating FSF file.\n");
 
 	  strcpy(vdb.interval.glmDir, vdb.glmDir);
 	  vdb.interval.generateFSFFile(vdb.fsfFile, vdb.runSize, vdb.includeMotionParameters, 0);
 
-	  fprintf(stderr, "Running feat_model.\n");
+	  vdb.logObject->writeLog(1, "Running feat_model.\n");
 	  CmdLn.str("");
 	  CmdLn << "feat_model " << vdb.glmDir << vdb.subject << vdb.trainFeatureSuffix;
 	  if (vdb.includeMotionParameters) CmdLn << " " << vdb.parFile;
@@ -178,19 +177,23 @@ void FriendProcess::glm()
 
    sprintf(auxString, "%s%s", vdb.inputDir, "RFI_binmask.nii");
 
-   fprintf(stderr, "Making binary mask.\n");
+   vdb.logObject->writeLog(1, "Making binary mask.\n");
    CmdLn.str("");
    CmdLn << "fslmaths " << vdb.maskFile << " -bin " << auxString << " -odt char";
    fslmaths((char *)CmdLn.str().c_str());
 
-   fprintf(stderr, "Running fsl_glm\n");
+   vdb.logObject->writeLog(1, "Running fsl_glm\n");
    if (isGoodDesign(vdb.glmMatrixFile))
    {
 	   CmdLn.str("");
 	   CmdLn << "fsl_glm -i " << vdb.trainGLM4DFile << " -d " << vdb.glmMatrixFile << " -c " << vdb.contrastFile << " -m " << auxString << " -o " << vdb.glmDir << "betas" << vdb.trainFeatureSuffix << " --out_t=" << vdb.glmTOutput << " --out_z=" << vdb.glmZOutput << " --out_p=" << vdb.glmDir << "pvalues" << vdb.trainFeatureSuffix;
 	   fsl_glm((char *)CmdLn.str().c_str());
    }
-   else fprintf(stderr, "Problems in design matrix. Error in GLM.\n");
+   else
+   {
+	   vdb.logObject->writeLog(1, "Invalid design matrix.\n");
+	   vdb.logObject->writeLog(1, "Problems in design matrix. Error in GLM.\n");
+   }
    
    vdb.rGLM=true;
 }
@@ -218,7 +221,7 @@ void FriendProcess::featureSelection()
 	   }
 	   else
 	   {
-		   fprintf(stderr, "Generating the all contrasts colapsed mask.\n");
+		   vdb.logObject->writeLog(1, "Generating the all contrasts colapsed mask.\n");
 		   CmdLn << "fslmaths " << vdb.glmTOutput << " -Tmax " << vdb.featuresAllTrainSuffix;
 		   fslmaths((char *)CmdLn.str().c_str());
 	   }
@@ -226,7 +229,7 @@ void FriendProcess::featureSelection()
    else
    {
 	   // reporting error an creating a fake glm t output
-	   fprintf(stderr, "Error occurred in glm calculation. Feature selection derived from it is invalid.\n");
+	   vdb.logObject->writeLog(1, "Error occurred in glm calculation. Feature selection derived from it is invalid.\n");
 
 	   CmdLn << "fslmaths " << vdb.maskFile << " -mul 0 " << vdb.featuresAllTrainSuffix;
 	   fslmaths((char *)CmdLn.str().c_str());
@@ -241,7 +244,7 @@ void FriendProcess::featureSelection()
    {
 	  char name[BUFF_SIZE], prefix[30]="_RFI2";
 	  
-	  fprintf(stderr, "Bringing MNI mask to native space.\n");
+	  vdb.logObject->writeLog(1, "Bringing MNI mask to native space.\n");
 	  extractFileName(vdb.mniMask, name);
 	  for (int t=0;t<strlen(name);t++)
 	  if (name[t] == '.') name[t] = '_';
@@ -255,7 +258,7 @@ void FriendProcess::featureSelection()
    {
 	   char outputFile[BUFF_SIZE];
 	   sprintf(outputFile, "%s.nii", vdb.featuresTrainSuffix);
-	   fprintf(stderr, "Using all subject mask, defined by user, by copying the file %s to %s.\n", vdb.subjectSpaceMaskUser, outputFile);
+	   vdb.logObject->writeLog(1, "Using all subject mask, defined by user, by copying the file %s to %s.\n", vdb.subjectSpaceMaskUser, outputFile);
 
 	   CmdLn.str("");
 	   CmdLn << "fslmaths " << vdb.subjectSpaceMaskUser << " " << outputFile;
@@ -266,7 +269,7 @@ void FriendProcess::featureSelection()
    { // just use all mni mask (in native space)
 	  char outputFile[BUFF_SIZE];
 	  sprintf(outputFile, "%s.nii", vdb.featuresTrainSuffix);
-	  fprintf(stderr, "Using all subject mask by copying the file %s to %s.\n", vdb.subjectSpaceMask, outputFile);
+	  vdb.logObject->writeLog(1, "Using all subject mask by copying the file %s to %s.\n", vdb.subjectSpaceMask, outputFile);
 
 	  CmdLn.str("");
 	  CmdLn << "fslmaths " << vdb.subjectSpaceMask << " " << outputFile;
@@ -279,7 +282,7 @@ void FriendProcess::featureSelection()
 		   case 0: // threshold by percentage
 		   {
 			   /// select a percentage of higher voxels
-			   fprintf(stderr, "Selecting the best GLM voxels by percentage.\n");
+			   vdb.logObject->writeLog(1, "Selecting the best GLM voxels by percentage.\n");
 			   volume<float> features;
 			   string featuresFile = vdb.featuresAllSuffix;
 			   featuresFile += vdb.trainFeatureSuffix;
@@ -296,7 +299,7 @@ void FriendProcess::featureSelection()
 
 		   case 1: { // threshold by t-value
 			   // do threshold
-			   fprintf(stderr, "Selecting the best GLM voxels by value.\n");
+			   vdb.logObject->writeLog(1, "Selecting the best GLM voxels by value.\n");
 			   CmdLn.str("");
 			   CmdLn << "fslmaths " << vdb.featuresAllTrainSuffix << " -thr " << vdb.tTestCutOff << " " << vdb.featuresTrainSuffix;
 			   fslmaths((char *)CmdLn.str().c_str());
@@ -305,7 +308,7 @@ void FriendProcess::featureSelection()
 
 		   case 2: { // threshold by p-value
 			   // do threshold
-			   fprintf(stderr, "Selecting the best GLM voxels by p-value.\n");
+			   vdb.logObject->writeLog(1, "Selecting the best GLM voxels by p-value.\n");
 			   CmdLn.str("");
 			   CmdLn << "fslmaths " << vdb.glmDir << "pvalues" << vdb.trainFeatureSuffix << " -uthr " << vdb.pvalueCutOff << " -bin -mul " << vdb.featuresAllTrainSuffix << " " << vdb.featuresTrainSuffix;
 			   fslmaths((char *)CmdLn.str().c_str());
@@ -434,7 +437,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 	{
 		// in DICOM
 		sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".dcm");
-		//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
+		//if (!fileFound) vdb.logObject->writeLog(1, "Searching file : %s\n", inFile);
 #ifdef dcm2niifunction
 		if (fileExists(inFile))
 		{
@@ -459,7 +462,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 				// executes the dcm2nii tool
 				stringstream osc;
 				osc << dcm2niiExe << " -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
-				fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
+				vdb.logObject->writeLog(1, "Executting dcm2nii : %s\n", osc.str().c_str());
 				system(osc.str().c_str());
 				fileFound = 1;
 		    }
@@ -474,7 +477,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 				// executes the dcm2nii tool
 				stringstream osc;
 				osc << dcm2niiExe << " -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
-				fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
+				vdb.logObject->writeLog(1, "Executting dcm2nii : %s\n", osc.str().c_str());
 				system(osc.str().c_str());
 
 				sprintf(inFile, "%s%s%s", rtPrefix, numberIn, ".nii");
@@ -487,7 +490,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 
 			// in Analyze. The engine converts it to nifti and inverts the axis, if needed
 			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".img");
-			//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
+			//if (!fileFound) vdb.logObject->writeLog(1, "Searching file : %s\n", inFile);
 			if (fileExists(inFile))
 			{
 				if (isReadable(inFile))
@@ -517,7 +520,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 
 			// in NIFTI. 
 			sprintf(inFile, "%s%s%s", vdb.rawVolumePrefix, numberIn, ".nii");
-			//if (!fileFound) fprintf(stderr, "Searching file : %s\n", inFile);
+			//if (!fileFound) vdb.logObject->writeLog(1, "Searching file : %s\n", inFile);
 			if (fileExists(inFile))
 			{
 				if (isReadable(inFile))
@@ -529,13 +532,14 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 					fileFound = 1;
 				}
 			}
+
 			if (fileFound == 0)
 			{
-				passes++;
-				if (passes > numPasses)
+				// issuing a warning in terminal if passed TR seconds
+				if (GetWallTime() - lastTimeCheck >= checkTimeThreshold)
 				{
-					fprintf(stderr, "file not found : %s\n", inFile);
-					passes = 0;
+					vdb.logObject->writeLog(1, "file not found : %s\n", inFile);
+					lastTimeCheck = GetWallTime();
 				}
 			}
 
@@ -580,7 +584,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 		   // executes the dcm2nii tool
 		   stringstream osc;
 		   osc << exePath << PATHSEPCHAR << "dcm2nii -b " << exePath << PATHSEPCHAR << "dcm2nii.ini -o " << vdb.preprocDir << " " << inFile;
-		   fprintf(stderr, "Executting dcm2nii : %s\n", osc.str().c_str());
+		   vdb.logObject->writeLog(1, "Executting dcm2nii : %s\n", osc.str().c_str());
 		   system(osc.str().c_str());
 	   }
 	   else
@@ -678,7 +682,7 @@ void FriendProcess::runRealtimePipeline()
 	rifSize = fileSize(vdb.rfiFile);
 	sprintf(auxConfigFile, "%sstudy_params%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
 	vdb.readedIni.SaveFile(auxConfigFile);
-	fprintf(stderr, "######################### processing pipeline begin ######################\n");
+	vdb.logObject->writeLog(1, "######################### processing pipeline begin ######################\n");
 
 	if (vdb.interval.intervals.size())
 	{
@@ -742,6 +746,8 @@ void FriendProcess::runRealtimePipeline()
 		interface.setRFI(vdb.maskFile);
 		interface.preparePipeline(vdb.FWHM);
 #endif
+		lastTimeCheck = GetWallTime();
+		checkTimeThreshold = vdb.TR;
 		while (vdb.actualImg <= vdb.runSize)
 		{
 			realtimePipelineStep(preprocVolumePrefix, format, vdb.actualBaseline);
@@ -768,8 +774,8 @@ void FriendProcess::runRealtimePipeline()
 		}
 		vdb.rPipeline = true;
 	}
-	else fprintf(stderr, "######################### Invalid design file    ######################\n");
-	fprintf(stderr, "######################### processing pipeline end   ######################\n");
+	else vdb.logObject->writeLog(1, "######################### Invalid design file    ######################\n");
+	vdb.logObject->writeLog(1, "######################### processing pipeline end   ######################\n");
 }
 
 
@@ -814,7 +820,7 @@ void FriendProcess::sendGraphParams(char *mcfile, char *number)
    
 	if (vdb.sessionPointer == NULL)
 	{
-	   fprintf(stderr, "sending : %s\n", msg.str().c_str());
+	   vdb.logObject->writeLog(1, "sending : %s\n", msg.str().c_str());
 	   vdb.socks.writeString(msg.str().c_str());
 	}
 	else
@@ -837,14 +843,16 @@ void FriendProcess::unLoadLibrary()
 // set the library file and function names of the plugIn
 void FriendProcess::loadFunctions(char *library, char *trainFunc, char *testFunc, char *initFunc, char *finalFunc, char *volumeFunc, char *afterPreProcFunc)
 {
-   pHandler.loadFunctions(library, trainFunc, testFunc, initFunc, finalFunc, volumeFunc, afterPreProcFunc);
+	pHandler.logObject = vdb.logObject;
+	pHandler.loadFunctions(library, trainFunc, testFunc, initFunc, finalFunc, volumeFunc, afterPreProcFunc);
 //   if (vdb.rPrepVars) pHandler.callInitFunction(vdb);
 }
 
 // set the path for plug in library file
 void FriendProcess::setLibraryPath(char *path)
 {
-   pHandler.setLibraryPath(path);
+	pHandler.logObject = vdb.logObject;
+	pHandler.setLibraryPath(path);
 }
 
 // set the path for plug in library file
@@ -863,7 +871,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
    char mcswFile[BUFF_SIZE];
    if (isReadyNextFile(vdb.actualImg, rtPrefix, format, inFile))
    {
-	   fprintf(stderr, "Processing file = %s\n", inFile);
+	   vdb.logObject->writeLog(1, "Processing file = %s\n", inFile);
 	   sprintf(number, format, vdb.actualImg);
 	   sprintf(inFile, "%s%s", rtPrefix, number);
 	   vdb.getMCVolumeName(mcfile, number);
@@ -1012,7 +1020,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 		  
 		  if (vdb.interval.IsActivationBlockStart(vdb.actualImg))
 		  {
-			  fprintf(stderr, "Baseline mean calculation\n");
+			  vdb.logObject->writeLog(1, "Baseline mean calculation\n");
 			  sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", vdb.actualImg, "mean.nii");
 			  sprintf(CmdLn, "fslmaths %s %s", mcswFile, actualBaseline);
 			  fslmaths(CmdLn);
@@ -1073,7 +1081,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 
 	  if (vdb.interval.IsActivationBlockStart(vdb.actualImg))
 	  {
-		  fprintf(stderr, "Baseline mean calculation\n");
+		  vdb.logObject->writeLog(1, "Baseline mean calculation\n");
 		  sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", vdb.actualImg, "mean.nii");
 		  sprintf(CmdLn, "fslmaths %s %s", mcswFile, actualBaseline);
 		  fslmaths(CmdLn);
@@ -1112,7 +1120,7 @@ void FriendProcess::realtimePipelineStep(char *rtPrefix, char *format, char *act
 			  // Baseline Calculation, if this is a baseline block
 			  if (isBaselineCondition(vdb.interval.intervals[vdb.actualInterval].condition))
 			  {
-				  fprintf(stderr, "Baseline mean calculation\n");
+				  vdb.logObject->writeLog(1, "Baseline mean calculation\n");
 				  sprintf(actualBaseline, "%s%s%d%s", vdb.preprocDir, "mc_bsl", (vdb.actualInterval + 1), "mean.nii");
 				  baselineCalculation(vdb.actualInterval, actualBaseline);
 			  }
@@ -1214,7 +1222,7 @@ void FriendProcess::wrapUpRun()
 	  copyDirectory(sourceDir, destDir);
 	  pHandler.callFinalFunction(vdb);
    }
-   else fprintf(stderr, "Pipeline not executed.\n");
+   else vdb.logObject->writeLog(1, "Pipeline not executed.\n");
    
 }
 
