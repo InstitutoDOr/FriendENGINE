@@ -85,6 +85,7 @@ rmdir buildAll\release /s /q
 rmdir buildAll\debug /s /q
 rmdir buildAll\x64 /s /q
 del   buildAll\buildAll.sdf
+del   buildAll\buildAll.v12.suo /AH
 
 echo Removing executable files
 del Application\*.exe
