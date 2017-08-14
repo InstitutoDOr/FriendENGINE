@@ -146,9 +146,11 @@ namespace Utilities {
 
   bool string_to_T(vector<int>& vi, const string& s) {
     string str(s), delin(",");
-    if(str.find(":")!=string::npos)
-      delin = ":";
-    str=str+delin;
+#ifndef WINDOWS
+	if (str.find(":") != string::npos)
+		delin = ":";
+#endif
+	str = str + delin;
     vi.clear();
     while(str.size()) {
       int v = atoi(str.substr(0,str.find(delin)).c_str());
@@ -160,9 +162,11 @@ namespace Utilities {
 
   bool string_to_T(vector<float>& vi, const string& s) {
     string str(s), delin(",");
-    if(str.find(":")!=string::npos)
-      delin = ":";
-    str=str+delin;
+#ifndef WINDOWS
+	if (str.find(":") != string::npos)
+		delin = ":";
+#endif
+	str = str + delin;
     vi.clear();
     while(str.size()) {
       float v = atof(str.substr(0,str.find(delin)).c_str());
@@ -174,9 +178,11 @@ namespace Utilities {
 
   bool string_to_T(vector<string>& vi, const string& s) {
     string str(s), delin(",");
-    if(str.find(":")!=string::npos)
-      delin = ":";
-    str=str+delin;
+#ifndef WINDOWS
+	if (str.find(":") != string::npos)
+		delin = ":";
+#endif
+	str = str + delin;
     vi.clear();
     while(str.size()) {
       string v = str.substr(0,str.find(delin));
