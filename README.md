@@ -3,7 +3,6 @@
 # FRIEND Engine Framework
 > Functional Real-Time Interactive Endogenous Neuromodulation and Decoding (FRIEND) Engine Framework
 
-
 D'Or Institute for Research and Education (IDOR) - Neuroinformatics Workgroup
 
 * http://idor.org
@@ -27,3 +26,8 @@ Third-party software is used: the FSL toolbox (http://fsl.fmrib.ox.ac.uk/fsl/fsl
 
 **Domain**: Clinical Neuroinformatics, MR, Computational Neuroscience
 
+## Citation
+
+If you use FRIEND Engine in published work, please cite our [paper](http://journal.frontiersin.org/article/10.3389/fnbeh.2015.00003/full):
+
+_Basilio R, Garrido GJ, Sato JR, Hoefle S, Melo BRP, Pamplona FA, Zahn R and Moll J (2015) FRIEND Engine Framework: a real time neurofeedback client-server system for neuroimaging studies. Front. Behav. Neurosci. 9:3. doi: 10.3389/fnbeh.2015.00003_
