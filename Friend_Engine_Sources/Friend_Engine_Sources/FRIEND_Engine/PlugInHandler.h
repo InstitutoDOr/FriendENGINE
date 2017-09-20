@@ -40,7 +40,9 @@ class PluginHandler
    // names of the library and functions
    char libraryPath[200], libraryFile[200], initFname[200], trainFname[200], testFname[200], finalFname[200], volumeFname[200], afterPreprocFname[200];
 public:
-   
+	// variable that holds the logging facility
+	LogObject *logObject;
+
    // loads an external library and import its functions
    void loadFunctions(char *library, char *trainFunc, char *testFunc, char *initFunc, char *finalFunc, char *volumeFunc, char *afterPreprocFunc);
    

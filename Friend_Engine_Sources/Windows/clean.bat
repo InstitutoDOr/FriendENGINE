@@ -8,6 +8,24 @@ rmdir FriendEngine\FriendEngine\x64 /s /q
 del   FriendEngine\FriendEngine.sdf
 del   FriendEngine\FriendEngine.v12.suo /AH
 
+rmdir coreLib\release /s /q
+rmdir coreLib\debug /s /q
+rmdir coreLib\x64 /s /q
+rmdir coreLib\coreLib\Release /s /q
+rmdir coreLib\coreLib\debug /s /q
+rmdir coreLib\coreLib\x64 /s /q
+del   coreLib\coreLib.sdf
+del   coreLib\coreLib.v12.suo /AH
+
+rmdir dcm2niilib\release /s /q
+rmdir dcm2niilib\debug /s /q
+rmdir dcm2niilib\x64 /s /q
+rmdir dcm2niilib\dcm2niilib\Release /s /q
+rmdir dcm2niilib\dcm2niilib\debug /s /q
+rmdir dcm2niilib\dcm2niilib\x64 /s /q
+del   dcm2niilib\dcm2niilib.sdf
+del   dcm2niilib\dcm2niilib.v12.suo /AH
+
 echo Removing intermediate files and directories of libROI
 rmdir libroi\release /s /q
 rmdir libroi\debug /s /q
@@ -84,8 +102,10 @@ echo Removing intermediate files and directories of buildAll
 rmdir buildAll\release /s /q
 rmdir buildAll\debug /s /q
 rmdir buildAll\x64 /s /q
+rmdir buildAll\.vs /s /q
 del   buildAll\buildAll.sdf
 del   buildAll\buildAll.v12.suo /AH
+del   buildAll\buildAll.VC.db
 
 echo Removing executable files
 del Application\*.exe

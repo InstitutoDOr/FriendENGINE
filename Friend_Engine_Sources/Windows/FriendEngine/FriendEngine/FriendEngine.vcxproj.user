@@ -6,8 +6,8 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommand>E:\FriendEngine\FriendENGINE\Friend_Engine_Sources\Windows\Application\engine.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>E:\FriendEngine\FriendENGINE\Friend_Engine_Sources\Windows\Application</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>H:\FriendEngine\FriendENGINE\Friend_Engine_Sources\Windows\Application\engine.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>H:\FriendEngine\FriendENGINE\Friend_Engine_Sources\Windows\Application</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

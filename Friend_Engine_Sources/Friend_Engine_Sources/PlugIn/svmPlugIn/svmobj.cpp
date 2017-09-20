@@ -192,7 +192,7 @@ int SVMObj::train(const char *cmd)
 
    if(error_msg)
    {
-	fprintf(stderr,"ERROR: %s\n",error_msg);
+	logObject->writeLog(1,"ERROR: %s\n",error_msg);
 	r=1;
    }
 
@@ -207,7 +207,7 @@ int SVMObj::train(const char *cmd)
          model = svm_train(&prob,&param);
          if(svm_save_model(model_file_name,model))
          {
-   	    fprintf(stderr, "can't save model to file %s\n", model_file_name);
+   	    logObject->writeLog(1, "can't save model to file %s\n", model_file_name);
 	    r = 2;
          }
          svm_free_and_destroy_model(&model);
@@ -338,7 +338,7 @@ int SVMObj::parse_command_line(int argc, char **argv, char *input_file_name, cha
 		nr_fold = atoi(argv[i]);
 		if(nr_fold < 2)
 		{
-		   fprintf(stderr,"n-fold cross validation: n must >= 2\n");
+		   logObject->writeLog(1,"n-fold cross validation: n must >= 2\n");
 		   return 2; //exit_with_help();
 		}
 		break;
@@ -350,7 +350,7 @@ int SVMObj::parse_command_line(int argc, char **argv, char *input_file_name, cha
 		param.weight[param.nr_weight-1] = atof(argv[i]);
 		break;
 	  default:
-		fprintf(stderr,"Unknown option: -%c\n", argv[i-1][1]);
+		logObject->writeLog(1,"Unknown option: -%c\n", argv[i-1][1]);
 		return 2; //exit_with_help();
 	}
    }
@@ -388,7 +388,7 @@ int SVMObj::read_problem(const char *filename)
 
    if(fp == NULL)
    {
-      fprintf(stderr,"can't open input file %s\n",filename);
+      logObject->writeLog(1,"can't open input file %s\n",filename);
       return 1; //exit(1);
    }
 
@@ -469,12 +469,12 @@ int SVMObj::read_problem(const char *filename)
       {
          if (prob.x[i][0].index != 0)
          {
-            fprintf(stderr,"Wrong input format: first column must be 0:sample_serial_number\n");
+            logObject->writeLog(1,"Wrong input format: first column must be 0:sample_serial_number\n");
             return 6; //exit(1);
          }
          if ((int)prob.x[i][0].value <= 0 || (int)prob.x[i][0].value > max_index)
          {
-            fprintf(stderr,"Wrong input format: sample_serial_number out of range\n");
+            logObject->writeLog(1,"Wrong input format: sample_serial_number out of range\n");
             return 7;//exit(1);
          }
       }
@@ -508,7 +508,7 @@ int SVMObj::predict(const char *cmd)
             i--;
             break;
          default:
-            fprintf(stderr,"Unknown option: -%c\n", argv[i-1][1]);
+            logObject->writeLog(1,"Unknown option: -%c\n", argv[i-1][1]);
             r= 1; //exit_with_help();
       }
    }
@@ -519,20 +519,20 @@ int SVMObj::predict(const char *cmd)
    input = fopen(argv[i],"r");
    if(input == NULL)
    {
-      fprintf(stderr,"can't open input file %s\n",argv[i]);
+      logObject->writeLog(1,"can't open input file %s\n",argv[i]);
       r=3; //exit(1);
    }
 
    output = fopen(argv[i+2],"w");
    if(output == NULL)
    {
-      fprintf(stderr,"can't open output file %s\n",argv[i+2]);
+      logObject->writeLog(1,"can't open output file %s\n",argv[i+2]);
       r=4;//exit(1);
    }
 
    if((model=svm_load_model(argv[i+1]))==0)
    {
-      fprintf(stderr,"can't open model file %s\n",argv[i+1]);
+      logObject->writeLog(1,"can't open model file %s\n",argv[i+1]);
       r=5;//exit(1);
    }
 
@@ -541,7 +541,7 @@ int SVMObj::predict(const char *cmd)
    {
       if(svm_check_probability_model(model)==0)
       {
-         fprintf(stderr,"Model does not support probabiliy estimates\n");
+         logObject->writeLog(1,"Model does not support probabiliy estimates\n");
          r=6;//exit(1);
       }
    }

@@ -79,12 +79,14 @@
 #include "utils/options.h"
 #include "newimage/newimageall.h"
 #include "meshclass/meshclass.h"
+#include "parser.h"
 
 using namespace std;
 using namespace NEWIMAGE;
 using namespace Utilities;
 using namespace mesh;
 
+namespace fsl_bet2 {
 void noMoreMemory()
 {
   cerr<<"Unable to satisfy request for memory"<<endl;
@@ -135,9 +137,6 @@ Option<float> fractional_threshold(string("-f"), 0.5,
 
 Option<float> gradient_threshold(string("-g"), 0.0,
 				 string("~<g>\t\tvertical gradient in fractional intensity threshold (-1->1); default=0; positive values give larger brain outline at bottom, smaller at top"), false, requires_argument);
-
-Option<float> smootharg(string("-w,--smooth"), 1.0,
-                     string("~<r>\tsmoothness factor; default=1; values smaller than 1 produce more detailed brain surface, values larger than one produce smoother, less detailed surface"), false, requires_argument);
 
 Option<float> radiusarg(string("-r,--radius"), 0.0,
 		     string("~<r>\thead radius (mm not voxels); initial surface sphere is set to half of this"), false, requires_argument);
@@ -651,7 +650,12 @@ volume<float> find_skull (volume<float> & image, const Mesh & m, const double t2
 }
 
 
-int main(int argc, char *argv[]) {
+extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
+{
+  int argc;
+  char **argv;
+  
+  parser(CmdLn, argc, argv);
 
   //parsing options
   OptionParser options(title, examples);
@@ -662,8 +666,6 @@ int main(int argc, char *argv[]) {
   options.add(fractional_threshold);
   options.add(gradient_threshold);
   options.add(radiusarg);
-  options.add(smootharg);
-
   options.add(centerarg);
   options.add(apply_thresholding);
   options.add(generate_mesh);
@@ -671,15 +673,16 @@ int main(int argc, char *argv[]) {
   options.add(help);
   
   if (argc < 3) {
-    if (argc == 1) {options.usage(); exit(EXIT_FAILURE);};
+    if (argc == 1) {options.usage();   freeparser(argc, argv); return(EXIT_FAILURE);};
     if (argc>1)
       {
 	string s = argv[1];
 	if (s.find("-h")!=string::npos | s.find("--help")!=string::npos ) 
-	  {options.usage(); exit (0);}
+	  {options.usage();   freeparser(argc, argv); return (0);}
       }
     cerr<<"error: not enough arguments, use bet -h for help"<<endl;
-    exit (-1);
+    freeparser(argc, argv);
+    return (-1);
   }
   
   vector<string> strarg;
@@ -690,7 +693,7 @@ int main(int argc, char *argv[]) {
   string outputname=strarg[2];
   
   if (inputname.find("-")==0 || outputname.find("-")==0 )
-    {cerr<<"error : two first arguments should be input and output names, see bet -h for help"<<endl; exit(-1);};
+    {cerr<<"error : two first arguments should be input and output names, see bet -h for help"<<endl; freeparser(argc, argv); return(-1);};
  
   /*
   int c=0;
@@ -710,13 +713,14 @@ int main(int argc, char *argv[]) {
   catch(X_OptionError& e) {
     options.usage();
     cerr << endl << e.what() << endl;
-    exit(EXIT_FAILURE);
+    freeparser(argc, argv);
+    return(EXIT_FAILURE);
   } 
   catch(std::exception &e) {
     cerr << e.what() << endl;
   } 
   
-  if (help.value()) {options.usage(); return 0;};
+  if (help.value()) {options.usage(); freeparser(argc, argv); return 0;};
 
   string out = outputname;
   if (out.find(".hdr")!=string::npos) out.erase(out.find(".hdr"), 4);
@@ -735,7 +739,7 @@ int main(int argc, char *argv[]) {
 
   volume<float> testvol;
   
-  if (read_volume(testvol,in.c_str())<0)  return -1;
+  if (read_volume(testvol,in.c_str())<0)  { freeparser(argc, argv); return -1; }
 
   double xarg = 0, yarg = 0, zarg = 0;
   if (centerarg.set())
@@ -785,8 +789,8 @@ int main(int argc, char *argv[]) {
 
   Mesh moriginal=m;
   
-  const double rmin=3.33 * smootharg.value();
-  const double rmax=10 * smootharg.value();
+  const double rmin=3.33;
+  const double rmax=10;
   const double E = (1/rmin + 1/rmax)/2.;
   const double F = 6./(1/rmin - 1/rmax);
   const int nb_iter = 1000;
@@ -866,21 +870,20 @@ int main(int argc, char *argv[]) {
 	for (int j=0; j<ysize; j++)
 	  for (int i=0; i<xsize; i++)
 	    output.value(i, j, k) = (1-brainmask.value(i, j, k)) * output.value(i, j, k);
-      if (save_volume(output,out.c_str())<0)  return -1;
+	  if (save_volume(output,out.c_str())<0)  { freeparser(argc, argv); return -1;}
     }  
   
   if (mask.value())
     {
       string maskstr = out+"_mask";
-      brainmask.setDisplayMaximumMinimum(1,0);
-      if (save_volume((short)1-brainmask, maskstr.c_str())<0)  return -1;
+	  if (save_volume((short)1-brainmask, maskstr.c_str())<0)  { freeparser(argc, argv); return -1;}
     }
   
   if (outline.value())
     {
       string outlinestr = out+"_overlay";
       volume<float> outline = draw_mesh_bis(testvol, m);
-      if (save_volume(outline, outlinestr.c_str())<0)  return -1;
+	  if (save_volume(outline, outlinestr.c_str())<0)  { freeparser(argc, argv); return -1;}
     }
 
   if (generate_mesh.value())
@@ -897,10 +900,12 @@ int main(int argc, char *argv[]) {
       volume<short> bskull;
       copyconvert(skull,bskull);
 
-      if (save_volume(bskull, skullstr.c_str())<0)  return -1;
+	  if (save_volume(bskull, skullstr.c_str())<0)  { freeparser(argc, argv); return -1; }
     }
 
+  freeparser(argc, argv);
   return 0;
   
 }
 
+}

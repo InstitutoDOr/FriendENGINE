@@ -72,6 +72,7 @@ using namespace NEWIMAGE;
 using namespace Utilities;
 
 namespace fsl_cc {
+
 #include "newimage/fmribmain.h"
 int print_usage(const string& progname) 
 {
@@ -79,6 +80,22 @@ int print_usage(const string& progname)
   cout << "-noabs: Don't return absolute values (keep sign)." << endl;
   return(1);
 }
+
+Option<string> fnmask(string("-m"), string(""),
+	string("mask file name "),
+	false, requires_argument);
+Option<bool> noabs(string("--noabs"), false,
+	string("\tDon't return absolute values (keep sign)"),
+	false, no_argument);
+Option<bool> nodemean(string("--nodemean"), false,
+	string("Don't demean the input files"),
+	false, no_argument);
+Option<float> thresh(string("-t"), 0.1,
+	string("\tThreshhold ( default 0.1 )"),
+	false, requires_argument);
+Option<float> precision(string("-p"), 2,
+	string("\tNumber of decimal places to display in output ( default 2 )"),
+	false, requires_argument);
 
 template <class T>
 int fmrib_main(int argc, char *argv[])
@@ -144,22 +161,6 @@ extern "C" __declspec(dllexport) int _stdcall fslcc(char *CmdLn)
   int argc;
   char **argv;
   
-Option<string> fnmask(string("-m"), string(""),
-		string("mask file name "),
-		false, requires_argument);
-Option<bool> noabs(string("--noabs"), false, 
-		     string("\tDon't return absolute values (keep sign)"), 
-		     false, no_argument);
-Option<bool> nodemean(string("--nodemean"), false, 
-		     string("Don't demean the input files"), 
-		     false, no_argument);
-Option<float> thresh(string("-t"), 0.1,
-		     string("\tThreshhold ( default 0.1 )"),
-		     false, requires_argument);
-Option<float> precision(string("-p"), 2,
-		     string("\tNumber of decimal places to display in output ( default 2 )"),
-		     false, requires_argument);
-
   parser(CmdLn, argc, argv);
   string title("fslcc: Cross-correlate two time-series, timepoint by timepoint");
   string examples("fslcc [options] <first_input> <second_input> ");

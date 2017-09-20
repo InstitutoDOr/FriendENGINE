@@ -16,6 +16,9 @@
 #include "socket2.h"
 #include "fslio/fslio.h"
 #include "session.h"
+#include <string.h>
+#include <fstream>
+#include "logObject.h"
 
 // handles all information needed for FRIEND engine and plugins to work properly, like file names, config file parameters, communication socket.
 class studyParams
@@ -36,6 +39,9 @@ public:
    // if we do not need to do mean subtraction step
    int skipMeanSubtraction;
 
+   // if the plugin should calculate explicitly the activation
+   int doEstimation;
+
    // parameter variables
    char baselineCondition[BUFF_SIZE];
    
@@ -46,7 +52,7 @@ public:
    int performNeurofeedback, useWholeSubjectSpaceMask, referenceWholeVolume, storePredictions, feedBackType, numberWidth;
    int invX, invY, invZ;
    
-   char mniTemplate[BUFF_SIZE], mniMask[BUFF_SIZE];
+   char mniTemplate[BUFF_SIZE], mniMask[BUFF_SIZE], subjectSpaceMaskUser[BUFF_SIZE];
    
    double tTestCutOff, pvalueCutOff, FWHM, trainingPercentage, percentileHigherVoxels;
    
@@ -74,10 +80,15 @@ public:
    
    // session variable
    Session *sessionPointer;
-   FILE *outputLog;
+
+   // returns the noise corrected file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+   void getMCNoiseCorrectedVolumeFormat(char *format);
 
    // returns the final volume file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
    void getFinalVolumeFormat(char *format);
+
+   // returns the motion corrected file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
+   void getMCVolumeFormat(char *format);
 
    // returns the motion corrected gausian file name format. To retrieve the volume file name, you have to first call a sprintf function e.g. sprintf(fileName, format, 1);
    void getMCGVolumeFormat(char *format);
@@ -106,6 +117,13 @@ public:
    void getMCVolumeName(char *outfile, char *number);
    void getMCVolumeName(char *outfile, int number);
    
+   // motion and noise corrected 
+   void getMCNoiseCorrectedVolumeName(char *outFile, char *number);
+
+   // sliding window 
+   void getSlidingWindowVolumeName(char *outFile, char *number);
+
+
    // returns the volume file name given the number index in a string. Returns three types :
    // 1 - motion corrected volume,
    // 2 - motion corrected and gaussian filtered
@@ -152,18 +170,12 @@ public:
    // initializating control variables
    void initializeStates();
 
-   // create log file
-   void initializeLogFile();
+   // holds the logging variable
+   LogObject *logObject;
 
-   // closes the log file
-   void closeLogFile();
+   studyParams() { mcflirtParams[0] = '\0'; strcpy(mcflirtParams, "-plots -mats -rmsabs"); betParameters[0] = '\0'; strcpy(betParameters, "-f 0.3 -o"); sessionPointer = NULL; doEstimation = 1; logObject = NULL; };
 
-   // writes the message in the log file
-   void writeLog(int inScreen, const char * format, ...);
-
-   studyParams() { mcflirtParams[0] = '\0'; strcpy(mcflirtParams, "-plots -mats -rmsabs"); betParameters[0] = '\0'; strcpy(betParameters, "-f 0.3 -o"); sessionPointer = NULL; outputLog = NULL; };
-
-   virtual ~studyParams() { closeLogFile(); };
+   virtual ~studyParams() { };
     
     
 };

@@ -37,8 +37,8 @@ void SVMProcessing::initializeVars(studyParams &vdb)
 	   sprintf(svmTestingFile, "%s%s%s%s", svmDir, "cummulative_training", vdb.testFeatureSuffix, ".tst");
    else sprintf(svmTestingFile, "%s%s%s%s", svmDir, "training", vdb.testFeatureSuffix, ".tst");
 
-   fprintf(stderr, "%s\n", svmTrainingFile);
-   fprintf(stderr, "%s\n", svmTestingFile);
+   vdb.logObject->writeLog(1, "%s\n", svmTrainingFile);
+   vdb.logObject->writeLog(1, "%s\n", svmTestingFile);
 
    extrapolationFactor = 1.2;
    minDistance = 0;
@@ -73,10 +73,10 @@ void SVMProcessing::initializeVars(studyParams &vdb)
 	   if (positiveCount != 0) maxDistance /= positiveCount;
 
 	   testFile.close();
-	   fprintf(stderr, "Distance limits %f %f\n", minDistance, maxDistance);
+	   vdb.logObject->writeLog(1, "Distance limits %f %f\n", minDistance, maxDistance);
    }
 
-   sprintf(featuresTestMask, "%s%s.nii", vdbPtr->featuresSuffix, vdbPtr->testFeatureSuffix);
+   sprintf(featuresTestMask, "%s%s.nii", vdb.featuresSuffix, vdb.testFeatureSuffix);
    // correcting the file name
    fileExists(featuresTestMask);
 
@@ -115,22 +115,22 @@ void SVMProcessing::initializeVars(studyParams &vdb)
 // deallocates the memory used
 void SVMProcessing::cleanUp()
 {
-	fprintf(stderr, "Unloading model, if any loaded.\n");
-   if (model!=NULL) unloadModel(model);
+	vdbPtr->logObject->writeLog(1, "Unloading model, if any loaded.\n");
+	if (model != NULL) unloadModel(model);
 
-   fprintf(stderr, "Closing log file, if open.\n");
-   if (svmLog)
-   {
-	   fclose(svmLog);
-	   svmLog = 0;
-   }
+	vdbPtr->logObject->writeLog(1, "Closing log file, if open.\n");
+	if (svmLog)
+	{
+		fclose(svmLog);
+		svmLog = 0;
+	}
 
-   if (projectionsFile)
-   {
-	   fclose(projectionsFile);
-	   svmLog = 0;
-   }
-   fprintf(stderr, "Clean up finished.\n");
+	if (projectionsFile)
+	{
+		fclose(projectionsFile);
+		svmLog = 0;
+	}
+	vdbPtr->logObject->writeLog(1, "Clean up finished.\n");
 }
 
 // handles the training
@@ -145,7 +145,9 @@ void SVMProcessing::train()
    vdbPtr->getFinalVolumeFormat(prefix);
    
    // calculating the sliding window and saving a 4D volume
-   estimateActivation(1, vdbPtr->interval.maxIndex(), vdbPtr->slidingWindowSize, prefix, vdbPtr->train4DFile);
+   int swSize = vdbPtr->slidingWindowSize;
+   if (vdbPtr->doEstimation == 0) swSize = 1;
+   estimateActivation(1, vdbPtr->interval.maxIndex(), swSize, prefix, vdbPtr->train4DFile);
    
    // getting the volume indexes, excluding the baseline and the first ones discarted by haemodynamic stabilization
    vdbPtr->interval.getVolumeIndices(vdbPtr->offset, 1, vdbPtr->interval.maxIndex(), indices);
@@ -171,6 +173,8 @@ void SVMProcessing::train()
    
    CmdLn.str("");
    SVMObj svmObject;
+
+   svmObject.logObject = vdbPtr->logObject;
    
    // training
    CmdLn << "svmtrain -t 0 " << svmTrainingFile << " " << svmModelFile;
@@ -235,13 +239,13 @@ void SVMProcessing::train()
 
    
    // Generating weight map volume
-   fprintf(stderr, "Generating weight map volumes\n");
+   vdbPtr->logObject->writeLog(1, "Generating weight map volumes\n");
    
    sprintf(svmMask, "%s.nii", vdbPtr->featuresTrainSuffix);
 
    fileExists(svmMask);
 
-   fprintf(stderr, "using %s \n", svmMask);
+   vdbPtr->logObject->writeLog(1, "using %s \n", svmMask);
    model=svm_load_model(svmModelFile);
    if (model != NULL)
    {
@@ -287,6 +291,7 @@ void SVMProcessing::writeLog(char *msg)
 		fprintf(svmLog, "%s", msg);
 		//fflush(svmLog);
 	}
+	vdbPtr->logObject->writeLog(1, msg);
 }
 
 // handles the testing
@@ -303,14 +308,14 @@ void SVMProcessing::test(int index, char *volumeFile, float &classnum, float &pr
 	}
 
    if (model == NULL) model=svm_load_model(svmModelPredictFile);
-   if (model == NULL) fprintf(stderr, "model file %s not loaded.\n", svmModelPredictFile);
+   if (model == NULL) vdbPtr->logObject->writeLog(1, "model file %s not loaded.\n", svmModelPredictFile);
    else
    {
-	  //fprintf(stderr, "volumeFile tested : %s with mask : %s\n", volumeFile, featuresTestMask);
+	  //vdb.logObject->writeLog(1, "volumeFile tested : %s with mask : %s\n", volumeFile, featuresTestMask);
 	  predict(model, volumeFile, featuresTestMask, classnum, projection);
 	  if (adaptTraining)
 	  {
-		  fprintf(stderr, "Adapting projection.\n");
+		  vdbPtr->logObject->writeLog(1, "Adapting projection.\n");
 		  adaptativeTraining.adaptResult(classnum, projection);
 	  }
 
@@ -381,7 +386,7 @@ DLLExport finalSVM(studyParams &vdb, void *&userData)
 
 			  // generating the projections graph png of the actual run
 			  changeFileExt(svmProcessingVar->projectionsFilename, ".png", pngFile);
-			  fprintf(stderr, "Generating svm projection graphics of the current run performance\n");
+			  vdb.logObject->writeLog(1, "Generating svm projection graphics of the current run performance\n");
 			  CmdLn << "fsl_tsplot -i " << svmProcessingVar->projectionsFilename << " -t \"SVM projections\" -u 1 --start=1 --finish=1 -a Projections -w 640 -h 144 -o " << pngFile;
 
 			  fsl_tsplot((char *)CmdLn.str().c_str());
@@ -417,10 +422,10 @@ DLLExport testSVM(studyParams &vdb, int index, float &classnum, float &projectio
 
 	vdb.setActivationFile(index);
 
-	fprintf(stderr, "Generating tempfile.\n");
+	vdb.logObject->writeLog(1, "Generating tempfile.\n");
 	estimateActivation(index, index, vdb.slidingWindowSize, prefix, tempVolume);
 
-	fprintf(stderr, "Classifying.\n");
+	vdb.logObject->writeLog(1, "Classifying.\n");
 	svmProcessingVar->test(index, tempVolume, classnum, projection);
 
 	if (fileExists(tempVolume))
@@ -437,12 +442,16 @@ DLLExport testSVM(studyParams &vdb, int index, float &classnum, float &projectio
 
    vdb.getFinalVolumeFormat(prefix);
 
-   fprintf(stderr, "Generating activation file.\n");
+   vdb.logObject->writeLog(1, "Generating activation file.\n");
    vdb.setActivationFile(index);
 
-   estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
+   if (vdb.doEstimation) estimateActivation(index, index, vdb.slidingWindowSize, prefix, vdb.maskFile, vdb.activationFile);
+   else
+   {
+	   vdb.getFinalVolumeName(vdb.activationFile, index);
+   }
    
-   fprintf(stderr, "Classifying.\n");
+   vdb.logObject->writeLog(1, "Classifying.\n");
    svmProcessingVar->test(index, vdb.activationFile, classnum, projection);
    
    return 1;

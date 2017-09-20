@@ -17,6 +17,135 @@
 
 using namespace alglib;
 
+// loads the volume that defines the initial values
+void EMADetrend::loadReference(char *referenceFileName, float alphaValue)
+{
+	volume<float>vol;
+	load_volume(vol, string(referenceFileName));
+	loadReference(vol, alphaValue);
+}
+
+// loads the volume that defines the initial values
+void EMADetrend::loadReference(volume<float>&volume, float alphaValue)
+{
+	emaFiltered.reinitialize(volume.xsize(), volume.ysize(), volume.zsize());
+	emaFiltered.copyproperties(volume);
+
+	int numVoxels = emaFiltered.xsize() * emaFiltered.ysize() * emaFiltered.zsize();
+	float *meanDataPtr = (float *)emaFiltered.fbegin();
+	float *volDataPtr = (float *)volume.fbegin();
+	for (int t = 0; t < numVoxels; t++) meanDataPtr[t] = volDataPtr[t];
+
+	alpha = alphaValue;
+	numPoints = 1;
+}
+
+// update the baseline calculation
+void EMADetrend::addVolume(char *volumeName)
+{
+	volume<float>vol;
+	load_volume(vol, string(volumeName));
+	addVolume(vol);
+}
+
+// update the baseline calculation
+void EMADetrend::addVolume(volume<float> &vol)
+{
+	numPoints++;
+	int numVoxels = emaFiltered.xsize() * emaFiltered.ysize() * emaFiltered.zsize();
+	float *meanDataPtr = (float *)emaFiltered.fbegin();
+	float *volDataPtr = (float *)vol.fbegin();
+
+	float emaFilt, value;
+	for (int t = 0; t < numVoxels; t++)
+	{
+		value = volDataPtr[t];
+		emaFilt = meanDataPtr[t];
+		emaFilt = emaFilt * alpha + (1 - alpha) * value;
+		meanDataPtr[t] = emaFilt;
+		volDataPtr[t] = value - emaFilt;
+	}
+}
+
+// loads a value that defines the initial value
+void IncrementalBaseline::loadReference(float value)
+{
+	numVoxels = 1;
+	meanArray = (baselineStruct *)malloc(numVoxels * sizeof(baselineStruct));
+
+	meanArray[0].mean = value;
+	meanArray[0].numPoints = 1;
+}
+
+// loads the volume that defines the initial values
+void IncrementalBaseline::loadReference(char *referenceFileName, int zeroValues)
+{
+	volume<float>vol;
+	load_volume(vol, string(referenceFileName));
+	loadReference(vol, zeroValues);
+}
+
+// loads the volume that defines the initial values
+void IncrementalBaseline::loadReference(volume<float>&volume, int zeroValues)
+{
+	numVoxels = volume.xsize() * volume.ysize() * volume.zsize();
+	meanArray = (baselineStruct *) malloc(numVoxels * sizeof(baselineStruct));
+
+	float *volDataPtr = (float *) volume.fbegin();
+	for (int t = 0; t < numVoxels; t++)
+	{
+		if (zeroValues) meanArray[t].mean = 0;
+		else meanArray[t].mean = volDataPtr[t];
+		meanArray[t].numPoints = 1;
+	}
+}
+
+// update the baseline calculation
+void IncrementalBaseline::addVolume(char *volumeName, int subtract)
+{
+	volume<float>vol;
+	load_volume(vol, string(volumeName));
+	addVolume(vol, subtract);
+}
+
+// update the baseline calculation
+void IncrementalBaseline::addVolume(volume<float> &vol, int subtract)
+{
+	float *volDataPtr = (float *)vol.fbegin();
+
+	float mean, oldMean, value;
+	for (int t = 0; t < numVoxels; t++)
+	{
+		value = volDataPtr[t];
+		mean = meanArray[t].mean;
+		if (mean > value)
+		{
+			meanArray[t].numPoints++;
+			oldMean = mean;
+			mean = mean + (value - oldMean) / meanArray[t].numPoints;
+			meanArray[t].mean = mean;
+		}
+		if (subtract)
+			volDataPtr[t] = value - mean;
+	}
+}
+
+// update the baseline calculation
+void IncrementalBaseline::addVolume(float &value, int subtract)
+{
+	float mean, oldMean;
+	mean = meanArray[0].mean;
+	if (mean > value)
+	{
+		meanArray[0].numPoints++;
+		oldMean = mean;
+		mean = mean + (value - oldMean) / meanArray[0].numPoints;
+		meanArray[0].mean = mean;
+	}
+	if (subtract)
+		value = value - mean;
+}
+
 // znormalize a vetor of double
 void znormalise(vector<double>&values)
 {

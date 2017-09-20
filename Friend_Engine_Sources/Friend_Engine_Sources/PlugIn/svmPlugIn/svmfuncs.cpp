@@ -110,16 +110,51 @@ int getVolumeSize(const char *volumeFileName, float minValue)
 }
 
 // transforms a 4D Volume in a SVM samples file, based on a mask
+void saveSVMFile(volume4D <float> &volSamples, volume<float> &mask, const char *outputFileName, float minValue, vector <int > &indexes, vector <int> &classes)
+{
+	FILE *f;
+	f = fopen(outputFileName, "wt+");
+	if (f != NULL)
+	{
+		int i, t;
+		for (int h = 0; h < indexes.size(); h++)
+		{
+			// picking the right indexes
+			t = indexes[h] - 1;
+			i = 0;
+			// saving the class value. Remember indexes size is different from classes. classes has the same sime of the number of volumes
+			fprintf(f, "%d ", classes[t]);
+			for (int z = 0; z < mask.zsize(); z++)
+				for (int y = 0; y < mask.ysize(); y++)
+					for (int x = 0; x < mask.xsize(); x++)
+						if (mask.value(x, y, z) > minValue)
+						{
+							i++;
+							// writing each voxel value in svm format
+							fprintf(f, "%d:%f ", i, volSamples.value(x, y, z, t));
+						}
+			fprintf(f, "\n");
+		}
+		fclose(f);
+	}
+}
+
+// transforms a 4D Volume in a SVM samples file, based on a mask
+void saveSVMFile(volume4D <float> &volSamples, const char *maskFileName, const char *outputFileName, float minValue, vector <int > &indexes, vector <int> &classes)
+{
+	// reading the mask file
+	volume<float> mask;
+	if (maskFileName != NULL)
+	{
+		string Maskfile = maskFileName;
+		read_volume<float>(mask, Maskfile);
+	}
+	saveSVMFile(volSamples, mask, outputFileName, minValue, indexes, classes);
+}
+
+// transforms a 4D Volume in a SVM samples file, based on a mask
 void saveSVMFile(const char *volume4DFileName, const char *maskFileName, const char *outputFileName, float minValue, vector <int > &indexes, vector <int> &classes)
 {
-   // reading the mask file
-	volume<float> mask;
-   if (maskFileName != NULL)
-   {
-      string Maskfile = maskFileName;
-      read_volume<float>(mask, Maskfile);
-   }
-
    // reading the 4D volume
 	volume4D<float> volSamples;
    if (volume4DFileName != NULL)
@@ -127,32 +162,7 @@ void saveSVMFile(const char *volume4DFileName, const char *maskFileName, const c
       string Vol4DFile = volume4DFileName;
       read_volume4D<float>(volSamples, Vol4DFile);
    }
-
-	FILE *f;
-	f=fopen(outputFileName, "wt+");
-	if (f !=NULL)
-	{
-	   int i, t;
-      for(int h=0;h < indexes.size();h++)
-	   {
-        // picking the right indexes
-		  t = indexes[h] - 1;
-		  i = 0;
-        // saving the class value. Remember indexes size is different from classes. classes has the same sime of the number of volumes
-		  fprintf(f, "%d ", classes[t]);
-		  for(int z=0; z < mask.zsize(); z++)
-			 for(int y=0; y < mask.ysize(); y++)
-				for(int x=0; x < mask.xsize(); x++)
-                if (mask.value(x,y,z) > minValue)
-			       {
-					   i++;
-                  // writing each voxel value in svm format
-					   fprintf(f, "%d:%f ", i, volSamples.value(x,y,z,t));
-			       }
-		  fprintf(f, "\n");
-	   }
-	   fclose(f);
-	}
+   saveSVMFile(volSamples, maskFileName, outputFileName, minValue, indexes, classes);
 }
 
 void _volume2Sample(svm_model *model, volume<float> &volSample, volume<float> &mask, int sampleSize, float minValue, svm_node * &sample)

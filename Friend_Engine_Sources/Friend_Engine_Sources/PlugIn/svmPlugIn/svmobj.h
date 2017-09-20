@@ -1,5 +1,6 @@
 #include "svm.h"
 #include "masks.h"
+#include "logObject.h"
 
 // Class to relocate the mean of a projection time serie
 class AdaptingSVM
@@ -52,6 +53,9 @@ class SVMObj
    
     // svmpredict transformed in a function
     int predict(const char *cmd);
+
+	// variable the holds the logging system
+	LogObject *logObject;
 #ifndef __GNUC__
    SVMObj () { predict_probability=0; max_nr_attr = 64; line = NULL; };
 #else //The GCC way

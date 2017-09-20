@@ -3,6 +3,7 @@
 #include "intervals.h"
 #include "vardb.h"
 #include "PlugInHandler.h"
+#include "utils.h"
 
 // Class responsible for control all the core FRIEND engine functionality
 class FriendProcess
@@ -11,7 +12,9 @@ class FriendProcess
 
 				// holds the engine executable path
 				char exePath[BUFF_SIZE];
-				int passes;
+				int passes, rfiSize;
+				double lastTimeCheck;
+				double checkTimeThreshold;
 
                // holds plugin information
                PluginHandler pHandler;
@@ -61,6 +64,8 @@ class FriendProcess
                // set socket data for response
                void setSocketfd(int Sock);
 
+			   // set logObject pointer
+			   void setLogObject(LogObject * logO);
 
                // Preprocessing steps
                // initializating control variables

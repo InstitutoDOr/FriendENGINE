@@ -24,6 +24,83 @@
 
 char exePath[500];
 
+// returns the list of directories in dirSource
+void listDirectory(char *dirSource, vector<string>&entries)
+{
+	DIR *dirIn;
+	struct dirent *entry;
+	char dirName[2048];
+
+	entries.clear();
+	dirIn = opendir(dirSource);
+	if (dirIn == NULL) {
+		return;
+	}
+
+	while ((entry = readdir(dirIn)) != NULL) {
+		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+			if (entry->d_type == DT_DIR)
+			{
+				sprintf(dirName, "%s%c%s", dirSource, PATHSEPCHAR, entry->d_name);
+				entries.push_back(string(dirName));
+			}
+		}
+	}
+	closedir(dirIn);
+}
+
+// returns the first entry of a directory
+string returnFirstFile(char *dirSource)
+{
+	DIR *dirIn;
+	struct dirent *entry;
+	char fileName[2048];
+	string result = "";
+
+	dirIn = opendir(dirSource);
+	if (dirIn == NULL) {
+		return result;
+	}
+
+	while ((entry = readdir(dirIn)) != NULL) {
+		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+
+			if (entry->d_type != DT_DIR)
+			{
+				sprintf(fileName, "%s%c%s", dirSource, PATHSEPCHAR, entry->d_name);
+				result = fileName;
+				break;
+			}
+		}
+	}
+	closedir(dirIn);
+	return result;
+}
+
+// returns the first element of a list that has the given substring 
+string searchSubstringInList(vector<string>&entries, char *substring, char *noSearchSubString)
+{
+	string result = "";
+	std::size_t found;
+
+	for (int t = 0; t < entries.size(); t++)
+	{
+		string tempStr = entries[t];
+		found = tempStr.find(string(substring));
+		if (found != std::string::npos)
+		{
+			if (noSearchSubString)
+			{
+				found = tempStr.find(string(noSearchSubString));
+				if (found != std::string::npos) continue;
+			}
+			result = tempStr;
+			break;
+		}
+	}
+	return result;
+}
+
 // performs a shell like expansion of fileName
 void expandFilename(char *fileName)
 {
@@ -176,17 +253,55 @@ int removeDirectory(const char *dirName)
    return 1;
 }
 
+int fileSize(char *filename)
+{
+	if (!fileExists(filename)) return 0;
+	FILE *f = fopen(filename, "r+b");
+	long long fileLen = 0;
+	if (f)
+	{
+		fseek(f, 0, SEEK_END);
+		fileLen = ftell(f);
+		fclose(f);
+	}
+	return fileLen;
+}
+
+// verifying if a file is ready to be read
+bool isReadableSize(char *fileName, int size)
+{
+	int r = false;
+	try
+	{
+		if (!fileExists(fileName)) return false;
+		FILE *f = fopen(fileName, "r+b");
+		if (f)
+		{
+			fseek(f, 0, SEEK_END);
+			long long fileLen = ftell(f);
+			if (fileLen < size) r = false;
+			else r = true;
+			fclose(f);
+		}
+	}
+	catch (...)
+	{
+		return false;
+	}
+	return r;
+}
+
 // verifying if a file is ready to be read
 bool isReadable(char *fileName)
 {
-   fstream filen;
-   int r;
-   if (!fileExists(fileName)) return false; 
-   filen.open(fileName, ios::in | ios::out);
-   if (filen.good()) r =true;
-   else r = false;
-   filen.close();
-   return r;
+	int r;
+	fstream filen;
+	filen.open(fileName, ios::in | ios::out);
+	//if (filen.good()) r =true;
+	if (filen.is_open()) r = true;
+	else r = false;
+	filen.close();
+	return r;
 }
 
 // checks if fileName or fileName.gz exists and return the one that exists
@@ -259,6 +374,76 @@ int fileExists(char *fileName)
          strcpy(fileName, auxFileName);
    }
    return resp;
+}
+
+// window rename directory
+#ifdef WINDOWS
+int renameDirectory(char *fileName, char *destFileName)
+{
+	includeTrailingPathDelimiter(fileName);
+	includeTrailingPathDelimiter(destFileName);
+#ifdef WIN64
+	size_t wn = mbsrtowcs(NULL, (const char **)&fileName, 0, NULL);
+	wchar_t *bufFilename = new wchar_t[wn + 1];  // value-initialize to 0 (see below)
+	wn = mbsrtowcs(bufFilename, (const char **)&fileName, wn + 1, NULL);
+
+	wn = mbsrtowcs(NULL, (const char **)&destFileName, 0, NULL);
+	wchar_t *bufDestFilename = new wchar_t[wn + 1];  // value-initialize to 0 (see below)
+	wn = mbsrtowcs(bufDestFilename, (const char **)&destFileName, wn + 1, NULL);
+
+	int resp = 0;
+	if ((bufFilename != NULL) && (bufDestFilename != NULL))
+	{
+		resp = MoveFileW((LPWSTR)bufFilename, (LPWSTR)bufDestFilename);
+	}
+	if (bufFilename != NULL) delete[] bufFilename;
+	if (bufDestFilename != NULL) delete[] bufDestFilename;
+
+	return resp;
+	
+#else
+	return MoveFileA(fileName, destFileName);
+#endif
+}
+#endif
+
+// move a file respecting the extension
+int moveFile(char *fileName, char *destFilename)
+{
+	int resp;
+	if (fileName == NULL) return 0;
+	resp = _fileExists(fileName);
+
+	char auxFileName[2048], auxDestFileName[2048];
+	if (resp == 0)
+	{
+		sprintf(auxFileName, "%s%s", fileName, ".gz");
+		resp = _fileExists(auxFileName);
+		if (resp == 0)
+		{
+			sprintf(auxFileName, "%s%s", fileName, ".nii");
+			resp = _fileExists(auxFileName);
+			if (resp == 0)
+			{
+				sprintf(auxFileName, "%s%s", fileName, ".nii.gz");
+				resp = _fileExists(auxFileName);
+			    if (resp) sprintf(auxDestFileName, "%s%s", destFilename, ".nii.gz");
+			}
+			else sprintf(auxDestFileName, "%s%s", destFilename, ".nii");
+		}
+		else sprintf(auxDestFileName, "%s%s", destFilename, ".gz");
+		if (resp)
+			strcpy(fileName, auxFileName);
+	}
+	else sprintf(auxDestFileName, "%s", destFilename);
+
+	if (resp)
+	{
+		copyFile(fileName, auxDestFileName);
+		remove(fileName);
+
+	}
+	return resp;
 }
 
 // returns the path of `fileName` without the last PATHSEPARATOR. Note `output` must have at least the same size than `fileName`

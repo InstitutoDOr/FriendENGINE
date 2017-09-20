@@ -2,6 +2,7 @@
 #define SVMFUNC_H
 #include "svm.h"
 #include <vector>
+#include "newimage/newimageall.h"
 
 struct weightPoint {
 	int index;
@@ -9,6 +10,7 @@ struct weightPoint {
 };
 
 using namespace std;
+using namespace NEWIMAGE;
 
 // generates a graphic with the SVM projections
 void generateProjetionsGraph(char *projectionsFile);
@@ -25,6 +27,10 @@ void unloadModel(svm_model *&model);
 
 // transforms a 4D Volume in a SVM samples file, based on a mask
 void saveSVMFile(const char *volume4DFileName, const char *maskFileName, const char *outputFileName, float minValue, vector <int > &indexes, vector <int> &classes);
+// transforms a 4D Volume in a SVM samples file, based on a mask
+void saveSVMFile(volume4D <float> &volSamples, volume<float> &mask, const char *outputFileName, float minValue, vector <int > &indexes, vector <int> &classes);
+// transforms a 4D Volume in a SVM samples file, based on a mask
+void saveSVMFile(volume4D <float> &volSamples, const char *maskFileName, const char *outputFileName, float minValue, vector <int > &indexes, vector <int> &classes);
 
 // function to return the prediction class and svm score of a volume.
 float predict(svm_model *model, const char *volumeFileName, const char *maskFileName, float &predictedClass, float &svmScore);
