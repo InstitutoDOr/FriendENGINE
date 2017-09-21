@@ -1,0 +1,35 @@
+language: cpp
+
+git:
+  depth: 1
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      env: TARGET=lnx
+    - os: osx
+      env: TARGET=mac
+
+before_install:
+  - git submodule update --init --depth=3 dcm_qa
+
+script:
+  - mkdir build && cd build && cmake -DBATCH_VERSION=ON -DUSE_OPENJPEG=ON .. && make && cd -
+  - export PATH=$PWD/build/bin:$PATH
+  - cd dcm_qa && ./batch.sh && cd -
+
+before_deploy:
+  - export DATE=`date +%-d-%b-%Y`
+  - zip -j dcm2niix_${DATE}_${TARGET}.zip build/bin/*
+  - sleep 300 # make sure appveyor deployment is done, thus proper release name is set
+
+deploy:
+  provider: releases
+  api_key:
+    secure: sVIYRakcEQdMPEdGSSePtMVCMQvaohqV7NNzEErAgZ+b/4ofv2aPpJb5kNTv3JRl2FrPy7iXJ8lOUQ/95pqvimX6jv5ztksTNXtSMnHZNbjjWwIc99enPY+mSdWMO2lb9vGBWQ9GNfXjmk7MgtDHPjjygbuZfUw9fmGy4ocxkws=
+  file_glob: true
+  file: dcm2niix*.zip
+  skip_cleanup: true
+  on:
+    tags: true
