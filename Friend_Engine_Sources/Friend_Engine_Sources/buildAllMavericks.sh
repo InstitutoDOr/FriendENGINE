@@ -2,8 +2,8 @@ mkdir -p Application
 ./clean.sh
 cd libFiles
 rm -f *.a
-chmod +x buildMavericks.sh
-./buildMavericks.sh
+echo chmod +x buildMavericks.sh
+echo ./buildMavericks.sh
 cd ..
 cd FRIEND_Engine
 chmod +x buildMavericks.sh

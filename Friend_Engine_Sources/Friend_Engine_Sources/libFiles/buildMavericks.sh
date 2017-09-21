@@ -45,7 +45,7 @@ sudo ar rcs libmiscmaths.a miscmaths.o optimise.o miscprob.o kernel.o histogram.
 
 echo recreating fslio library
 sudo gcc -fPIC -g -c $FSLDIR/src/fslio/fslio.c \
--DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-DBUILDSTRING='"NEWEST"' -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/include/libprob \
@@ -102,7 +102,7 @@ sudo ar rcs libbasisfield.a dctfield.o splinefield.o basisfield.o splines.o
 
 echo recreating utils library
 sudo gcc -fPIC -g -c $FSLDIR/src/utils/matches.cc $FSLDIR/src/utils/functions.cc $FSLDIR/src/utils/usage.cc $FSLDIR/src/utils/check.cc $FSLDIR/src/utils/parse.cc $FSLDIR/src/utils/log.cc $FSLDIR/src/utils/time_tracer.cc \
--DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-DBUILDSTRING='"NEWEST"' -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/src/libgdc \

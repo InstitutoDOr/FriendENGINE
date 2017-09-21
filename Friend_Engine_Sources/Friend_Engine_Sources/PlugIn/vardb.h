@@ -8,6 +8,7 @@
 
 #ifndef _vardb_h
 #define _vardb_h
+#include <fstream>
 #include "defs.h"
 #include "intervals.h"
 #include "filefuncs.h"
@@ -17,7 +18,6 @@
 #include "fslio/fslio.h"
 #include "session.h"
 #include <string.h>
-#include <fstream>
 #include "logObject.h"
 
 // handles all information needed for FRIEND engine and plugins to work properly, like file names, config file parameters, communication socket.
