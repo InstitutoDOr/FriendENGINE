@@ -42,6 +42,6 @@ void LogObject::writeLog(int inScreen, const char * format, ...)
 	}
 
 	if (inScreen)
-		vfprintf(stderr, format, args);
+		fprintf(stderr, "%s", auxBuffer);
 	va_end(args);
 }

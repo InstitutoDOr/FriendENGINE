@@ -1,27 +1,29 @@
 sudo g++ -fPIC -g -c \
-MotorPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/utils.cpp ../../Friend_Engine/filefuncs.cpp ../../Friend_Engine/parser.cpp ../../Friend_Engine/intervals.cpp ../../Friend_Engine/session.cpp ../../Friend_Engine/fslfuncs.cpp ../../Friend_Engine/socket.cxx ../../Friend_Engine/socket2.cpp ../../Friend_Engine/defs.cpp \
+MotorPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/utils.cpp ../../FRIEND_Engine/filefuncs.cpp ../../FRIEND_Engine/parser.cpp ../../FRIEND_Engine/intervals.cpp ../../FRIEND_Engine/session.cpp ../../FRIEND_Engine/fslfuncs.cpp ../../FRIEND_Engine/socket.cxx ../../FRIEND_Engine/socket2.cpp ../../FRIEND_Engine/defs.cpp  ../../FRIEND_Engine/logObject.cpp \
 ../../alglib/statistics.cpp ../../alglib/alglibinternal.cpp ../../alglib/ap.cpp ../../alglib/specialfunctions.cpp ../../alglib/linalg.cpp ../../alglib/alglibmisc.cpp \
 -DUNIX -DDARWIN -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I. \
 -I.. \
 -I../../alglib \
--I../../Friend_Engine \
+-I../../FRIEND_Engine \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/src/newmat \
 -I$FSLDIR/extras/src/libgd \
 -I$FSLDIR/extras/src/libgdc \
 -I$FSLDIR/extras/src/libpng \
 -I$FSLDIR/extras/src/libprob \
--I../../simpleini
+-I../../simpleini 
 
-
-g++ -dynamiclib -o ../../Application/libMotor.dylib MotorPlugIn.o vardb.o masks.o utils.o intervals.o fslfuncs.o filefuncs.o defs.o parser.o socket.o socket2.o statistics.o alglibinternal.o ap.o specialfunctions.o linalg.o alglibmisc.o session.o \
+g++ -dynamiclib -o ../../Application/libMotor.dylib MotorPlugIn.o vardb.o masks.o utils.o intervals.o fslfuncs.o filefuncs.o defs.o parser.o socket.o socket2.o statistics.o alglibinternal.o ap.o specialfunctions.o linalg.o alglibmisc.o session.o logObject.o \
+-L../../libFiles \
 -L$FSLDIR/extras/lib \
 -L$FSLDIR/lib \
+-lm \
 -lfslio \
 -lnewimage \
 -lmiscmaths \
 -lcprob \
+-lprob \
 -lnewmat \
 -lniftiio \
 -lz \
@@ -30,3 +32,4 @@ g++ -dynamiclib -o ../../Application/libMotor.dylib MotorPlugIn.o vardb.o masks.
 -lgdc \
 -lgd \
 -lpng
+

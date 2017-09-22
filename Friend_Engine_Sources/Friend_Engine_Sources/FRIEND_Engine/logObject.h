@@ -25,7 +25,7 @@ public:
 
 	// writes the message in the log file
 	void writeLog(int inScreen, const char * format, ...);
-	LogObject() { fileName = ""; };
+	LogObject() { fileName = ""; tempFileName = ""; };
 	~LogObject() { closeLogFile(); };
 };
 #endif

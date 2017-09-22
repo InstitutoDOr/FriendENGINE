@@ -110,4 +110,10 @@ sudo gcc -fPIC -g -c $FSLDIR/src/utils/matches.cc $FSLDIR/src/utils/functions.cc
 -I$FSLDIR/extras/include/newmat \
 -I$FSLDIR/extras/include/boost/
 
-sudo ar rcs libutils.a matches.o functions.o usage.o check.o parse.o log.o time_tracer.o 
+sudo ar rcs libutils.a matches.o functions.o usage.o check.o parse.o log.o time_tracer.o
+
+echo recreating dcm2niilib
+sudo gcc -fPIC -g -c ../../../dcm2niix/console/jpg_0XC3.cpp ../../../dcm2niix/console/nifti1_io_core.cpp ../../../dcm2niix/console/nii_dicom.cpp ../../../dcm2niix/console/nii_dicom_batch.cpp ../../../dcm2niix/console/nii_foreign.cpp ../../../dcm2niix/console/nii_ortho.cpp ../../../dcm2niix/console/ujpeg.cpp \
+-DmyDisableOpenJPEG -DDEFINE_NIFTI_FUNCS
+
+sudo ar rcs libdcm2niix.a jpg_0XC3.o nifti1_io_core.o nii_dicom.o nii_dicom_batch.o nii_foreign.o nii_ortho.o ujpeg.o

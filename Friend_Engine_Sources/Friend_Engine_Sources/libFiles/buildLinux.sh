@@ -48,7 +48,7 @@ sudo ar rcs libmiscmaths.a miscmaths.o optimise.o miscprob.o kernel.o histogram.
 
 echo recreating fslio library
 sudo gcc -fPIC -g -c $FSLDIR/src/fslio/fslio.c \
--DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-DBUILDSTRING='"NEWEST"' -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/include/libprob \
@@ -109,7 +109,7 @@ sudo ar rcs libbasisfield.a dctfield.o splinefield.o basisfield.o splines.o
 
 echo recreating utils library
 sudo gcc -fPIC -g -c $FSLDIR/src/utils/matches.cc $FSLDIR/src/utils/functions.cc $FSLDIR/src/utils/usage.cc $FSLDIR/src/utils/check.cc $FSLDIR/src/utils/parse.cc $FSLDIR/src/utils/log.cc $FSLDIR/src/utils/time_tracer.cc \
--DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-DBUILDSTRING='"NEWEST"' -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/src/libgdc \
@@ -117,4 +117,11 @@ sudo gcc -fPIC -g -c $FSLDIR/src/utils/matches.cc $FSLDIR/src/utils/functions.cc
 -I$FSLDIR/extras/include/newmat \
 -I$FSLDIR/extras/include/boost/
 
-sudo ar rcs libutils.a matches.o functions.o usage.o check.o parse.o log.o time_tracer.o 
+sudo ar rcs libutils.a matches.o functions.o usage.o check.o parse.o log.o time_tracer.o
+
+echo recreating dcm2niilib
+sudo gcc -fPIC -g -c ../../../dcm2niix/console/jpg_0XC3.cpp ../../../dcm2niix/console/nifti1_io_core.cpp ../../../dcm2niix/console/nii_dicom.cpp ../../../dcm2niix/console/nii_dicom_batch.cpp ../../../dcm2niix/console/nii_foreign.cpp ../../../dcm2niix/console/nii_ortho.cpp ../../../dcm2niix/console/ujpeg.cpp \
+-DmyDisableOpenJPEG -DDEFINE_NIFTI_FUNCS
+
+sudo ar rcs libdcm2niix.a jpg_0XC3.o nifti1_io_core.o nii_dicom.o nii_dicom_batch.o nii_foreign.o nii_ortho.o ujpeg.o
+

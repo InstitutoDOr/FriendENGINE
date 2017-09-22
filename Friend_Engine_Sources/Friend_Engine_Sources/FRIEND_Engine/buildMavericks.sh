@@ -1,7 +1,8 @@
 g++ -w -c -x c++ \
-main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp  confusionmatrix.cpp session.cpp utils.cpp  dcm2niiInterface.cpp logObject.cpp \
--DUNIX -DDARWIN -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp confusionmatrix.cpp session.cpp utils.cpp  dcm2niiInterface.cpp logObject.cpp \
+-DDEFINE_NIFTI_FUNCS -DUNIX -DDARWIN -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I. \
+-I../../../dcm2niix/console \
 -I../PlugIn \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/src/newmat \
@@ -31,6 +32,7 @@ g++ -o ../Application/engine main.o process.o engine.o PlugInHandler.o confusion
 -L$FSLDIR/extras/lib \
 -L$FSLDIR/lib \
 -lm \
+-ldcm2niix \
 -lfslio \
 -lnewimage \
 -lmiscmaths \

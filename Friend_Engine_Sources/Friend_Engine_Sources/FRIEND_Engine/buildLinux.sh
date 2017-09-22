@@ -1,7 +1,8 @@
-sudo g++ \
-main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp  confusionmatrix.cpp session.cpp utils.cpp \
--DUNIX -DLINUX -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+g++ -w -c -x c++ \
+main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp confusionmatrix.cpp session.cpp utils.cpp  dcm2niiInterface.cpp logObject.cpp \
+-DDEFINE_NIFTI_FUNCS -DUNIX -DLINUX -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I. \
+-I../../../dcm2niix/console \
 -I../PlugIn \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/src/newmat \
@@ -9,7 +10,6 @@ main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp int
 -I$FSLDIR/extras/src/libgdc \
 -I$FSLDIR/extras/src/libpng \
 -I$FSLDIR/extras/src/libprob \
--I$FSLDIR/extras/src/zlib \
 -I../simpleini \
 -L$FSLDIR/extras/lib \
 -L$FSLDIR/lib \
@@ -25,4 +25,24 @@ main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp int
 -lgdc \
 -lgd \
 -lpng \
--lpthread -ldl -o ../Application/engine 2>&1 | tee erros.txt
+-lpthread -ldl
+
+g++ -o ../Application/engine main.o process.o engine.o PlugInHandler.o confusionmatrix.o session.o vardb.o  intervals.o socket.o socket2.o fslfuncs.o filefuncs.o defs.o parser.o utils.o dcm2niiInterface.o logObject.o \
+-L../libFiles \
+-L$FSLDIR/extras/lib \
+-L$FSLDIR/lib \
+-lm \
+-ldcm2niix \
+-lfslio \
+-lnewimage \
+-lmiscmaths \
+-lcprob \
+-lprob \
+-lnewmat \
+-lniftiio \
+-lz \
+-lznz \
+-lmiscplot \
+-lgdc \
+-lgd \
+-lpng
