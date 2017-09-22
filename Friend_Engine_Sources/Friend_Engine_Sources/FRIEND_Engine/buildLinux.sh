@@ -1,6 +1,6 @@
 g++ -w -c -x c++ \
 main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp confusionmatrix.cpp session.cpp utils.cpp  dcm2niiInterface.cpp logObject.cpp \
--DDEFINE_NIFTI_FUNCS -DUNIX -DLINUX -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-Ddcm2niifunction -DDEFINE_NIFTI_FUNCS -DUNIX -DLINUX -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I. \
 -I../../../dcm2niix/console \
 -I../PlugIn \
