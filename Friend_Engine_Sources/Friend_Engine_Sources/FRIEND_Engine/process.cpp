@@ -431,7 +431,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 #ifdef dcm2niifunction
 		if (fileExists(inFile))
 		{
-			if (isReadableSize(inFile, rifSize))
+			if (isReadableSize(inFile, rfiSize))
 			{
 				try
 				{

@@ -90,7 +90,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..\include;..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories);..\..\..\..\openjpeg\src\lib;..\..\..\..\dcm2niix\console</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCSOPJ_STATIC;_DEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCS;dcm2niifunction;OPJ_STATIC;_DEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -100,7 +100,7 @@
       <UndefinePreprocessorDefinitions>UNICODE</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\dcm2niiLib\$(IntDir)\dcm2niiLib.lib;..\..\corelib\$(IntDir)\corelib.lib;openjpeg.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\dcm2niiLib\$(IntDir)\dcm2niiLib.lib;..\..\corelib\$(IntDir)\corelib.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -112,7 +112,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..\include;..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories);..\..\..\..\openjpeg\src\lib;..\..\..\..\dcm2niix\console</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCSdcm2niifunction;OPJ_STATIC;WIN32;WIN64;_DEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCS;dcm2niifunction;OPJ_STATIC;WIN32;WIN64;_DEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -123,7 +123,7 @@
       </UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\dcm2niiLib\$(IntDir)\dcm2niiLib.lib;..\..\corelib\$(IntDir)\corelib.lib;openjpeg.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\dcm2niiLib\$(IntDir)\dcm2niiLib.lib;..\..\corelib\$(IntDir)\corelib.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OutputFile>..\..\Application\engine.exe</OutputFile>
@@ -136,7 +136,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>..\..\include;..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories);..\..\..\..\openjpeg\src\lib;..\..\..\..\dcm2niix\console</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCSdcm2niifunction;OPJ_STATIC;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCS;dcm2niifunction;OPJ_STATIC;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
@@ -146,7 +146,7 @@
       <UndefinePreprocessorDefinitions>UNICODE</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\dcm2niiLib\$(IntDir)\dcm2niiLib.lib;..\..\corelib\$(IntDir)\corelib.lib;openjpeg.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\dcm2niiLib\$(IntDir)\dcm2niiLib.lib;..\..\corelib\$(IntDir)\corelib.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -161,7 +161,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>..\..\include;..\..\..\Friend_Engine_Sources\CUDA;.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;%(AdditionalIncludeDirectories);..\..\..\..\openjpeg\src\lib;..\..\..\..\dcm2niix\console</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCSdcm2niifunction;OPJ_STATIC;NEWPIPELINE;_CRT_SECURE_NO_WARNINGS;WIN32;WIN64;NDEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCS;dcm2niifunction;OPJ_STATIC;NEWPIPELINE;_CRT_SECURE_NO_WARNINGS;WIN32;WIN64;NDEBUG;_CONSOLE;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -173,7 +173,7 @@
       </UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\dcm2niiLib\$(IntDir)\dcm2niiLib.lib;..\..\corelib\$(IntDir)\corelib.lib;openjpeg.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\dcm2niiLib\$(IntDir)\dcm2niiLib.lib;..\..\corelib\$(IntDir)\corelib.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
