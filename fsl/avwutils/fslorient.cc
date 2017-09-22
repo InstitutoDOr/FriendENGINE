@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 
 #ifndef EXPOSE_TREACHEROUS

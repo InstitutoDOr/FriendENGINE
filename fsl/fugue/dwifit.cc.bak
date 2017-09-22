@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,16 +61,19 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include "newimage/newimageall.h"
 #include "utils/options.h"
+#include "parser.h"
 
 #define _GNU_SOURCE 1
 #define POSIX_SOURCE 1
+
+namespace dwifit {
 
 using namespace NEWIMAGE;
 using namespace Utilities;
@@ -110,8 +113,7 @@ int do_dwifit()
 {
   volume4D<float> invol;
   volume<float> mask;
-  volumeinfo vinfo;
-  read_rad_volume4D(invol,involname.value(),vinfo);
+  read_rad_volume4D(invol,involname.value());
   read_rad_volume(mask,maskvolname.value());
 
   // make numbers better suited for calculations (only affects S0 term)
@@ -246,38 +248,47 @@ int do_dwifit()
 }
 
 
-int main(int argc,char *argv[])
+
+extern "C" __declspec(dllexport) int _stdcall dwifit(char *CmdLn)
 {
+		int argc;
+		char **argv;
 
-  OptionParser options(title, examples);
+		parser(CmdLn, argc, argv);
 
-  try {
-    options.add(involname);
-    options.add(outvolname);
-    options.add(maskvolname);
-    options.add(bmatrix);
-    options.add(designmatrix);
-    options.add(noweight);
-    options.add(verbose);
-    options.add(help);
-    
-    options.parse_command_line(argc, argv);
+		OptionParser options(title, examples);
 
-    if ( (help.value()) || (!options.check_compulsory_arguments(true)) )
-      {
-	options.usage();
-	exit(EXIT_FAILURE);
-      }
-    
-  }  catch(X_OptionError& e) {
-    options.usage();
-    cerr << endl << e.what() << endl;
-    exit(EXIT_FAILURE);
-  } catch(std::exception &e) {
-    cerr << e.what() << endl;
-  } 
+		try {
+			options.add(involname);
+			options.add(outvolname);
+			options.add(maskvolname);
+			options.add(bmatrix);
+			options.add(designmatrix);
+			options.add(noweight);
+			options.add(verbose);
+			options.add(help);
 
-  return do_dwifit();
+			options.parse_command_line(argc, argv);
+
+			if ((help.value()) || (!options.check_compulsory_arguments(true)))
+			{
+				options.usage();
+				exit(EXIT_FAILURE);
+			}
+
+		}
+		catch (X_OptionError& e) {
+			options.usage();
+			cerr << endl << e.what() << endl;
+			exit(EXIT_FAILURE);
+		}
+		catch (std::exception &e) {
+			cerr << e.what() << endl;
+		}
+
+		return do_dwifit();
+	}
+
 }
 
 

@@ -16,7 +16,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -65,7 +65,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 #include "mriseg_two.h" 
 #include "newimage/newimageall.h"
@@ -345,7 +345,7 @@ double inner=0.0f;
   for(int n=-1;n<=1;n++)
     for(int m=-1;m<=1;m++)
       for(int l=-1;l<=1;l++)
-	if((m_mask(x+l, y+m, z+n)==1))
+	if(m_mask(x+l, y+m, z+n)==1)
 	  inner+=MRFWeightsAM(l,m,n)*m_post.value(x+l, y+m, z+n, c);
   return inner;
 }

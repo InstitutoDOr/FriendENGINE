@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,18 +61,30 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include "unwarpfns.h"
 #include "utils/options.h"
+#include "parser.h"
 
 #define _GNU_SOURCE 1
 #define POSIX_SOURCE 1
 
 using namespace Utilities;
+
+void wrap(volume<float>& phasevol)
+{
+	for (int z = phasevol.minz(); z <= phasevol.maxz(); z++) {
+		for (int y = phasevol.miny(); y <= phasevol.maxy(); y++) {
+			for (int x = phasevol.minx(); x <= phasevol.maxx(); x++) {
+				phasevol(x, y, z) = wrap(phasevol(x, y, z));
+			}
+		}
+	}
+}
 
 namespace prelude {
 string title="prelude (Version 2.0 in c# minor)\nPhase Region Expanding Labeller for Unwrapping Discrete Estimates\nCopyright(c) 2001, University of Oxford (Mark Jenkinson)";
@@ -134,18 +146,6 @@ Option<string> inmask(string("-m,--mask"), string(""),
 		      false, requires_argument);
 
 ////////////////////////////////////////////////////////////////////////////
-
-
-void wrap(volume<float>& phasevol)
-{
-  for (int z=phasevol.minz(); z<=phasevol.maxz(); z++) {
-    for (int y=phasevol.miny(); y<=phasevol.maxy(); y++) {
-      for (int x=phasevol.minx(); x<=phasevol.maxx(); x++) {
-	phasevol(x,y,z) = wrap(phasevol(x,y,z));
-      }
-    }
-  }
-}
 
 
 int do_unwrapping() 
@@ -292,78 +292,91 @@ int do_unwrapping()
 
 
 
-int main(int argc,char *argv[])
+extern "C" __declspec(dllexport) int _stdcall prelude(char *CmdLn)
 {
+	int argc;
+	char **argv;
+
+	parser(CmdLn, argc, argv);
 
   Tracer tr("main");
   OptionParser options(title, examples);
 
-  try {
-    options.add(complexvol);
-    options.add(absvol);
-    options.add(phasevol);
-    options.add(uphasevol);
-    options.add(num_phase_split);
-    options.add(labelslices);
-    options.add(allslices);
-    options.add(force3D);
-    options.add(thresh);
-    options.add(inmask);
-    options.add(startimno);
-    options.add(endimno);
-    options.add(maskvol);
-    options.add(rawphasevol);
-    options.add(labelvol);
-    options.add(removeramps);
-    options.add(verbose);
-    options.add(help);
-    
-    options.parse_command_line(argc, argv);
+	try {
+		options.add(complexvol);
+		options.add(absvol);
+		options.add(phasevol);
+		options.add(uphasevol);
+		options.add(num_phase_split);
+		options.add(labelslices);
+		options.add(allslices);
+		options.add(force3D);
+		options.add(thresh);
+		options.add(inmask);
+		options.add(startimno);
+		options.add(endimno);
+		options.add(maskvol);
+		options.add(rawphasevol);
+		options.add(labelvol);
+		options.add(removeramps);
+		options.add(verbose);
+		options.add(help);
 
-    if ( (help.value()) || (!options.check_compulsory_arguments(true)) )
-      {
-	options.usage();
-	exit(EXIT_FAILURE);
-      }
-    
-    if ( ( (complexvol.set()) && (absvol.set()) ) || 
-	 ( (complexvol.set()) && (phasevol.set()) ) ) 
-      {
-	options.usage();
-	cerr << endl 
-	     << "Cannot specify both --complex AND --phase or --abs."
-	     << endl;
-	exit(EXIT_FAILURE);
-      }
- 
-    if ( ( (phasevol.set()) && (absvol.unset()) ) || 
-	 ( (phasevol.unset()) && (absvol.set()) ) ) 
-      {
-	options.usage();
-	cerr << endl 
-	     << "Both --phase AND --abs must be used together." 
-	     << endl;
-	exit(EXIT_FAILURE);
-      }
-    
-    if (num_phase_split.value() < 2)
-      {
-	options.usage();
-	cerr << endl 
-	     << "Always set --numphasesplit greater than 1." 
-	     << endl << "NOT " << num_phase_split.value() << endl;
-	exit(EXIT_FAILURE);
-      }
-    
-  }  catch(X_OptionError& e) {
-    options.usage();
-    cerr << endl << e.what() << endl;
-    exit(EXIT_FAILURE);
-  } catch(std::exception &e) {
-    cerr << e.what() << endl;
-  } 
+		options.parse_command_line(argc, argv);
 
-  return do_unwrapping();
+		if ((help.value()) || (!options.check_compulsory_arguments(true)))
+		{
+			options.usage();
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
+
+		if (((complexvol.set()) && (absvol.set())) ||
+			((complexvol.set()) && (phasevol.set())))
+		{
+			options.usage();
+			cerr << endl
+				<< "Cannot specify both --complex AND --phase or --abs."
+				<< endl;
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
+
+		if (((phasevol.set()) && (absvol.unset())) ||
+			((phasevol.unset()) && (absvol.set())))
+		{
+			options.usage();
+			cerr << endl
+				<< "Both --phase AND --abs must be used together."
+				<< endl;
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
+
+		if (num_phase_split.value() < 2)
+		{
+			options.usage();
+			cerr << endl
+				<< "Always set --numphasesplit greater than 1."
+				<< endl << "NOT " << num_phase_split.value() << endl;
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
+
+	}
+	catch (X_OptionError& e) {
+		options.usage();
+		cerr << endl << e.what() << endl;
+		freeparser(argc, argv);
+		return(EXIT_FAILURE);
+	}
+	catch (std::exception &e) {
+		cerr << e.what() << endl;
+	}
+
+	int r = do_unwrapping();
+	freeparser(argc, argv);
+	return r;
 }
 
 }

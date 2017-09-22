@@ -17,5 +17,6 @@ void defaultOptions(TDCMopts &opts, char *outdir);
 int singleDICOM(struct TDCMopts* opts, char *fname);
 void transformDicom(char *filename, char *outdir);
 void transformDicom(char *filename);
-void transformDicom2(char *filename, char *output);
+void transformDicom2(char *filename, char *output, int processDir = 0);
 void dropFilenameFromPath(char *path);
+struct TDICOMdata readDICOM(char * fname);

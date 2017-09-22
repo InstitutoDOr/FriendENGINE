@@ -64,10 +64,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include <iostream>
 #include <string>
@@ -770,8 +770,8 @@ extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
     }
   
   const double bet_main_parameter = pow(fractional_threshold.value(), .275);
-  
 
+  float originalX(testvol.xdim()),originalY(testvol.ydim()),originalZ(testvol.zdim());
   // 2D kludge (worked for bet, but not here in bet2, hohum)
   if (testvol.xsize()*testvol.xdim()<20) testvol.setxdim(200);
   if (testvol.ysize()*testvol.ydim()<20) testvol.setydim(200);
@@ -849,8 +849,6 @@ extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
       if (pass==10) // give up
 	self_intersection=0;
     }
-  
-
   //display
   volume<short> brainmask = make_mask_from_mesh(testvol, m);
   
@@ -875,6 +873,7 @@ extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
 	for (int j=0; j<ysize; j++)
 	  for (int i=0; i<xsize; i++)
 	    output.value(i, j, k) = (1-brainmask.value(i, j, k)) * output.value(i, j, k);
+      output.setdims(originalX,originalY,originalZ);
 	  if (save_volume(output,out.c_str())<0)  { freeparser(argc, argv); return -1;}
     }  
   
@@ -882,6 +881,7 @@ extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
     {
       string maskstr = out+"_mask";
       brainmask.setDisplayMaximumMinimum(1,0);
+      brainmask.setdims(originalX,originalY,originalZ);
 	  if (save_volume((short)1-brainmask, maskstr.c_str())<0)  { freeparser(argc, argv); return -1;}
     }
   
@@ -889,6 +889,7 @@ extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
     {
       string outlinestr = out+"_overlay";
       volume<float> outline = draw_mesh_bis(testvol, m);
+      outline.setdims(originalX,originalY,originalZ);	    
 	  if (save_volume(outline, outlinestr.c_str())<0)  { freeparser(argc, argv); return -1;}
     }
 
@@ -905,7 +906,7 @@ extern "C" __declspec(dllexport) int _stdcall bet(char *CmdLn)
 
       volume<short> bskull;
       copyconvert(skull,bskull);
-
+      bskull.setdims(originalX,originalY,originalZ);
 	  if (save_volume(bskull, skullstr.c_str())<0)  { freeparser(argc, argv); return -1; }
     }
 

@@ -1,6 +1,6 @@
 /*  invwarp.cc
 
-    Mark Jenkinson, FMRIB Image Analysis Group
+    Mark Jenkinson and Matthew Webster, FMRIB Image Analysis Group
 
     Copyright (C) 2001-2006 University of Oxford  */
 
@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,15 +61,16 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include "utils/options.h"
 #include "miscmaths/miscmaths.h"
 #include "warpfns/warpfns.h"
 #include "warpfns/fnirt_file_reader.h"
+#include "parser.h"
 
 #define _GNU_SOURCE 1
 #define POSIX_SOURCE 1
@@ -89,7 +90,7 @@ bool abs_warp=true;
 
 // COMMAND LINE OPTIONS
 
-string title="invwarp (Version 1.2)\nCopyright(c) 2007, University of Oxford (Mark Jenkinson)";
+string title="invwarp \nCopyright(c) 2007, University of Oxford (Mark Jenkinson)";
 string examples="invwarp -w warpvol -o invwarpvol -r refvol";
 
 Option<bool> verbose(string("-v,--verbose"), false, 
@@ -698,72 +699,84 @@ int invwarp()
 
 
 
-
-int main(int argc, char *argv[])
+extern "C" __declspec(dllexport) int _stdcall invwarp(char *CmdLn)
 {
+	int argc;
+	char **argv;
+
+	parser(CmdLn, argc, argv);
 
   Tracer tr("main");
 
   OptionParser options(title, examples);
 
-  try {
-    options.add(warpname);
-    options.add(outname);
-    options.add(refvolname);
-    options.add(relwarp);
-    options.add(abswarp);
-    options.add(niter);
-    options.add(lambdaval);
-    options.add(initwarpname);
-    options.add(nojaccon);
-    options.add(jmin);
-    options.add(jmax);
-    options.add(debug);
-    options.add(verbose);
-    options.add(help);
-    
-    int nparsed = options.parse_command_line(argc, argv);
-    if (nparsed < argc) {
-      for (; nparsed<argc; nparsed++) {
-        cerr << "Unknown input: " << argv[nparsed] << endl;
-      }
-      exit(EXIT_FAILURE);
-    }
+	try {
+		options.add(warpname);
+		options.add(outname);
+		options.add(refvolname);
+		options.add(relwarp);
+		options.add(abswarp);
+		options.add(niter);
+		options.add(lambdaval);
+		options.add(initwarpname);
+		options.add(nojaccon);
+		options.add(jmin);
+		options.add(jmax);
+		options.add(debug);
+		options.add(verbose);
+		options.add(help);
 
-    if ( (help.value()) || (!options.check_compulsory_arguments(true)) )
-      {
-	options.usage();
-	exit(EXIT_FAILURE);
-      }
-  } catch(X_OptionError& e) {
-    options.usage();
-    cerr << endl << e.what() << endl;
-    exit(EXIT_FAILURE);
-  } catch(std::exception &e) {
-    cerr << e.what() << endl;
-  } 
+		int nparsed = options.parse_command_line(argc, argv);
+		if (nparsed < argc) {
+			for (; nparsed<argc; nparsed++) {
+				cerr << "Unknown input: " << argv[nparsed] << endl;
+			}
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
 
-  if (abswarp.value() && relwarp.value()) {
-    cerr << "--abs and --rel flags cannot both be set" << endl;
-    exit(EXIT_FAILURE);
-  }
+		if ((help.value()) || (!options.check_compulsory_arguments(true)))
+		{
+			options.usage();
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
+	}
+	catch (X_OptionError& e) {
+		options.usage();
+		cerr << endl << e.what() << endl;
+		freeparser(argc, argv);
+		return(EXIT_FAILURE);
+	}
+	catch (std::exception &e) {
+		cerr << e.what() << endl;
+	}
 
-  volume4D<float>   warpvol;
-  try {
-    read_volume4D_hdr_only(warpvol,warpname.value());
-  }
-  catch(...) {
-    cerr << "invwarp: Problem reading warp-file " << warpname.value() << endl;
-    exit(EXIT_FAILURE);
-  }
-  if ((warpvol.intent_code()==FSL_CUBIC_SPLINE_COEFFICIENTS || 
-       warpvol.intent_code()==FSL_QUADRATIC_SPLINE_COEFFICIENTS || 
-       warpvol.intent_code()==FSL_DCT_COEFFICIENTS ||
-       warpvol.intent_code()==FSL_FNIRT_DISPLACEMENT_FIELD) &&
-      (abswarp.value() || relwarp.value())) {
-    cout << "--abs and --rel flags ignored when reading fnirt coefficient files" << endl;
-  }
+	if (abswarp.value() && relwarp.value()) {
+		cerr << "--abs and --rel flags cannot both be set" << endl;
+		freeparser(argc, argv);
+		return(EXIT_FAILURE);
+	}
 
-  return invwarp();
+	volume4D<float>   warpvol;
+	try {
+		read_volume4D_hdr_only(warpvol, warpname.value());
+	}
+	catch (...) {
+		cerr << "invwarp: Problem reading warp-file " << warpname.value() << endl;
+		freeparser(argc, argv);
+		return(EXIT_FAILURE);
+	}
+	if ((warpvol.intent_code() == FSL_CUBIC_SPLINE_COEFFICIENTS ||
+		warpvol.intent_code() == FSL_QUADRATIC_SPLINE_COEFFICIENTS ||
+		warpvol.intent_code() == FSL_DCT_COEFFICIENTS ||
+		warpvol.intent_code() == FSL_FNIRT_DISPLACEMENT_FIELD) &&
+		(abswarp.value() || relwarp.value())) {
+		cout << "--abs and --rel flags ignored when reading fnirt coefficient files" << endl;
+	}
+
+	int r = invwarp();
+	freeparser(argc, argv);
+	return r;
 }
 }

@@ -227,12 +227,12 @@ namespace MISCMATHS {
   kernel sinckernel(const string& sincwindowtype, int w, int nstore);
   kernel sinckernel(const string& sincwindowtype, 
 		    int wx, int wy, int wz, int nstore);
-  float extrapolate_1d(const ColumnVector data, const int index);
-  float interpolate_1d(ColumnVector data, const float index);
-  float kernelinterpolation_1d(ColumnVector data, float index, ColumnVector userkernel, int width);
-  float kernelinterpolation_1d(ColumnVector data, float index);
+  float extrapolate_1d(const ColumnVector& data, const int index);
+  float interpolate_1d(const ColumnVector& data, const float index);
+  float kernelinterpolation_1d(const ColumnVector& data, float index, const ColumnVector& userkernel, int width);
+  float kernelinterpolation_1d(const ColumnVector& data, float index);
   float kernelinterpolation_1d(RowVector data, float index);
-  float hermiteinterpolation_1d(ColumnVector data, int p1, int p4, float t);
+  float hermiteinterpolation_1d(const ColumnVector& data, int p1, int p4, float t);
 }
 
 #endif

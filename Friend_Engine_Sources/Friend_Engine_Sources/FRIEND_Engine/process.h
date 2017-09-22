@@ -74,7 +74,7 @@ private:
 	void realtimePipelineStep(char *rtPrefix, char *format, char *actualbaseline);
 public:
 
-	int rifSize;
+	int rfiSize;
 
 	// config file functions
 	void readConfigFile(char *configFile);
@@ -85,6 +85,8 @@ public:
 	// set socket data for response
 	void setSocketfd(int Sock);
 
+    // set logObject pointer
+    void setLogObject(LogObject * logO);
 
 	// Preprocessing steps
 	// initializating control variables

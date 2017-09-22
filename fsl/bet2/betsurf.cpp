@@ -64,10 +64,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include <iostream>
 #include <string>
@@ -103,7 +103,7 @@ void noMoreMemory()
 }
 
 string title="BETSURF (BET Surface Finder) v2.1 - FMRIB Analysis Group, Oxford";
-string examples=" betsurf          [options] <t1> <t2> <bet_mesh.off> <t1_to_standard.mat> <output>\n betsurf --t1only [options] <t1>      <bet_mesh.off> <t1_to_standard.mat> <output>";
+string examples=" betsurf          [options] <t1> <t2> <bet_mesh.vtk> <t1_to_standard.mat> <output>\n betsurf --t1only [options] <t1>      <bet_mesh.vtk> <t1_to_standard.mat> <output>";
 
 Option<bool> help(string("-h,--help"), false, 
 		     string("displays this help, then exits"), 
@@ -732,7 +732,7 @@ int t1only_main(int argc, char *argv[], int nb_pars, OptionParser & options){
     else realmesh = mprecise;
 
   realmesh.translation(- xdim * infxm, - ydim * infym, - zdim * infzm);
-  realmesh.save((outputstr+"_inskull_mesh.off").c_str());
+  realmesh.save((outputstr+"_inskull_mesh.vtk").c_str(),3);
 
 
   volume<short> maskinskull;
@@ -817,7 +817,7 @@ int t1only_main(int argc, char *argv[], int nb_pars, OptionParser & options){
   else realmesh2 = mprecise;
   
   realmesh2.translation(- xdim * infxm, - ydim * infym, - zdim * infzm);
-  realmesh2.save((outputstr+"_outskull_mesh.off").c_str());
+  realmesh2.save((outputstr+"_outskull_mesh.vtk").c_str(),3);
 
   volume<short> maskoutskull;
   maskoutskull = 0;
@@ -930,7 +930,7 @@ int t1only_main(int argc, char *argv[], int nb_pars, OptionParser & options){
   write2.destroy();
 
   m2.translation(-xdim * infxm, -ydim * infym, -zdim * infzm);
-  m2.save((outputstr+"_outskin_mesh.off").c_str());
+  m2.save((outputstr+"_outskin_mesh.vtk").c_str(),3);
 
   if (outline.value() | mask.value())
     {
@@ -1080,6 +1080,7 @@ vector<double> co_ext(const volume<float> & t1, const volume<float> & t2, const 
 	  m2 = pt2.last_point_over(m, .25);
 	  if (fabs(m2 - outskin) > 10) alloutput = false;
 	  else outskin = outskin;
+          // The line above is very suspicious
 	}
     }
 
@@ -1528,7 +1529,7 @@ extern "C" __declspec(dllexport) int _stdcall betsurf(char *CmdLn)
     else realmesh = mprecise;
 
   realmesh.translation(- xdim * infxm, - ydim * infym, - zdim * infzm);
-  realmesh.save((outputstr+"_inskull_mesh.off").c_str());
+  realmesh.save((outputstr+"_inskull_mesh.vtk").c_str(),3);
 
   volume<short> maskinskull;
   volume<short> maskinskull2;
@@ -1618,7 +1619,7 @@ extern "C" __declspec(dllexport) int _stdcall betsurf(char *CmdLn)
   else realmesh2 = mprecise;
   
   realmesh2.translation(- xdim * infxm, - ydim * infym, - zdim * infzm);
-  realmesh2.save((outputstr+"_outskull_mesh.off").c_str());
+  realmesh2.save((outputstr+"_outskull_mesh.vtk").c_str(),3);
 
 
   {
@@ -1723,7 +1724,7 @@ extern "C" __declspec(dllexport) int _stdcall betsurf(char *CmdLn)
   write2.destroy();
   
   m2.translation(-xdim * infxm, -ydim * infym, -zdim * infzm);
-  m2.save((outputstr+"_outskin_mesh.off").c_str());
+  m2.save((outputstr+"_outskin_mesh.vtk").c_str(),3);
   
   if (outline.value()| mask.value())
     {

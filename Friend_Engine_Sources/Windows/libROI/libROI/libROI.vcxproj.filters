@@ -13,49 +13,13 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="core">
-      <UniqueIdentifier>{aa03f06e-6e4a-4629-a925-9b2aacffaaf8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="main">
       <UniqueIdentifier>{01df3f9e-c6cc-4e7e-b084-f911b407351f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\defs.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\filefuncs.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\fslfuncs.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\intervals.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\masks.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\parser.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\socket.cxx">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\socket2.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\vardb.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\ROIbasedPlugIn\ROIPlugIn.cpp">
       <Filter>main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\logObject.cpp">
-      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

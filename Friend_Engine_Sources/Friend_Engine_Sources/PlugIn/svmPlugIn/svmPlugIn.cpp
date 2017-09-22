@@ -291,6 +291,7 @@ void SVMProcessing::writeLog(char *msg)
 		fprintf(svmLog, "%s", msg);
 		//fflush(svmLog);
 	}
+	vdbPtr->logObject->writeLog(1, msg);
 }
 
 // handles the testing

@@ -180,6 +180,8 @@ bool	friendEngine::serverChild(int	socketFd)
 	sprintf(configFile, "%s%c%s", workingDir, PATHSEPCHAR, "study_params.txt");
 	strcpy(exePath, workingDir);
 
+	// setting the logObject 
+	process.setLogObject(logObject);
 	// setting the response socket
 	process.setSocketfd(socketFd);
 	// setting the library path to the default directory
@@ -278,7 +280,7 @@ bool	friendEngine::serverChild(int	socketFd)
 						process.wrapUpRun();
 						logObject->writeLog(1, "Process object finalized.\n");
 						fflush(stderr);
-						//freopen("CON", "w", stderr);
+						logObject->closeLogFile();
 						break;
 					}
 					else

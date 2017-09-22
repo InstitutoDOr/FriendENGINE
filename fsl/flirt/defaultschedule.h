@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 // Set default schedule file
 //  Written by Mark Jenkinson  11/10/99
@@ -165,9 +165,13 @@ void setdefaultschedule(std::vector<string>& comms)
   comms.push_back("setoption smoothing 1");
   comms.push_back("setoption boundguess 1");
   comms.push_back("clear U");
-  comms.push_back("# also try the identity transform as a starting point at this resolution");
-  comms.push_back("setrow UF  1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1");
+  comms.push_back("# also try the qsform as a starting point at this resolution");
+  comms.push_back("setrowqsform UF");
   comms.push_back("optimise 12 UF:1-2  0.0   0.0   0.0   0.0   0.0   0.0   0.0  rel 1");
+  comms.push_back("# in addition, try qsform as the final transformation, not just an initialisation");
+  comms.push_back("clear UG");
+  comms.push_back("setrowqsform UG");
+  comms.push_back("measurecost 12 UG:1  0.0   0.0   0.0   0.0   0.0   0.0   0.0  rel 1");
   comms.push_back("sort U");
 }
 
@@ -249,8 +253,8 @@ void set2Ddefaultschedule(std::vector<string>& comms)
   comms.push_back("setoption boundguess 1");
   comms.push_back("setoption paramsubset 3  0 0 1 0 0 0 0 0 0 0 0 0  0 0 0 1 0 0 0 0 0 0 0 0  0 0 0 0 1 0 0 0 0 0 0 0");
   comms.push_back("clear U");
-  comms.push_back("# also try the identity transform as a starting point at this resolution");
-  comms.push_back("setrow UF  1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1");
+  comms.push_back("# also try the qsform as a starting point at this resolution");
+  comms.push_back("setrowqsform UF");
   comms.push_back("optimise 12 UF:1-2  0.0   0.0   0.0   0.0   0.0   0.0   0.0  rel 1");
   comms.push_back("sort U");
 }

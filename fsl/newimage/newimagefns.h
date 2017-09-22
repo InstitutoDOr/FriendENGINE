@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 // General image processing functions
 
@@ -83,6 +83,8 @@
 #include "complexvolume.h"
 #include "imfft.h"
 #include <queue>
+#include <algorithm>
+#include <stdint.h>
 
 #ifndef MAX
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -1632,99 +1634,92 @@ template <class T, class S>
   volume<T> morphfilter(const volume<T>& source, const volume<S>& kernel,
 			const string& filtertype)
     {
-		// implements a whole range of filtering, set by the string filtertype:
-		//  dilateM (mean), dilateD (mode), median, max or dilate, min or erode, 
-		//  erodeS (set to zero if any neighbour is zero)
-		extrapolation oldex = source.getextrapolationmethod();
-		if ((oldex == boundsassert) || (oldex == boundsexception))
-		{
-			source.setextrapolationmethod(constpad);
-		}
-		volume<T> result(source);
-		result = 0;
+      // implements a whole range of filtering, set by the string filtertype:
+      //  dilateM (mean), dilateD (mode), median, max or dilate, min or erode, 
+      //  erodeS (set to zero if any neighbour is zero)
+      extrapolation oldex = source.getextrapolationmethod();
+      if ((oldex==boundsassert) || (oldex==boundsexception)) 
+	{ source.setextrapolationmethod(constpad); }
+      volume<T> result(source);
+      result = 0;
 
-		int nker;
-		{
-			volume<S> dummy(kernel);
-			dummy.binarise((S)0.5);  //new cast to avoid warnings for int-type templates when compiling
-			nker = (int)dummy.sum();
-		}
+      int nker;
+      {
+	volume<S> dummy(kernel);
+	dummy.binarise((S)0.5);  //new cast to avoid warnings for int-type templates when compiling
+	nker = (int) dummy.sum();
+      }
+      
+      int midx, midy, midz;
+      if (    (( (kernel.maxz() - kernel.minz()) % 2)==1) || 
+	      (( (kernel.maxy() - kernel.miny()) % 2)==1) ||
+	      (( (kernel.maxx() - kernel.minx()) % 2)==1) ) 
+	{
+	  cerr << "WARNING:: Off-centre morphfilter being performed as kernel"
+	       << " has even dimensions" << endl;
+	}
+      midz=(kernel.maxz() - kernel.minz())/2;
+      midy=(kernel.maxy() - kernel.miny())/2;
+      midx=(kernel.maxx() - kernel.minx())/2;
+      int count=1;
 
-		int midx, midy, midz;
-		if ((((kernel.maxz() - kernel.minz()) % 2) == 1) ||
-			(((kernel.maxy() - kernel.miny()) % 2) == 1) ||
-			(((kernel.maxx() - kernel.minx()) % 2) == 1))
+      for (int z=result.minz(); z<=result.maxz(); z++) {
+	for (int y=result.miny(); y<=result.maxy(); y++) {
+	  for (int x=result.minx(); x<=result.maxx(); x++) {
+	    ColumnVector vals(nker);
+	    count=1;
+	    for (int mz=Max(kernel.minz(),result.minz()-z+midz); 
+		 mz<=Min(kernel.maxz(),result.maxz()-z+midz); mz++) {
+	      for (int my=Max(kernel.miny(),result.miny()-y+midy); 
+		   my<=Min(kernel.maxy(),result.maxy()-y+midy); my++) {
+		for (int mx=Max(kernel.minx(),result.minx()-x+midx); 
+		     mx<=Min(kernel.maxx(),result.maxx()-x+midx); mx++) {
+		  if (kernel(mx,my,mz)>0.5) {
+		    if ((filtertype!="dilateM" && filtertype!="dilateD") || source(x+mx-midx,y+my-midy,z+mz-midz)) vals(count++) = source(x+mx-midx,y+my-midy,z+mz-midz);
+		  }
+		}
+	      }
+	    }
+	    if (count>1) {
+	      ColumnVector littlevals;
+	      littlevals = vals.SubMatrix(1,count-1,1,1);
+	      if (filtertype=="median") {  
+		SortAscending(littlevals);                         //count/2 works for odd kernel (even count) count+1 gives edge compatibility
+		result(x,y,z) = (T)littlevals(Max(1,(count+1)/2)); //with steves IP, otherwise gives the IP median-1 element 
+	      } else if ((filtertype=="max") || (filtertype=="dilate")) result(x,y,z) = (T)littlevals.Maximum();
+	        else if ((filtertype=="min") || (filtertype=="erode"))   result(x,y,z) = (T)littlevals.Minimum();
+                else if (filtertype=="erodeS") {if (source(x,y,z)!=0 && littlevals.Minimum()==0) result(x,y,z) = 0; else result(x,y,z) = source(x,y,z);}
+                else if (filtertype=="dilateM") {if (source(x,y,z)==0) result(x,y,z) = (T)(littlevals.Sum()/--count); else result(x,y,z) = source(x,y,z);}
+                else if (filtertype=="dilateD") {if (source(x,y,z)==0){
+		SortDescending(littlevals); 
+                double max=littlevals(1);
+                int maxn=1;
+                double current=littlevals(1);
+                int currentn=1;
+                for(int i=2;i<count;i++)
 		{
-			cerr << "WARNING:: Off-centre morphfilter being performed as kernel"
-				<< " has even dimensions" << endl;
+		  if (littlevals(i)==current) currentn++;
+                  else
+		  {
+                    current=littlevals(i);
+		    if (currentn>maxn)
+		    {
+                      max=littlevals(i-1);
+                      maxn=currentn; 
+                    }
+                    currentn=1;
+                  }
+                }
+		result(x,y,z) = (T)max;} else result(x,y,z) = source(x,y,z);
 		}
-		midz = (kernel.maxz() - kernel.minz()) / 2;
-		midy = (kernel.maxy() - kernel.miny()) / 2;
-		midx = (kernel.maxx() - kernel.minx()) / 2;
-		int count = 1;
-
-		for (int z = result.minz(); z <= result.maxz(); z++) {
-			for (int y = result.miny(); y <= result.maxy(); y++) {
-				for (int x = result.minx(); x <= result.maxx(); x++) {
-					ColumnVector vals(nker);
-					count = 1;
-					for (int mz = Max(kernel.minz(), result.minz() - z + midz);
-						mz <= Min(kernel.maxz(), result.maxz() - z + midz); mz++) {
-						for (int my = Max(kernel.miny(), result.miny() - y + midy);
-							my <= Min(kernel.maxy(), result.maxy() - y + midy); my++) {
-							for (int mx = Max(kernel.minx(), result.minx() - x + midx);
-								mx <= Min(kernel.maxx(), result.maxx() - x + midx); mx++) {
-								if (kernel(mx, my, mz)>0.5) {
-									if ((filtertype != "dilateM" && filtertype != "dilateD") || source(x + mx - midx, y + my - midy, z + mz - midz)) vals(count++) = source(x + mx - midx, y + my - midy, z + mz - midz);
-								}
-							}
-						}
-					}
-					if (count>1) {
-						ColumnVector littlevals;
-						littlevals = vals.SubMatrix(1, count - 1, 1, 1);
-						if (filtertype == "median") {
-							SortAscending(littlevals);                         //count/2 works for odd kernel (even count) count+1 gives edge compatibility
-							result(x, y, z) = (T)littlevals(Max(1, (count + 1) / 2)); //with steves IP, otherwise gives the IP median-1 element 
-						}
-						else if ((filtertype == "max") || (filtertype == "dilate")) result(x, y, z) = (T)littlevals.Maximum();
-						else if ((filtertype == "min") || (filtertype == "erode"))   result(x, y, z) = (T)littlevals.Minimum();
-						else if (filtertype == "erodeS") { if (source(x, y, z) != 0 && littlevals.Minimum() == 0) result(x, y, z) = 0; else result(x, y, z) = source(x, y, z); }
-						else if (filtertype == "dilateM") { if (source(x, y, z) == 0) result(x, y, z) = (T)(littlevals.Sum() / --count); else result(x, y, z) = source(x, y, z); }
-						else if (filtertype == "dilateD") {
-							if (source(x, y, z) == 0){
-								SortDescending(littlevals);
-								double max = littlevals(1);
-								int maxn = 1;
-								double current = littlevals(1);
-								int currentn = 1;
-								for (int i = 2; i<count; i++)
-								{
-									if (littlevals(i) == current) currentn++;
-									else
-									{
-										current = littlevals(i);
-										if (currentn>maxn)
-										{
-											max = littlevals(i - 1);
-											maxn = currentn;
-										}
-										currentn = 1;
-									}
-								}
-								result(x, y, z) = (T)max;
-							}
-							else result(x, y, z) = source(x, y, z);
-						}
-						else imthrow("morphfilter:: Filter type " + filtertype + "unsupported", 7);
-					}
-					else result(x, y, z) = source(x, y, z);  // THE DEFAULT CASE (leave alone)
-				}
-			}
-		}
-		source.setextrapolationmethod(oldex);
-		return result;
-  }
+	        else imthrow("morphfilter:: Filter type " + filtertype + "unsupported",7);
+	    }   else result(x,y,z) = source(x,y,z);  // THE DEFAULT CASE (leave alone)
+	  }
+	}
+      }
+      source.setextrapolationmethod(oldex);
+      return result;
+    }
 
 
 
@@ -2303,125 +2298,122 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
    template <class T>
      volume4D<T> bandpass_temporal_filter(volume4D<T>& source,double hp_sigma, double lp_sigma)
       { 
-		  int hp_mask_size_PLUS, lp_mask_size_PLUS, hp_mask_size_MINUS, lp_mask_size_MINUS;
-		  double *hp_exp = NULL, *lp_exp = NULL, *array, *array2;
-		  volume4D<T> result(source);
+         int hp_mask_size_PLUS, lp_mask_size_PLUS, hp_mask_size_MINUS, lp_mask_size_MINUS;
+         double *hp_exp=NULL, *lp_exp=NULL, *array, *array2;
+         volume4D<T> result(source);
 
-		  if (hp_sigma <= 0) hp_mask_size_MINUS = 0;
-		  else hp_mask_size_MINUS = (int)(hp_sigma * 3);   /* this isn't a linear filter, so small hard cutoffs at ends don't matter */
-		  hp_mask_size_PLUS = hp_mask_size_MINUS;
-		  if (lp_sigma <= 0) lp_mask_size_MINUS = 0;
-		  else lp_mask_size_MINUS = (int)(lp_sigma * 20) + 2; /* this will be small, so we might as well be careful */
-		  lp_mask_size_PLUS = lp_mask_size_MINUS;
+         if (hp_sigma<=0) hp_mask_size_MINUS=0;
+         else hp_mask_size_MINUS=(int)(hp_sigma*3);   /* this isn't a linear filter, so small hard cutoffs at ends don't matter */
+         hp_mask_size_PLUS=hp_mask_size_MINUS;
+         if (lp_sigma<=0) lp_mask_size_MINUS=0;
+         else lp_mask_size_MINUS=(int)(lp_sigma*20)+2; /* this will be small, so we might as well be careful */
+         lp_mask_size_PLUS=lp_mask_size_MINUS;
 
 
 
-		  array = new double[source.tsize() + 2 * lp_mask_size_MINUS];
-		  array += lp_mask_size_MINUS;
-		  array2 = new double[source.tsize() + 2 * lp_mask_size_MINUS];
-		  array2 += lp_mask_size_MINUS;
+         array=new double[source.tsize()+2*lp_mask_size_MINUS];
+	 array+=lp_mask_size_MINUS;
+         array2=new double[source.tsize()+2*lp_mask_size_MINUS];
+         array2+=lp_mask_size_MINUS;
 
-		  if (hp_sigma>0)
-		  {
-			  hp_exp = new double[hp_mask_size_MINUS + hp_mask_size_PLUS + 1];
-			  hp_exp += hp_mask_size_MINUS;
-			  for (int t = -hp_mask_size_MINUS; t <= hp_mask_size_PLUS; t++)
-				  hp_exp[t] = exp(-0.5 * ((double)(t*t)) / (hp_sigma*hp_sigma));
-		  }
+         if (hp_sigma>0)
+         {
+            hp_exp=new double[hp_mask_size_MINUS+hp_mask_size_PLUS+1];
+            hp_exp+=hp_mask_size_MINUS;
+            for(int t=-hp_mask_size_MINUS; t<=hp_mask_size_PLUS; t++)
+            hp_exp[t] = exp( -0.5 * ((double)(t*t)) / (hp_sigma*hp_sigma) );
+         }
 
-		  if (lp_sigma>0)
-		  {
-			  double total = 0;
-			  lp_exp = new double[lp_mask_size_MINUS + lp_mask_size_PLUS + 1];
-			  lp_exp += lp_mask_size_MINUS;
-			  for (int t = -lp_mask_size_MINUS; t <= lp_mask_size_PLUS; t++)
-			  {
-				  lp_exp[t] = exp(-0.5 * ((double)(t*t)) / (lp_sigma*lp_sigma));
-				  total += lp_exp[t];
-			  }
+         if (lp_sigma>0)
+         {
+            double total=0;
+            lp_exp=new double[lp_mask_size_MINUS+lp_mask_size_PLUS+1];
+            lp_exp+=lp_mask_size_MINUS;
+            for(int t=-lp_mask_size_MINUS; t<=lp_mask_size_PLUS; t++)
+            {
+              lp_exp[t] = exp( -0.5 * ((double)(t*t)) / (lp_sigma*lp_sigma) );
+              total += lp_exp[t];
+            }
 
-			  for (int t = -lp_mask_size_MINUS; t <= lp_mask_size_PLUS; t++)
-				  lp_exp[t] /= total;
-		  }
-		  for (int z = 0; z<source.zsize(); z++)
-			  for (int y = 0; y<source.ysize(); y++)
-				  for (int x = 0; x<source.xsize(); x++)
-				  {
-					  for (int t = 0; t<source.tsize(); t++) array[t] = (double)source.value(x, y, z, t);
-					  if (hp_sigma>0)
-					  {
-						  int done_c0 = 0;
-						  double c0 = 0;
-						  double mean(0);
+            for(int t=-lp_mask_size_MINUS; t<=lp_mask_size_PLUS; t++)
+              lp_exp[t] /= total;
+         }
+         for(int z=0;z<source.zsize();z++)
+           for(int y=0;y<source.ysize();y++)	    
+	     for(int x=0;x<source.xsize();x++)
+	     {
+               for(int t=0; t<source.tsize(); t++) array[t] = (double)source.value(x,y,z,t);
+               if (hp_sigma>0)
+               {
+                 int done_c0=0;
+                 double c0=0;
+		 double mean(0);
 
-						  for (int t = 0; t<source.tsize(); t++)
-						  {
-							  int tt;
-							  double c, w, A = 0, B = 0, C = 0, D = 0, N = 0, tmpdenom;
-							  for (tt = MAX(t - hp_mask_size_MINUS, 0); tt <= MIN(t + hp_mask_size_PLUS, source.tsize() - 1); tt++)
-							  {
-								  int dt = tt - t;
-								  w = hp_exp[dt];
-								  A += w * dt;
-								  B += w * array[tt];
-								  C += w * dt * dt;
-								  D += w * dt * array[tt];
-								  N += w;
-							  }
-							  tmpdenom = C*N - A*A;
-							  if (tmpdenom != 0)
-							  {
-								  c = (B*C - A*D) / tmpdenom;
-								  if (!done_c0)
-								  {
-									  c0 = c;
-									  done_c0 = 1;
-								  }
-								  array2[t] = c0 + array[t] - c;
-							  }
-							  else  array2[t] = array[t];
-							  mean += array2[t];
-						  }
-						  if (1)
-						  {
-							  //Demean timeseries
-							  mean /= source.tsize();
-							  for (int t = 0; t<source.tsize(); t++)
-								  array2[t] -= mean;
-						  }
-						  memcpy(array, array2, sizeof(double)*source.tsize());
-					  }
-					  /* {{{ apply lowpass filter to 1D array */
-					  if (lp_sigma>0)
-					  {
-						  /* {{{ pad array at ends */
-						  for (int t = 1; t <= lp_mask_size_MINUS; t++)
-						  {
-							  array[-t] = array[0];
-							  array[source.tsize() - 1 + t] = array[source.tsize() - 1];
-						  }
-						  for (int t = 0; t<source.tsize(); t++)
-						  {
-							  double total = 0;
-							  double sum(0);
-							  int tt;
-							  for (tt = MAX(t - lp_mask_size_MINUS, 0); tt <= MIN(t + lp_mask_size_PLUS, source.tsize() - 1); tt++) {
-								  total += array[tt] * lp_exp[tt - t];
-								  sum += lp_exp[tt - t];
-							  }
-							  if (sum>0)
-								  array2[t] = total / sum;
-							  else
-								  array2[t] = total;
-						  }
-						  memcpy(array, array2, sizeof(double)*source.tsize());
+                 for(int t=0; t<source.tsize(); t++)
+                 {
+                    int tt;
+                    double c, w, A=0, B=0, C=0, D=0, N=0, tmpdenom;
+                    for(tt=MAX(t-hp_mask_size_MINUS,0); tt<=MIN(t+hp_mask_size_PLUS,source.tsize()-1); tt++)
+                    {
+                      int dt=tt-t;
+                      w = hp_exp[dt];
+                      A += w * dt;
+                      B += w * array[tt];
+                      C += w * dt * dt;
+                      D += w * dt * array[tt];
+                      N += w;
+                    }
+                    tmpdenom=C*N-A*A;
+                    if (tmpdenom!=0)
+	            {
+	               c = (B*C-A*D) / tmpdenom;
+	               if (!done_c0)
+	               {
+	                 c0=c;
+	                 done_c0=1;
+	               }
+	               array2[t] = c0 + array[t] - c;
+	             }
+	             else  array2[t] = array[t];
+		     mean+=array2[t];
+	          }
+		 //Demean timeseries
+		 mean/=source.tsize();
+                 for(int t=0; t<source.tsize(); t++)
+		   array2[t]-=mean;
+                 memcpy(array,array2,sizeof(double)*source.tsize());
+	       }
+	       /* {{{ apply lowpass filter to 1D array */
+               if (lp_sigma>0)
+               {
+          /* {{{ pad array at ends */
+                 for(int t=1; t<=lp_mask_size_MINUS; t++)
+                 {
+                    array[-t]=array[0];
+                    array[source.tsize()-1+t]=array[source.tsize()-1];
+                 }
+                 for(int t=0; t<source.tsize(); t++)
+                 { 
+                    double total=0;
+		    double sum(0);
+                    int tt;
+                    for(tt=MAX(t-lp_mask_size_MINUS,0); tt<=MIN(t+lp_mask_size_PLUS,source.tsize()-1); tt++) {
+		      total += array[tt] * lp_exp[tt-t];
+		      sum+=lp_exp[tt-t];
+		    }
+		    if (sum>0)
+		      array2[t] = total/sum;
+		    else
+		      array2[t] = total;
+		 }
+		 memcpy(array,array2,sizeof(double)*source.tsize());
 
-					  }
-					  /* {{{ write 1D array back to input 4D data */
-					  for (int t = 0; t<source.tsize(); t++) result.value(x, y, z, t) = (T)array[t];
-				  }
-		  return result;
-	 }
+	       }
+	  /* {{{ write 1D array back to input 4D data */
+               for(int t=0; t<source.tsize(); t++) result.value(x,y,z,t)= (T)array[t];
+	     }
+	 return result;
+      }
 
 
   ///////////////////////////////////////////////////////////////////////////
@@ -2539,6 +2531,12 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
 				   const std::vector<int>& equivlistb); 
 
   ////////////////////////////////////////////////////////////////////////////
+  struct offset {
+    int64_t x,y,z;
+  offset(const int64_t ix,const int64_t iy,const int64_t iz) : x(ix),y(iy),z(iz) {}
+  };
+
+  vector<offset> backConnectivity(int nDirections);
 
   template <class T>
   void nonunique_component_labels(const volume<T>& vol, 
@@ -2550,69 +2548,38 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
       copyconvert(vol,labelvol);
       labelvol = 0;
   
-      int labelnum=1;
-
+      int labelnum(0);
       equivlista.erase(equivlista.begin(),equivlista.end());
       equivlistb.erase(equivlistb.begin(),equivlistb.end());
-
-      for (int z=vol.minz(); z<=vol.maxz(); z++) {
-	for (int y=vol.miny(); y<=vol.maxy(); y++) {
+      vector<offset> neighbours(backConnectivity(numconnected));
+      for (int z=vol.minz(); z<=vol.maxz(); z++) 
+	for (int y=vol.miny(); y<=vol.maxy(); y++) 
 	  for (int x=vol.minx(); x<=vol.maxx(); x++) {
-	    T val = vol(x,y,z);
+	    T val(vol(x,y,z));
 	    if (val>0.5) {  // The eligibility test
-	      int lval = labelvol(x,y,z);
-	      for (int znew=z-1; znew<=z; znew++) {
-		int ystart=y, yend=y;
-		if (numconnected==6) {
-		  ystart += -1-znew+z;
-		} else {
-		  ystart += -1;
-		  yend += z-znew;
-		}
-		for (int ynew=ystart; ynew<=yend; ynew++) {
-		  int xstart=x, xend=x;
-		  if (numconnected==6) {
-		    xstart += -1 -(znew-z) -(ynew-y) -(znew-z)*(ynew-y);
-		    xend = xstart;
-		  } else if (numconnected==18) {
-		    xstart += -1 -(znew-z)*std::abs(ynew-y);
-		    xend = xstart + 2*(znew - z + std::abs(ynew-y));
-		  } else {
-		    xstart += -1;
-		    xend += 1 -2*(znew-z+1)*(ynew-y+1);
-		  }
-		  for (int xnew=xstart; xnew<=xend; xnew++) {
-		    if ( (xnew>=vol.minx()) && (ynew>=vol.miny()) 
-			 && (znew>=vol.minz())
-			 && (MISCMATHS::round(vol(xnew,ynew,znew)-val)==0) ) { 
-		      // Binary relation
-		      int lval2 = labelvol(xnew,ynew,znew);
-		      if (lval != lval2) {
-			if (lval!=0) {
-			  addpair2set(lval2,lval,equivlista,equivlistb);
-			}
-			labelvol(x,y,z) = lval2;
-			lval = lval2;
-		      }
-		    }
+	      int lval(labelvol(x,y,z));
+	      for (vector<offset>::iterator it=neighbours.begin();it!=neighbours.end();it++) {
+		int xnew(x+it->x),ynew(y+it->y),znew(z+it->z);
+		if ( (xnew>=vol.minx()) && (ynew>=vol.miny()) && (znew>=vol.minz())
+ 		     && (MISCMATHS::round(vol(xnew,ynew,znew)))==val) {
+		  // Binary relation
+		  int lval2 = labelvol(xnew,ynew,znew);
+		  if (lval != lval2) {
+		    if (lval!=0) 
+		      addpair2set(lval2,lval,equivlista,equivlistb);
+		    labelvol(x,y,z) = lval2;
+		    lval = lval2;
 		  }
 		}
 	      }
-	      if (lval==0) {
-		labelvol(x,y,z) = labelnum;
-		labelnum++;
-	      }
+	      if (lval==0) 
+		labelvol(x,y,z) = ++labelnum;
 	    }
 	  }
-	}
-      }
-      
     }
-
 
   template <class T>
   void nonunique_component_labels(const volume<T>& vol, 
-				  const volume<T>& mask,
 				  volume<int>& labelvol, 
 				  std::vector<int>& equivlista,
 				  std::vector<int>& equivlistb,
@@ -2622,65 +2589,35 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
       copyconvert(vol,labelvol);
       labelvol = 0;
   
-      int labelnum=1;
-
+      int labelnum(0);
       equivlista.erase(equivlista.begin(),equivlista.end());
       equivlistb.erase(equivlistb.begin(),equivlistb.end());
-
-      for (int z=vol.minz(); z<=vol.maxz(); z++) {
-	for (int y=vol.miny(); y<=vol.maxy(); y++) {
+      vector<offset> neighbours(backConnectivity(numconnected));
+      for (int z=vol.minz(); z<=vol.maxz(); z++) 
+	for (int y=vol.miny(); y<=vol.maxy(); y++) 
 	  for (int x=vol.minx(); x<=vol.maxx(); x++) {
-	    if (mask(x,y,z)>0.5) {  // The eligibility test
-	      int lval = labelvol(x,y,z);
-	      int val = vol(x,y,z);
-	      for (int znew=z-1; znew<=z; znew++) {
-		int ystart=y, yend=y;
-		if (numconnected==6) {
-		  ystart += -1-znew+z;
-		} else {
-		  ystart += -1;
-		  yend += z-znew;
-		}
-		for (int ynew=ystart; ynew<=yend; ynew++) {
-		  int xstart=x, xend=x;
-		  if (numconnected==6) {
-		    xstart += -1 -(znew-z) -(ynew-y) -(znew-z)*(ynew-y);
-		    xend = xstart;
-		  } else if (numconnected==18) {
-		    xstart += -1 -(znew-z)*std::abs(ynew-y);
-		    xend = xstart + 2*(znew - z + std::abs(ynew-y));
-		  } else {
-		    xstart += -1;
-		    xend += 1 -2*(znew-z+1)*(ynew-y+1);
-		  }
-		  for (int xnew=xstart; xnew<=xend; xnew++) {
-		    if ( (xnew>=vol.minx()) && (ynew>=vol.miny()) 
-			 && (znew>=vol.minz())
-			 && ((*binaryrelation)(vol(xnew,ynew,znew),val)) ) { 
-		      // Binary relation
-		      int lval2 = labelvol(xnew,ynew,znew);
-		      if (lval != lval2) {
-			if (lval!=0) {
-			  addpair2set(lval2,lval,equivlista,equivlistb);
-			}
-			labelvol(x,y,z) = lval2;
-			lval = lval2;
-		      }
-		    }
+	    T val(vol(x,y,z));
+	    if (val>0.5) {  // The eligibility test
+	      int lval(labelvol(x,y,z));
+	      for (vector<offset>::iterator it=neighbours.begin();it!=neighbours.end();it++) {
+		int xnew(x+it->x),ynew(y+it->y),znew(z+it->z);
+		if ((xnew>=vol.minx()) && (ynew>=vol.miny()) && (znew>=vol.minz())
+		     && ((*binaryrelation)(vol(xnew,ynew,znew),val))) {
+		  // Binary relation
+		  int lval2 = labelvol(xnew,ynew,znew);
+		  if (lval != lval2) {
+		    if (lval!=0) 
+		      addpair2set(lval2,lval,equivlista,equivlistb);
+		    labelvol(x,y,z) = lval2;
+		    lval = lval2;
 		  }
 		}
 	      }
-	      if (lval==0) {
-		labelvol(x,y,z) = labelnum;
-		labelnum++;
-	      }
+	      if (lval==0) 
+		labelvol(x,y,z) = ++labelnum;
 	    }
 	  }
-	}
-      }
-      
     }
-
 
   template <class T>
   volume<int> connected_components(const volume<T>& vol, ColumnVector& clustersize, int numconnected)
@@ -2688,7 +2625,7 @@ volume<S> extractpart(const volume<T>& v1, const volume<S>& v2, const volume<U>&
       volume<int> labelvol;
       copyconvert(vol,labelvol);
       std::vector<int> equivlista, equivlistb;
-      nonunique_component_labels(vol,labelvol,
+       nonunique_component_labels(vol,labelvol,
 				 equivlista,equivlistb,numconnected);
       relabel_components_uniquely(labelvol,equivlista,equivlistb,clustersize);
       return labelvol;
@@ -2737,11 +2674,15 @@ class distancemapper {
 private:
   const volume<T> &bvol;
   const volume<T> &mask;
+  const volume<T> &bvolneg;
   vector<rowentry> schedule;
-  Matrix octantsign;
+  vector<offset> octantsign;
+  bool dualmasks;
 public:
   // basic constructor takes binaryvol (mask of valid values) 
   //   + maskvol (non-zero at desired calculated points only)
+  //   Dual binaryvol version (maskpos and maskneg) for signed distance to nearest mask
+  distancemapper(const volume<T>& binarypos, const volume<T>& binaryneg, const volume<T>& maskvol);
   distancemapper(const volume<T>& binaryvol, const volume<T>& maskvol);
   ~distancemapper();
   volume<float> distancemap();
@@ -2760,11 +2701,22 @@ private:
 };
 
 template <class T>
-distancemapper<T>::distancemapper(const volume<T>& binaryvol, const volume<T>& maskvol) :
-  bvol(binaryvol), mask(maskvol)
+distancemapper<T>::distancemapper(const volume<T>& binarypos, const volume<T>& binaryneg, const volume<T>& maskvol) :
+  bvol(binarypos), mask(maskvol), bvolneg(binaryneg)
 {
   if (!samesize(bvol,mask)) imthrow("Mask and image not the same size",20);
-  octantsign.ReSize(8,3);
+  if (!samesize(bvol,bvolneg)) imthrow("Two binary images are not the same size",20);
+  dualmasks=true;
+  setup_globals();
+}
+
+
+template <class T>
+distancemapper<T>::distancemapper(const volume<T>& binaryvol, const volume<T>& maskvol) :
+  bvol(binaryvol), mask(maskvol), bvolneg(binaryvol)
+{
+  if (!samesize(bvol,mask)) imthrow("Mask and image not the same size",20);
+  dualmasks=false;
   setup_globals();
 }
 
@@ -2779,26 +2731,16 @@ int distancemapper<T>::setup_globals()
 {
   // octantsign gives the 8 different octant sign combinations for coord
   //  offsets
-  int row=1;
-  for (int p=-1; p<=1; p+=2) {
-    for (int q=-1; q<=1; q+=2) {
-      for (int r=-1; r<=1; r+=2) {
-	octantsign(row,1)=p;
-	octantsign(row,2)=q;
-	octantsign(row,3)=r;
-	row++;
-      }
-    }
-  }
+  for (int p=-1; p<=1; p+=2) 
+    for (int q=-1; q<=1; q+=2) 
+      for (int r=-1; r<=1; r+=2) 
+	octantsign.push_back(offset(p,q,r));
 
   // construct list of displacements (in one octant) in ascending
   // order of distance
   for (int z=bvol.minz(); z<=bvol.maxz(); z++) {
     for (int y=bvol.miny(); y<=bvol.maxy(); y++) {
       for (int x=bvol.minx(); x<=bvol.maxx(); x++) {
-	if ( (x==0) && (y==0) && (z==0) ) 
-         { // do nothing 
-         } else {
 	   rowentry newrow;
 	   newrow.x=x;
 	   newrow.y=y;
@@ -2806,7 +2748,6 @@ int distancemapper<T>::setup_globals()
 	   float d2 = norm2sq(x*bvol.xdim(),y*bvol.ydim(),z*bvol.zdim());
 	   newrow.d=d2;
 	   schedule.push_back(newrow);
-         }
       }
     }
   }
@@ -2823,7 +2764,8 @@ int distancemapper<T>::find_nearest(int x, int y, int z, int& x1, int& y1, int& 
 				 bool findav, ColumnVector& localav,
 				 const volume4D<float>& vals)
 {
-  float sumw=0.0, mindist=0.0, maxdist=0.0, weight;
+  float sumw=0.0, mindist=0, maxdist=0.0, weight;
+  float minVoxSize = std::min(bvol.xdim(),std::min(bvol.ydim(),bvol.zdim()));
   ColumnVector sumvw;
   if (findav) { 
     localav.ReSize(vals.tsize()); 
@@ -2831,45 +2773,35 @@ int distancemapper<T>::find_nearest(int x, int y, int z, int& x1, int& y1, int& 
     sumvw.ReSize(vals.tsize());
     sumvw=0.0;
   }
-  for (int r=0; r<(int) schedule.size(); r++) 
-  {
-    for (int p=1; p<=8; p++) 
-      {
-	int dx=MISCMATHS::round(schedule[r].x*octantsign(p,1));
-	int dy=MISCMATHS::round(schedule[r].y*octantsign(p,2));
-	int dz=MISCMATHS::round(schedule[r].z*octantsign(p,3));
-	if (bvol.in_bounds(x+dx,y+dy,z+dz) && (bvol.value(x+dx,y+dy,z+dz)>0.5)) 
-	  { 
-	    x1=x+dx; y1=y+dy; z1=z+dz; 
-	    if (!findav) { 
-	      return 0;
-	    } else {
-	      if (mindist==0.0) {  // first time a point is encountered
-		mindist=schedule[r].d;
-		// select distance band to average over (farther -> more)
-		maxdist=MISCMATHS::Max(mindist+1.0,mindist*1.5);
-	      } else {
-		if ( (schedule[r].d>maxdist) )
-		  {  // stop after maxdist reached
-		    localav=sumvw/sumw;
-		    return 0;
-		  }
+  for (vector<rowentry>::iterator it=schedule.begin(); it!=schedule.end();it++) {
+    for (vector<offset>::iterator oit=octantsign.begin(); oit!=octantsign.end();oit++) {
+	x1=x+it->x*oit->x;
+	y1=y+it->y*oit->y;
+	z1=z+it->z*oit->z;
+	if (bvol.in_bounds(x1,y1,z1)) {
+	    bool primaryValid( bvol.value(x1,y1,z1) > 0.5);
+	    if ( primaryValid || ( dualmasks && (bvolneg.value(x1,y1,z1)>0.5))) { 
+	      if ((!findav) || (dualmasks)) {
+		return primaryValid ? 1 : -1; //Either primary or secondary is valid, so if primary is false...
+	      } else if (mindist==0.0) {  // first time a point is encountered
+		  mindist=it->d;
+		  // select distance band to average over (farther -> more)
+		  maxdist=MISCMATHS::Max(mindist+minVoxSize,mindist*1.5);
+	      } else if (it->d>maxdist) {  // stop after maxdist reached
+		localav=sumvw/sumw;
+		return 1;
 	      }
-	      weight = mindist/schedule[r].d;
+	      weight = it->d ? mindist/it->d : 1;
 	      sumw += weight;
-	      for (int t=0; t<vals.tsize(); t++) {
-		sumvw(t+1) += weight * vals.value(x+dx,y+dy,z+dz,t);
-	      }
+	      for (int t=0; t<vals.tsize(); t++) 
+		  sumvw(t+1) += weight * vals.value(x1,y1,z1,t);
 	    }
-	  }
-      }
-  }
-  // return furtherest point (in error)
-  x1= x + MISCMATHS::round(schedule.back().x);
-  y1= y + MISCMATHS::round(schedule.back().y);
-  z1= z + MISCMATHS::round(schedule.back().z);
-  if (!findav) { if (sumw>0) { localav=sumvw/sumw; return 0; } else localav=0.0; }
-  return 1;
+	}
+    }
+  }	  
+  // return most distant point (as last resort)
+  if (findav) { if (sumw>0) { localav=sumvw/sumw; return 1; }}//should be (findav) and not not?
+  return 0;  // not found any binary voxel (true for a zero image)
 }
 
 template <class T>
@@ -2948,13 +2880,13 @@ int distancemapper<T>::create_distancemap(volume4D<float>& vout,
   mask8.binarise(0.5f);
   // only keep results in zero part of mask as well as the
   //  original points
-  vout = valim*(1.0f-mask) + im8*mask8;
+  volume4D<float> vres(valim*(1.0f-mask) + im8*mask8);
   mask8 = mask - mask8;   // only calculate new points in the "gap"
   // now run basic_create_distancemap at full resolution, but with the
   //  new mask extra filled-in areas from above
-  distancemapper<float> newdmapper(1.0f - mask8,mask8);
-  volume4D<float> vres(vout);
-  return newdmapper.basic_create_distancemap(vres,vout,interpmethod);
+  volume<float> invmask8(1.0f - mask8);
+  distancemapper<float> newdmapper(invmask8,mask8);
+  return newdmapper.basic_create_distancemap(vout,vres,interpmethod);
 }
 
 // The following function creates the distancemap or interpolated image
@@ -2967,7 +2899,7 @@ int distancemapper<T>::basic_create_distancemap(volume4D<float>& vout,
 {
   int x1, y1, z1;
   ColumnVector localav;
-  int interp=0;
+  int interp=0, distsign=1;
   if ((interpmethod=="nn") || (interpmethod=="nearestneighbour")) interp=1;
   if (interpmethod=="general") interp=2;
   if (interp>0) { vout = valim; } else { vout = bvol; vout *= 0.0f; }
@@ -2978,11 +2910,7 @@ int distancemapper<T>::basic_create_distancemap(volume4D<float>& vout,
     for (int y=vout.miny(); y<=vout.maxy(); y++) {
       for (int x=vout.minx(); x<=vout.maxx(); x++) {
 	if (mask(x,y,z)>((T) 0.5)) {
-	  if (interp>=2) {
-	    find_nearest(x,y,z,x1,y1,z1,true,localav,valim);
-	  } else {
-	    find_nearest(x,y,z,x1,y1,z1);
-	  }
+	  distsign=find_nearest(x,y,z,x1,y1,z1,interp>=2,localav,valim);
 	  switch (interp) {
 	  case 2:
 	    for (int t=0;t<valim.tsize();t++) { vout(x,y,z,t)=localav(t+1); }
@@ -2992,7 +2920,7 @@ int distancemapper<T>::basic_create_distancemap(volume4D<float>& vout,
 	    break;
 	  case 0:
 	  default:
-	    vout(x,y,z,0)=sqrt(norm2sq((x1-x)*bvol.xdim(),
+	    vout(x,y,z,0)=distsign*sqrt(norm2sq((x1-x)*bvol.xdim(),
 				       (y1-y)*bvol.ydim(),(z1-z)*bvol.zdim()));
 	  }
 	}
@@ -3038,10 +2966,16 @@ volume<float> distancemap(const volume<T>& binaryvol, const volume<T>& mask)
 }
 
 template <class T>
-volume<float> sparseinterpolate(const volume<T>& sparsesamps, 
-				const volume<T>& mask,
-				const string& interpmethod)
+volume<float> distancemap(const volume<T>& binarypos, const volume<T>& binaryneg, const volume<T>& maskvol)
 {
+  distancemapper<T> dmapper(binarypos,binaryneg,maskvol);
+  return dmapper.distancemap();
+}
+
+template <class T>
+volume<float> sparseinterpolate(const volume<T>& sparsesamps,
+ 				const volume<T>& mask,
+ 				const string& interpmethod) {
   // can have "general" or "nearestneighbour" (or "nn") for interpmethod
   volume4D<T> sparsesamps4;
   volume4D<float> result;

@@ -29,8 +29,6 @@ char extension[]="";
 char extension[] = "";
 #endif
 
-#define numPasses 10000
-
 // set socket data for response
 void FriendProcess::setSocketfd(int Sock)
 {
@@ -441,7 +439,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 #ifdef dcm2niifunction
 		if (fileExists(inFile))
 		{
-			if (isReadableSize(inFile, rifSize))
+			if (isReadableSize(inFile, rfiSize))
 			{
 				try
 				{
@@ -457,7 +455,7 @@ BOOL FriendProcess::isReadyNextFileCore(int indexIn, int indexOut, char *rtPrefi
 #else
 		if (fileExists(inFile) && fileExists(dcm2niiExe))
 		{
-			if (isReadableSize(inFile, rifSize))
+			if (isReadableSize(inFile, rfiSize))
 			{
 				// executes the dcm2nii tool
 				stringstream osc;
@@ -679,10 +677,14 @@ void FriendProcess::runRealtimePipeline()
 	char format[30];
 	char msg[50];
    
-	rifSize = fileSize(vdb.rfiFile);
+	rfiSize = fileSize(vdb.rfiFile);
 	sprintf(auxConfigFile, "%sstudy_params%s.txt", vdb.outputDir, vdb.trainFeatureSuffix);
 	vdb.readedIni.SaveFile(auxConfigFile);
 	vdb.logObject->writeLog(1, "######################### processing pipeline begin ######################\n");
+
+	char logName[500];
+	sprintf(logName, "%s%c%s%s.txt", vdb.logDir, PATHSEPCHAR, "outputLog", vdb.trainFeatureSuffix);
+	vdb.logObject->initializeLogFile(logName);
 
 	if (vdb.interval.intervals.size())
 	{
@@ -1224,6 +1226,11 @@ void FriendProcess::wrapUpRun()
    }
    else vdb.logObject->writeLog(1, "Pipeline not executed.\n");
    
+}
+
+void FriendProcess::setLogObject(LogObject * logO)
+{
+	vdb.logObject = logO;
 }
 
 void FriendProcess::setSessionPointer(Session *sessionPtr)

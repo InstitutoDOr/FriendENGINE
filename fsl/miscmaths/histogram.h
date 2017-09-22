@@ -1,6 +1,6 @@
 /*  histogram.h
 
-    Mark Woolrich, FMRIB Image Analysis Group
+    Mark Woolrich, Matthew Webster and Emma Robinson, FMRIB Image Analysis Group
 
     Copyright (C) 1999-2000 University of Oxford  */
 
@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -61,13 +61,13 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
-#if !defined(__histogram_h)
-#define __histogram_h
+#if !defined(_histogram_h)
+#define _histogram_h
 
 #include <iostream>
 #include <fstream>
@@ -87,11 +87,11 @@ namespace MISCMATHS {
     public:
       Histogram(){};
       const Histogram& operator=(const Histogram& in){
-	sourceData=in.sourceData; calcRange=in.calcRange; histMin=in.histMin; histMax=in.histMax; bins=in.bins;
+	sourceData=in.sourceData; calcRange=in.calcRange; histMin=in.histMin; histMax=in.histMax; bins=in.bins; histogram=in.histogram; CDF=in.CDF; datapoints=in.datapoints; exclusion=in.exclusion;
 	return *this;
       }
 
-      Histogram(const Histogram& in){*this=in;}
+      Histogram(const Histogram& in){ *this=in;}
 
       Histogram(const ColumnVector& psourceData, int numBins)
 	: sourceData(psourceData), calcRange(true), bins(numBins){}
@@ -108,11 +108,14 @@ namespace MISCMATHS {
       }
 
       void generate();
-      
+      void generate(ColumnVector exclusion_values);
+      ColumnVector generateCDF();
+
       float getHistMin() const {return histMin;}
       float getHistMax() const {return histMax;}
       void setHistMax(float phistMax) {histMax = phistMax;}
       void setHistMin(float phistMin) {histMin = phistMin;}
+      void setexclusion(ColumnVector exclusion_values) {exclusion =exclusion_values;}
       void smooth();
 
       int integrateAll() {return sourceData.Nrows();}
@@ -123,18 +126,26 @@ namespace MISCMATHS {
       int integrateToInf(float value) const { return integrate(value, histMax); }
       int integrateFromInf(float value) const { return integrate(histMin, value); }
       int integrate(float value1, float value2) const;
-
+    
+      void match(Histogram &);
+      
       float mode() const;
 
       int getBin(float value) const;
       float getValue(int bin) const;
+      float getPercentile(float perc);
 
+      inline int getNumBins() const {return bins;}
+      inline ColumnVector getCDF() const {return CDF;}
+      inline ColumnVector getsourceData()const {return sourceData;}
     protected:
 
     private:
 
       ColumnVector sourceData;
       ColumnVector histogram;
+      ColumnVector exclusion;
+      ColumnVector CDF;
 
       bool calcRange;
 
@@ -142,6 +153,7 @@ namespace MISCMATHS {
       float histMax;
 
       int bins; // number of bins in histogram
+      int datapoints;
     };
 
   inline int Histogram::getBin(float value) const
@@ -155,6 +167,21 @@ namespace MISCMATHS {
       return (bin*(histMax-histMin))/(float)bins + histMin;
     }
 
+  inline ColumnVector Histogram::generateCDF() 
+    { 
+     
+     
+      CDF.ReSize(bins);
+      
+      
+      CDF(1)=histogram(1)/datapoints;
+  
+      for (int i=2;i<=bins;i++)
+	CDF(i)=CDF(i-1)+ histogram(i)/datapoints;
+
+     
+      return CDF;
+    }
 }
 
 #endif

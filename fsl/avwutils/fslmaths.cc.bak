@@ -147,8 +147,9 @@ int printUsage(const string& programName)
   cout << "\nKernel operations (set BEFORE filtering operation if desired):" << endl;
   cout << " -kernel 3D : 3x3x3 box centered on target voxel (set as default kernel)" << endl;
   cout << " -kernel 2D : 3x3x1 box centered on target voxel" << endl;
-  cout << " -kernel box    <size>     : all voxels in a box of width <size> centered on target voxel" << endl;
-  cout << " -kernel boxv   <size>     : <size>x<size>x<size> box centered on target voxel, CAUTION: size should be an odd number" << endl;
+  cout << " -kernel box    <size>     : all voxels in a cube of width <size> mm centered on target voxel" << endl;
+  cout << " -kernel boxv   <size>     : all voxels in a cube of width <size> voxels centered on target voxel, CAUTION: size should be an odd number" << endl;
+  cout << " -kernel boxv3  <X> <Y> <Z>: all voxels in a cuboid of dimensions X x Y x Z centered on target voxel, CAUTION: size should be an odd number" << endl;
   cout << " -kernel gauss  <sigma>    : gaussian kernel (sigma in mm, not voxels)" << endl;
   cout << " -kernel sphere <size>     : all voxels in a sphere of radius <size> mm centered on target voxel" << endl;
   cout << " -kernel file   <filename> : use external file as kernel" << endl;
@@ -629,8 +630,9 @@ if (!separatenoise)
        else if(string(argv[i+1])=="3D") kernel=box_kernel(3,3,3);
        else
        {
- 	     float size=atof(argv[i+2]);
-
+	 float size=atof(argv[i+2]);
+	 separable=false;
+         if(string(argv[i+1])=="box" || string(argv[i+1])=="boxv" || string(argv[i+1])=="boxv3" || string(argv[i+1])=="gauss") separable=true;       
 
 	 if(string(argv[i+1])=="box")         kernel=box_kernel(size,xdim,ydim,zdim);
 	 else if(string(argv[i+1])=="boxv")   kernel=box_kernel((int)size,(int)size,(int)size);
@@ -638,8 +640,6 @@ if (!separatenoise)
          else if(string(argv[i+1])=="gauss")  kernel=gaussian_kernel3D(size,xdim,ydim,zdim);
          else if(string(argv[i+1])=="sphere") kernel=spherical_kernel(size,xdim,ydim,zdim);
 	 else if(string(argv[i+1])=="file")   read_volume(kernel,string(argv[i+2]));
-         if(string(argv[i+1])=="box" || string(argv[i+1])=="boxv" || string(argv[i+1])=="boxv3" || string(argv[i+1])=="gauss") separable=true;       
-         else separable=false;
 	 i++;
        }
        i++;

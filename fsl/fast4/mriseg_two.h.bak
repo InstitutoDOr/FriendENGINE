@@ -3,7 +3,7 @@
     John Vickers, Mark Jenkinson, Steve Smith and Matthew Webster
     FMRIB Image Analysis Group
 
-    Copyright (C) 2005-2007 University of Oxford  */
+    Copyright (C) 2005-2009 University of Oxford  */
 
 /*  Part of FSL - FMRIB's Software Library
     http://www.fmrib.ox.ac.uk/fsl
@@ -118,7 +118,8 @@ private:
   void pveClassification(int x, int y, int z);
   void pveClassification();
   void Probabilities(int index);
-  void Volumesquant(const NEWIMAGE::volume4D<float>& probs);
+  void calculateVolumes(const NEWIMAGE::volume4D<float>& probs);
+  void printVolumeTotals();
   void PVClassificationStep();
   void ICMPV();
   void PVEnergyInit();

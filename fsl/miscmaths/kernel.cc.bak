@@ -255,20 +255,14 @@ namespace MISCMATHS {
   {
     int widthx = (width - 1)/2;
     // kernel half-width  (i.e. range is +/- w)
-
     int ix0;
     ix0 = (int) floor(index);
     
-    static int wx=0;
-    static float *storex = 0;
-    if ( (wx!=widthx) || (storex==0) ) {
-	wx=widthx;
-        storex = new float[2*wx+1]; 
-        for (int d=-wx; d<=wx; d++) {
-          storex[d+wx] = kernelval((index-ix0+d),wx,userkernel);
-        }
-    }
-  
+    int wx(widthx);
+    vector<float> storex(2*wx+1);
+    for (int d=-wx; d<=wx; d++) 
+       storex[d+wx] = kernelval((index-ix0+d),wx,userkernel);
+
     float convsum=0.0, interpval=0.0, kersum=0.0;
     
     int xj;
@@ -276,8 +270,6 @@ namespace MISCMATHS {
       if (in_bounds(data, x1)) {
 	xj=ix0-x1+wx;
 	float kerfac = storex[xj];
-	//	cerr << "x1 = " << x1 << endl;
-	//      cerr << "data(x1) = " << data(x1) << endl;
 	convsum += data(x1) * kerfac;
 	kersum += kerfac;
       }
@@ -288,9 +280,6 @@ namespace MISCMATHS {
     } else {
       interpval = (float) extrapolate_1d(data, ix0);
     }
-
-    // cerr << "interpval = " << interpval << endl;
-
     return interpval;
   }
   

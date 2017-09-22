@@ -42,7 +42,7 @@ void transformDicom(char *filename, char *outdir)
 	else singleDICOM(&opts, filename);
 }
 
-void transformDicom2(char *filename, char *output)
+void transformDicom2(char *filename, char *output, int processDir)
 {
 	TDCMopts opts;
 	char auxFile[1024], outdir[1024];
@@ -52,10 +52,10 @@ void transformDicom2(char *filename, char *output)
 
 	changeFileExt(output, "", auxFile);
 	extractFileName(auxFile, opts.filename);
-//	opts.isVerbose = 2;
-	if (0)
+	if (processDir) 
 	{
-		strcpy(opts.indir, filename);
+		extractFilePath(filename, auxFile);
+		strcpy(opts.indir, auxFile);
 		nii_loadDir(&opts);
 	}
 	else singleDICOM(&opts, filename);

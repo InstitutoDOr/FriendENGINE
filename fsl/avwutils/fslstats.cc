@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include "miscmaths/miscmaths.h"
 #include "newimage/newimageall.h"
@@ -194,391 +194,432 @@ int generate_masks(volume4D<float>& mask, volume4D<float>& masknz, const volume4
 
 int fmrib_main_float(int argc, char* argv[],const bool timeseriesMode, const string& indexMaskName) 
 {
-  cout.setf(ios::dec); 
-  cout.setf(ios::fixed, ios::floatfield); 
-  cout.setf(ios::left, ios::adjustfield); 
-  cout.precision(6);  
-  volume4D<float> vol, inputMaster;
-  volume4D<int> indexMask;
-  if ( timeseriesMode || indexMaskName != "" ) 
-    read_volume4D(inputMaster,argv[1]);
-  else 
-    read_volume4D(vol,argv[1]);
-  volume4D<float> & indexMaster = (timeseriesMode ) ? vol : inputMaster;
-  if ( indexMaskName != "" ) 
-    read_volume4D(indexMask,indexMaskName);
-  int nTimepoints((timeseriesMode) ? inputMaster.tsize() : 1), nIndices((indexMaskName != "") ? indexMask.max() : 1);
-  for ( int timepoint=0; timepoint < nTimepoints ; timepoint++ ) {
-   for ( int index=1; index <= nIndices; index++ ) {
-    if ( timeseriesMode )
-      vol=inputMaster[timepoint];
-    volume4D<float> mask, masknz;
-    if ( indexMask.nvoxels() ) {
-      if ( indexMask.tsize() != 1 ) {
-	cerr << "Index mask must be 3D" << endl;
-        return 3;
-      }
-      copyconvert(indexMask,mask);
-      mask.binarise(index-1,index+1,exclusive);
-      vol=indexMaster*mask[0];
-      generateNonZeroMask(mask,masknz,vol);
-    }
-    float lthr(vol.min()-1);
-    float uthr=(vol.max()+1);    
-    int narg(2);
- 
-  while (narg<argc) {
-    string sarg(argv[narg]);
-    if (sarg=="-n") {
-      for (int t=vol.mint(); t<=vol.maxt(); t++)
-        for (int z=vol.minz(); z<=vol.maxz(); z++)
-          for (int y=vol.miny(); y<=vol.maxy(); y++)
-            for (int x=vol.minx(); x<=vol.maxx(); x++)
-              if (!isfinite((double)vol(x,y,z,t)))
-	        vol(x,y,z,t)=0;
-    } else if (sarg=="-m") {
-      if (mask.nvoxels()>0) cout <<  vol.mean(mask) << " ";
-      else cout << vol.mean() << " ";
-    } else if (sarg=="-M") {
-      if (masknz.nvoxels()>0) cout << vol.mean(masknz) << " ";
-      else {
-	double nzmean=0;
-	nzmean = nonzeromean(vol);
-	cout << nzmean << " ";
-      }
-    } else if (sarg=="-X") {
-      ColumnVector coord(4);
-      coord(4)=1.0;
-      if (mask.nvoxels()>0) {
-	coord(1) = vol.mincoordx(mask);
-	coord(2) = vol.mincoordy(mask);
-	coord(3) = vol.mincoordz(mask);
-      } else {
-	coord(1) = vol.mincoordx();
-	coord(2) = vol.mincoordy();
-	coord(3) = vol.mincoordz();
-      }
-      coord = (vol[0].niftivox2newimagevox_mat()).i() * coord;
-      cout << MISCMATHS::round(coord(1)) << " " << 
-	MISCMATHS::round(coord(2)) << " " << MISCMATHS::round(coord(3)) << " ";
-    } else if (sarg=="-x") { 
-      ColumnVector coord(4);
-      coord(4)=1.0;
-      if (mask.nvoxels()>0) {
-	coord(1) = vol.maxcoordx(mask);
-	coord(2) = vol.maxcoordy(mask);
-	coord(3) = vol.maxcoordz(mask);
-      } else {
-	coord(1) = vol.maxcoordx();
-	coord(2) = vol.maxcoordy();
-	coord(3) = vol.maxcoordz();
-      }
-      coord = (vol[0].niftivox2newimagevox_mat()).i() * coord;
-      cout << MISCMATHS::round(coord(1)) << " " << 
-	MISCMATHS::round(coord(2)) << " " << MISCMATHS::round(coord(3)) << " ";
-    } else if (sarg=="-w") {
-	if (masknz.nvoxels()<1) { //Need to generate non-zeromask 
-	  generate_masks(mask,masknz,vol,lthr,uthr); 
-	  vol*=mask; 
-	}
-      int xmin=masknz.maxx(),xmax=masknz.minx(),ymin=masknz.maxy(),ymax=masknz.miny(),zmin=masknz.maxz(),zmax=masknz.minz(),tmin=masknz.maxt(),tmax=masknz.mint();
-      
-      for(int t=masknz.mint();t<=masknz.maxt();t++) {
-	for(int z=masknz.minz();z<=masknz.maxz();z++) {
-	  for(int y=masknz.miny();y<=masknz.maxy();y++) {
-	    for(int x=masknz.minx();x<=masknz.maxx();x++) {
-	      if (masknz(x,y,z,t)>0.5) {
-		// if (masknz(x,y,z)>0.5) {
-		if (x<xmin) xmin=x;
-		if (x>xmax) xmax=x;
-		if (y<ymin) ymin=y;
-		if (y>ymax) ymax=y;
-		if (z<zmin) zmin=z;
-		if (z>zmax) zmax=z;
-		if (t<tmin) tmin=t;
-		if (t>tmax) tmax=t;
-	      }
-	    }
-	  }
-	}
-      }
-      // change voxel coords from newimage to nifti convention for output
-      ColumnVector v(4);
-      v << xmin << ymin << zmin << 1.0;
-      v = masknz.niftivox2newimagevox_mat().i() * v;
-      xmin = MISCMATHS::round(v(1));
-      ymin = MISCMATHS::round(v(2));
-      zmin = MISCMATHS::round(v(3));
-      v << xmax << ymax << zmax << 1.0;
-      v = masknz.niftivox2newimagevox_mat().i() * v;
-      xmax = MISCMATHS::round(v(1));
-      ymax = MISCMATHS::round(v(2));
-      zmax = MISCMATHS::round(v(3));
-      if (xmin>xmax) { int tmp=xmax;  xmax=xmin;  xmin=tmp; }
-      if (ymin>ymax) { int tmp=ymax;  ymax=ymin;  ymin=tmp; }
-      if (zmin>zmax) { int tmp=zmax;  zmax=zmin;  zmin=tmp; }
-      // now output nifti coords
-      cout << xmin << " " << 1+xmax-xmin << " " << ymin << " " << 1+ymax-ymin << " " << zmin << " " << 1+zmax-zmin << " " << tmin << " " << 1+tmax-tmin << " ";
-      } else if (sarg=="-e") {
-	if (mask.nvoxels()<1) {
-	  generate_masks(mask,masknz,vol,lthr,uthr); 
-	  vol*=mask; 
-	}
-      ColumnVector hist;
-      int nbins=1000;
-      double entropy=0;
-      hist = vol.histogram(nbins,mask);
-      double ntot = hist.Sum();
-      for (int j=1; j<=nbins; j++) {
-	if (hist(j)>0) {
-	  entropy -= (hist(j)/ntot) * log(hist(j)/ntot);	
-	}
-      }
-      entropy /= log((double) nbins);
-      cout << entropy << " ";
-      } else if (sarg=="-E") { 
-      ColumnVector hist;
-      int nbins=1000;
-      double entropy=0;
-      if (mask.nvoxels()<1) {
-	generate_masks(mask,masknz,vol,lthr,uthr); 
-	vol*=mask; 
-      }
-      hist = vol.histogram(nbins,masknz);
-      double ntot = hist.Sum();
-      for (int j=1; j<=nbins; j++) {
-	if (hist(j)>0) {
-	  entropy -= (hist(j)/ntot) * log(hist(j)/ntot);	
-	}
-      }
-      entropy /= log((double) nbins);
-      cout << entropy << " ";
-    } else if (sarg=="-k") {
-      narg++;
-      volume4D<float> mask2;
-      if (narg>=argc) {
-        cerr << "Must specify an argument to -k" << endl;
-        return(2);
-      }
-      read_volume4D(mask,argv[narg]);
-      if (!samesize(mask[0],vol[0])) {
-	cerr << "Mask and image must be the same size" << endl;
-	return(3);
-      }
-      if (timeseriesMode && mask.tsize() != 1 ) { mask2=mask[timepoint]; mask=mask2; }
-      if ( mask.tsize() > vol.tsize() ) {
-	cerr << "Mask and image must be the same size" << endl;
-	return(3);
-      }
-      if ( mask.tsize() != vol.tsize() && mask.tsize() != 1) {
-        // copy the last max volume until the correct size is reached
-        while (mask.tsize() < vol.tsize() ) {
-          mask.addvolume(mask[mask.maxt()]);
-        }
-      }
+	cout.setf(ios::dec);
+	cout.setf(ios::fixed, ios::floatfield);
+	cout.setf(ios::left, ios::adjustfield);
+	cout.precision(6);
+	volume4D<float> vol, inputMaster;
+	volume4D<int> indexMask;
+	if (timeseriesMode || indexMaskName != "")
+		read_volume4D(inputMaster, argv[1]);
+	else
+		read_volume4D(vol, argv[1]);
+	volume4D<float> & indexMaster = (timeseriesMode) ? vol : inputMaster;
+	if (indexMaskName != "")
+		read_volume4D(indexMask, indexMaskName);
+	int nTimepoints((timeseriesMode) ? inputMaster.tsize() : 1), nIndices((indexMaskName != "") ? indexMask.max() : 1);
+	for (int timepoint = 0; timepoint < nTimepoints; timepoint++) {
+		for (int index = 1; index <= nIndices; index++) {
+			if (timeseriesMode)
+				vol = inputMaster[timepoint];
+			volume4D<float> mask, masknz;
+			if (indexMask.nvoxels()) {
+				if (indexMask.tsize() != 1) {
+					cerr << "Index mask must be 3D" << endl;
+					return 3;
+				}
+				copyconvert(indexMask, mask);
+				mask.binarise(index - 1, index + 1, exclusive);
+				vol = indexMaster*mask[0];
+				generateNonZeroMask(mask, masknz, vol);
+			}
+			float lthr(vol.min() - 1);
+			float uthr = (vol.max() + 1);
+			int narg(2);
 
-      mask.binarise(0.5);
-      generateNonZeroMask(mask,masknz,vol);
-        if (mask.tsize()!=1) vol*=mask;
-        else vol*=mask[0];
-    } else if (sarg=="-d") {
-      narg++;
-      if (narg>=argc) {
-	cerr << "Must specify an argument to -d" << endl;
-	exit(2);
-      }
-      volume4D<float> image2,image3;
-      read_volume4D(image2,argv[narg]);
-      if (!samesize(image2[0],vol[0])) {
-	cerr << "Image used with -d must be the same size as the base image" << endl;
-	exit(3);
-      }
-      if (timeseriesMode) { image3=image2[timepoint]; image2=image3; }
-      if ( image2.tsize() > vol.tsize() ) {
-	cerr << "Image must be the same size as the base image" << endl;
-	exit(3);
-      }
-      if ( image2.tsize() != vol.tsize() && image2.tsize() != 1) {
-	// copy the last max volume until the correct size is reached
-	while (image2.tsize() < vol.tsize() ) {
-   	  image2.addvolume(image2[image2.maxt()]);
-        }
-      }
-      // now substract the new image from the base image 
-      vol -= image2;
-    } else if (sarg=="-l") {
-      narg++;
-      if (narg<argc) {
-        lthr = atof(argv[narg]);
-      } else {
-	cerr << "Must specify an argument to -l" << endl;
-	return(2);
-      }
-      generate_masks(mask,masknz,vol,lthr,uthr);
-      vol*=mask;
-    } else if (sarg=="-u") {
-      narg++;
-      if (narg<argc) {
-        uthr = atof(argv[narg]);
-      } else {
-	cerr << "Must specify an argument to -u" << endl;
-	return(2);
-      }
-      generate_masks(mask,masknz,vol,lthr,uthr);
-      vol*=mask;
-    } else if (sarg=="-a") {
-      vol = abs(vol);
-    } else if (sarg=="-v") {
-      if (mask.nvoxels()>0) {
-        long int nvox = mask.sum();
-        if (mask.tsize() == 1) nvox = nvox * vol.tsize();
-	cout << (long int) nvox << " " 
-	     << nvox * vol.xdim() * vol.ydim() * vol.zdim() << " ";
-      } else {
-	cout << (long int) vol.nvoxels() * vol.tsize() << " "
-	     << vol.nvoxels() * vol.tsize() * vol.xdim() * vol.ydim() * vol.zdim() << " ";
-      }
-    } else if (sarg=="-V") {
-      if (masknz.nvoxels()>0) {
-	cout << (long int) masknz.sum() << " " 
-	     << masknz.sum() * vol.xdim() * vol.ydim() * vol.zdim() << " ";
-      } else {
-	long int nzvox;
-	nzvox = nonzerocount(vol);
-	cout << nzvox << " " 
-	     << nzvox * vol.xdim() * vol.ydim() * vol.zdim() << " ";
-      }
-    } else if (sarg=="-D") {
-	// hidden debug option!  // now -D not -d
-      cout << vol.sum() << " ";
-    } else if (sarg=="-s") {
-	if (mask.nvoxels()>0) cout << vol.stddev(mask) << " ";
-	else cout << vol.stddev() << " ";
-    } else if (sarg=="-S") {
-      if (masknz.nvoxels()>0) {
-	cout << vol.stddev(masknz) << " ";
-      } else {
-	cout << nonzerostddev(vol) << " ";
-      }
-    } else if (sarg=="-r") {
-      if (mask.nvoxels()>0) cout << vol.robustmin(mask) << " " << vol.robustmax(mask) << " ";
-        else cout << vol.robustmin() << " " << vol.robustmax() << " ";
-    } else if (sarg=="-R") {
-	if (mask.nvoxels()>0) cout << vol.min(mask) << " " << vol.max(mask) << " ";
-	else cout << vol.min() << " " << vol.max() << " ";
-    } else if (sarg=="-c") {
-	ColumnVector cog(4);
-	// convert from fsl mm to voxel to nifti sform coord
-	cog.SubMatrix(1,3,1,1) = vol[0].cog();
-	cog(4) = 1.0;
-	cog = vol[0].newimagevox2mm_mat() * cog; 
-	cout << cog(1) << " " << cog(2) << " " << cog(3) << " " ;
-    } else if (sarg=="-C") {
-    ColumnVector cog(4);
-	// convert from fsl mm to fsl voxel coord to nifti voxel coord
-	cog.SubMatrix(1,3,1,1) = vol[0].cog();
-	cog(4) = 1.0;
-	cog = (vol[0].niftivox2newimagevox_mat()).i() * cog;
-	cout << cog(1) << " " << cog(2) << " " << cog(3) << " " ;
-    } else if (sarg=="-p") {
-      float n;
-      narg++;
-      if (narg<argc) {
-        n = atof(argv[narg]);
-      } else {
-	cerr << "Must specify an argument to -p" << endl;
-	return(2);
-      }
-      if ( (n<0) || (n>100) ) {
-    	cerr << "Percentile must be between 0 and 100" << endl;
-    	return(1);
-      }
-      if (mask.nvoxels()>0) cout << vol.percentile((float) n/100.0, mask) << " ";
-      else cout << vol.percentile((float) n/100.0) << " ";
-    } else if (sarg=="-P") { 
-      float n;
-      narg++;
-      if (narg<argc) {
-        n = atof(argv[narg]);
-      } else {
-	cerr << "Must specify an argument to -P" << endl;
-	return(2);
-      }
-      if ( (n<0) || (n>100) ) {
-    	cerr << "Percentile must be between 0 and 100" << endl;
-    	return(1);
-      }
-      if (mask.nvoxels()<1) {
-	generate_masks(mask,masknz,vol,lthr,uthr); 
-	vol*=mask; 
-      }
-      cout << vol.percentile((float) n/100.0,masknz) << " ";
-    } else if (sarg=="-h") {
-      float n;
-      narg++;
-      if (narg<argc) {
-        n = atof(argv[narg]);
-      } else {
-	cerr << "Must specify the number of bins" << endl;
-	return(2);
-      }
-      int nbins = (int) n;
-      if (nbins<1) {
-    	cerr << "Must specify at least 1 bin" << endl;
-    	return(1);
-      }
-      if (mask.nvoxels()>0) {
-	cout << vol.histogram(nbins,vol.min(),vol.max(),mask) << " ";
-      } else {
-	cout << vol.histogram(nbins,vol.min(),vol.max()) << " ";
-      }
-   } else if (sarg=="-H") {
-      float n;
-      narg++;
-      if (narg<argc) {
-        n = atof(argv[narg]);
-      } else {
-	cerr << "Must specify the number of bins" << endl;
-	return(2);
-      }
-      int nbins = (int) n;
-      if (nbins<1) {
-    	cerr << "Must specify at least 1 bin" << endl;
-    	return(1);
-      }
-      float min=0;
-      narg++;
-      if (narg<argc) {
-        min = atof(argv[narg]);
-      } else {
-	cerr << "Must specify the histogram minimum intensity" << endl;
-	return(2);
-      }
-      float max=0;
-      narg++;
-      if (narg<argc) {
-        max = atof(argv[narg]);
-      } else {
-	cerr << "Must specify the histogram maximum intensity" << endl;
-	return(2);
-      }
-      if (mask.nvoxels()>0) {
-	cout << vol.histogram(nbins,min,max,mask) << " ";
-      } else {
-	cout << vol.histogram(nbins,min,max) << " ";
-      }
-    } else {
-	cerr << "Unrecognised option: " << sarg << endl;
-	return(3);
-    }
-  
-    narg++;
-  }
-   }
-   cout << endl;
-   
-  }
-  return 0;
+			while (narg<argc) {
+				string sarg(argv[narg]);
+				if (sarg == "-n") {
+					for (int t = vol.mint(); t <= vol.maxt(); t++)
+						for (int z = vol.minz(); z <= vol.maxz(); z++)
+							for (int y = vol.miny(); y <= vol.maxy(); y++)
+								for (int x = vol.minx(); x <= vol.maxx(); x++)
+									if (!isfinite((double)vol(x, y, z, t)))
+										vol(x, y, z, t) = 0;
+				}
+				else if (sarg == "-m") {
+					if (mask.nvoxels()>0) cout << vol.mean(mask) << " ";
+					else cout << vol.mean() << " ";
+				}
+				else if (sarg == "-M") {
+					if (masknz.nvoxels()>0) cout << vol.mean(masknz) << " ";
+					else {
+						double nzmean = 0;
+						nzmean = nonzeromean(vol);
+						cout << nzmean << " ";
+					}
+				}
+				else if (sarg == "-X") {
+					ColumnVector coord(4);
+					coord(4) = 1.0;
+					if (mask.nvoxels()>0) {
+						coord(1) = vol.mincoordx(mask);
+						coord(2) = vol.mincoordy(mask);
+						coord(3) = vol.mincoordz(mask);
+					}
+					else {
+						coord(1) = vol.mincoordx();
+						coord(2) = vol.mincoordy();
+						coord(3) = vol.mincoordz();
+					}
+					coord = (vol[0].niftivox2newimagevox_mat()).i() * coord;
+					cout << MISCMATHS::round(coord(1)) << " " <<
+						MISCMATHS::round(coord(2)) << " " << MISCMATHS::round(coord(3)) << " ";
+				}
+				else if (sarg == "-x") {
+					ColumnVector coord(4);
+					coord(4) = 1.0;
+					if (mask.nvoxels()>0) {
+						coord(1) = vol.maxcoordx(mask);
+						coord(2) = vol.maxcoordy(mask);
+						coord(3) = vol.maxcoordz(mask);
+					}
+					else {
+						coord(1) = vol.maxcoordx();
+						coord(2) = vol.maxcoordy();
+						coord(3) = vol.maxcoordz();
+					}
+					coord = (vol[0].niftivox2newimagevox_mat()).i() * coord;
+					cout << MISCMATHS::round(coord(1)) << " " <<
+						MISCMATHS::round(coord(2)) << " " << MISCMATHS::round(coord(3)) << " ";
+				}
+				else if (sarg == "-w") {
+					if (masknz.nvoxels()<1) { //Need to generate non-zeromask 
+						generate_masks(mask, masknz, vol, lthr, uthr);
+						vol *= mask;
+					}
+					int xmin = masknz.maxx(), xmax = masknz.minx(), ymin = masknz.maxy(), ymax = masknz.miny(), zmin = masknz.maxz(), zmax = masknz.minz(), tmin = masknz.maxt(), tmax = masknz.mint();
+
+					for (int t = masknz.mint(); t <= masknz.maxt(); t++) {
+						for (int z = masknz.minz(); z <= masknz.maxz(); z++) {
+							for (int y = masknz.miny(); y <= masknz.maxy(); y++) {
+								for (int x = masknz.minx(); x <= masknz.maxx(); x++) {
+									if (masknz(x, y, z, t)>0.5) {
+										// if (masknz(x,y,z)>0.5) {
+										if (x<xmin) xmin = x;
+										if (x>xmax) xmax = x;
+										if (y<ymin) ymin = y;
+										if (y>ymax) ymax = y;
+										if (z<zmin) zmin = z;
+										if (z>zmax) zmax = z;
+										if (t<tmin) tmin = t;
+										if (t>tmax) tmax = t;
+									}
+								}
+							}
+						}
+					}
+					// change voxel coords from newimage to nifti convention for output
+					ColumnVector v(4);
+					v << xmin << ymin << zmin << 1.0;
+					v = masknz.niftivox2newimagevox_mat().i() * v;
+					xmin = MISCMATHS::round(v(1));
+					ymin = MISCMATHS::round(v(2));
+					zmin = MISCMATHS::round(v(3));
+					v << xmax << ymax << zmax << 1.0;
+					v = masknz.niftivox2newimagevox_mat().i() * v;
+					xmax = MISCMATHS::round(v(1));
+					ymax = MISCMATHS::round(v(2));
+					zmax = MISCMATHS::round(v(3));
+					if (xmin>xmax) { int tmp = xmax;  xmax = xmin;  xmin = tmp; }
+					if (ymin>ymax) { int tmp = ymax;  ymax = ymin;  ymin = tmp; }
+					if (zmin>zmax) { int tmp = zmax;  zmax = zmin;  zmin = tmp; }
+					// now output nifti coords
+					cout << xmin << " " << 1 + xmax - xmin << " " << ymin << " " << 1 + ymax - ymin << " " << zmin << " " << 1 + zmax - zmin << " " << tmin << " " << 1 + tmax - tmin << " ";
+				}
+				else if (sarg == "-e") {
+					if (mask.nvoxels()<1) {
+						generate_masks(mask, masknz, vol, lthr, uthr);
+						vol *= mask;
+					}
+					ColumnVector hist;
+					int nbins = 1000;
+					double entropy = 0;
+					hist = vol.histogram(nbins, mask);
+					double ntot = hist.Sum();
+					for (int j = 1; j <= nbins; j++) {
+						if (hist(j)>0) {
+							entropy -= (hist(j) / ntot) * log(hist(j) / ntot);
+						}
+					}
+					entropy /= log((double)nbins);
+					cout << entropy << " ";
+				}
+				else if (sarg == "-E") {
+					ColumnVector hist;
+					int nbins = 1000;
+					double entropy = 0;
+					if (mask.nvoxels()<1) {
+						generate_masks(mask, masknz, vol, lthr, uthr);
+						vol *= mask;
+					}
+					hist = vol.histogram(nbins, masknz);
+					double ntot = hist.Sum();
+					for (int j = 1; j <= nbins; j++) {
+						if (hist(j)>0) {
+							entropy -= (hist(j) / ntot) * log(hist(j) / ntot);
+						}
+					}
+					entropy /= log((double)nbins);
+					cout << entropy << " ";
+				}
+				else if (sarg == "-k") {
+					narg++;
+					volume4D<float> mask2;
+					if (narg >= argc) {
+						cerr << "Must specify an argument to -k" << endl;
+						return(2);
+					}
+					read_volume4D(mask, argv[narg]);
+					if (!samesize(mask[0], vol[0])) {
+						cerr << "Mask and image must be the same size" << endl;
+						return(3);
+					}
+					if (timeseriesMode && mask.tsize() != 1) { mask2 = mask[timepoint]; mask = mask2; }
+					if (mask.tsize() > vol.tsize()) {
+						cerr << "Mask and image must be the same size" << endl;
+						return(3);
+					}
+					if (mask.tsize() != vol.tsize() && mask.tsize() != 1) {
+						// copy the last max volume until the correct size is reached
+						while (mask.tsize() < vol.tsize()) {
+							mask.addvolume(mask[mask.maxt()]);
+						}
+					}
+
+					mask.binarise(0.5);
+					generateNonZeroMask(mask, masknz, vol);
+					if (mask.tsize() != 1) vol *= mask;
+					else vol *= mask[0];
+				}
+				else if (sarg == "-d") {
+					narg++;
+					if (narg >= argc) {
+						cerr << "Must specify an argument to -d" << endl;
+						exit(2);
+					}
+					volume4D<float> image2, image3;
+					read_volume4D(image2, argv[narg]);
+					if (!samesize(image2[0], vol[0])) {
+						cerr << "Image used with -d must be the same size as the base image" << endl;
+						exit(3);
+					}
+					if (timeseriesMode) { image3 = image2[timepoint]; image2 = image3; }
+					if (image2.tsize() > vol.tsize()) {
+						cerr << "Image must be the same size as the base image" << endl;
+						exit(3);
+					}
+					if (image2.tsize() != vol.tsize() && image2.tsize() != 1) {
+						// copy the last max volume until the correct size is reached
+						while (image2.tsize() < vol.tsize()) {
+							image2.addvolume(image2[image2.maxt()]);
+						}
+					}
+					// now substract the new image from the base image 
+					vol -= image2;
+				}
+				else if (sarg == "-l") {
+					narg++;
+					if (narg<argc) {
+						lthr = atof(argv[narg]);
+					}
+					else {
+						cerr << "Must specify an argument to -l" << endl;
+						return(2);
+					}
+					generate_masks(mask, masknz, vol, lthr, uthr);
+					vol *= mask;
+				}
+				else if (sarg == "-u") {
+					narg++;
+					if (narg<argc) {
+						uthr = atof(argv[narg]);
+					}
+					else {
+						cerr << "Must specify an argument to -u" << endl;
+						return(2);
+					}
+					generate_masks(mask, masknz, vol, lthr, uthr);
+					vol *= mask;
+				}
+				else if (sarg == "-a") {
+					vol = abs(vol);
+				}
+				else if (sarg == "-v") {
+					if (mask.nvoxels()>0) {
+						long int nvox = mask.sum();
+						if (mask.tsize() == 1) nvox = nvox * vol.tsize();
+						cout << (long int)nvox << " "
+							<< nvox * vol.xdim() * vol.ydim() * vol.zdim() << " ";
+					}
+					else {
+						cout << (long int)vol.nvoxels() * vol.tsize() << " "
+							<< vol.nvoxels() * vol.tsize() * vol.xdim() * vol.ydim() * vol.zdim() << " ";
+					}
+				}
+				else if (sarg == "-V") {
+					if (masknz.nvoxels()>0) {
+						cout << (long int)masknz.sum() << " "
+							<< masknz.sum() * vol.xdim() * vol.ydim() * vol.zdim() << " ";
+					}
+					else {
+						long int nzvox;
+						nzvox = nonzerocount(vol);
+						cout << nzvox << " "
+							<< nzvox * vol.xdim() * vol.ydim() * vol.zdim() << " ";
+					}
+				}
+				else if (sarg == "-D") {
+					// hidden debug option!  // now -D not -d
+					cout << vol.sum() << " ";
+				}
+				else if (sarg == "-s") {
+					if (mask.nvoxels()>0) cout << vol.stddev(mask) << " ";
+					else cout << vol.stddev() << " ";
+				}
+				else if (sarg == "-S") {
+					if (masknz.nvoxels()>0) {
+						cout << vol.stddev(masknz) << " ";
+					}
+					else {
+						cout << nonzerostddev(vol) << " ";
+					}
+				}
+				else if (sarg == "-r") {
+					if (mask.nvoxels()>0) cout << vol.robustmin(mask) << " " << vol.robustmax(mask) << " ";
+					else cout << vol.robustmin() << " " << vol.robustmax() << " ";
+				}
+				else if (sarg == "-R") {
+					if (mask.nvoxels()>0) cout << vol.min(mask) << " " << vol.max(mask) << " ";
+					else cout << vol.min() << " " << vol.max() << " ";
+				}
+				else if (sarg == "-c") {
+					ColumnVector cog(4);
+					// convert from fsl mm to voxel to nifti sform coord
+					cog.SubMatrix(1, 3, 1, 1) = vol[0].cog();
+					cog(4) = 1.0;
+					cog = vol[0].newimagevox2mm_mat() * cog;
+					cout << cog(1) << " " << cog(2) << " " << cog(3) << " ";
+				}
+				else if (sarg == "-C") {
+					ColumnVector cog(4);
+					// convert from fsl mm to fsl voxel coord to nifti voxel coord
+					cog.SubMatrix(1, 3, 1, 1) = vol[0].cog();
+					cog(4) = 1.0;
+					cog = (vol[0].niftivox2newimagevox_mat()).i() * cog;
+					cout << cog(1) << " " << cog(2) << " " << cog(3) << " ";
+				}
+				else if (sarg == "-p") {
+					float n;
+					narg++;
+					if (narg<argc) {
+						n = atof(argv[narg]);
+					}
+					else {
+						cerr << "Must specify an argument to -p" << endl;
+						return(2);
+					}
+					if ((n<0) || (n>100)) {
+						cerr << "Percentile must be between 0 and 100" << endl;
+						return(1);
+					}
+					if (mask.nvoxels()>0) cout << vol.percentile((float)n / 100.0, mask) << " ";
+					else cout << vol.percentile((float)n / 100.0) << " ";
+				}
+				else if (sarg == "-P") {
+					float n;
+					narg++;
+					if (narg<argc) {
+						n = atof(argv[narg]);
+					}
+					else {
+						cerr << "Must specify an argument to -P" << endl;
+						return(2);
+					}
+					if ((n<0) || (n>100)) {
+						cerr << "Percentile must be between 0 and 100" << endl;
+						return(1);
+					}
+					if (mask.nvoxels()<1) {
+						generate_masks(mask, masknz, vol, lthr, uthr);
+						vol *= mask;
+					}
+					cout << vol.percentile((float)n / 100.0, masknz) << " ";
+				}
+				else if (sarg == "-h") {
+					float n;
+					narg++;
+					if (narg<argc) {
+						n = atof(argv[narg]);
+					}
+					else {
+						cerr << "Must specify the number of bins" << endl;
+						return(2);
+					}
+					int nbins = (int)n;
+					if (nbins<1) {
+						cerr << "Must specify at least 1 bin" << endl;
+						return(1);
+					}
+					if (mask.nvoxels()>0) {
+						cout << vol.histogram(nbins, vol.min(), vol.max(), mask) << " ";
+					}
+					else {
+						cout << vol.histogram(nbins, vol.min(), vol.max()) << " ";
+					}
+				}
+				else if (sarg == "-H") {
+					float n;
+					narg++;
+					if (narg<argc) {
+						n = atof(argv[narg]);
+					}
+					else {
+						cerr << "Must specify the number of bins" << endl;
+						return(2);
+					}
+					int nbins = (int)n;
+					if (nbins<1) {
+						cerr << "Must specify at least 1 bin" << endl;
+						return(1);
+					}
+					float min = 0;
+					narg++;
+					if (narg<argc) {
+						min = atof(argv[narg]);
+					}
+					else {
+						cerr << "Must specify the histogram minimum intensity" << endl;
+						return(2);
+					}
+					float max = 0;
+					narg++;
+					if (narg<argc) {
+						max = atof(argv[narg]);
+					}
+					else {
+						cerr << "Must specify the histogram maximum intensity" << endl;
+						return(2);
+					}
+					if (mask.nvoxels()>0) {
+						cout << vol.histogram(nbins, min, max, mask) << " ";
+					}
+					else {
+						cout << vol.histogram(nbins, min, max) << " ";
+					}
+				}
+				else {
+					cerr << "Unrecognised option: " << sarg << endl;
+					return(3);
+				}
+
+				narg++;
+			}
+		}
+		cout << endl;
+
+	}
+	return 0;
 }
 
 

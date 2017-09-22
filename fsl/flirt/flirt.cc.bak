@@ -3183,7 +3183,6 @@ extern "C" __declspec(dllexport) int _stdcall flirt(char *CmdLn)
 				cerr << "Failed to calculate any transformation matrix" << endl;
 			}
 		}
-
 	}
 	catch (std::exception &e) {
 		cerr << e.what() << endl;

@@ -153,7 +153,7 @@ extern "C" __declspec(dllexport) int _stdcall fslcorrecthd(char *CmdLn)
  }  
  output_file.close();
  input_file.close();
-
+  // Se usar esta funcao, retirar o comentario
  //system(("FSLOUTPUTTYPE=NIFTI; ${FSLDIR}/bin/fslmaths " + string(outputName)).c_str());  //To clean up header
  free(temp);
  free(outputName);

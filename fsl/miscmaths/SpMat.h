@@ -53,7 +53,6 @@ class Preconditioner;
 template<class T>
 class Accumulator;
 
-
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //
 // Class SpMat:

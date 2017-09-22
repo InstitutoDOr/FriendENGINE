@@ -288,7 +288,7 @@ static char * gni_history[] =
   "1.20 27 Jun 2006 [rickr]\n",
   "   - nifti_findhdrname(): fixed assign of efirst to match stated logic\n"
   "     (problem found by Atle Bjørnerud)\n"
-  "1.21 5 Sep 2006 [rickr] update for nifticlib-0.4 release\n",
+  "1.21 05 Sep 2006 [rickr] update for nifticlib-0.4 release\n",
   "   - was reminded to actually add nifti_set_skip_blank_ext()\n"
   "   - init g_opts.skip_blank_ext to 0\n"
   "1.22 01 Jun 2007 nifticlib-0.5 release\n",

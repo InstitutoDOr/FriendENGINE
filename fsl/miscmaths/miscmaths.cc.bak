@@ -15,7 +15,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -64,7 +64,7 @@
     interested in using the Software commercially, please contact Isis
     Innovation Limited ("Isis"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    innovation@isis.ox.ac.uk quoting reference DE/9564. */
 
 // Miscellaneous maths functions
 #define NOMINMAX
@@ -2026,24 +2026,23 @@ ReturnMatrix neq(const Matrix& mat1,const Matrix& mat2)
 
 ReturnMatrix SD(const Matrix& mat1,const Matrix& mat2) 
 {
-	Matrix ret(mat1.Nrows(), mat1.Ncols());
-	if ((mat1.Nrows() != mat2.Nrows()) ||
-		(mat1.Ncols() != mat2.Ncols()))
-	{
-		cerr << "MISCMATHS::SD - matrices are of different dimensions" << endl;
-		return ret; //exit (-1);
-	}
-	for (int r = 1; r <= mat1.Nrows(); r++) {
-		for (int c = 1; c <= mat1.Ncols(); c++) {
-			if (mat2(r, c) == 0)
-				ret(r, c) = 0;
-			else
-				ret(r, c) = mat1(r, c) / mat2(r, c);
-		}
-	}
+  if((mat1.Nrows() != mat2.Nrows()) ||
+     (mat1.Ncols() != mat2.Ncols()) ){
+    cerr <<"MISCMATHS::SD - matrices are of different dimensions"<<endl;
+    exit(-1);
+  }
+  Matrix ret(mat1.Nrows(),mat1.Ncols());
+  for (int r = 1; r <= mat1.Nrows(); r++) {
+    for (int c =1; c <= mat1.Ncols(); c++) {
+      if( mat2(r,c)==0)
+	ret(r,c)=0;
+      else
+	ret(r,c) = mat1(r,c)/mat2(r,c);
+    }
+  }
 
-	ret.Release();
-	return ret;
+  ret.Release();
+  return ret;
 }
 
 void SD_econ(Matrix& mat1,const Matrix& mat2) 

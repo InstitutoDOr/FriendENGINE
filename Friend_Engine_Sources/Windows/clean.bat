@@ -6,17 +6,25 @@ rmdir FriendEngine\FriendEngine\Release /s /q
 rmdir FriendEngine\FriendEngine\debug /s /q
 rmdir FriendEngine\FriendEngine\x64 /s /q
 del   FriendEngine\FriendEngine.sdf
-del   /A:H FriendEngine\FriendEngine.v12.suo
+del   FriendEngine\FriendEngine.v12.suo /AH
 
-echo Removing intermediate files and directories of cudaEngine
-rmdir cudaEngine\release /s /q
-rmdir cudaEngine\debug /s /q
-rmdir cudaEngine\x64 /s /q
-rmdir cudaEngine\cudaEngine\Release /s /q
-rmdir cudaEngine\cudaEngine\debug /s /q
-rmdir cudaEngine\cudaEngine\x64 /s /q
-del   cudaEngine\cudaEngine.sdf
-del   /A:H cudaEngine\cudaEngine.v12.suo
+rmdir coreLib\release /s /q
+rmdir coreLib\debug /s /q
+rmdir coreLib\x64 /s /q
+rmdir coreLib\coreLib\Release /s /q
+rmdir coreLib\coreLib\debug /s /q
+rmdir coreLib\coreLib\x64 /s /q
+del   coreLib\coreLib.sdf
+del   coreLib\coreLib.v12.suo /AH
+
+rmdir dcm2niilib\release /s /q
+rmdir dcm2niilib\debug /s /q
+rmdir dcm2niilib\x64 /s /q
+rmdir dcm2niilib\dcm2niilib\Release /s /q
+rmdir dcm2niilib\dcm2niilib\debug /s /q
+rmdir dcm2niilib\dcm2niilib\x64 /s /q
+del   dcm2niilib\dcm2niilib.sdf
+del   dcm2niilib\dcm2niilib.v12.suo /AH
 
 echo Removing intermediate files and directories of libROI
 rmdir libroi\release /s /q
@@ -27,7 +35,7 @@ rmdir libROI\libROI\debug /s /q
 rmdir libROI\libROI\x64 /s /q
 del   libroi\libroi.sdf
 del   libroi\libroi.suo
-del   /A:H libroi\libroi.v12.suo
+del   libroi\libroi.v12.suo /AH
 
 echo Removing intermediate files and directories of libMotor
 rmdir libmotor\release /s /q
@@ -38,7 +46,7 @@ rmdir libmotor\libmotor\debug /s /q
 rmdir libmotor\libmotor\x64 /s /q
 del   libmotor\libmotor.sdf
 del   libmotor\libmotor.suo
-del   /A:H libmotor\libmotor.v12.suo
+del   libmotor\libmotor.v12.suo /AH
 
 echo Removing intermediate files and directories of libEmotionRoi
 rmdir libEmotionROI\release /s /q
@@ -48,7 +56,7 @@ rmdir libEmotionROI\libEmotionROI\Release /s /q
 rmdir libEmotionROI\libEmotionROI\debug /s /q
 rmdir libEmotionROI\libEmotionROI\x64 /s /q
 del   libEmotionROI\libEmotionROI.sdf
-del   /A:H libEmotionROI\libEmotionROI.v12.suo
+del   libEmotionROI\libEmotionROI.v12.suo /AH
 
 echo Removing intermediate files and directories of libConnectivity
 rmdir libConnectivity\release /s /q
@@ -58,7 +66,7 @@ rmdir libConnectivity\libConnectivity\Release /s /q
 rmdir libConnectivity\libConnectivity\debug /s /q
 rmdir libConnectivity\libConnectivity\x64 /s /q
 del   libConnectivity\libConnectivity.sdf
-del   /A:H libConnectivity\libConnectivity.v12.suo
+del   libConnectivity\libConnectivity.v12.suo /AH
 
 echo Removing intermediate files and directories of libBrainDecoding
 rmdir libBrainDecoding\release /s /q
@@ -68,7 +76,7 @@ rmdir libBrainDecoding\libBrainDecoding\Release /s /q
 rmdir libBrainDecoding\libBrainDecoding\debug /s /q
 rmdir libBrainDecoding\libBrainDecoding\x64 /s /q
 del   libBrainDecoding\libBrainDecoding.sdf
-del   /A:H libBrainDecoding\libBrainDecoding.v12.suo
+del   libBrainDecoding\libBrainDecoding.v12.suo /AH
 
 echo Removing intermediate files and directories of libMDD
 rmdir libMDD\release /s /q
@@ -78,7 +86,7 @@ rmdir libMDD\libMDD\Release /s /q
 rmdir libMDD\libMDD\debug /s /q
 rmdir libMDD\libMDD\x64 /s /q
 del   libMDD\libMDD.sdf
-del   /A:H libMDD\libMDD.v12.suo
+del   libMDD\libMDD.v12.suo /AH
 
 echo Removing intermediate files and directories of libAttention
 rmdir libAttention\release /s /q
@@ -88,13 +96,14 @@ rmdir libAttention\libAttention\Release /s /q
 rmdir libAttention\libAttention\debug /s /q
 rmdir libAttention\libAttention\x64 /s /q
 del   libAttention\libAttention.sdf
-del   /A:H libAttention\libAttention.v12.suo
+del   libAttention\libAttention.v12.suo /AH
 
 echo Removing intermediate files and directories of buildAll
 rmdir buildAll\release /s /q
 rmdir buildAll\debug /s /q
+rmdir buildAll\x64 /s /q
 del   buildAll\buildAll.sdf
-del   /A:H buildAll\buildAll.v12.suo
+del   buildAll\buildAll.v12.suo /AH
 
 echo Removing executable files
 del Application\*.exe
@@ -155,4 +164,4 @@ rmdir ..\..\fsl\gdlib\gdlib\Release /s /q
 rmdir ..\..\fsl\gdlib\gdlib\debug /s /q
 rmdir ..\..\fsl\gdlib\gdlib\x64 /s /q
 del   ..\..\fsl\gdlib\gdlib.sdf
-del   /A:H ..\..\fsl\gdlib\gdlib.v12.suo
+del   ..\..\fsl\gdlib\gdlib.v12.suo /AH

@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include "newimage/costfns.h"
 #include "Globaloptions.h"
@@ -107,10 +107,6 @@ void Globaloptions::parse_command_line(int argc,char** argv)
       continue;
     } else if ( arg == "-gdt" ) {
       gdtflag = 1;
-      n++;
-      continue;
-    } else if ( arg == "-edge" ) {
-      edgeflag = 1;
       n++;
       continue;
     } else if ( arg == "-hist" ) {
@@ -311,7 +307,6 @@ void Globaloptions::print_usage(int argc, char *argv[])
        << "        -nn_final                          (applies final transformations using Nearest Neighbour interpolation)\n"
        << "        -init <filename>                   (initial transform matrix to apply to all vols)\n"
        << "        -gdt                               (run search on gradient images)\n"
-       << "        -edge                              (run search on contour images)\n"
        << "        -meanvol                           register timeseries to mean volume (overrides refvol and reffile options)\n"
        << "        -stats                             produce variance and std. dev. images\n"
        << "        -mats                              save transformation matricies in subdirectory outfilename.mat\n"

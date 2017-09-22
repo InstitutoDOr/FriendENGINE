@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include "miscmaths/miscmaths.h"
 #include "newimage/newimageall.h"
@@ -110,33 +110,18 @@ bool file_exists (const std::string& name) {
 }
 
 int get_vols(Matrix& id_vols,const string& vols){
-  vector<int> comps;
   if(file_exists(vols)){
     id_vols = read_ascii_matrix(vols);
-    if(id_vols.Ncols()==1){id_vols=id_vols.t();}
-
-    comps.resize(id_vols.Ncols());
-    for(int i=0;i<(int)comps.size();i++){
-      comps[i]=id_vols(1,i+1);
-    }
+    if(id_vols.Ncols()==1)
+      id_vols=id_vols.t();
+  } else {
+    vector<int> comps;
+    if(vols.length()>0 && parse_filterstring(comps,vols))
+      return 1;
+    id_vols.ReSize(1,comps.size());
+    for(int i=0;i<(int)comps.size();i++)
+      id_vols(1,i+1)=comps[i];
   }
-  else{
-    if(vols.length()>0 && parse_filterstring(comps,vols)){
-      return 1;		
-    }
-  }
-
-  //sort and remove duplicates 
-  sort (comps.begin(), comps.end());
-  vector<int>::iterator it = unique (comps.begin(), comps.end());
-  comps.resize( it - comps.begin() );
-    
-  id_vols.ReSize(1,comps.size());
-  for(int i=0;i<(int)comps.size();i++){
-    id_vols(1,i+1)=comps[i];
-  }
-  
-  
   return 0;
 }
 

@@ -5,7 +5,7 @@
 #   Stephen Smith, FMRIB Image Analysis Group
 #   SIENA eye cleanup option by Marco Battaglini and Nicola De Stefano, Siena
 #
-#   Copyright (C) 2005-2007 University of Oxford
+#   Copyright (C) 2005-2012 University of Oxford
 #
 #   Part of FSL - FMRIB's Software Library
 #   http://www.fmrib.ox.ac.uk/fsl
@@ -18,7 +18,7 @@
 #   
 #   LICENCE
 #   
-#   FMRIB Software Library, Release 4.0 (c) 2007, The University of
+#   FMRIB Software Library, Release 5.0 (c) 2012, The University of
 #   Oxford (the "Software")
 #   
 #   The Software remains the property of the University of Oxford ("the
@@ -64,10 +64,11 @@
 #   final aim of developing non-software products for sale or license to a
 #   third party, or (4) use of the Software to provide any service to an
 #   external organisation for which payment is received. If you are
-#   interested in using the Software commercially, please contact Isis
-#   Innovation Limited ("Isis"), the technology transfer company of the
+#   interested in using the Software commercially, please contact Oxford
+#   University Innovation ("OUI"), the technology transfer company of the
 #   University, to negotiate a licence. Contact details are:
-#   innovation@isis.ox.ac.uk quoting reference DE/1112.
+#   Innovation@innovation.ox.ac.uk quoting reference DE/9564.
+export LC_ALL=C
 
 # {{{ Usage()
 
@@ -94,7 +95,7 @@ Variations on default bet2 functionality (mutually exclusive options):
   -S          eye & optic nerve cleanup (can be useful in SIENA)
   -B          bias field & neck cleanup (can be useful in SIENA)
   -Z          improve BET if FOV is very small in Z (by temporarily padding end slices)
-  -F          apply to 4D FMRI data (uses -f 0.4 and dilates brain mask slightly)
+  -F          apply to 4D FMRI data (uses -f 0.3 and dilates brain mask slightly)
   -A          run bet2 and then betsurf to get additional skull and scalp surfaces (includes registrations)
   -A2 <T2>    as with -A, when also feeding in non-brain-extracted T2 (includes registrations)
 
@@ -163,6 +164,7 @@ fi
 debug=0
 verbose=0
 variation=0
+skull=0
 bet2opts=""
 
 # }}}
@@ -171,6 +173,9 @@ bet2opts=""
 while [ _$1 != _ ] ; do
     if [ $1 = -o ] || [ $1 = -m ] || [ $1 = -s ] || [ $1 = -n ] || [ $1 = -t ] || [ $1 = -e ] ; then
         bet2opts="$bet2opts $1"
+        if [ $1 = -s ] ; then
+          skull=1
+        fi
         shift
     elif [ $1 = -f ] || [ $1 = -g ] || [ $1 = -r ] ; then
 	[ "$2" = "" ] && Usage
@@ -369,6 +374,14 @@ ${FSLDIR}/bin/fast -b ${OUT}_tmp_premask >/dev/null 2>&1
 
 #### apply bias correction to original
 ${FSLDIR}/bin/fslmaths $IN -div ${OUT}_tmp_premask_bias ${OUT}_tmp_unbiased
+
+#### get skull if asked for
+if [ $skull ] ; then
+  ${FSLDIR}/bin/standard_space_roi ${OUT}_tmp_unbiased ${OUT}_tmp_unbiased_forskull_reduced -maskFOV -roiNONE -d
+  ${FSLDIR}/bin/bet2 ${OUT}_tmp_unbiased_forskull_reduced ${OUT}_tmp_unbiased_forskull $bet2opts
+  bet2opts=`echo $bet2opts | sed 's/-s//g'`
+  ${FSLDIR}/bin/immv ${OUT}_tmp_unbiased_forskull_skull ${OUT}_skull
+fi
 
 #### re-run betpremask
 ${FSLDIR}/bin/standard_space_roi ${OUT}_tmp_unbiased ${OUT}_tmp_unbiased_premask -b -d

@@ -15,6 +15,8 @@ extern "C" int _stdcall fsl_tsplot(char *CmdLn);
 extern "C" int _stdcall feat_model(char *CmdLn);
 extern "C" int _stdcall fsl_glm(char *CmdLn);
 extern "C" int _stdcall convert_xfm(char *CmdLn);
+extern "C" int _stdcall prelude(char *CmdLn);
+extern "C" int _stdcall fugue(char *CmdLn);
 
 #else
 int callCommand(char *command);
@@ -45,6 +47,7 @@ int standardizeVolume(char *base, char *mask, char *output, int NN);
 // calculates the final step of the FRIEND pipeline, the sliding window mean
 int estimateActivation(int ini, int end, int slidingWindowSize, char *suffix, char *output);
 int estimateActivation(int ini, int end, int slidingWindowSize, char *suffix, char *maskFileName, char *output);
+int estimateActivation4D(int start, int ini, int end, int slidingWindowSize, char *vol4DFileName, char *basalFileName, char *maskFileName, char *output);
 
 // loads the data struture of a volume in memory
 FSLIO * fslioopen(char *file);
@@ -82,5 +85,9 @@ void uniteVolumes(char *referenceVolume, char *roiVolume, char *outputFile);
 // this functions generates the T max volume form a 4D volume, considering only the indexes in a given vector
 void generateTMaxVoxels(char *input, char *output, std::vector<int> &idxs, int invert = 1);
 void generateTMaxVoxels(char *input, char *temp, char *output, std::vector<int> &idxs, int invert = 1);
+
+// this function thresholds a mni volume based on intensities (threshold = (p98-p02) * (brainThres / 100))
+void brainThreshold(char *functional, char* mask, char *temp, char *output, float brainThres);
+
 
 #endif

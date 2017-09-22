@@ -1,7 +1,7 @@
 
 /*  applywarp.cc
 
-    Mark Jenkinson, FMRIB Image Analysis Group
+    Mark Jenkinson and Matthew Webster, FMRIB Image Analysis Group
 
     Copyright (C) 2001 University of Oxford  */
 
@@ -16,7 +16,7 @@
     
     LICENCE
     
-    FMRIB Software Library, Release 4.0 (c) 2007, The University of
+    FMRIB Software Library, Release 5.0 (c) 2012, The University of
     Oxford (the "Software")
     
     The Software remains the property of the University of Oxford ("the
@@ -62,10 +62,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/1112. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #include "utils/options.h"
 #include "miscmaths/miscmaths.h"
@@ -85,17 +85,36 @@ using namespace MISCMATHS;
 using namespace NEWIMAGE;
 
 namespace fslapplywarp {
-// Does the job
-int applywarp();
+// Helper class for Applywarp.
+// Used just to make it clear where to find
+// the functions that are being called.
+class ApplyWarpHelper
+{
+public:
+  // Does the job
+  static int applywarp();
 
-// Downsamples supersampled output image.
-void downsample(const volume<float>&           ivol,
-                const vector<unsigned int>&    ss,
-		bool                           nn,
-                volume<float>&                 ovol);
+  // Returns range of intensity values
+  static double range(const NEWIMAGE::volume4D<float>& vol);
+  // Dilates mask n times
+  static NEWIMAGE::volume<float> dilate_mask(const NEWIMAGE::volume<float>& inmask,
+					     int                            n);
+  // Converts char mask to float
+  static NEWIMAGE::volume<float> convert_mask_to_float(const NEWIMAGE::volume<char>& charmask);
 
-// Returns most common value in vector
-float hist_mode(vector<float>  vec);
+  // Downsamples supersampled output image.
+  static void downsample(const volume<float>&           ivol,
+			 const vector<unsigned int>&    ss,
+			 bool                           nn,
+			 volume<float>&                 ovol);
+
+  // Returns most common value in vector
+  static float hist_mode(vector<float>  vec);
+
+};
+
+
+
 
 
 
@@ -103,7 +122,7 @@ float hist_mode(vector<float>  vec);
 
 // COMMAND LINE OPTIONS
 
-string title="applywarp (Version 1.2)\nCopyright(c) 2001, University of Oxford (Mark Jenkinson)";
+string title="applywarp \nCopyright(c) 2001, University of Oxford (Jesper Andersson)";
 string examples=string("applywarp -i invol -o outvol -r refvol -w warpvol\n") +
                 string("applywarp -i invol -o outvol -r refvol -w coefvol\n");
 
@@ -152,13 +171,20 @@ Option<string> prematname(string("--premat"), string(""),
 Option<string> postmatname(string("--postmat"), string(""),
 		       string("filename for post-transform (affine matrix)"),
 		       false, requires_argument);
+Option<int> padsize(string("--paddingsize"), 0,
+		       string("Extrapolates outside original volume by n voxels"),
+		       false, requires_argument);
 
 
-int applywarp()
+int ApplyWarpHelper::applywarp()
 {
   // Check for sillines
   if (relwarp.value() && abswarp.value()) {
     cerr << "Only one of --abs and --rel can be set" << endl;
+    return(EXIT_FAILURE);
+  }
+  if (padsize.value() < 0) {
+    cerr << "Padding size must be a positive integer" << endl;
     return(EXIT_FAILURE);
   }
   // Assert value for data-type
@@ -176,19 +202,41 @@ int applywarp()
   }
   
   // read in pre/post transforms
-  Matrix premat, postmat;
-  premat = IdentityMatrix(4);
-  postmat = IdentityMatrix(4);
+  vector<Matrix> premat, postmat;
+  Matrix tmpmat;
   if (prematname.set()) {
-    premat = read_ascii_matrix(prematname.value());
+    tmpmat = read_ascii_matrix(prematname.value());
+    for (int row=1; row<tmpmat.Nrows(); row+=4) {
+      if (row+3>tmpmat.Nrows()) { 
+	imthrow("Incorrect size of premat ("+num2str(tmpmat.Nrows())+","+num2str(tmpmat.Ncols())+") in file "+prematname.value(),24); 
+      }
+      premat.push_back(tmpmat.SubMatrix(row,row+3,1,4));
+    }
+  } else {
+    premat.push_back(IdentityMatrix(4));
   }
   if (postmatname.set()) {
-    postmat = read_ascii_matrix(postmatname.value());
+    tmpmat = read_ascii_matrix(postmatname.value());
+    for (int row=1; row<tmpmat.Nrows(); row+=4) {
+      if (row+3>tmpmat.Nrows()) { 
+	imthrow("Incorrect size of postmat ("+num2str(tmpmat.Nrows())+","+num2str(tmpmat.Ncols())+") in file "+postmatname.value(),24); 
+      }
+      postmat.push_back(tmpmat.SubMatrix(row,row+3,1,4));
+    }
+  } else {
+    postmat.push_back(IdentityMatrix(4));
   }
 
   // read in-images
   volume4D<float> invol;
   read_volume4D(invol,inname.value());
+  // some sanity checking (for the 4D concat matrix option)
+  if ((premat.size()>1) && ((int) premat.size()!=invol.tsize())) {
+    imthrow("Number of premats ("+num2str(premat.size())+") does not match number of volumes ("+num2str(invol.tsize())+")",24); 
+  }
+  if ((postmat.size()>1) && ((int) postmat.size()!=invol.tsize())) {
+    imthrow("Number of postmats ("+num2str(postmat.size())+") does not match number of volumes ("+num2str(invol.tsize())+")",24); 
+  }
   
   //
   // Get size of output from --ref. 
@@ -200,10 +248,12 @@ int applywarp()
 
   // Read in/create warps from file
   FnirtFileReader  fnirtfile;
+  bool haveWarp(false);
   AbsOrRelWarps    wt = UnknownWarps;
   volume4D<float>  defvol(refvol.xsize(),refvol.ysize(),refvol.zsize(),3);
   Matrix           affmat(4,4);
   if (warpname.set()) {
+    haveWarp=true;
     if (abswarp.value()) wt = AbsoluteWarps;
     else if (relwarp.value()) wt = RelativeWarps;
     try {
@@ -312,31 +362,51 @@ int applywarp()
     M_translate(1,4) = - (outvol.xdim()/float(2) - outvol.xdim()/(float(2)*float(ssvec[0])));
     M_translate(2,4) = - (outvol.ydim()/float(2) - outvol.ydim()/(float(2)*float(ssvec[1])));
     M_translate(3,4) = - (outvol.zdim()/float(2) - outvol.zdim()/(float(2)*float(ssvec[2])));
-    postmat = (postmat.i() * M_translate).i();
+    for (unsigned int tidx=0; tidx<postmat.size(); tidx++) { postmat[tidx] = (postmat[tidx].i() * M_translate).i(); }
   }
 
-  for (int t=0; t<invol.tsize(); t++) {
+  volume<float> tmpvol(outvol[0]);
+  for (unsigned int t=0; t<(unsigned int) invol.tsize(); t++) {
+
+    Matrix currentPremat(premat[Min(t,premat.size()-1)]), currentPostmat(postmat[Min(t,postmat.size()-1)]);
+    if ( !haveWarp ) {
+      currentPremat = currentPostmat*currentPremat;
+      currentPostmat = IdentityMatrix(4);
+    } 
+    
+    // Make a different mask for each volume (in case the premat or postmat are 4D)
+    NEWIMAGE::volume<char> charmask(refvol.xsize(),refvol.ysize(),refvol.zsize());
+    apply_warp(invol[0],affmat,defvol,currentPostmat,currentPremat,tmpvol,charmask);
+    NEWIMAGE::volume<float> involmask = ApplyWarpHelper::convert_mask_to_float(charmask);
+    involmask = ApplyWarpHelper::dilate_mask(involmask,padsize.value());
+
     invol[t].setpadvalue(invol[t].backgroundval());
     invol[t].setextrapolationmethod(extraslice);
     // do the deed
     if (superflag) {
-      apply_warp(invol[t],affmat,defvol,postmat,premat,*ssout_ptr);
-      if (interp.value() == "nn") downsample(*ssout_ptr,ssvec,true,outvol[t]);
-      else downsample(*ssout_ptr,ssvec,false,outvol[t]);
+      apply_warp(invol[t],affmat,defvol,currentPostmat,currentPremat,*ssout_ptr);
+      if (interp.value() == "nn") ApplyWarpHelper::downsample(*ssout_ptr,ssvec,true,outvol[t]);
+      else ApplyWarpHelper::downsample(*ssout_ptr,ssvec,false,outvol[t]);
     }
     else {
-      apply_warp(invol[t],affmat,defvol,postmat,premat,outvol[t]);
+      apply_warp(invol[t],affmat,defvol,currentPostmat,currentPremat,outvol[t]);
     }
+    outvol[t] *= involmask;
     if (maskname.set()) { outvol[t] *= mask; }
   }
 
   outvol.setDisplayMaximumMinimum(0,0);
+  outvol.settdim(invol.tdim());
   // save the results
   if (datatype.set()) {
     save_volume4D_dtype(outvol,outname.value(),dtypecode);
   }
   else {
-    save_volume4D_dtype(outvol,outname.value(),dtype(inname.value()));
+    if (dtype(inname.value()) != DT_FLOAT && dtype(inname.value()) != DT_DOUBLE) { // If integery
+      if (ApplyWarpHelper::range(outvol) < 100) save_volume4D_dtype(outvol,outname.value(),DT_FLOAT);
+      else save_volume4D_dtype(outvol,outname.value(),dtype(inname.value()));
+    }
+    else save_volume4D_dtype(outvol,outname.value(),dtype(inname.value()));
   }
   
   return(EXIT_SUCCESS);
@@ -345,65 +415,98 @@ int applywarp()
 
 extern "C" __declspec(dllexport) int _stdcall applywarp(char *CmdLn)
 {
-  Tracer tr("main");
+	Tracer tr("main");
 
-  int argc;
-  char **argv;
-  
-  OptionParser options(title, examples);
+	int argc;
+	char **argv;
 
-  parser(CmdLn, argc, argv);
-  try {
-    options.add(inname);
-    options.add(refname);
-    options.add(warpname);
-    options.add(abswarp);
-    options.add(relwarp);
-    options.add(outname);
-    options.add(datatype);
-    options.add(supersample);
-    options.add(supersamplelevel);
-    options.add(prematname);
-    options.add(postmatname);
-    options.add(maskname);
-    options.add(interp);
-    options.add(verbose);
-    options.add(help);
+	OptionParser options(title, examples);
 
-    int i=options.parse_command_line(argc, argv);
-    if (i < argc) {
-      for (; i<argc; i++) {
-        cerr << "Unknown input: " << argv[i] << endl;
-      }
-      freeparser(argc, argv);
-      return(EXIT_FAILURE);
-    }
+	parser(CmdLn, argc, argv);
+	try {
+		options.add(inname);
+		options.add(refname);
+		options.add(warpname);
+		options.add(abswarp);
+		options.add(relwarp);
+		options.add(outname);
+		options.add(datatype);
+		options.add(supersample);
+		options.add(supersamplelevel);
+		options.add(prematname);
+		options.add(postmatname);
+		options.add(maskname);
+		options.add(interp);
+		options.add(padsize);
+		options.add(verbose);
+		options.add(help);
 
-    if (help.value() || !options.check_compulsory_arguments(true)) {
-      options.usage();
-      freeparser(argc, argv);
-      return(EXIT_FAILURE);
-    }
-  }  
-  catch(X_OptionError& e) {
-    options.usage();
-    cerr << endl << e.what() << endl;
-    freeparser(argc, argv);
-    return(EXIT_FAILURE);
-  } 
-  catch(std::exception &e) {
-    cerr << e.what() << endl;
-  } 
+		int i = options.parse_command_line(argc, argv);
+		if (i < argc) {
+			for (; i < argc; i++) {
+				cerr << "Unknown input: " << argv[i] << endl;
+			}
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
 
-  int r =  applywarp();
-  freeparser(argc, argv);
-  return(r);
+		if (help.value() || !options.check_compulsory_arguments(true)) {
+			options.usage();
+			freeparser(argc, argv);
+			return(EXIT_FAILURE);
+		}
+	}
+	catch (X_OptionError& e) {
+		options.usage();
+		cerr << endl << e.what() << endl;
+		freeparser(argc, argv);
+		return(EXIT_FAILURE);
+	}
+	catch (std::exception &e) {
+		cerr << e.what() << endl;
+	}
+
+	int r = ApplyWarpHelper::applywarp();
+	freeparser(argc, argv);
+	return(r);
 }
 
-void downsample(const volume<float>&          ivol,
-                const vector<unsigned int>&   ss,
-                bool                          nn,
-                volume<float>&                ovol)
+double ApplyWarpHelper::range(const NEWIMAGE::volume4D<float>& vol)
+{
+  if (vol.tsize() > 10) return(static_cast<double>(vol[0].max()-vol[1].min()));
+  else return(static_cast<double>(vol.max()-vol.min()));
+}
+
+NEWIMAGE::volume<float> ApplyWarpHelper::dilate_mask(const NEWIMAGE::volume<float>& inmask,
+                                                     int                            n)
+{
+  if (!n) return(inmask);
+  else {
+    NEWIMAGE::volume<float> kernel = NEWIMAGE::box_kernel(3,3,3);
+    NEWIMAGE::volume<float> outmask = NEWIMAGE::morphfilter(inmask,kernel,std::string("dilate"));
+    for (int i=1; i<n; i++) outmask = NEWIMAGE::morphfilter(outmask,kernel,std::string("dilate"));
+    return(outmask);
+  }
+}
+
+NEWIMAGE::volume<float> ApplyWarpHelper::convert_mask_to_float(const NEWIMAGE::volume<char>& charmask)
+{
+  NEWIMAGE::volume<float> floatmask(charmask.xsize(),charmask.ysize(),charmask.zsize());
+  NEWIMAGE::copybasicproperties(charmask,floatmask);
+  for (int k=0; k<charmask.zsize(); k++) {
+    for (int j=0; j<charmask.ysize(); j++) {
+      for (int i=0; i<charmask.xsize(); i++) {
+	floatmask(i,j,k) = static_cast<float>(charmask(i,j,k));
+      }
+    }
+  }
+  return(floatmask);
+}
+
+void ApplyWarpHelper::downsample(const volume<float>&          ivol,
+				 const vector<unsigned int>&   ss,
+				 bool                          nn,
+				 volume<float>&                ovol)
 {
   ovol = 0.0;
   if (!nn) {
@@ -433,14 +536,14 @@ void downsample(const volume<float>&          ivol,
 	      }
 	    }
 	  }
-          ovol(ii,jj,kk) = hist_mode(hvals);
+          ovol(ii,jj,kk) = ApplyWarpHelper::hist_mode(hvals);
 	}
       }
     }
   }
 }
 
-float hist_mode(vector<float>  vec)
+float ApplyWarpHelper::hist_mode(vector<float>  vec)
 {
   map<float,unsigned int>            hist;
   map<float,unsigned int>::iterator  pos;
@@ -461,4 +564,5 @@ float hist_mode(vector<float>  vec)
   }
   return(modeval);
 }
+
 }

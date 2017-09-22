@@ -9,18 +9,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="dcm2nii">
-      <UniqueIdentifier>{dc89b799-8465-4894-99be-7a18ddd00472}</UniqueIdentifier>
-    </Filter>
     <Filter Include="dcm2niiInterface">
       <UniqueIdentifier>{21a2ab60-db00-4280-9460-b525131c414f}</UniqueIdentifier>
     </Filter>
     <Filter Include="main">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{d6b4ce7d-9a0b-4354-afea-5c32adc81bef}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -33,68 +27,8 @@
     <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\process.cpp">
       <Filter>main</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\session.cpp">
-      <Filter>main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\..\dcm2niix\console\jpg_0XC3.cpp">
-      <Filter>dcm2nii</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nifti1_io_core.cpp">
-      <Filter>dcm2nii</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_dicom.cpp">
-      <Filter>dcm2nii</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_dicom_batch.cpp">
-      <Filter>dcm2nii</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_ortho.cpp">
-      <Filter>dcm2nii</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\..\dcm2niix\console\nii_ostu_ml.cpp">
-      <Filter>dcm2nii</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\..\dcm2niix\console\ujpeg.cpp">
-      <Filter>dcm2nii</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\dcm2niiInterface.cpp">
       <Filter>dcm2niiInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\filefuncs.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\fslfuncs.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\defs.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\intervals.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\masks.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\parser.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\PlugInHandler.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\socket.cxx">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\Friend_Engine\socket2.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\utils.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\PlugIn\vardb.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Friend_Engine_Sources\FRIEND_Engine\logObject.cpp">
-      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

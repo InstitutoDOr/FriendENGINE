@@ -45,6 +45,13 @@
     <ClCompile Include="..\..\..\fsl\flirt\convert_xfm.cc" />
     <ClCompile Include="..\..\..\fsl\flirt\flirt.cc" />
     <ClCompile Include="..\..\..\fsl\flirt\globaloptions.cc" />
+    <ClCompile Include="..\..\..\fsl\fugue\applywarp.cc" />
+    <ClCompile Include="..\..\..\fsl\fugue\convertwarp.cc" />
+    <ClCompile Include="..\..\..\fsl\fugue\fugue.cc" />
+    <ClCompile Include="..\..\..\fsl\fugue\invwarp.cc" />
+    <ClCompile Include="..\..\..\fsl\fugue\prelude.cc" />
+    <ClCompile Include="..\..\..\fsl\fugue\sigloss.cc" />
+    <ClCompile Include="..\..\..\fsl\fugue\unwarpfns.cc" />
     <ClCompile Include="..\..\..\fsl\mcflirt\Globaloptionsmc.cc" />
     <ClCompile Include="..\..\..\fsl\mcflirt\Log.cc" />
     <ClCompile Include="..\..\..\fsl\mcflirt\Loga.cc" />
@@ -62,7 +69,9 @@
     <ClCompile Include="..\..\..\fsl\miscvis\fsl_tsplot.cc" />
     <ClCompile Include="..\..\..\fsl\miscvis\pngappend.cc" />
     <ClCompile Include="..\..\..\fsl\miscvis\slicer.cc" />
+    <ClCompile Include="..\..\..\fsl\slicetimer\slicetimer.cc" />
     <ClCompile Include="..\..\..\fsl\susan\susan.cc" />
+    <ClCompile Include="..\..\..\fsl\topup\topup.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{64BAB0E0-5CA0-44BD-9773-3FE09D6D63F4}</ProjectGuid>

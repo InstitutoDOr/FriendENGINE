@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 // Miscellaneous maths functions
 #define NOMINMAX
@@ -582,27 +582,27 @@ namespace MISCMATHS {
 
   ReturnMatrix pinv(const Matrix& mat2)
     {
-      // calculates the psuedo-inverse using SVD
-      // note that the right-pinv(x') = pinv(x).t()
-      Matrix mat(mat2);
-      if ( mat2.Ncols() > mat2.Nrows() )
-	mat=mat.t();
-      Tracer tr("pinv");
-      DiagonalMatrix D;
-      Matrix U, V;
-      SVD(mat,D,U,V);
-      float tol;
-      tol = MaximumAbsoluteValue(D) * Max(mat.Nrows(),mat.Ncols()) * 1e-16;
-      for (int n=1; n<=D.Nrows(); n++) {
-	if (fabs(D(n,n))>tol) D(n,n) = 1.0/D(n,n);
-	else D(n,n) = 0.0; // reduce the number of columns because too close to singular
-      }
-      Matrix pinv = V * D * U.t();
-      if ( mat2.Ncols() > mat2.Nrows() )
-	pinv=pinv.t();
-      pinv.Release();
-      return pinv;
-    }
+		// calculates the psuedo-inverse using SVD
+		// note that the right-pinv(x') = pinv(x).t()
+		Matrix mat(mat2);
+		if (mat2.Ncols() > mat2.Nrows())
+			mat = mat.t();
+		Tracer tr("pinv");
+		DiagonalMatrix D;
+		Matrix U, V;
+		SVD(mat, D, U, V);
+		float tol;
+		tol = MaximumAbsoluteValue(D) * Max(mat.Nrows(), mat.Ncols()) * 1e-16;
+		for (int n = 1; n <= D.Nrows(); n++) {
+			if (fabs(D(n, n))>tol) D(n, n) = 1.0 / D(n, n);
+			else D(n, n) = 0.0; // reduce the number of columns because too close to singular
+		}
+		Matrix pinv = V * D * U.t();
+		if (mat2.Ncols() > mat2.Nrows())
+			pinv = pinv.t();
+		pinv.Release();
+		return pinv;
+  }
 
   int rank(const Matrix& X)
     {

@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 // General image processing functions
 
@@ -996,7 +996,34 @@ bool rowentry_lessthan(const rowentry& r1, const rowentry& r2)
 {
   return r1.d < r2.d ;
 }
-
+  
+vector<offset> backConnectivity(int nDirections) {
+  vector<offset> neighbours;
+  if ( nDirections == 6 ) {
+    neighbours.push_back(offset(-1,0,0));
+    neighbours.push_back(offset(0,-1,0));
+    neighbours.push_back(offset(0,0,-1));
+    return neighbours;
+  }
+  if ( nDirections == 18 ) {
+    neighbours=backConnectivity(6);
+    neighbours.push_back(offset(-1,-1,0));
+    neighbours.push_back(offset(-1,0,-1));
+    neighbours.push_back(offset(0,1,-1));      
+    neighbours.push_back(offset(0,-1,-1));
+    neighbours.push_back(offset(1,-1,0));    
+    neighbours.push_back(offset(1,0,-1));    
+    return neighbours;
+  }
+  if ( nDirections == 26 ) {
+    neighbours=backConnectivity(18);
+    neighbours.push_back(offset(-1,+1,-1));
+    neighbours.push_back(offset(-1,-1,-1));
+    neighbours.push_back(offset(+1,+1,-1));      
+    neighbours.push_back(offset(+1,-1,-1));
+  }
+  return neighbours;
+}
 
 
   ///////////////////////////////////////////////////////////////////////////
