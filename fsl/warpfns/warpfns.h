@@ -61,10 +61,10 @@
     final aim of developing non-software products for sale or license to a
     third party, or (4) use of the Software to provide any service to an
     external organisation for which payment is received. If you are
-    interested in using the Software commercially, please contact Isis
-    Innovation Limited ("Isis"), the technology transfer company of the
+    interested in using the Software commercially, please contact Oxford
+    University Innovation ("OUI"), the technology transfer company of the
     University, to negotiate a licence. Contact details are:
-    innovation@isis.ox.ac.uk quoting reference DE/9564. */
+    Innovation@innovation.ox.ac.uk quoting reference DE/9564. */
 
 #if !defined(__warpfns_h)
 #define __warpfns_h
@@ -637,235 +637,6 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
   return newcoord;
 }
 
-
-/////////////////////////////////////////////////////////////////////
-//
-// Here starts declarations of the various overloaded versions
-// of raw_general_transform.
-//
-/////////////////////////////////////////////////////////////////////
-
-
-  //
-  // Here starts declarations of the templated functions that will
-  // be defined below.
-  //
-
-  template <class T>    
-  void raw_general_transform(// Input
-                             const volume<T>&         s,          // Input volume
-                             const NEWMAT::Matrix&    A,          // Mapping of t onto in
-                             const volume4D<float>&   d,          // Displacement fields
-                             const vector<int>&       defdir,     // Directions of displacements. 
-                             const vector<int>&       derivdir,   // Directions of derivatives
-                             const NEWMAT::Matrix     *TT,        // Mapping of out onto t
-                             const NEWMAT::Matrix     *M,         // Mapping of in onto s
-                             // Output
-                             volume<T>&               out,        // Output volume
-                             volume4D<T>&             deriv,      // Partial derivative directions
-                             volume<char>             *invol);    // Mask indicating what voxels fell inside original volume
-
-/////////////////////////////////////////////////////////////////////
-//
-// The following two routines are slightly simplified interfaces
-// such that users should not have to pass in zero-pointers when
-// they do not want to have an "infov" mask outpuy, or when there
-// are only a template and an inout volume such that we have no
-// need for M or TT.
-//
-/////////////////////////////////////////////////////////////////////
-
-  template<class T>
-  void raw_general_transform(// Input
-                             const volume<T>&         vin,        // Input volume
-                             const NEWMAT::Matrix&    aff,        // 4x4 affine transformation matrix
-                             const volume4D<float>&   df,         // Displacement fields
-                             const vector<int>&       defdir,     // Directions of displacements. 
-                             const vector<int>&       derivdir,   // Directions of derivatives
-                             // Output
-                             volume<T>&               vout,       // Output volume
-                             volume4D<T>&             deriv);     // Partial derivative directions
-
-  template <class T>
-  void raw_general_transform(// Input
-                             const volume<T>&         vin,        // Input volume
-                             const NEWMAT::Matrix&    aff,        // 4x4 affine transformation matrix
-                             const volume4D<float>&   df,         // Displacement fields
-                             const vector<int>&       defdir,     // Directions of displacements. 
-                             const vector<int>&       derivdir,   // Directions of derivatives
-                             // Output
-                             volume<T>&               vout,       // Output volume
-                             volume4D<T>&             deriv,      // Partial derivative directions
-                             volume<char>&            invol);     // Mask indicating what voxels fell inside original volume (or valid extrapolation)
-
-  template<class T>
-  void apply_warp(// Input
-                  const volume<T>&        vin,         // Input volume
-                  const NEWMAT::Matrix&   A,           // 4x4 affine transform
-                  const volume4D<float>   d,           // Displacement fields
-                  const NEWMAT::Matrix&   TT,
-                  const NEWMAT::Matrix&   M,
-                  // Output
-                  volume<T>&              vout);       // Resampled output volume
-
-  template<class T>
-  void apply_warp(// Input
-                  const volume<T>&        vin,         // Input volume
-                  const NEWMAT::Matrix&   A,           // 4x4 affine transform
-                  const volume4D<float>   d,           // Displacement fields
-                  const NEWMAT::Matrix&   TT,
-                  const NEWMAT::Matrix&   M,
-                  // Output
-                  volume<T>&              vout,        // Resampled output volume
-		  volume<char>&           mask);       // Set when inside original volume
-
-
-/////////////////////////////////////////////////////////////////////
-//
-// The following three routines are interafaces to mimick the old
-// functions apply_warp and raw_apply_warp. These are used manily 
-// for resampling of images that are typically related to the
-// input to e.g. fnirt or fugue through some rigid matrix M. 
-// Examples of M would be a rigid mapping between a subjects 
-// functional volumes and his/her structural or between a subjects
-// functional volumes and his/her field map. 
-//
-/////////////////////////////////////////////////////////////////////
-
-  template <class T>
-  int apply_warp(const volume<T>&        invol,
-                 volume<T>&              outvol,
-                 const volume4D<float>&  warpvol);
-
-  template <class T>
-  int apply_warp(const volume<T>&        invol, 
-                 volume<T>&              outvol,
-	         const volume4D<float>&  warpvol, 
-	         const NEWMAT::Matrix&   premat, 
-                 const NEWMAT::Matrix&   postmat);
-
-  template <class T>
-  int raw_apply_warp(const volume<T>&        invol, 
-                     volume<T>&              outvol,
-		     const volume4D<float>&  warpvol, 
-		     const NEWMAT::Matrix&   premat, 
-                     const NEWMAT::Matrix&   postmat);
-
-  template <class T>
-  void affine_transform(// Input
-                        const volume<T>&         vin,
-                        const NEWMAT::Matrix&    aff,
-                        // Output
-                        volume<T>&               vout);
-
-  template <class T>
-  void affine_transform(// Input
-                        const volume<T>&         vin,
-                        const NEWMAT::Matrix&    aff,
-                        // Output
-                        volume<T>&               vout,
-                        volume<char>&            invol);
-
-  template <class T>
-  void affine_transform_3partial(// Input
-                                 const volume<T>&       vin,
-                                 const NEWMAT::Matrix&  aff,
-                                 // Output
-                                 volume<T>&             vout,
-                                 volume4D<T>&           deriv);
-
-  template <class T>
-  void affine_transform_3partial(// Input
-                                 const volume<T>&       vin,
-                                 const NEWMAT::Matrix&  aff,
-                                 // Output
-                                 volume<T>&             vout,
-                                 volume4D<T>&           deriv,
-                                 volume<char>&          invol);
-  template <class T>
-  void displacement_transform_1D(// Input
-                                 const volume<T>&       vin,
-                                 const NEWMAT::Matrix&  aff,
-                                 const volume<float>&   df,
-                                 int                    defdir,
-                                 // Output
-                                 volume<T>&             vout);
-
-  template <class T>
-  void displacement_transform_1D(// Input
-                                 const volume<T>&       vin,
-                                 const NEWMAT::Matrix&  aff,
-                                 const volume<float>&   df,
-                                 int                    defdir,
-                                 // Output
-                                 volume<T>&             vout,
-                                 volume<char>&          invol);
-
-  template <class T>
-  void displacement_transform_1D_3partial(// Input
-                                          const volume<T>&       vin,
-                                          const NEWMAT::Matrix&  aff,
-                                          const volume<float>&   df,
-                                          int                    dir,
-                                          // Output
-                                          volume<T>&             vout,
-                                          volume4D<T>&           deriv);
-
-  template <class T>
-  void displacement_transform_1D_3partial(// Input
-                                          const volume<T>&       vin,
-                                          const NEWMAT::Matrix&  aff,
-                                          const volume<float>&   df,
-                                          int                    dir,
-                                          // Output
-                                          volume<T>&             vout,
-                                          volume4D<T>&           deriv,
-                                          volume<char>&          invol);
-
-  template <class T>
-  void general_transform(// Input
-                         const volume<T>&         vin,
-                         const NEWMAT::Matrix&    aff,
-                         const volume4D<float>&   df,
-                         // Output
-                         volume<T>&               vout);
-
-  template <class T>	       
-  void general_transform(// Input
-                         const volume<T>&         vin,
-                         const NEWMAT::Matrix&    aff,
-                         const volume4D<float>&   df,
-                         // Output
-                         volume<T>&               vout,
-                         volume<char>&            invol);
-
-  template <class T>
-  void general_transform_3partial(// Input
-                                  const volume<T>&         vin,
-                                  const NEWMAT::Matrix&    aff,
-                                  const volume4D<float>&   df,
-                                  // Output
-                                  volume<T>&               vout,
-                                  volume4D<T>&             deriv);
-
-  template <class T>
-  void general_transform_3partial(// Input
-                                  const volume<T>&         vin,
-                                  const NEWMAT::Matrix&    aff,
-                                  const volume4D<float>&   df,
-                                  // Output
-                                  volume<T>&               vout,
-                                  volume4D<T>&             deriv,
-                                  volume<char>&            invol);
-
-  template <class T> 
-  void get_displacement_fields(// Input
-                                  const volume<T>&         vin,
-                                  const NEWMAT::Matrix&    aff,
-                                  const volume4D<float>&   dfin,
-                                  // Output
-                                  volume4D<float>&         dfout);
-
   ///////////////////////////////////////////////////////////////////////////
   // IMAGE PROCESSING ROUTINES
   ///////////////////////////////////////////////////////////////////////////
@@ -916,7 +687,7 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
   //
   // Together with some other options (such as derivatives or no derivatives, 3D or 1D non-linear
   // transform etc) this all makes the calling interface a little messy. There is therefore a set
-  // of alterantive calls with a reduced interface that will be more convenient for many
+  // of alternative calls with a reduced interface that will be more convenient for many
   // applications.
   //
 
@@ -928,19 +699,20 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
 
   template <class T>    
   void raw_general_transform(// Input
-                             const volume<T>&         f,          // Input volume
-                             const NEWMAT::Matrix&    A,          // 4x4 affine transformation matrix
-                             const volume4D<float>&   d,          // Displacement fields (also defines space of t). Note that
-                                                                  // these are "relative" fields in units of mm.
-                             const vector<int>&       defdir,     // Directions of displacements. 
-                             const vector<int>&       derivdir,   // Directions of derivatives
-                             const NEWMAT::Matrix     *TT,        // Mapping of out onto t
-                             const NEWMAT::Matrix     *M,         // Mapping of in onto s
+                             const volume<T>&             f,          // Input volume
+                             const NEWMAT::Matrix&        A,          // 4x4 affine transformation matrix
+                             const volume4D<float>&       d,          // Displacement fields (also defines space of t). Note that
+                                                                      // these are "relative" fields in units of mm.
+                             const vector<int>&           defdir,     // Directions of displacements. 
+                             const vector<int>&           derivdir,   // Directions of derivatives
+			     vector<unsigned int>         slices,     // Vector of slices (in out) that should be resampled
+                             const NEWMAT::Matrix         *TT,        // Mapping of out onto t
+                             const NEWMAT::Matrix         *M,         // Mapping of in onto s
                              // Output
-                             volume<T>&               out,        // Output volume
-                             volume4D<T>&             deriv,      // Partial derivatives. Note that the derivatives are in units
-                                                                  // "per voxel".
-                             volume<char>             *valid)     // Mask indicating what voxels fell inside original fov OR that extrapolation is valid
+                             volume<T>&                   out,        // Output volume
+                             volume4D<T>&                 deriv,      // Partial derivatives. Note that the derivatives are in units
+                                                                      // "per voxel".
+                             volume<char>                 *valid)     // Mask indicating what voxels fell inside original fov OR that extrapolation is valid
   {
     if (int(defdir.size()) != d.tsize()) {imthrow("NEWIMAGE::raw_general_transform: Mismatch in input. defdir.size() must equal d.tsize()",11);}
     for (int i=0; i<int(defdir.size()); i++) {
@@ -950,6 +722,9 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
     for (int i=0; i<int(derivdir.size()); i++) {
       if (derivdir[i] < 0 || derivdir[i] > 2) {imthrow("NEWIMAGE::raw_general_transform: Mismatch in input. Displacements can only be specified for directions 0,1 or 2.",11);}
     }
+    if (slices.size()==0) { slices.resize(out.zsize()); for (unsigned int i=0; i<slices.size(); i++) slices[i]=i; }
+    else if (int(slices.size()) > out.zsize()) imthrow("NEWIMAGE::raw_general_transform: Mismatch between slices and out input",11);
+    else { for (unsigned int i=0; i<slices.size(); i++) if (int(slices[i])>=out.zsize()) imthrow("NEWIMAGE::raw_general_transform: Invalid element in slices",11); }
     if (out.nvoxels() <= 0) {imthrow("NEWIMAGE::raw_general_transform: Size of vout must be set",8);}
     if (derivdir.size() && !samesize(out,deriv[0]))  {imthrow("NEWIMAGE::raw_general_transform: vout and deriv must have same dimensions",11);}
     if (valid && !samesize(out,*valid)) {imthrow("NEWIMAGE::raw_general_transform: vout and valid must have same dimensions",11);}
@@ -1059,14 +834,15 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
       A21=iB(2,1), A22=iB(2,2), A23=iB(2,3), A24=iB(2,4);
       A31=iB(3,1), A32=iB(3,2), A33=iB(3,3), A34=iB(3,4); 
       if (!derivdir.size()) { // If we don't need to calculate derivatives
-        for (int z=0; z<out.zsize(); z++) { 
+        for (unsigned int k=0; k<slices.size(); k++) {
+	  int z = static_cast<int>(slices[k]);
           for (int x=0; x<out.xsize(); x++) {
 	    o1=x*A11 + z*A13 + A14;  // y=0
 	    o2=x*A21 + z*A23 + A24;  // y=0
 	    o3=x*A31 + z*A33 + A34;  // y=0
  	    for (int y=0; y<out.ysize(); y++) {
 	      out(x,y,z) = ((T) f.interpolate(o1,o2,o3));
-              if (valid) {valid->operator()(x,y,z) = (f.valid(o1,o2,o3)) ? 1 : 0;}
+              if (valid) { valid->operator()(x,y,z) = (f.valid(o1,o2,o3)) ? 1 : 0; }
 	      o1 += A12;
 	      o2 += A22;
 	      o3 += A32;
@@ -1075,7 +851,8 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
         }
       }
       else { // If we need derivatives in at least one direction
-        for (int z=0; z<out.zsize(); z++) { 
+        for (unsigned int k=0; k<slices.size(); k++) { 
+	  int z = static_cast<int>(slices[k]);
           for (int x=0; x<out.xsize(); x++) { 
 	    o1=x*A11 + z*A13 + A14;  // y=0
 	    o2=x*A21 + z*A23 + A24;  // y=0
@@ -1105,7 +882,8 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
     else { // We have displacements in at least one direction
       float oo1,oo2,oo3;
       if (derivdir.size()) { // If we need to calculate derivatives in at least one direction
-        for (int z=0; z<out.zsize(); z++) { 
+        for (unsigned int k=0; k<slices.size(); k++) { 
+	  int z = static_cast<int>(slices[k]);
           for (int y=0; y<out.ysize(); y++) {
             for (int x=0; x<out.xsize(); x++) {
               if (useiT) {
@@ -1150,7 +928,8 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
         }
       }
       else { // If we don't need derivatives
-        for (int z=0; z<out.zsize(); z++) { 
+        for (unsigned int k=0; k<slices.size(); k++) { 
+	  int z = static_cast<int>(slices[k]);
           for (int y=0; y<out.ysize(); y++) {
             for (int x=0; x<out.xsize(); x++) {
               if (useiT) {
@@ -1266,7 +1045,8 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
                              volume<T>&               vout,       // Output volume
                              volume4D<T>&             deriv)      // Partial derivatives
   {
-    raw_general_transform(vin,A,d,defdir,derivdir,0,0,vout,deriv,0);
+    std::vector<unsigned int> slices; // Means all slices will be resampled
+    raw_general_transform(vin,A,d,defdir,derivdir,slices,0,0,vout,deriv,0);
   }
 
   template <class T>
@@ -1281,7 +1061,8 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
                              volume4D<T>&             deriv,      // Partial derivative directions
                              volume<char>&            invol)      // Mask indicating what voxels fell inside original volume
   {
-    raw_general_transform(vin,A,d,defdir,derivdir,0,0,vout,deriv,&invol);    
+    std::vector<unsigned int> slices; // Means all slices will be resampled
+    raw_general_transform(vin,A,d,defdir,derivdir,slices,0,0,vout,deriv,&invol);    
   }
 
   // These routines supply a convenient interface for applywarp.
@@ -1299,6 +1080,7 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
     std::vector<int>  defdir(3);
     for (int i=0; i<3; i++) defdir[i] = i;
     std::vector<int>          derivdir;
+    std::vector<unsigned int> slices; // Means all slices will be resampled
     volume4D<T>               deriv;
     const NEWMAT::Matrix      *Tptr = NULL;
     const NEWMAT::Matrix      *Mptr = NULL;
@@ -1306,7 +1088,7 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
     if ((TT-IdentityMatrix(4)).MaximumAbsoluteValue() > 1e-6) Tptr = &TT;
     if ((M-IdentityMatrix(4)).MaximumAbsoluteValue() > 1e-6) Mptr = &M;
 
-    raw_general_transform(vin,A,d,defdir,derivdir,Tptr,Mptr,vout,deriv,NULL);
+    raw_general_transform(vin,A,d,defdir,derivdir,slices,Tptr,Mptr,vout,deriv,NULL);
   }
 
   template<class T>
@@ -1323,6 +1105,7 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
     std::vector<int>  defdir(3);
     for (int i=0; i<3; i++) defdir[i] = i;
     std::vector<int>          derivdir;
+    std::vector<unsigned int> slices; // Means all slices will be resampled
     volume4D<T>               deriv;
     const NEWMAT::Matrix      *Tptr = NULL;
     const NEWMAT::Matrix      *Mptr = NULL;
@@ -1332,7 +1115,34 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
     if ((TT-IdentityMatrix(4)).MaximumAbsoluteValue() > 1e-6) Tptr = &TT;
     if ((M-IdentityMatrix(4)).MaximumAbsoluteValue() > 1e-6) Mptr = &M;
 
-    raw_general_transform(vin,A,d,defdir,derivdir,Tptr,Mptr,vout,deriv,&mask);
+    raw_general_transform(vin,A,d,defdir,derivdir,slices,Tptr,Mptr,vout,deriv,&mask);
+  }
+
+  template<class T>
+  void apply_warp(// Input
+                  const volume<T>&                 vin,         // Input volume
+                  const NEWMAT::Matrix&            A,           // 4x4 affine transform
+                  const volume4D<float>            d,           // Displacement fields
+                  const NEWMAT::Matrix&            TT,
+                  const NEWMAT::Matrix&            M,
+		  const std::vector<unsigned int>& slices,
+                  // Output
+                  volume<T>&                       vout,        // Resampled output volume
+		  volume<char>&                    mask)        // Set when inside original volume
+  {
+    std::vector<int>  defdir(3);
+    for (int i=0; i<3; i++) defdir[i] = i;
+    std::vector<int>          derivdir;
+    volume4D<T>               deriv;
+    const NEWMAT::Matrix      *Tptr = NULL;
+    const NEWMAT::Matrix      *Mptr = NULL;
+    mask.reinitialize(vout.xsize(),vout.ysize(),vout.zsize());  // Just to be certain
+    copybasicproperties(vout,mask);
+
+    if ((TT-IdentityMatrix(4)).MaximumAbsoluteValue() > 1e-6) Tptr = &TT;
+    if ((M-IdentityMatrix(4)).MaximumAbsoluteValue() > 1e-6) Mptr = &M;
+
+    raw_general_transform(vin,A,d,defdir,derivdir,slices,Tptr,Mptr,vout,deriv,&mask);
   }
 
 /////////////////////////////////////////////////////////////////////
@@ -1391,11 +1201,12 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
     NEWMAT::IdentityMatrix   A(4);
     vector<int>              defdir(3);
     vector<int>              derivdir;
+    std::vector<unsigned int> slices; // Means all slices will be resampled
     volume4D<T>              deriv;
 
     defdir[0] = 0; defdir[1] = 1; defdir[2] = 2;
 
-    raw_general_transform(invol,A,warpvol,defdir,derivdir,&postmat,&premat,outvol,deriv,NULL);
+    raw_general_transform(invol,A,warpvol,defdir,derivdir,slices,&postmat,&premat,outvol,deriv,NULL);
 
     return(0);
   }
@@ -1419,21 +1230,40 @@ NEWMAT::ColumnVector inv_coord(const volume4D<float>&      warp,
 
     raw_general_transform(vin,aff,pdf,pdefdir,pderivdir,vout,deriv);
   }
+
   template <class T>
   void affine_transform(// Input
                         const volume<T>&         vin,
                         const NEWMAT::Matrix&    aff,
                         // Output
                         volume<T>&               vout,
-                        volume<char>&            invol)
+                        volume<char>&            inside_volume)
   {
     volume4D<float>  pdf;
     vector<int>      pdefdir;
     volume4D<float>  deriv;
     vector<int>      pderivdir;
 
-    raw_general_transform(vin,aff,pdf,pdefdir,pderivdir,vout,deriv,invol);
+    raw_general_transform(vin,aff,pdf,pdefdir,pderivdir,vout,deriv,inside_volume);
   }
+
+  template <class T>
+  void affine_transform(// Input
+                        const volume<T>&                   vin,
+                        const NEWMAT::Matrix&              aff,
+			const std::vector<unsigned int>&   slices,
+                        // Output
+                        volume<T>&                         vout,
+                        volume<char>&                      inside_volume)
+  {
+    volume4D<float>  pdf;
+    vector<int>      pdefdir;
+    volume4D<float>  pderiv;
+    vector<int>      pderivdir;
+
+    raw_general_transform(vin,aff,pdf,pdefdir,pderivdir,slices,0,0,vout,pderiv,&inside_volume);
+  }
+
   template <class T>
   void affine_transform_3partial(// Input
                                  const volume<T>&             vin,

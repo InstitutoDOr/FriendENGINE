@@ -12,16 +12,16 @@
 #include <string.h>
 #include <vector>
 
-using namespace std;
-using namespace MISCPLOT;
-using namespace MISCMATHS;
-using namespace NEWIMAGE;
-
 #ifdef WINDOWS
 #include <direct.h>
 #define strcasecmp stricmp
 #define rmdir _rmdir
 #endif
+
+using namespace std;
+using namespace MISCPLOT;
+using namespace MISCMATHS;
+using namespace NEWIMAGE;
 
 template <class T> int execAxial(char *inNam, char *outNam);
 template <class T> int resample(char *inNam, float dx, float dy, float dz, int nn, char *Output);
@@ -85,6 +85,185 @@ int convert_xfm(char *cmdLn)
 	return callCommand(cmdLn);
 }
 #endif
+
+float norm(Matrix &mat)
+{
+	float normv = 0;
+	for (int t = 1; t <= 4; t++)
+		normv += mat(t, 1) * mat(t, 1);
+	return sqrt(normv);
+}
+
+void aff2rigid(char *infile, char *outfile)
+{
+	Matrix a = read_ascii_matrix(infile);
+
+	// set specific AC and PC coordinates in FLIRT convention(x1 = AC, x2 = PC, x3 = point above x1 in the mid - sag plane)
+	Matrix x1(4, 1), x2(4, 1), x3(4, 1);
+	x1(1, 1) = 91; x1(2, 1) = 129; x1(3, 1) = 67; x1(4, 1) = 1;
+	x2(1, 1) = 91; x2(2, 1) = 100; x2(3, 1) = 70; x2(4, 1) = 1;
+	x3(1, 1) = 91; x3(2, 1) = 129; x3(3, 1) = 117; x3(4, 1) = 1;
+
+	Matrix ainv = pinv(a);
+
+	// vectors v are in MNI space, vectors w are in native space
+	Matrix v21 = (x2 - x1);
+	Matrix v31 = (x3 - x1);
+
+	// normalise and force orthogonality
+	v21 = v21 / norm(v21);
+	Matrix auxM = v31.t() * v21;
+	v31 = v31 - auxM(1, 1) * v21;
+	v31 = v31 / norm(v31);
+
+	Matrix v213 = v21.SubMatrix(1, 3, 1, 1);
+	Matrix v313 = v31.SubMatrix(1, 3, 1, 1);
+	Matrix tmp = cross(v213, v313).t();
+
+	Matrix v41(4, 1);
+	v41 = 0;
+
+	for (int t = 1; t <= 3; t++)
+		v41(t, 1) = tmp(1, t);
+
+	// Map vectors to native space
+	Matrix w21 = ainv*(v21);
+	Matrix w31 = ainv*(v31);
+
+	// normalise and force orthogonality
+	w21 = w21 / norm(w21);
+	auxM = w31.t() * w21;
+	w31 = w31 - auxM(1, 1) * w21;
+	w31 = w31 / norm(w31);
+
+	v213 = w21.SubMatrix(1, 3, 1, 1);
+	v313 = w31.SubMatrix(1, 3, 1, 1);
+	tmp = cross(v213, v313).t();
+
+	Matrix w41(4, 1);
+	w41 = 0;
+	for (int t = 1; t <= 3; t++)
+		w41(t, 1) = tmp(1, t);
+
+	// setup matrix : native to MNI space
+	Matrix r1(4, 4);
+	r1 = 0;
+	r1(1, 1) = 1;   	r1(2, 2) = 1;   	r1(3, 3) = 1;   	r1(4, 4) = 1;
+
+	for (int t = 1; t <= 4; t++) r1(t, 1) = w21(t, 1);
+	for (int t = 1; t <= 4; t++) r1(t, 2) = w31(t, 1);
+	for (int t = 1; t <= 4; t++) r1(t, 3) = w41(t, 1);
+
+	Matrix r2(4, 4);
+	r2 = 0;
+	r2(1, 1) = 1;   	r2(2, 2) = 1;   	r2(3, 3) = 1;   	r2(4, 4) = 1;
+
+	for (int t = 1; t <= 4; t++) r2(1, t) = v21(t, 1);
+	for (int t = 1; t <= 4; t++) r2(2, t) = v31(t, 1);
+	for (int t = 1; t <= 4; t++) r2(3, t) = v41(t, 1);
+
+	Matrix r = r2.t() * r1.t();
+
+	// Fix the translation(keep AC = x1 in the same place)
+	Matrix ACmni = x1;
+	Matrix ACnat = ainv*x1;
+	Matrix trans = ACmni - r*ACnat;
+	for (int t = 1; t <= 3; t++) r(t, 4) = trans(t, 1);
+
+	// Save out the result
+	write_ascii_matrix(r, outfile);
+}
+
+void BetFNIRT(char *infile, char *outfile, char *workingDir, char *supportDir)
+{
+	char CmdLn[2048], fnirtConfig[1024], reference2mm[1024], reference2mmMask[1024], reference[1024], referenceMask[1024], outputBrainMask[1024];
+	sprintf(fnirtConfig, "%s/T1_2_MNI152_2mm.cnf", supportDir);
+
+	sprintf(reference2mm, "%s/MNI152_T1_2mm.nii.gz", supportDir);
+	sprintf(reference2mmMask, "%s/MNI152_T1_2mm_brain_mask_dil.nii.gz", supportDir);
+	sprintf(reference, "%s/MNI152_T1_0.7mm.nii.gz", supportDir);
+	sprintf(referenceMask, "%s/MNI152_T1_0.7mm_brain_mask.nii.gz", supportDir);
+	sprintf(outputBrainMask, "%s\\bMask.nii", workingDir);
+
+	if (1)
+	{
+		sprintf(CmdLn, "flirt -interp spline -dof 12 -in %s -ref %s -omat %s/roughlin.mat -out %s/temp_to_MNI_roughlin.nii.gz -nosearch", infile, reference2mm, workingDir, workingDir);
+		flirt(CmdLn);
+		sprintf(CmdLn, "fnirt --in=%s --ref=%s --aff=%s/roughlin.mat --refmask=%s --fout=%s/str2standard.nii.gz --jout=%s/NonlinearRegJacobians.nii.gz --refout=%s/IntensityModulatedT1.nii.gz --iout=%s/temp_to_MNI_nonlin.nii.gz --logout=%s/NonlinearReg.txt --intout=%s/NonlinearIntensities.nii.gz --cout=%s/NonlinearReg.nii.gz --config=%s", infile, reference2mm, workingDir, reference2mmMask, workingDir, workingDir, workingDir, workingDir, workingDir, workingDir, workingDir, fnirtConfig);
+		fnirt(CmdLn);
+
+		// Overwrite the image output from FNIRT with a spline interpolated highres version
+		sprintf(CmdLn, "applywarp --rel --interp=spline --in=%s --ref=%s -w %s/str2standard.nii.gz --out=%s/temp_to_MNI_nonlin.nii.gz", infile, reference, workingDir, workingDir);
+		applywarp(CmdLn);
+
+		// Invert warp and transform dilated brain mask back into native space, and use it to mask input image
+		// Input and reference spaces are the same, using 2mm reference to save time
+		sprintf(CmdLn, "invwarp --ref=%s -w %s/str2standard.nii.gz -o %s/standard2str.nii.gz", reference2mm, workingDir, workingDir);
+		invwarp(CmdLn);
+
+		sprintf(CmdLn, "applywarp --rel --interp=nn --in=%s --ref=%s -w %s/standard2str.nii.gz -o %s", referenceMask, infile, workingDir, outputBrainMask);
+		applywarp(CmdLn);
+
+		sprintf(CmdLn, "fslmaths %s -mas %s %s", infile, outputBrainMask, outfile);
+		fslmaths(CmdLn);
+
+		//sprintf(CmdLn, "bet %s %s -f 0.3", outfile, outfile);
+		//bet(CmdLn);
+	}
+	removeDirectory(workingDir);
+}
+
+void acpcAlignment(char *inputVolume, char *reference, char *outVolume, char *workingDir, int brainSize, int searchsize)
+{
+	char CmdLn[2048];
+	char infile[1024];
+	char oVol[1024];
+	char outMatrix[1024];
+
+	sprintf(outMatrix, "%s/saida.mat", workingDir);
+	sprintf(oVol, "%s/structural.nii", workingDir);
+	strcpy(oVol, inputVolume);
+	if (1)
+	{
+		mkdir(workingDir);
+		// Crop the FOV
+		sprintf(CmdLn, "robustfov -i %s -m %s/roi2full.mat -r %s/robustroi -b %d", inputVolume, workingDir, workingDir, brainSize);
+		robustfov(CmdLn);
+
+		// Invert the matrix(to get full FOV to ROI)
+		sprintf(CmdLn, "convert_xfm -omat %s/full2roi.mat -inverse %s/roi2full.mat", workingDir, workingDir);
+		convert_xfm(CmdLn);
+
+		// Register cropped image to MNI152(12 DOF)
+		// -cost{ mutualinfo, corratio, normcorr, normmi, leastsq, labeldiff, bbr }
+		sprintf(CmdLn, "flirt -interp spline -in %s/robustroi.nii.gz -ref %s -omat %s/roi2std.mat -out %s/acpc_final.nii.gz -searchrx -%d %d -searchry -%d %d -searchrz -%d %d", workingDir, reference, workingDir, workingDir, searchsize, searchsize, searchsize, searchsize, searchsize, searchsize);
+		flirt(CmdLn);
+
+		// Concatenate matrices to get full FOV to MNI
+		sprintf(CmdLn, "convert_xfm -omat %s/full2std.mat -concat %s/roi2std.mat %s/full2roi.mat", workingDir, workingDir, workingDir);
+		convert_xfm(CmdLn);
+
+		//Get a 6 DOF approximation which does the ACPC alignment(AC, ACPC line, and hemispheric plane)
+		sprintf(infile, "%s/full2std.mat", workingDir);
+		aff2rigid(infile, outMatrix);
+	}
+
+	if (1)
+	{
+		// Create a resampled image(ACPC aligned) using spline interpolation
+		sprintf(CmdLn, "applywarp --rel --interp=spline -i %s -r %s --premat=%s -o %s", inputVolume, reference, outMatrix, oVol);
+		applywarp(CmdLn);
+	}
+
+	if (0)
+	{
+		sprintf(CmdLn, "bet %s %s -f 0.3", oVol, outVolume);
+		bet(CmdLn);
+		//sprintf(CmdLn, "bet %s %s -f 0.3", outVolume, outVolume);
+		//bet(CmdLn);
+	}
+	removeDirectory(workingDir);
+}
 
 void FslFree(FSLIO* OP)
 {
@@ -154,9 +333,6 @@ void returnijk(char *inNam, int *is, int *ys, int *zs)
   returnijk(fslio, is, ys, zs);
   if (fslio!=NULL) FslClose(fslio);
 }
-
-template <class T>
-struct triple { T x; T y; T z; };
 
 // get the stats of the clusters
 template <class T>
@@ -257,6 +433,63 @@ void clusterSizeFiltering(char *fileName, char *outputName, int minClusterSize, 
 		}
 	}
 	save_volume(inVol, string(outputName));
+}
+
+bool greaterThan(int i, int j) { return (i>j); }
+void fillHoles(char *input, char *completeVolume, char *output)
+{
+	volume<float> inVol, completeVol, mask;
+	volume<int> componentLabels;
+	vector<int> size, idx, orderedSize;
+	vector<triple<int> > maxpos;
+	vector<triple<float> > cog;
+	vector<float> maxvals;
+	vector<float> meanvals;
+
+	read_volume(inVol, string(input));
+	read_volume(completeVol, string(completeVolume));
+	mask = inVol;
+	mask.binarise(0, mask.max() + 1, exclusive);
+
+	for (int z = mask.minz(); z <= mask.maxz(); z++){
+		for (int y = mask.miny(); y <= mask.maxy(); y++){
+			for (int x = mask.minx(); x <= mask.maxx(); x++)
+			{
+				if (mask(x, y, z) == 0) mask(x, y, z) = 2;
+			}
+		}
+	}
+
+	componentLabels = connected_components(mask, 26);
+
+	// get the statistics of the connected components
+	get_stats<float>(componentLabels, inVol, size, maxvals, meanvals, maxpos, cog, 0);
+
+	if (size.size() > 2)
+	{
+		for (int i = 0; i < size.size(); i++) orderedSize.push_back(size[i]);
+		std::sort(orderedSize.begin(), orderedSize.end(), greaterThan);
+		int maxValue = orderedSize[2];
+		//fprintf(stderr, "No comps.: %d Corte superior: %d\n", size.size(), maxValue);
+		//for (int i = 0; i < size.size(); i++) fprintf(stderr, "%d, ", size[i]);
+		//fprintf(stderr, "\n");
+		for (int i = 0; i < size.size(); i++)
+		{
+			if (size[i] <= maxValue)
+			{
+				for (int z = componentLabels.minz(); z <= componentLabels.maxz(); z++){
+					for (int y = componentLabels.miny(); y <= componentLabels.maxy(); y++){
+						for (int x = componentLabels.minx(); x <= componentLabels.maxx(); x++)
+						{
+							if (componentLabels(x, y, z) == i)
+								inVol(x, y, z) = completeVol(x, y, z);
+						}
+					}
+				}
+			}
+		}
+	}
+	save_volume(inVol, string(output));
 }
 
 // template function to reorienting a volume file to axial

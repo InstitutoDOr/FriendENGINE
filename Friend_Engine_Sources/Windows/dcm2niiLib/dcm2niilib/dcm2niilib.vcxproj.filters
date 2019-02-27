@@ -33,9 +33,6 @@
     <ClCompile Include="..\..\..\..\dcm2niix\console\nii_ortho.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\dcm2niix\console\nii_ostu_ml.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\dcm2niix\console\ujpeg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -233,6 +233,14 @@ void RoiMeanCalculation::loadReference(char *referenceFileName)
          }
 }
 
+int RoiMeanCalculation::checkDimensions(volume<float> &actualvolume)
+{
+	if ((reference.xsize() == actualvolume.xsize()) && (reference.ysize() == actualvolume.ysize()) && (reference.zsize() == actualvolume.zsize()))
+		return 1;
+	else
+		return 0;
+}
+
 // initializes the object variables
 void RoiMeanCalculation::reinitialize()
 {

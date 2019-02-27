@@ -5,8 +5,11 @@
 
 using namespace std;
 
+// returns the list of files in dirSource
+void listFiles(char *dirSource, vector<string>&entries);
+
 // returns the list of directories in dirSource
-void listDirectory(char *dirSource, vector<string>&entries);
+void listDirectory(char *dirSource, vector<string>&entries, int fullpath = 1);
 
 // returns the first entry of a directory
 string returnFirstFile(char *dirSource);

@@ -126,6 +126,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "corelib", "..\coreLib\corel
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dcm2niilib", "..\dcm2niiLib\dcm2niilib\dcm2niilib.vcxproj", "{FB9D68EE-9FA9-43FB-9D87-8EAA7E3A35FC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libMotor", "..\libMotor\libMotor\libMotor.vcxproj", "{06397ED9-0E18-42E1-84FB-7B6C0D429F71}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -310,6 +312,14 @@ Global
 		{FB9D68EE-9FA9-43FB-9D87-8EAA7E3A35FC}.Release|Win32.Build.0 = Release|Win32
 		{FB9D68EE-9FA9-43FB-9D87-8EAA7E3A35FC}.Release|x64.ActiveCfg = Release|x64
 		{FB9D68EE-9FA9-43FB-9D87-8EAA7E3A35FC}.Release|x64.Build.0 = Release|x64
+		{06397ED9-0E18-42E1-84FB-7B6C0D429F71}.Debug|Win32.ActiveCfg = Debug|Win32
+		{06397ED9-0E18-42E1-84FB-7B6C0D429F71}.Debug|Win32.Build.0 = Debug|Win32
+		{06397ED9-0E18-42E1-84FB-7B6C0D429F71}.Debug|x64.ActiveCfg = Debug|x64
+		{06397ED9-0E18-42E1-84FB-7B6C0D429F71}.Debug|x64.Build.0 = Debug|x64
+		{06397ED9-0E18-42E1-84FB-7B6C0D429F71}.Release|Win32.ActiveCfg = Release|Win32
+		{06397ED9-0E18-42E1-84FB-7B6C0D429F71}.Release|Win32.Build.0 = Release|Win32
+		{06397ED9-0E18-42E1-84FB-7B6C0D429F71}.Release|x64.ActiveCfg = Release|x64
+		{06397ED9-0E18-42E1-84FB-7B6C0D429F71}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

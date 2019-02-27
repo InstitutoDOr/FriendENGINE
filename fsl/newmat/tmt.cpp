@@ -159,7 +159,7 @@ void TestTypeKP();                             // test KP
 void TestTypeOrder();                          // test >=
 
 
-int tmt()
+int main()
 {
    Real* s1; Real* s2; Real* s3; Real* s4;
    cout << "\nBegin test\n";   // Forces cout to allocate memory at beginning

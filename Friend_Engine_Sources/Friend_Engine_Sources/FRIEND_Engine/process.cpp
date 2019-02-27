@@ -1267,7 +1267,7 @@ void FriendProcess::getPhaseStatus(string phase, char *response)
 }
 
 // steps before realtime processing
-void FriendProcess::prepRealTime()
+int FriendProcess::prepRealTime()
 {
    char arqAxial[BUFF_SIZE] = { }, CmdLn[BUFF_SIZE] = { }, betAnat[BUFF_SIZE] = { };
    size_t buffSize = BUFF_SIZE-1;
@@ -1275,7 +1275,31 @@ void FriendProcess::prepRealTime()
    if (!vdb.rPrepVars)
 	   prepRealtimeVars();
 
-   if ((!fileExists(vdb.raiFile)) || (!fileExists(vdb.rfiFile))) return;
+   if (!fileExists(vdb.raiFile))
+   {
+	   vdb.logObject->writeLog(1, "RAI File %s not found. \n", vdb.raiFile);
+	   return 0;
+   }
+
+   if  (!fileExists(vdb.rfiFile))
+   {
+	   vdb.logObject->writeLog(1, "RFI File %s not found. \n", vdb.rfiFile);
+	   return 0;
+   }
+
+   if (!fileExists(vdb.designFile))
+   {
+	   vdb.logObject->writeLog(1, "Design File File %s not found. \n", vdb.designFile);
+	   return 0;
+   }
+
+   if (vdb.runSize != vdb.interval.maxIndex())
+   {
+	   vdb.logObject->writeLog(1, "Number of Volumes is different from design file declaration.");
+	   return 0;
+   }
+
+
    vdb.createDirectories();
 
    pHandler.callInitFunction(vdb);
@@ -1318,5 +1342,6 @@ void FriendProcess::prepRealTime()
 	  flirt(CmdLn);
    }
    vdb.rPreProc=true;
+   return 1;
 }
 

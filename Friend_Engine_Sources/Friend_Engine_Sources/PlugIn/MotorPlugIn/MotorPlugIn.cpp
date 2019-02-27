@@ -27,9 +27,9 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
    strcpy(vdb.mniTemplate, vdb.readedIni.GetValue("FRIEND", "MNITemplate"));
    int masktype = vdb.readedIni.GetLongValue("FRIEND", "ActivationLevelMaskType");
 
-   fprintf(stderr, "mnimask = %s\n", vdb.mniMask);
-   fprintf(stderr, "mnitemp = %s\n", vdb.mniTemplate);
-   fprintf(stderr, "masktype = %d\n", masktype);
+   vdb.logObject->writeLog(1, "mnimask = %s\n", vdb.mniMask);
+   vdb.logObject->writeLog(1, "mnitemp = %s\n", vdb.mniTemplate);
+   vdb.logObject->writeLog(1, "masktype = %d\n", masktype);
 
    targetValue = vdb.readedIni.GetDoubleValue("FRIEND", "ActivationLevel");
    // if exists the two files, bring  the mnimask to native space 
@@ -43,7 +43,7 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
       
       sprintf(outputFile, "%s%s%s.nii", vdb.inputDir, name, vdb.trainFeatureSuffix);
       
-      fprintf(stderr, "Calculating the native template %s\n", outputFile);
+      vdb.logObject->writeLog(1, "Calculating the native template %s\n", outputFile);
       // bringing mni mask to subject space
 
 	  // bet Functional
@@ -70,7 +70,7 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
    else if ((fileExists(vdb.mniMask)) && (masktype == 1))
    {
 	   // loads the reference mask
-	   fprintf(stderr, "Loading native space mask %s\n", vdb.mniMask);
+	   vdb.logObject->writeLog(1, "Loading native space mask %s\n", vdb.mniMask);
 	   meanCalculation.loadReference(vdb.mniMask);
 
 	   // Theses indexes are the indexes relative to the roi intensities in the meanCalculation object mean array
@@ -80,10 +80,16 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
    else
    {
 	   if (!fileExists(vdb.mniMask))
-		   fprintf(stderr, "!!!!!!!   File not found %s.\n", vdb.mniMask);
+	   {
+		   vdb.logObject->writeLog(1, "!!!!!!!   File not found %s.\n", vdb.mniMask);
+		   exit(-1);
+	   }
 
 	   if (!fileExists(vdb.mniTemplate))
-		   fprintf(stderr, "!!!!!!!   File not found %s.\n", vdb.mniTemplate);
+	   {
+		   vdb.logObject->writeLog(1, "!!!!!!!   File not found %s.\n", vdb.mniTemplate);
+		   exit(-1);
+	   }
    };
 
    firstBaselineValue=0;
@@ -110,6 +116,10 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
    classnum = vdb.getClass(index);
    feedbackValue = 0;
 
+   if (!meanCalculation.checkDimensions(v))
+   {
+	   vdb.logObject->writeLog(1, "Feedback calculation: Mask dimension differs from funxtional volume");
+   }
    // if in baseline condition, calculates the mean volume
    if (vdb.interval.isBaselineCondition(index))
    {
@@ -127,7 +137,7 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 	  }
 
 	  sprintf(secondRoiString, "0.0");
-	  fprintf(stderr, "%s\n", secondRoiString);
+	  vdb.logObject->writeLog(1, "%s\n", secondRoiString);
 	  session->processAdditionalFeedBackInfo(index, secondRoiString);
    }
    else // task condition. Taking the means of the rois in volume and calculating the PSC
@@ -146,8 +156,8 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
       // enforcing 0..1 range
       //if (projection > 1) projection = 1;
       //else if (projection < 0) projection = 0;
-	  fprintf(stderr, "Feedback value = %f\n", feedbackValue);
-	  fprintf(stderr, "Feedback value = %s\n", secondRoiString);
+	  vdb.logObject->writeLog(1, "Feedback value = %f\n", feedbackValue);
+	  vdb.logObject->writeLog(1, "Feedback value = %s\n", secondRoiString);
    }
    return 0;
 }

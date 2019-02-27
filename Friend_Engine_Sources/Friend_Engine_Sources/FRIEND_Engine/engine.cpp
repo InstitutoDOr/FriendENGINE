@@ -75,7 +75,7 @@ bool	WINAPI friendEngineHelper(friendEngine	*);
 threadRoutineType	friendEngineHelper(threadRoutineArgType);
 #endif
 
-// geenrates a unique id for a session, based on time
+// generates a unique id for a session, based on time
 void generateSessionID(char *id, size_t maxSize)
 {
 	char timeString[200];
@@ -496,10 +496,21 @@ bool	friendEngine::serverChild(int	socketFd)
 															if (strcmp(command, "PREPROC") == 0)
 															{
 																logObject->writeLog(1, "PrepRealtime.\n");
-																process.prepRealTime();
-
-																sprintf(command, "OK\n");
-																socks.writeString(command);
+																if (!process.prepRealTime())
+																{
+																	process.wrapUpRun();
+																	sprintf(command, "NOK\n");
+																	logObject->writeLog(1, "Terminating the session.\n");
+																	socks.writeString(command);
+																	//exit(-1);
+																	break;
+																}
+																else
+																{
+																	logObject->writeLog(1, "PrepRealtime step finisjed succesfully.\n");
+																	sprintf(command, "OK\n");
+																	socks.writeString(command);
+																}
 															}
 															else
 																// preproc FRIEND operations
@@ -513,7 +524,21 @@ bool	friendEngine::serverChild(int	socketFd)
 
 																	// preprocessing
 																	logObject->writeLog(1, "PrepRealtime.\n");
-																	process.prepRealTime();
+																	if (!process.prepRealTime())
+																	{
+																		process.wrapUpRun();
+																		sprintf(command, "NOK\n");
+																		logObject->writeLog(1, "Terminating the session.\n");
+																		socks.writeString(command);
+																		//exit(-1);
+																		break;
+																	}
+																	else
+																	{
+																		logObject->writeLog(1, "PrepRealtime step finisjed succesfully.\n");
+																		sprintf(command, "OK\n");
+																		socks.writeString(command);
+																	}
 																	process.setPhaseStatus("PREPROC", 1);
 																}
 																else

@@ -35,6 +35,7 @@
     <ClCompile Include="..\..\..\fsl\avwutils\fslswapdim.cc" />
     <ClCompile Include="..\..\..\fsl\bet2\bet2.cpp" />
     <ClCompile Include="..\..\..\fsl\bet2\betsurf.cpp" />
+    <ClCompile Include="..\..\..\fsl\bet2\robustfov.cc" />
     <ClCompile Include="..\..\..\fsl\cluster\cluster.cc" />
     <ClCompile Include="..\..\..\fsl\cluster\connectedcomp.cc" />
     <ClCompile Include="..\..\..\fsl\cluster\smoothest.cc" />
@@ -45,6 +46,11 @@
     <ClCompile Include="..\..\..\fsl\flirt\convert_xfm.cc" />
     <ClCompile Include="..\..\..\fsl\flirt\flirt.cc" />
     <ClCompile Include="..\..\..\fsl\flirt\globaloptions.cc" />
+    <ClCompile Include="..\..\..\fsl\fnirt\fnirt.cpp" />
+    <ClCompile Include="..\..\..\fsl\fnirt\fnirtfns.cpp" />
+    <ClCompile Include="..\..\..\fsl\fnirt\fnirt_costfunctions.cpp" />
+    <ClCompile Include="..\..\..\fsl\fnirt\intensity_mappers.cpp" />
+    <ClCompile Include="..\..\..\fsl\fnirt\matching_points.cpp" />
     <ClCompile Include="..\..\..\fsl\fugue\applywarp.cc" />
     <ClCompile Include="..\..\..\fsl\fugue\convertwarp.cc" />
     <ClCompile Include="..\..\..\fsl\fugue\fugue.cc" />
@@ -71,7 +77,11 @@
     <ClCompile Include="..\..\..\fsl\miscvis\slicer.cc" />
     <ClCompile Include="..\..\..\fsl\slicetimer\slicetimer.cc" />
     <ClCompile Include="..\..\..\fsl\susan\susan.cc" />
+    <ClCompile Include="..\..\..\fsl\topup\displacement_vector.cpp" />
     <ClCompile Include="..\..\..\fsl\topup\topup.cpp" />
+    <ClCompile Include="..\..\..\fsl\topup\topupfns.cpp" />
+    <ClCompile Include="..\..\..\fsl\topup\topup_costfunctions.cpp" />
+    <ClCompile Include="..\..\..\fsl\topup\topup_file_io.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{64BAB0E0-5CA0-44BD-9773-3FE09D6D63F4}</ProjectGuid>
@@ -189,6 +199,8 @@
       <PreprocessorDefinitions>EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;WINDOWS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\fsl;..\..\..\fsl\zlib;..\..\..\fsl\newmat;..\..\..\fsl\gd;..\..\..\fsl\libprob</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

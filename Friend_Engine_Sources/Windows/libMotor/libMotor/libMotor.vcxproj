@@ -89,12 +89,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;..\..\..\Friend_Engine_Sources\libsvm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;..\..\..\Friend_Engine_Sources\libsvm;..\..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\corelib\$(IntDir)\corelib.lib;basisfield.lib;warpfns.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib</AdditionalDependencies>
       <OutputFile>..\..\Application\libMotor.dll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -105,13 +105,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;..\..\..\Friend_Engine_Sources\libsvm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;..\..\..\Friend_Engine_Sources\libsvm;..\..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\corelib\$(IntDir)\corelib.lib;basisfield.lib;warpfns.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib</AdditionalDependencies>
       <OutputFile>..\..\Application\libMotor.dll</OutputFile>
+      <StackReserveSize>8388608</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -123,7 +124,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;_USRDLL;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;..\..\..\Friend_Engine_Sources\libsvm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;..\..\..\Friend_Engine_Sources\libsvm;..\..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
@@ -131,7 +132,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\corelib\$(IntDir)\corelib.lib;basisfield.lib;warpfns.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib</AdditionalDependencies>
       <OutputFile>..\..\Application\libMotor.dll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -144,7 +145,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN64;_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;_USRDLL;WINDOWS;FSL_EXPORTS;EXPOSE_TREACHEROUS;HAVE_LIBPNG;HAVE_ZLIB;GDC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;..\..\..\Friend_Engine_Sources\libsvm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\..\..\..\fsl;..\..\..\..\fsl\newmat;..\..\..\Friend_Engine_Sources\SimpleIni;..\..\..\Friend_Engine_Sources\PlugIn;..\..\..\Friend_Engine_Sources\alglib;..\..\..\Friend_Engine_Sources\Friend_Engine;..\..\..\..\fsl\gd;..\..\..\..\fsl\libprob;..\..\..\..\fsl\zlib;..\..\..\Friend_Engine_Sources\libsvm;..\..\..\Windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
@@ -152,8 +153,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\corelib\$(IntDir)\corelib.lib;basisfield.lib;warpfns.lib;miscplot.lib;alglib.lib;utils.lib;meshclass.lib;cprob.lib;commandslib.lib;zlib.lib;znzlib.lib;newmat.lib;niftiio.lib;fslio.lib;newimage.lib;miscmaths.lib;ws2_32.lib;..\..\..\..\fsl\gdlib\$(IntDir)\gdlib.lib</AdditionalDependencies>
       <OutputFile>..\..\Application\libMotor.dll</OutputFile>
+      <StackReserveSize>8388608</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

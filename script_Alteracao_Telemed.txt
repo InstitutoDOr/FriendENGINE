@@ -1,0 +1,27 @@
+USE [TelemedDesenv]
+GO
+/** Object:  Table [dbo].[StatusLaudos]    Script Date: 01/06/2017 13:35:28 **/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[StatusLaudos](
+	[idStatus] [int] NULL,
+	[Status] [nchar](30) NULL
+) ON [PRIMARY]
+
+GO
+
+INSERT INTO [dbo].[StatusLaudos] values (1, 'Disponível para Laudo')
+INSERT INTO [dbo].[StatusLaudos] values (2,	'Aguardando Revisão')
+INSERT INTO [dbo].[StatusLaudos] values (3, 'Liberado')
+GO
+
+alter table [dbo].[dicomStudies]
+add [idstatus] [int] NULL
+GO
+
+ALTER TABLE [dbo].[DICOMStudies] ADD  CONSTRAINT [DF_DICOMStudies_idstatus]  DEFAULT ((1)) FOR [idstatus]
+GO
+
+update [dbo].DICOMStudies set idstatus = 1 where idstatus is null

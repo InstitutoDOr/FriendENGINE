@@ -298,7 +298,28 @@ extern "C" __declspec(dllexport) int _stdcall convertwarp(char *CmdLn)
   OptionParser options(title, examples);
 
   try {
-    options.add(outname);
+	  outname.unsetOption();
+	  prematname.unsetOption();
+	  warp1name.unsetOption();
+	  midmatname.unsetOption();
+	  warp2name.unsetOption();
+	  postmatname.unsetOption();
+	  refname.unsetOption();
+	  shiftmapname.unsetOption();
+	  shiftdir.unsetOption();
+	  jacobianname.unsetOption();
+	  jacobianstats.unsetOption();
+	  constrainj.unsetOption();
+	  jmin.unsetOption();
+	  jmax.unsetOption();
+	  abswarp.unsetOption();
+	  relwarp.unsetOption();
+	  abswarpout.unsetOption();
+	  relwarpout.unsetOption();
+	  verbose.unsetOption();
+	  help.unsetOption();
+	  
+	options.add(outname);
     options.add(prematname);
     options.add(warp1name);
     options.add(midmatname);

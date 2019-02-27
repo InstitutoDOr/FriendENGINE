@@ -6,8 +6,13 @@
 // functions handling FSL commands
 #ifdef WINDOWS
 
+extern "C" int _stdcall invwarp(char *CmdLn);
+extern "C" int _stdcall applywarp(char *CmdLn);
+extern "C" int _stdcall fnirt(char *CmdLn);
 extern "C" int _stdcall flirt(char *CmdLn);
+extern "C" int _stdcall fslroi(char *CmdLn);
 extern "C" int _stdcall bet(char *CmdLn);
+extern "C" int _stdcall robustfov(char *CmdLn);
 extern "C" int _stdcall tsplot(char *CmdLn);
 extern "C" int _stdcall fslmaths(char *CmdLn);
 extern "C" int _stdcall mcflirt(char *CmdLn);
@@ -17,6 +22,7 @@ extern "C" int _stdcall fsl_glm(char *CmdLn);
 extern "C" int _stdcall convert_xfm(char *CmdLn);
 extern "C" int _stdcall prelude(char *CmdLn);
 extern "C" int _stdcall fugue(char *CmdLn);
+extern "C" int _stdcall slicer(char *CmdLn);
 
 #else
 int callCommand(char *command);
@@ -31,6 +37,9 @@ int fsl_tsplot(char *cmdLn);
 int feat_model(char *cmdLn);
 int convert_xfm(char *cmdLn);
 #endif
+
+template <class T>
+struct triple { T x; T y; T z; };
 
 // verifies if a file is readable by FSL
 bool isFSLReadable(char *fileName);
@@ -89,5 +98,16 @@ void generateTMaxVoxels(char *input, char *temp, char *output, std::vector<int> 
 // this function thresholds a mni volume based on intensities (threshold = (p98-p02) * (brainThres / 100))
 void brainThreshold(char *functional, char* mask, char *temp, char *output, float brainThres);
 
+// this function dos the acpc aligment in HCP fashion
+void acpcAlignment(char *inputVolume, char *reference, char *outVolume, char *workingDir, int brainSize = 150, int searchsize = 30);
+
+// this function dos the BET with fnirt in HCP fashion
+void BetFNIRT(char *infile, char *outfile, char *workingDir, char *supportDir);
+
+// fill holes in a brain. It uses a complete volume to get the data missing
+void fillHoles(char *input, char *completeVolume, char *output);
+
+// transforms a 12 DOF transformation in a 6 DOF
+void aff2rigid(char *infile, char *outfile);
 
 #endif

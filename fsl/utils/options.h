@@ -227,7 +227,7 @@ namespace Utilities {
        @return true if the option remains unset
     */
     bool unset() const { return unset_; }
-    /*
+	/*
       @param arg A command line argument to be compared against
       the list of possible keys for this option.
       @return True if a match is found.
@@ -254,7 +254,10 @@ namespace Utilities {
     virtual bool set_value(const std::string& vs, char *argv[], int valpos, int argc) = 0;
 
     // For use with optional switch arguments...
-    bool use_default_value() {
+	void unsetOption() {
+		unset_ = true;
+	}
+	bool use_default_value() {
       unset_ = false;
       return true;
     }

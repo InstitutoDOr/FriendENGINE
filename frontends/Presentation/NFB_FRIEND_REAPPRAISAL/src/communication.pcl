@@ -1,0 +1,188 @@
+string address = "127.0.0.1";
+int port_num   = 5678;
+int time_out   = 500;
+
+socket mainThread = new socket;
+socket responseThread = new socket;
+
+sub string open_mainThread
+begin
+	if mainThread.open( address, port_num, time_out ) then
+		logfile.add_event_entry( "mainThreadOPEN");
+	else
+		logfile.add_event_entry( "mainThreadFAILURE_ON_OPEN");
+	end;
+	return "";
+end;
+
+## generic simple request and receive
+sub string main_request( string req )
+begin
+	logfile.add_event_entry( "main_request_send_" + req);
+	mainThread.send( req + "\n" );
+	string ret_main = mainThread.receive_delimited( "\n" );
+	logfile.add_event_entry( "main_request_received_" + req);
+	return ret_main;
+end;
+
+## get command state
+sub string getCommandState( string cmd )
+begin
+	string ret = "";
+	
+	if responseThread.open( address, port_num, time_out ) then
+		
+		responseThread.send( "SESSION\n" );
+		responseThread.send( sess_id + "\n" );
+		
+		string resp = responseThread.receive_delimited( "\n" );
+		
+		if resp == "OK" then
+			responseThread.send( cmd + "\n" );
+			ret = responseThread.receive_delimited( "\n" );
+		else
+			logfile.add_event_entry( "SESSION_ID_NOT_CONFIRMED_" + sess_id );
+		end;
+		
+		responseThread.close();
+	else
+		logfile.add_event_entry( "responseThread_FAILURE_ON_OPEN" );
+	end;
+	
+	return ret;
+end;
+
+## get a graph vars 
+sub string getParameters( int vol )
+begin
+	string ret = "";
+	string ack = "";
+
+	if responseThread.open( address, port_num, time_out ) then
+		
+		responseThread.send( "SESSION\n" );
+		responseThread.send( sess_id + "\n" );
+
+		string resp = responseThread.receive_delimited( "\n" );
+		
+		if resp == "OK" then
+			responseThread.send( "GRAPHPARS\n" );
+			responseThread.send( string( vol ) + "\n" );
+			
+			ret = responseThread.receive_delimited( "\n" );
+			ack = responseThread.receive_delimited( "\n" );
+		else
+			logfile.add_event_entry( "SESSION_ID_NOT_CONFIRMED_" + sess_id );
+		end;
+		
+		responseThread.close();
+	
+	else
+		logfile.add_event_entry( "responseThread_FAILURE_ON_OPEN" );
+	end;
+	
+	return ret;
+	
+end;
+
+
+## ends a session
+sub string endSession
+begin
+	mainThread.send( "ENDSESSION\n" );
+	mainThread.send( sess_id + "\n" );
+
+	string resp = mainThread.receive_delimited( "\n" );
+
+	logfile.add_event_entry( "mainThread_SESSION_END_RESPONSE_" + resp );
+		
+	mainThread.close();
+	
+	return resp;
+end;
+
+## get feedback value
+sub double getFeedbackValue( int vol, string& feed_ok )
+begin
+	double percentage = 0.0;
+	if responseThread.open( address, port_num, time_out ) then
+		
+		responseThread.send( "SESSION\n" );
+		responseThread.send( sess_id + "\n" );
+
+		string resp = responseThread.receive_delimited( "\n" );
+
+		logfile.add_event_entry( "responseThread_SESSION_ID_RESPONSE_" + resp );
+		
+		if true /*resp == "OK"*/ then
+			responseThread.send( "TEST\n" );
+			responseThread.send( string( vol ) + "\n" );
+			
+			feed_ok = responseThread.receive_delimited( "\n" );
+			percentage = double( responseThread.receive_delimited( "\n" ) );
+
+			string ack = responseThread.receive_delimited( "\n" );
+
+			logfile.add_event_entry( "FEEDBACK_RECEIVED_VOL_" + string (vol) + "_VAL_" + string(percentage) + "_" + feed_ok);
+		
+		else
+			logfile.add_event_entry( "SESSION_ID_NOT_CONFIRMED_" + sess_id );
+		end;
+		
+		responseThread.close();
+	
+	else
+		logfile.add_event_entry( "responseThread_FAILURE_ON_OPEN" );
+	end;
+	
+	return percentage;
+end;
+
+## create session once
+sub string createSession
+begin	
+
+	mainThread.send( "NEWSESSION\n" );
+	sess_id = mainThread.receive_delimited( "\n" );
+	string ack = mainThread.receive_delimited( "\n" );
+	
+	logfile.add_event_entry( "SESSION_CREATED_" + sess_id );
+	return sess_id;
+end;
+
+
+## sending plugin information
+sub string sendPluginInformation
+begin	
+
+	mainThread.send( "PLUGIN\n" );
+	mainThread.send( "libEmotionRegulation\n" );
+	mainThread.send( "no\n" );
+	mainThread.send( "processROI\n" );
+	mainThread.send( "initializeROIProcessing\n" );
+	mainThread.send( "finalizeProcessing\n" );
+	mainThread.send( "no\n" );
+	mainThread.send( "no\n" );
+
+	string ack = mainThread.receive_delimited( "\n" );
+	
+	logfile.add_event_entry( "PLUGIN_INFO_SEND" );
+	
+	return ack;
+end;
+
+## sending plugin information
+sub string configureVariable(string variable, string value)
+begin	
+
+	mainThread.send( "SET\n" );
+	mainThread.send( variable + "\n" );
+	mainThread.send( value + "\n" );
+
+	string ack = mainThread.receive_delimited( "\n" );
+	
+	logfile.add_event_entry( "CONFIGURE_VARIABLE_SEND" );
+	
+	return ack;
+end;
+

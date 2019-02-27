@@ -96,7 +96,7 @@ public:
 	void prepRealtimeVars();
 
 	// steps before realtime processing
-	void prepRealTime();
+	int prepRealTime();
 	void runRealtimePipeline();
 
 	// preprare files and run fsl_glm on processed volumes

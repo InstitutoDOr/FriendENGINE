@@ -24,8 +24,40 @@
 
 char exePath[500];
 
-// returns the list of directories in dirSource
-void listDirectory(char *dirSource, vector<string>&entries)
+void _listFiles(char *dirSource, char *partialFolder, vector<string>&entries)
+{
+	DIR *dirIn;
+	struct dirent *entry;
+	char dirName[2048];
+
+	entries.clear();
+	dirIn = opendir(dirSource);
+	if (dirIn == NULL) {
+		return;
+	}
+
+	while ((entry = readdir(dirIn)) != NULL) {
+		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+			if (entry->d_type == DT_DIR)
+			{
+				char partialDir[2048];
+				sprintf(partialDir, "%s/%s", partialFolder, entry->d_name);
+				sprintf(dirName, "%s%c%s", dirSource, PATHSEPCHAR, entry->d_name);
+				_listFiles(dirName, partialDir, entries);
+			}
+			else
+			{
+				char partialFile[2048];
+				sprintf(partialFile, "%s/%s", partialFolder, entry->d_name);
+				entries.push_back(string(partialFile));
+			}
+		}
+	}
+	closedir(dirIn);
+}
+
+// returns the list of files in dirSource
+void listFiles(char *dirSource, vector<string>&entries)
 {
 	DIR *dirIn;
 	struct dirent *entry;
@@ -42,6 +74,33 @@ void listDirectory(char *dirSource, vector<string>&entries)
 			if (entry->d_type == DT_DIR)
 			{
 				sprintf(dirName, "%s%c%s", dirSource, PATHSEPCHAR, entry->d_name);
+				_listFiles(dirName, entry->d_name, entries);
+			}
+			else entries.push_back(string(entry->d_name));
+		}
+	}
+	closedir(dirIn);
+}
+
+// returns the list of directories in dirSource
+void listDirectory(char *dirSource, vector<string>&entries, int fullpath)
+{
+	DIR *dirIn;
+	struct dirent *entry;
+	char dirName[2048];
+
+	entries.clear();
+	dirIn = opendir(dirSource);
+	if (dirIn == NULL) {
+		return;
+	}
+
+	while ((entry = readdir(dirIn)) != NULL) {
+		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+			if (entry->d_type == DT_DIR)
+			{
+				if (fullpath) sprintf(dirName, "%s%c%s", dirSource, PATHSEPCHAR, entry->d_name);
+				else sprintf(dirName, "%s", entry->d_name);
 				entries.push_back(string(dirName));
 			}
 		}

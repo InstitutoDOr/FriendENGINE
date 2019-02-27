@@ -124,6 +124,8 @@ public:
    void getRoiValues(vector<int> &values);
    // returns the roi value given its index
    int getRoiValue(int index);
+   // check if the dimensions are right
+   int checkDimensions(volume<float> &actualvolume);
 };
 
 // extracts the best voxels of each roi

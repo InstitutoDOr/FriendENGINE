@@ -73,7 +73,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCS;WIN32;OPJ_STATIC;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>myDisableOpenJPEG;DEFINE_NIFTI_FUNCS;WIN32;OPJ_STATIC;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\..\openjpeg\include;..\..\..\..\openjpeg\include\openjp2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -90,7 +90,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCS;WIN32;OPJ_STATIC;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>myDisableOpenJPEG;DEFINE_NIFTI_FUNCS;WIN32;OPJ_STATIC;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\..\openjpeg\include;..\..\..\..\openjpeg\include\openjp2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -109,7 +109,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCS;WIN32;OPJ_STATIC;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>myDisableOpenJPEG;DEFINE_NIFTI_FUNCS;WIN32;OPJ_STATIC;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\..\openjpeg\include;..\..\..\..\openjpeg\include\openjp2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -130,7 +130,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>DEFINE_NIFTI_FUNCS;WIN32;OPJ_STATIC;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>myDisableOpenJPEG;DEFINE_NIFTI_FUNCS;WIN32;OPJ_STATIC;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\..\openjpeg\include;..\..\..\..\openjpeg\include\openjp2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -153,7 +153,6 @@
     <ClCompile Include="..\..\..\..\dcm2niix\console\nii_dicom_batch.cpp" />
     <ClCompile Include="..\..\..\..\dcm2niix\console\nii_foreign.cpp" />
     <ClCompile Include="..\..\..\..\dcm2niix\console\nii_ortho.cpp" />
-    <ClCompile Include="..\..\..\..\dcm2niix\console\nii_ostu_ml.cpp" />
     <ClCompile Include="..\..\..\..\dcm2niix\console\ujpeg.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

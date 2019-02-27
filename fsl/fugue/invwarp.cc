@@ -711,6 +711,21 @@ extern "C" __declspec(dllexport) int _stdcall invwarp(char *CmdLn)
   OptionParser options(title, examples);
 
 	try {
+		warpname.unsetOption();
+		outname.unsetOption();
+		refvolname.unsetOption();
+		relwarp.unsetOption();
+		abswarp.unsetOption();
+		niter.unsetOption();
+		lambdaval.unsetOption();
+		initwarpname.unsetOption();
+		nojaccon.unsetOption();
+		jmin.unsetOption();
+		jmax.unsetOption();
+		debug.unsetOption();
+		verbose.unsetOption();
+		help.unsetOption();
+
 		options.add(warpname);
 		options.add(outname);
 		options.add(refvolname);

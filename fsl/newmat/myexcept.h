@@ -97,15 +97,11 @@ public:
 #ifdef TypeDefException
 typedef BaseException Exception;        // for compatibility with my older libraries
 #endif
-/*
+
 inline Tracer::Tracer(const char* e)
    : entry(e), previous(last) { last = this; }
 
 inline Tracer::~Tracer() { last = previous; }
-*/
-inline Tracer::Tracer(const char* e) {}
-
-inline Tracer::~Tracer() { }
 
 inline void Tracer::ReName(const char* e) { entry=e; }
 

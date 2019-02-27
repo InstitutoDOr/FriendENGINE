@@ -103,26 +103,32 @@ public:
   bool matonly;
 public:
   globaloptions();
+  void init();
   ~globaloptions() {};
 };
 
 globaloptions globalopts;
 
 
+void globaloptions::init()
+{
+	// set up defaults
+	reffname = "";
+
+	testfname = "";
+	outputmatascii = "";
+	initmatfname = "";
+	concatfname = "";
+	fixfname = "";
+	intervolfname = "";
+	xfm_type = "a";
+	inverse = false;
+	matonly = true;
+}
+
 globaloptions::globaloptions()
 {
-  // set up defaults
-  reffname = "";
-
-  testfname = "";
-  outputmatascii = "";
-  initmatfname = "";
-  concatfname = "";
-  fixfname = "";
-  intervolfname = "";
-  xfm_type = "a";
-  inverse = false;
-  matonly = true;
+	init();
 }
 
 
@@ -259,7 +265,9 @@ extern "C" __declspec(dllexport) int _stdcall convert_xfm(char *CmdLn)
 {
   int argc;
   char **argv;
-  
+ 
+  globalopts.init();
+
   parser(CmdLn, argc, argv);
 
   parse_command_line(argc,argv);

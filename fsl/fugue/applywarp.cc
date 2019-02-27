@@ -424,6 +424,23 @@ extern "C" __declspec(dllexport) int _stdcall applywarp(char *CmdLn)
 
 	parser(CmdLn, argc, argv);
 	try {
+		inname.unsetOption();
+		refname.unsetOption();
+		warpname.unsetOption();
+		abswarp.unsetOption();
+		relwarp.unsetOption();
+		outname.unsetOption();
+		datatype.unsetOption();
+		supersample.unsetOption();
+		supersamplelevel.unsetOption();
+		prematname.unsetOption();
+		postmatname.unsetOption();
+		maskname.unsetOption();
+		interp.unsetOption();
+		padsize.unsetOption();
+		verbose.unsetOption();
+		help.unsetOption();
+
 		options.add(inname);
 		options.add(refname);
 		options.add(warpname);
@@ -477,16 +494,15 @@ double ApplyWarpHelper::range(const NEWIMAGE::volume4D<float>& vol)
   else return(static_cast<double>(vol.max()-vol.min()));
 }
 
-NEWIMAGE::volume<float> ApplyWarpHelper::dilate_mask(const NEWIMAGE::volume<float>& inmask,
-                                                     int                            n)
+NEWIMAGE::volume<float> ApplyWarpHelper::dilate_mask(const NEWIMAGE::volume<float>& inmask,	int n)
 {
-  if (!n) return(inmask);
-  else {
-    NEWIMAGE::volume<float> kernel = NEWIMAGE::box_kernel(3,3,3);
-    NEWIMAGE::volume<float> outmask = NEWIMAGE::morphfilter(inmask,kernel,std::string("dilate"));
-    for (int i=1; i<n; i++) outmask = NEWIMAGE::morphfilter(outmask,kernel,std::string("dilate"));
-    return(outmask);
-  }
+	if (!n) return(inmask);
+	else {
+		NEWIMAGE::volume<float> kernel = NEWIMAGE::box_kernel(3, 3, 3);
+		NEWIMAGE::volume<float> outmask = NEWIMAGE::morphfilter(inmask, kernel, std::string("dilate"));
+		for (int i = 1; i<n; i++) outmask = NEWIMAGE::morphfilter(outmask, kernel, std::string("dilate"));
+		return(outmask);
+	}
 }
 
 NEWIMAGE::volume<float> ApplyWarpHelper::convert_mask_to_float(const NEWIMAGE::volume<char>& charmask)
