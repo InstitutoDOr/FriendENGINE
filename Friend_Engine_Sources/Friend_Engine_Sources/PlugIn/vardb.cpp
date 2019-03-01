@@ -386,12 +386,13 @@ void studyParams::prepRealtimeVars()
     sprintf(parFile, "%s%s%s%s", glmDir, "confounds", trainFeatureSuffix, ".txt");
     sprintf(rmsFile, "%s%s%s%s", logDir, "rms_abs", trainFeatureSuffix, ".rms");
     getPreprocVolumePrefix(preprocVolumePrefix);
-	logObject->writeLog(1, "Number of conditions : %d\n", interval.conditionNames.size() > 0);
+    logObject->writeLog(1, "Number of conditions : %d\n", interval.conditionNames.size());
 }
 
 // sets the value of a variable. Not used right now
 void studyParams::setVar(char *var, char *value)
 {
+        fprintf(stderr, "ate aqui nos ajudou o Senhor !!!\n");
 	string temp = value, from, to;
 
 	from = "glmdir"; to = glmDir;

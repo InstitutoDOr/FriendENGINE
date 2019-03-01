@@ -128,13 +128,14 @@ typedef	signed		int	INT32;
 
 #ifndef	WINDOWS
 typedef	signed		int		INT;
-#endif
-
+#else
 #ifndef	TRUE
-#define	TRUE	((UINT) 1)
+#define	TRUE ((UINT) 1)
 #endif
 #ifndef	FALSE
-#define	FALSE	((UINT) 0)
+#define	FALSE ((UINT) 0)
+#endif
+
 #endif
 
 

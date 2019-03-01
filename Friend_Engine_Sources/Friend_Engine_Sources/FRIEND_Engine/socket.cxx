@@ -11,7 +11,7 @@
 20091231	bcb	Changed char* to const char* for gcc4.2 warnings
 20100111	mvh	Merged
 20100122	mvh     Gethostbyname: fixed bug reported by Arash 2station would not be found
-20100122	mvh     Added Poll() method: returns TRUE if data available
+20100122	mvh     Added Poll() method: returns true if data available
 20100125	mvh     Linux warning
 20100309	bcb     Commented out or inited to fix unused variable warning (gcc4.2 Warnings)
 20100619	bcb     Fix gcc4 warnings, improve speed and made TimeOut local.
@@ -329,7 +329,7 @@ BOOL	Socket	::	Listen ( char 	*port )
 	
 	if ( !he )
 		{
-		return ( FALSE );	// could not resolve host name
+		return ( false );	// could not resolve host name
 		}
 	*/   
 	//memcpy ((void *) &hecopy, (void *) he, sizeof(struct hostent));
@@ -337,12 +337,12 @@ BOOL	Socket	::	Listen ( char 	*port )
 	se = Getservbyname(port, NULL);
 	
 	if ( !se )
-		return ( FALSE );	// could not resolv port
+		return ( false );	// could not resolv port
 	memcpy ((void *) &secopy, (void *) se, sizeof(struct servent));
 
 	Socketfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(!Socketfd)
-		return ( FALSE );	// could not create socket
+		return ( false );	// could not create socket
 	Linger.l_onoff  = 1;
 	Linger.l_linger = 0;
 	setsockopt(Socketfd, SOL_SOCKET, SO_LINGER, (char*)&Linger, sizeof(struct linger));
@@ -374,7 +374,7 @@ BOOL	Socket	::	Listen ( char 	*port )
 			closesocket(Socketfd);
 			Error = GetLinkError();
 			Socketfd = 0;
-			return ( FALSE );
+			return ( false );
 			}
 		}
 	if(listen(Socketfd, 5))
@@ -382,14 +382,14 @@ BOOL	Socket	::	Listen ( char 	*port )
 		//fprintf(stderr, "Erro (bind): %d\n", GetLinkError());fflush(stderr);
 		closesocket(Socketfd);
 		Socketfd = 0;
-		return ( FALSE );
+		return ( false );
 		}
 
 	Listened = 1;
 	ListenSocketfd = Socketfd;
 	Socketfd = 0;
 	Connected = 0;
-	return ( TRUE );
+	return ( true );
 	}
 
 BOOL	Socket	::	Accept()
@@ -404,15 +404,15 @@ BOOL	Socket	::	Accept()
 
 	//fprintf(stderr, "Accept()\n");fflush(stderr);
 	if(!Listened)
-		return ( FALSE );
+		return ( false );
 	if(!ListenSocketfd)
-		return ( FALSE );
+		return ( false );
 
 	Size = sizeof(struct sockaddr_in);
 	Socketfd = accept(ListenSocketfd, (struct sockaddr *) &sa, &Size);
 	if(Socketfd>0)
 		{
-         	    Connected = TRUE;
+         	    Connected = true;
                 Now = time(NULL);
 #ifdef WINDOWS
 				//disable nagle on the client's socket 
@@ -427,15 +427,15 @@ BOOL	Socket	::	Accept()
                 inet_ntop(AF_INET, &(sa.sin_addr), str, INET_ADDRSTRLEN);
                 printf("Connected by address: %s in %s", str, ctime(&Now));
 #endif
-		return ( TRUE );
+		return ( true );
 		}
 	fprintf(stderr, "Error (accept) : %d\n", errno);
 	closesocket(ListenSocketfd);
 	Listened = 0;
 	ListenSocketfd = 0;
 	Socketfd = 0;
-	Connected = FALSE;
-	return ( FALSE );
+	Connected = false;
+	return ( false );
 	}
 	
 
@@ -457,7 +457,7 @@ BOOL	Socket	::	Open ( char	*ip, char	*port)
 	if ( !he )
 		{
 	//	fprintf(stderr, "Could not resolve host\n");
-		return ( FALSE );	// could not resolve host name
+		return ( false );	// could not resolve host name
 		}
 	   
 	memcpy ((void *) &hecopy, (void *) he, sizeof(struct hostent));
@@ -467,16 +467,16 @@ BOOL	Socket	::	Open ( char	*ip, char	*port)
 	if ( !se )
 		{
 //		fprintf(stderr, "Could not resolve port\n");
-		return ( FALSE );	// could not resolv port
+		return ( false );	// could not resolv port
 		}
 	
 	memcpy ((void *) &secopy, (void *) se, sizeof(struct servent));
 	if(!hecopy.h_addr_list)
-		return ( FALSE );
+		return ( false );
 	
 	Socketfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(Socketfd<0)
-		return ( FALSE );	// could not create socket
+		return ( false );	// could not create socket
 	Linger.l_onoff  = 1;
 	Linger.l_linger = 0;
 	setsockopt(Socketfd, SOL_SOCKET, SO_LINGER, (char*)&Linger, sizeof(struct linger));
@@ -493,13 +493,13 @@ BOOL	Socket	::	Open ( char	*ip, char	*port)
 	Error = connect(Socketfd, (struct sockaddr *) &sa, sizeof(struct sockaddr_in));
 	if( ! Error )
 		{
-		Connected = TRUE;
-		return ( TRUE );
+		Connected = true;
+		return ( true );
 		}
 
 	closesocket(Socketfd);
 	Socketfd = 0;
-	return ( FALSE );
+	return ( false );
 	}
 
 BOOL	Socket	::	Close()
@@ -519,7 +519,7 @@ BOOL	Socket	::	Close()
 	Connected = 0;
 	Listened = 0;
 	UDP = 0;
-	return ( TRUE );
+	return ( true );
 	}
 
 BOOL	Socket	::	Poll(void)
@@ -532,7 +532,7 @@ BOOL	Socket	::	Poll(void)
 	struct	timeval	tv	= {0, 0};	// return immediately
 
 	if ( ! Connected )
-		return ( FALSE );
+		return ( false );
 #ifdef	MAC
 	memset((void*)&fds, 0, sizeof(struct fd_set));
 #else
@@ -551,7 +551,7 @@ BOOL		Socket	::	SendBinary(BYTE *s, UINT	count)
 		{
 //		fprintf(stderr, "SOCKET END ERROR: %d\n", GetLastError());
 		}
-	return ( TRUE );
+	return ( true );
 	}
 	
 INT	Socket	::	ReadBinary(BYTE *s, UINT	count)
@@ -607,7 +607,7 @@ int		Socket	::	GetLinkError()
 BOOL	Socket	::	SetTimeOut(int	lTimeOut)
 	{
 	this->TimeOut = lTimeOut;
-	return ( TRUE );
+	return ( true );
 	}	
 
 BOOL
@@ -621,13 +621,13 @@ Socket	::	BindUDPServer (
 	
 	if ( !se )
 		{
-		return ( FALSE );	// could not resolv port
+		return ( false );	// could not resolv port
 		}
 	
 	memcpy ((void *) &secopy, (void *) se, sizeof(struct servent));
 	Socketfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if(Socketfd<0)
-		return ( FALSE );	// could not create socket
+		return ( false );	// could not create socket
 		
 #ifdef	SYSV_SOCKET
 	memset((void *) &sa.sin_addr.s_addr , 0, 4);
@@ -643,11 +643,11 @@ Socket	::	BindUDPServer (
 		closesocket(Socketfd);
 		Error = GetLinkError();
 		Socketfd = 0;
-		return ( FALSE );
+		return ( false );
 		}
 	Connected = 1;
 	UDP = 1;
-	return ( TRUE );
+	return ( true );
 	}
 
 BOOL	
@@ -676,7 +676,7 @@ Socket	::	 BindUDPClient (
 	if ( !he )
 		{
 		fprintf(stderr, "Could not resolve host\n");
-		return ( FALSE );	// could not resolve host name
+		return ( false );	// could not resolve host name
 		}
 	   
 	memcpy ((void *) &hecopy, (void *) he, sizeof(struct hostent));
@@ -686,16 +686,16 @@ Socket	::	 BindUDPClient (
 	if ( !se )
 		{
 		fprintf(stderr, "Could not resolve port\n");
-		return ( FALSE );	// could not resolv port
+		return ( false );	// could not resolv port
 		}
 	
 	memcpy ((void *) &secopy, (void *) se, sizeof(struct servent));
 	if(!hecopy.h_addr_list)
-		return ( FALSE );
+		return ( false );
 	
 	Socketfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if(Socketfd<0)
-		return ( FALSE );	// could not create socket
+		return ( false );	// could not create socket
 		
 #ifdef	SYSV_SOCKET
 	memcpy((void *) &sa.sin_addr.s_addr , (void *) hecopy.h_addr_list[0], 4);	// adddress
@@ -708,13 +708,13 @@ Socket	::	 BindUDPClient (
 	Error = connect(Socketfd, (struct sockaddr *) &sa, sizeof(struct sockaddr_in));
 	if( ! Error )
 		{
-		Connected = TRUE;
+		Connected = true;
 		UDP = 1;
-		return ( TRUE );
+		return ( true );
 		}
 	closesocket(Socketfd);
 	Socketfd = 0;
-	return ( FALSE );
+	return ( false );
 	}
 
 /*#endif*/

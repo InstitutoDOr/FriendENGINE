@@ -16,6 +16,8 @@
 #include <direct.h>
 #define strcasecmp stricmp
 #define rmdir _rmdir
+#else
+#include <sys/stat.h>
 #endif
 
 using namespace std;
@@ -46,6 +48,26 @@ int fsl_glm(char *cmdLn)
 }
 
 int fslroi(char *cmdLn)
+{
+   return callCommand(cmdLn);
+}
+
+int robustfov(char *cmdLn)
+{
+   return callCommand(cmdLn);
+}
+
+int applywarp(char *cmdLn)
+{
+   return callCommand(cmdLn);
+}
+
+int invwarp(char *cmdLn)
+{
+   return callCommand(cmdLn);
+}
+
+int fnirt(char *cmdLn)
 {
    return callCommand(cmdLn);
 }
@@ -225,7 +247,11 @@ void acpcAlignment(char *inputVolume, char *reference, char *outVolume, char *wo
 	strcpy(oVol, inputVolume);
 	if (1)
 	{
+                #ifdef WINDOWS
 		mkdir(workingDir);
+                #else
+		mkdir(workingDir, 777);
+                #endif 
 		// Crop the FOV
 		sprintf(CmdLn, "robustfov -i %s -m %s/roi2full.mat -r %s/robustroi -b %d", inputVolume, workingDir, workingDir, brainSize);
 		robustfov(CmdLn);

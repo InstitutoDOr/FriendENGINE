@@ -17,11 +17,10 @@
 #include "defs.h"
 #include "filefuncs.h"
 
-#include "socket.hpp"
 #include <ctime>
 #ifndef UNIX  	// Win32...
-#	define THREAD_RETURN_FALSE FALSE
-#	define THREAD_RETURN_TRUE TRUE
+#	define THREAD_RETURN_FALSE false
+#	define THREAD_RETURN_TRUE true
 typedef bool threadRoutineType;
 typedef int threadRoutineArgType;
 #else		// UNIX...
@@ -41,9 +40,10 @@ typedef void * threadRoutineType;
 typedef void * threadRoutineArgType;
 #endif
 
-#include "engine.h"
 #include "process.h"
 #include "vardb.h"
+#include "engine.h"
+#include "socket.hpp"
 
 #define THREAD_RETURN_FALSE ((void *)NULL)
 #define THREAD_RETURN_TRUE ((void *)1)
@@ -103,7 +103,7 @@ bool	friendEngine::server(BYTE	*port)
 	if (!MSocket.Listen((char*)port))
 	{
 		fprintf(stderr, "***FRIEND Engine failed to start - bind error\n");
-		return (FALSE);	// failed on the bind
+		return (false);	// failed on the bind
 	}
 	else fprintf(stderr, "FRIEND Engine sucessfully started on port %s\n", (char*)port);
 
@@ -133,21 +133,21 @@ bool	friendEngine::server(BYTE	*port)
 		}
 
 		MSocket.Socketfd = 0;
-		MSocket.Connected = FALSE;
+		MSocket.Connected = false;
 
 	}
 #ifdef	DEBUG_MODE
 	fprintf(stderr, "***Error in Accept() function call\n");
 	fprintf(stderr, "***Attemping to re-bind socket\n");
 #endif
-	return (FALSE);
+	return (false);
 }
 
 // just a function to start a thread
 bool	friendEngine::serverChildThread(int	socketFd)
 {
 	serverChild(socketFd);
-	return (FALSE);
+	return (false);
 }
 
 // here the action actually happens
@@ -709,7 +709,7 @@ bool	friendEngine::serverChild(int	socketFd)
 	sleep(1000);
 	closesocket(socketFd);
 	logObject->writeLog(1, "Finished. Elapsed time = %ld secs.\n", endTime - iniTime);
-	return (TRUE);
+	return (true);
 }
 
 // just a function to start a thread

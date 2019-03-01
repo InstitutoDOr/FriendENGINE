@@ -48,7 +48,6 @@
 #	define	Socket	MacSocket
 #endif
 
-#include "cctypes.h"
 #ifndef WINDOWS
 #include <netinet/in.h>
 #include <netdb.h>
@@ -119,6 +118,8 @@ struct  servent {
 #endif
 
 #include <sstream>
+#include "cctypes.h"
+
 class	Socket
 	{
 	int					Error;

@@ -4,7 +4,7 @@
 #ifdef _WIN32
 #include <direct.h>
 #include <sys/timeb.h>
-#elif
+#else
 #include <sys/time.h>
 #include <sys/stat.h>
 #endif

@@ -20,15 +20,19 @@ void LogObject::closeLogFile()
 void LogObject::writeLog(int inScreen, const char * format, ...)
 {
 	char auxBuffer[3000];
-	va_list args;
+	va_list args, screen_args;
+
 	va_start(args, format);
 	vsprintf(auxBuffer, format, args);
+	va_end(args);
+
 	if (fileName != "")
 		outputStream << auxBuffer;
 	else
 		buffer << auxBuffer;
 
+	va_start(screen_args, format);
 	if (inScreen)
-		vfprintf(stderr, format, args);
-	va_end(args);
+		vfprintf(stderr, format, screen_args);
+	va_end(screen_args);
 }

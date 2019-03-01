@@ -36,6 +36,12 @@ int fsl_glm(char *cmdLn);
 int fsl_tsplot(char *cmdLn);
 int feat_model(char *cmdLn);
 int convert_xfm(char *cmdLn);
+int invwarp(char *CmdLn);
+int applywarp(char *CmdLn);
+int fnirt(char *CmdLn);
+int robustfov(char *CmdLn);
+
+
 #endif
 
 template <class T>

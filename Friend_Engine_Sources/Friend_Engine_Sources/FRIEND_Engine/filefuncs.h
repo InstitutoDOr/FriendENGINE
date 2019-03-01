@@ -2,6 +2,8 @@
 #define FILEFUNCS_H
 #include "defs.h"
 #include <vector>
+#include <string>
+#include <string.h>
 
 using namespace std;
 

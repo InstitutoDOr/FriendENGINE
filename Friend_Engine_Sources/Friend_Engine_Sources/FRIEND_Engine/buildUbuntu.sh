@@ -1,5 +1,5 @@
 sudo g++ \
-main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp  confusionmatrix.cpp session.cpp utils.cpp \
+main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx logObject.cpp socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp  confusionmatrix.cpp session.cpp utils.cpp \
 -DUNIX -DLINUX -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I. \
 -I../PlugIn \
@@ -12,9 +12,10 @@ main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp int
 -I$FSLDIR/extras/src/libpng \
 -I$FSLDIR/extras/src/libprob \
 -I../simpleini \
+-I../../../dcm2niix/console \
+-L../libFiles \
 -L$FSLDIR/extras/lib \
 -L$FSLDIR/lib \
--L../libFiles \
 -lfslio \
 -lnewimage \
 -lmiscmaths \

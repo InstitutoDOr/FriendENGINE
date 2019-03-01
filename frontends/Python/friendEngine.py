@@ -6,7 +6,7 @@ class Engine(object):
    def __init__(self):
 
       #communication variables
-      self.Timeout = 0.1; 
+      self.Timeout = 0.5; 
 
       # processing variables   
       self.TR = 2.0;

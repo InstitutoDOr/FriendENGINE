@@ -53,10 +53,10 @@ sudo g++ -fPIC -g -c $FSLDIR/src/miscmaths/miscmaths.cc $FSLDIR/src/miscmaths/op
 sudo ar rcs libmiscmaths.a miscmaths.o optimise.o miscprob.o kernel.o histogram.o base2z.o t2z.o f2z.o minimize.o cspline.o sparse_matrix.o sparsefn.o rungekutta.o
 
 
-
+export BUILDSTRING="\"5.0.10\"" 
 echo recreating fslio library
 sudo gcc -fPIC -g -c $FSLDIR/src/fslio/fslio.c \
--DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB -DBUILDSTRING=$BUILDSTRING \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/include/libprob \
