@@ -39,7 +39,7 @@ bool DesignObject::isBaselineCondition(int idx)
 int DesignObject::getLastBaseline(int interval)
 {
 	int baseline = -1;
-	if (baselineCondition != NULL)
+	if (baselineCondition[0] != 0)
 	{
 		if (interval>0)
 		{

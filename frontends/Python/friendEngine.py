@@ -6,7 +6,7 @@ class Engine(object):
    def __init__(self):
 
       #communication variables
-      self.Timeout = 0.5; 
+      self.Timeout = 0.1; 
 
       # processing variables   
       self.TR = 2.0;
@@ -248,52 +248,58 @@ class Engine(object):
       self.endSession();
 
    
-   def processPhase(self, feedbackRun):
+   def processPhase(self, feedbackRun, oneStep=False):
       if (self.phase == 1):
          # sending PREPROC command
          # print("sending PREPROC command");
          self.mainThread.send('NBPREPROC\n');
          response = self.readsocket(self.mainThread);
          self.phase = 15;
+         if (oneStep):
+            return (self.phase, self.actualVolume)
 
       if (self.phase == 15):
          # sees if PREPROC terminates
          # print("Querying PREPROC termination status.");
          response=self.getResponse('PREPROC\n');
-         print("Response received = %s" % (response));
+         print("Response received = %s" % (response))
          if (response == 'OK'):
             self.phase = 2;
+            if (oneStep):
+               return (self.phase, self.actualVolume)
  
       if (self.phase == 2):
          # processing volumes
          print("sending PIPELINE command");
          if (feedbackRun):	  
-            self.mainThread.send('NBFEEDBACK\n');
+            self.mainThread.send('NBFEEDBACK\n')
          else:
-            self.mainThread.send('NBPIPELINE\n');
-         response = self.readsocket(self.mainThread);
-         print("Response received = %s" % (response));
+            self.mainThread.send('NBPIPELINE\n')
+         response = self.readsocket(self.mainThread)
+         print("Response received = %s" % (response))
          self.actualVolume=1;
          self.phase = 25;
+         if (oneStep):
+            return (self.phase, self.actualVolume)
 
       if (self.phase == 25):
          #retrieving Graph Parameters
-         print("Querying graph parameters of volume %d." % (self.actualVolume));
-         response=self.getResponse('GRAPHPARS\n', self.actualVolume);
-         values=response.split(';');
+         print("Querying graph parameters of volume %d." % (self.actualVolume))
+         response=self.getResponse('GRAPHPARS\n', self.actualVolume)
+         values=response.split(';')
          if (response == 'END'):
-            print("END signal received.");
+            print("END signal received.")
             self.processEndRun();		 
             self.phase = 100;
          elif (len(values) == 9):
             self.printMotionParameters(values);
             if (feedbackRun):
-               classe, feedback = self.getFeedbackValue();
-               print("Feedback=%s\n" % (feedback));
-            self.actualVolume = self.actualVolume + 1;
+               classe, feedback = self.getFeedbackValue()
+               print("Feedback=%s\n" % (feedback))
+            self.actualVolume = self.actualVolume + 1
          else:
-            print("Response received = %s" % (response));
-      return (self.phase, self.actualVolume); 
+            print("Response received = %s" % (response))
+      return (self.phase, self.actualVolume)
 
    def startTheEngine(self, plugInType, feedbackRun):
       # configuring plugIn information

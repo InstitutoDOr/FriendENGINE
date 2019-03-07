@@ -35,7 +35,6 @@ typedef int threadRoutineArgType;
 #ifndef PATH_MAX
 #   define PATH_MAX FILENAME_MAX
 #endif
-#define eof(h) FALSE
 typedef void * threadRoutineType;
 typedef void * threadRoutineArgType;
 #endif
@@ -507,7 +506,7 @@ bool	friendEngine::serverChild(int	socketFd)
 																}
 																else
 																{
-																	logObject->writeLog(1, "PrepRealtime step finisjed succesfully.\n");
+																	logObject->writeLog(1, "PrepRealtime step finished successfully.\n");
 																	sprintf(command, "OK\n");
 																	socks.writeString(command);
 																}

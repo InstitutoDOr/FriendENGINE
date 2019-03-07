@@ -1,4 +1,5 @@
 echo recreating newmat library
+export BUILDSTRING="\"5.0.10\"" 
 sudo g++ -fPIC -g -c \
 $FSLDIR/extras/src/newmat/bandmat.cpp $FSLDIR/extras/src/newmat/cholesky.cpp $FSLDIR/extras/src/newmat/evalue.cpp $FSLDIR/extras/src/newmat/fft.cpp $FSLDIR/extras/src/newmat/hholder.cpp $FSLDIR/extras/src/newmat/jacobi.cpp $FSLDIR/extras/src/newmat/myexcept.cpp $FSLDIR/extras/src/newmat/newmat1.cpp $FSLDIR/extras/src/newmat/newmat2.cpp $FSLDIR/extras/src/newmat/newmat3.cpp $FSLDIR/extras/src/newmat/newmat4.cpp $FSLDIR/extras/src/newmat/newmat5.cpp $FSLDIR/extras/src/newmat/newmat6.cpp $FSLDIR/extras/src/newmat/newmat7.cpp $FSLDIR/extras/src/newmat/newmat8.cpp $FSLDIR/extras/src/newmat/newmat9.cpp $FSLDIR/extras/src/newmat/newmatex.cpp $FSLDIR/extras/src/newmat/newmatnl.cpp $FSLDIR/extras/src/newmat/newmatrm.cpp $FSLDIR/extras/src/newmat/solution.cpp $FSLDIR/extras/src/newmat/sort.cpp $FSLDIR/extras/src/newmat/submat.cpp $FSLDIR/extras/src/newmat/svd.cpp $FSLDIR/extras/src/newmat/newfft.cpp \
 -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
@@ -45,7 +46,7 @@ sudo ar rcs libmiscmaths.a miscmaths.o optimise.o miscprob.o kernel.o histogram.
 
 echo recreating fslio library
 sudo gcc -fPIC -g -c $FSLDIR/src/fslio/fslio.c \
--DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB -DBUILDSTRING=$BUILDSTRING \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/include/libprob \
@@ -102,7 +103,7 @@ sudo ar rcs libbasisfield.a dctfield.o splinefield.o basisfield.o splines.o
 
 echo recreating utils library
 sudo gcc -fPIC -g -c $FSLDIR/src/utils/matches.cc $FSLDIR/src/utils/functions.cc $FSLDIR/src/utils/usage.cc $FSLDIR/src/utils/check.cc $FSLDIR/src/utils/parse.cc $FSLDIR/src/utils/log.cc $FSLDIR/src/utils/time_tracer.cc \
--DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB -DBUILDSTRING=$BUILDSTRING \
 -I$FSLDIR/src \
 -I$FSLDIR/extras/include \
 -I$FSLDIR/extras/src/libgdc \

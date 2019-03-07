@@ -392,7 +392,6 @@ void studyParams::prepRealtimeVars()
 // sets the value of a variable. Not used right now
 void studyParams::setVar(char *var, char *value)
 {
-        fprintf(stderr, "ate aqui nos ajudou o Senhor !!!\n");
 	string temp = value, from, to;
 
 	from = "glmdir"; to = glmDir;

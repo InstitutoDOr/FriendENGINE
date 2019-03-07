@@ -114,9 +114,9 @@ class DesignObject
          void cleanUp();
 
 #ifndef __GNUC__
-		DesignObject () {};
+		DesignObject () {baselineCondition[0]=0;};
 #else //The GCC way
-		DesignObject () {};
+		DesignObject () {baselineCondition[0]=0;};
 		virtual ~DesignObject() {cleanUp();};
 #endif
 

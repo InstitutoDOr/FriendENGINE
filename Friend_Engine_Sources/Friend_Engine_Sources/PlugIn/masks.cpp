@@ -864,7 +864,7 @@ void RegionCorrelation::loadRegions(char *filename, char *referenceDirectory)
    
    // reading the maps list, if any.
    regionFile.getline(bufferLine, sizeof(bufferLine)-1);
-   if (bufferLine)
+   if (regionFile.gcount())
    {
       // First line is the number of maps
       int numMaps = atoi(bufferLine);
