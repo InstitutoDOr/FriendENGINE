@@ -1,4 +1,5 @@
 cd Application
+rm -f *.dylib
 rm -f *.so
 rm -f engine
 

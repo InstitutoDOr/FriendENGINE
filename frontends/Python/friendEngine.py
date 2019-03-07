@@ -154,13 +154,13 @@ class Engine(object):
          responseThread.send(arg[0]);
          if (len(arg) > 1):
             responseThread.send(str(arg[1]) + '\n'); 
-      try:
-         response = self.readsocket(responseThread);
-         if (len(arg) > 1):
-	        # this is the true acknowledge 
-            ack = self.readsocket(responseThread);
-      except:
-         print("Time out !!!");
+         try:
+            response = self.readsocket(responseThread);
+            if (len(arg) > 1):
+	       # this is the true acknowledge 
+               ack = self.readsocket(responseThread);
+         except:
+            print("Time out !!!");
       responseThread.close();
       return response;
    

@@ -531,13 +531,13 @@ bool	friendEngine::serverChild(int	socketFd)
 																		socks.writeString(command);
 																		//exit(-1);
 																		break;
-																	}
-																	else
-																	{
-																		logObject->writeLog(1, "PrepRealtime step finisjed succesfully.\n");
-																		sprintf(command, "OK\n");
-																		socks.writeString(command);
-																	}
+																	};
+																	//else
+																	//{
+																	//	logObject->writeLog(1, "PrepRealtime step finished successfully.\n");
+																	//	sprintf(command, "OK\n");
+																	//	socks.writeString(command);
+																	//}
 																	process.setPhaseStatus("PREPROC", 1);
 																}
 																else
