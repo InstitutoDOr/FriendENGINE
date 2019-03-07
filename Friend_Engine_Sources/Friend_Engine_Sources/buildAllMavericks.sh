@@ -29,6 +29,7 @@ cd ..
 cd ROIbasedPlugIn
 chmod +x buildMavericks.sh
 ./buildMavericks.sh
+
 echo compiling SVM PlugIn
 cd ..
 cd svmPlugIn
