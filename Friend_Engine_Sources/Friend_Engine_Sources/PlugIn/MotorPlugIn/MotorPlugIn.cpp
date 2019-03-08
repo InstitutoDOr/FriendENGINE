@@ -8,6 +8,7 @@
 
 #include "MotorPlugIn.h"
 #include "session.h"
+#include <iomanip>
 
 #ifdef WINDOWS
 #define DLLExport extern "C" __declspec(dllexport) int 
@@ -94,6 +95,13 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
 
    firstBaselineValue=0;
    secondBaselineValue = 0;
+   sprintf(dumpFileName, "%s%s%s%s", vdb.outputDir, "dumpFile", vdb.trainFeatureSuffix, ".txt");
+   dumpFile.open(dumpFileName, fstream::in | fstream::out | fstream::trunc);
+   if (!dumpFile.is_open())
+   {
+      vdb.logObject->writeLog(1, "!!!!!!!   File not opened %s.\n", dumpFileName);
+      exit(-1);
+   }      
    return 0;
 }
 
@@ -102,8 +110,8 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 {
    char processedFile[200];
    int idxInterval = vdb.interval.returnInterval(index);
-   float firstRoiMean, secondRoiMean;
-   float firstRoiFeedbackValue, secondRoiFeedbackValue;
+   float firstRoiMean=0, secondRoiMean=0;
+   float firstRoiFeedbackValue=0, secondRoiFeedbackValue=0;
    // the first roi feedback value goes directly through the normal channel, but the second roi need another route
    char secondRoiString[100];
    Session *session = (Session *)vdb.sessionPointer;
@@ -159,6 +167,8 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 	  vdb.logObject->writeLog(1, "Feedback value = %f\n", feedbackValue);
 	  vdb.logObject->writeLog(1, "Feedback value = %s\n", secondRoiString);
    }
+   dumpFile << index << ";" << std::setprecision(10) << firstBaselineValue << ";" << secondBaselineValue << ";" << firstRoiMean << ";" << secondRoiMean << ";" << firstRoiFeedbackValue << ";" << secondRoiFeedbackValue << endl;
+   dumpFile.flush();
    return 0;
 }
 
@@ -181,6 +191,8 @@ DLLExport initializeMotorProcessing(studyParams &vdb, void *&userData)
 DLLExport finalizeMotorProcessing(studyParams &vdb, void *&userData)
 {
    MotorRoiProcessing *roiVar = (MotorRoiProcessing *) userData;
+   if (roiVar->dumpFile.is_open())
+      roiVar->dumpFile.close();
    delete roiVar;
    return 0;
 }

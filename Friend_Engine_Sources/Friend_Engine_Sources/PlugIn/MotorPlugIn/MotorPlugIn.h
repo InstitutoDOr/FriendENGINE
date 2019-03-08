@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef ____svmPlugIn__
-#define ____svmPlugIn__
+#ifndef ____motorPlugIn__
+#define ____motorPlugIn__
 
 #include <iostream>
 
@@ -16,6 +16,7 @@
 #include "vardb.h"
 #include "masks.h"
 #include <sstream>
+#include <fstream>
 
 using namespace NEWIMAGE;
 
@@ -28,8 +29,11 @@ class MotorRoiProcessing
    int firstRoi, secondRoi;
    int firstRoiIndex, secondRoiIndex;
 
-   
 public:
+   // variables handling the dumpFile (filename and fstream object)
+   fstream dumpFile;
+   char dumpFileName[1024];
+
    // initializes the object variables
    int initialization(studyParams &vdb);
    // calculates the feedback value
@@ -38,5 +42,5 @@ public:
    float PSC(float value, float base);
 };
 
-#endif /* defined(____svmPlugIn__) */
+#endif /* defined(____motorPlugIn__) */
 
