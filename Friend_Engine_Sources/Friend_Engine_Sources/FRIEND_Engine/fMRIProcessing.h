@@ -28,6 +28,7 @@ int applyTransformation(char *volume, char *output, char *reference, char *matri
 int mniRegistration(char *volume, char *highres, char *reference, char *pngFile, char *matrixFile);
 int icaDenoisedSmart(char *iname, char *oname, char *matrix, char *fixIdxs, Matrix& design, int aggressive = 0);
 int motionCorrection4D(char *volume4D, char *reference, char *regressorFile, char *mcsuffix = NULL, char *filesuffix = NULL);
+int znormalization4D(char *inputVolFilename, char *outputVolFileName);
 void detrendSG(char *filename, char *saida, int w, int degree);
 void runMelodic(char *dirSuj, char *dirRun);
 void runMelodic4D(char *inName);

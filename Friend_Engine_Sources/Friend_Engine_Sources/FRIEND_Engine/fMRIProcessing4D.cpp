@@ -49,6 +49,16 @@ int regressMovementsParams4D(char *intervalFile, char *condBASAL, char *iname, c
 	return 1;
 }
 
+int znormalization4D(char *inputVolFilename, char *outputVolFileName)
+{
+	volume4D<float> inputVol;
+	read_volume4D(inputVol, inputVolFilename);
+	Matrix data = inputVol.matrix();
+	znormalization(data);
+	inputVol.setmatrix(data);
+	save_volume4D(inputVol, outputVolFileName);
+}
+
 int motionCorrection4D(char *volume4D, char *reference, char *regressorFile, char *mcsuffix, char *filesuffix)
 {
 	char cmd[2040], dirPai[2048], tempFile[2048];

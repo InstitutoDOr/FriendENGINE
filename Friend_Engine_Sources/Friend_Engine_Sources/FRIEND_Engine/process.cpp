@@ -1266,6 +1266,18 @@ void FriendProcess::getPhaseStatus(string phase, char *response)
 	  vdb.sessionPointer->getCommandResponse(phase, response);
 }
 
+std::string upper_string(const std::string& str)
+{
+	string upper;
+	transform(str.begin(), str.end(), std::back_inserter(upper), toupper);
+	return upper;
+}
+
+std::string::size_type find_str_ci(const std::string& str, const std::string& substr)
+{
+	return upper_string(str).find(upper_string(substr));
+}
+
 // steps before realtime processing
 int FriendProcess::prepRealTime()
 {
@@ -1299,6 +1311,32 @@ int FriendProcess::prepRealTime()
 	   return 0;
    }
 
+   string filename = vdb.rfiFile;
+   string extension = ".DCM";
+   if (find_str_ci(filename, extension))
+   {
+	   replaceAll(filename, ".dcm", ".nii");
+	   replaceAll(filename, ".DCM", ".nii");
+	   if (!fileExists((char *)filename.c_str()))
+	   {
+		   transformDicom2(vdb.rfiFile, (char*)filename.c_str());
+		   vdb.logObject->writeLog(1, "File %s created by converting to dicom.\n", (char*)filename.c_str());
+	   };
+	   strcpy(vdb.rfiFile, filename.c_str());
+   }
+
+   filename = vdb.raiFile;
+   if (find_str_ci(filename, extension))
+   {
+	   replaceAll(filename, ".dcm", ".nii");
+	   replaceAll(filename, ".DCM", ".nii");
+	   if (!fileExists((char *)filename.c_str()))
+	   {
+		   transformDicom2(vdb.raiFile, (char*)filename.c_str());
+		   vdb.logObject->writeLog(1, "File %s created by converting to dicom.\n", (char*)filename.c_str());
+	   };
+	   strcpy(vdb.raiFile, filename.c_str());
+   }
 
    vdb.createDirectories();
 
