@@ -160,4 +160,8 @@ stdtr.o unity.o polevl.o const.o xmath.o
 
 ln -s libprob.a libcprob.a
 
+echo recreating dcm2niilib
+sudo gcc -fPIC -g -c ../../../dcm2niix/console/jpg_0XC3.cpp ../../../dcm2niix/console/nifti1_io_core.cpp ../../../dcm2niix/console/nii_dicom.cpp ../../../dcm2niix/console/nii_dicom_batch.cpp ../../../dcm2niix/console/nii_foreign.cpp ../../../dcm2niix/console/nii_ortho.cpp ../../../dcm2niix/console/ujpeg.cpp \
+-DmyDisableOpenJPEG -DDEFINE_NIFTI_FUNCS
 
+sudo ar rcs libdcm2niix.a jpg_0XC3.o nifti1_io_core.o nii_dicom.o nii_dicom_batch.o nii_foreign.o nii_ortho.o ujpeg.o

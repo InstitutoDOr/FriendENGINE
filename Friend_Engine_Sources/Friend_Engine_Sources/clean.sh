@@ -6,6 +6,7 @@ rm -f engine
 cd ..
 cd libFiles
 rm -f *.o
+rm -f *.a
 
 cd ..
 cd FRIEND_Engine

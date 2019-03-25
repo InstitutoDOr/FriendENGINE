@@ -16,6 +16,7 @@
 #endif
 #include "masks.h"
 #include "dcm2niiInterface.h"
+#include <algorithm>
 
 using namespace std;
 using namespace NEWIMAGE;
@@ -1269,7 +1270,7 @@ void FriendProcess::getPhaseStatus(string phase, char *response)
 std::string upper_string(const std::string& str)
 {
 	string upper;
-	transform(str.begin(), str.end(), std::back_inserter(upper), toupper);
+	transform(str.begin(), str.end(), std::back_inserter(upper), ::toupper);
 	return upper;
 }
 
