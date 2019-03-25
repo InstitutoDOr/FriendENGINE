@@ -1,3 +1,4 @@
+#include <string>
 // various definitions
 #ifndef	UNIX
 #	define	PATHSEPCHAR	'\\'

@@ -19,13 +19,14 @@ main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp int
 -lcprob \
 -lnewmat \
 -lniftiio \
+-ldl \
+-lpthread \
 -lz \
 -lznz \
 -lmiscplot \
 -lgdc \
 -lgd \
--lpng \
--lpthread -ldl
+-lpng
 
 g++ -o ../Application/engine main.o process.o engine.o PlugInHandler.o confusionmatrix.o session.o vardb.o  intervals.o socket.o socket2.o fslfuncs.o filefuncs.o defs.o parser.o utils.o dcm2niiInterface.o logObject.o \
 -L../libFiles \
@@ -40,6 +41,8 @@ g++ -o ../Application/engine main.o process.o engine.o PlugInHandler.o confusion
 -lprob \
 -lnewmat \
 -lniftiio \
+-ldl \
+-lpthread \
 -lz \
 -lznz \
 -lmiscplot \
