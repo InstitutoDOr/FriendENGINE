@@ -7,9 +7,9 @@ StudyDir=../TestData
 # I.02 Subject identifier
 Subject=SUBJ002
 # I.03 Reference Anatomical Image
-RAI=../TestData/SUBJ002/RAI.nii
+RAI=/home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000001.dcm
 # I.04 Reference Functional Image
-RFI=../TestData/SUBJ002/RFI.nii
+RFI=/home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000001.dcm
 # I.05 TR
 TR=2
 # I.06 Number of volumes to be averaged in the sliding window
@@ -17,7 +17,7 @@ SlidingWindowSize=3
 # I.06 Number of volumes to be acquired in the current functional run
 FuncVolumes=296
 # I.07 Prefix (currently for Philips DRIN only)
-Prefix=../TestData/SUBJ002/RUN01/DRIN-
+Prefix=/home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_
 # I.08 Text file with the design of the study
 Design=../TestData/SUBJ002/design.txt
 # I.09 Baseline condition as specified in the Design file
@@ -90,7 +90,7 @@ ActivationLevelAllowDownHill=0
 FeedBackType=2
 RegionsFile=
 RegionsMapFile=
-SufixNumberWidth=5
+SufixNumberWidth=6
 MCType=1
 CorrelationWindowsSize=10
 CorrelationMapFile=

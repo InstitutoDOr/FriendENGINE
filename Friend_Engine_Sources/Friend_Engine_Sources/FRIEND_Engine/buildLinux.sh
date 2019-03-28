@@ -1,6 +1,6 @@
 sudo g++ \
-main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp  confusionmatrix.cpp session.cpp utils.cpp \
--DUNIX -DLINUX -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx dcm2niiInterface.cpp logObject.cpp socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp  confusionmatrix.cpp session.cpp utils.cpp \
+-DUNIX -DLINUX -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -Ddcm2niifunction -DHAVE_ZLIB \
 -I. \
 -I../PlugIn \
 -I$FSLDIR/src \

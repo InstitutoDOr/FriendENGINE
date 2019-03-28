@@ -1,0 +1,291 @@
+Current dir = .
+Current dir = /home/osboxes/Desktop/FriendENGINE/Friend_Engine_Sources/Friend_Engine_Sources/Application
+waiting for command 
+command received : NEWSESSION
+Session 2019032809025784 created.
+waiting for command 
+command received : SET
+reading design file /home/osboxes/Desktop/FriendENGINE/Friend_Engine_Sources/Friend_Engine_Sources/TestData/SUBJ002/design.txt
+Copying information to Design Object
+generating contrasts 
+Number of conditions : 3
+MNIMask=studydirhmat_spm_PM.nii.gz
+reading design file /home/osboxes/Desktop/FriendENGINE/Friend_Engine_Sources/Friend_Engine_Sources/TestData/SUBJ002/design.txt
+Copying information to Design Object
+generating contrasts 
+Number of conditions : 3
+waiting for command 
+command received : SET
+MNITemplate=studydirMNI152_T1_1mm_brain.nii.gz
+reading design file /home/osboxes/Desktop/FriendENGINE/Friend_Engine_Sources/Friend_Engine_Sources/TestData/SUBJ002/design.txt
+Copying information to Design Object
+generating contrasts 
+Number of conditions : 3
+waiting for command 
+command received : PLUGIN
+Found library : libROI
+train function not loaded.
+volume function not loaded.
+after Preprocessing function not loaded.
+waiting for command 
+command received : NBPREPROC
+PrepRealtime.
+Creating study dir
+Creating subject dir
+Creating activation dir
+Creating input dir
+Creating glm dir
+Creating log dir
+Creating preproc dir
+mnimask = ../TestData/hmat_spm_final.nii
+mnitemp = ../TestData/MNI152_T1_1mm_brain.nii.gz
+masktype = 2
+Calculating the native template /home/osboxes/Desktop/FriendENGINE/Friend_Engine_Sources/Friend_Engine_Sources/TestData/SUBJ002/input/hmat_spm_final_nii_RUN01.nii
+waiting for command 
+command received : NBPIPELINE
+######################### processing pipeline begin ######################
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000001.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000002.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000003.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000004.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000005.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000006.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000007.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000008.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000009.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000010.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000011.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000012.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000013.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000014.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000015.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000016.dcm
+Baseline mean calculation
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000017.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000018.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000019.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000020.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000021.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000022.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000023.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000024.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000025.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000026.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000027.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000028.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000029.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000030.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000031.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000032.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000033.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000034.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000035.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000036.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000037.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000038.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000039.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000040.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000041.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000042.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000043.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000044.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000045.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000046.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000047.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000048.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000049.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000050.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000051.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000052.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000053.dcm
+Baseline mean calculation
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000054.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000055.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000056.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000057.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000058.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000059.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000060.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000061.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000062.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000063.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000064.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000065.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000066.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000067.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000068.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000069.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000070.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000071.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000072.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000073.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000074.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000075.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000076.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000077.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000078.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000079.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000080.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000081.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000082.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000083.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000084.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000085.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000086.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000087.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000088.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000089.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000090.dcm
+Baseline mean calculation
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000091.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000092.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000093.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000094.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000095.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000096.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000097.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000098.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000099.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000100.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000101.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000102.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000103.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000104.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000105.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000106.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000107.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000108.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000109.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000110.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000111.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000112.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000113.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000114.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000115.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000116.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000117.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000118.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000119.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000120.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000121.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000122.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000123.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000124.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000125.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000126.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000127.dcm
+Baseline mean calculation
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000128.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000129.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000130.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000131.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000132.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000133.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000134.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000135.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000136.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000137.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000138.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000139.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000140.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000141.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000142.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000143.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000144.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000145.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000146.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000147.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000148.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000149.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000150.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000151.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000152.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000153.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000154.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000155.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000156.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000157.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000158.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000159.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000160.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000161.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000162.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000163.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000164.dcm
+Baseline mean calculation
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000165.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000166.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000167.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000168.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000169.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000170.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000171.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000172.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000173.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000174.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000175.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000176.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000177.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000178.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000179.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000180.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000181.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000182.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000183.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000184.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000185.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000186.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000187.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000188.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000189.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000190.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000191.dcm
+Processing file = /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000192.dcm
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000193.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii
+file not found : /home/osboxes/Desktop/20190307.2019BRAIN003.BRAIN30_TEICA08371/001_000012_000194.nii

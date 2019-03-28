@@ -1,6 +1,6 @@
 g++ -w -c -x c++ \
 main.cpp filefuncs.cpp ../PlugIn/vardb.cpp socket.cxx logObject.cpp socket2.cpp parser.cpp intervals.cpp fslfuncs.cpp process.cpp engine.cpp defs.cpp PlugInHandler.cpp  confusionmatrix.cpp session.cpp utils.cpp \
--DUNIX -DDARWIN -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \
+-DUNIX -DDARWIN -DEXPOSE_TREACHEROUS -Ddcm2niifunction -DHAVE_LIBPNG -DHAVE_ZLIB \
 -I. \
 -I../PlugIn \
 -I$FSLDIR/src \
