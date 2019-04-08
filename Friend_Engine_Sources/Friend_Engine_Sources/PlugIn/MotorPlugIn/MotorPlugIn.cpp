@@ -9,6 +9,16 @@
 #include "MotorPlugIn.h"
 #include "session.h"
 #include <iomanip>
+#include <ctime>
+#include <time.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#include <sys/timeb.h>
+#else
+#include <sys/time.h>
+#include <sys/stat.h>
+#endif
 
 #ifdef WINDOWS
 #define DLLExport extern "C" __declspec(dllexport) int 
@@ -114,6 +124,12 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
    float firstRoiFeedbackValue=0, secondRoiFeedbackValue=0;
    // the first roi feedback value goes directly through the normal channel, but the second roi need another route
    char secondRoiString[100];
+   char timestamp[100];
+   time_t time_now;
+
+   time(&time_now);
+   struct tm *timeinfo = localtime(&time_now);
+
    Session *session = (Session *)vdb.sessionPointer;
 
    volume<float> v;
@@ -167,7 +183,9 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 	  vdb.logObject->writeLog(1, "Feedback value = %f\n", feedbackValue);
 	  vdb.logObject->writeLog(1, "Feedback value = %s\n", secondRoiString);
    }
-   dumpFile << index << ";" << std::setprecision(10) << firstBaselineValue << ";" << secondBaselineValue << ";" << firstRoiMean << ";" << secondRoiMean << ";" << firstRoiFeedbackValue << ";" << secondRoiFeedbackValue << endl;
+
+   strftime(timestamp, 100, "%Y-%m-%d %H:%M:%S", timeinfo);
+   dumpFile << index << ";" << timestamp << ";" << std::setprecision(10) << firstBaselineValue << "; " << secondBaselineValue << "; " << firstRoiMean << "; " << secondRoiMean << "; " << firstRoiFeedbackValue << "; " << secondRoiFeedbackValue << endl;
    dumpFile.flush();
    return 0;
 }
