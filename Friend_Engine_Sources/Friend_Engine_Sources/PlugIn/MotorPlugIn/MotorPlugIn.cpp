@@ -26,6 +26,26 @@
 #define DLLExport extern "C" int 
 #endif
 
+int GetUTime()
+{
+
+#ifdef WINDOWS
+	return (double)getMilliCount();
+#else
+	struct timeval time;
+	if (gettimeofday(&time, NULL))
+	{
+		//  Handle error
+		return 0;
+	}
+	int usecs = (int) (time.tv_usec * .001);
+        if (usecs > 999)
+           usecs = 999;
+        return usecs;
+        
+#endif
+}
+
 // initializes the object variables. This function brings the mni mask to subject space
 int MotorRoiProcessing::initialization(studyParams &vdb)
 {
@@ -124,7 +144,7 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
    float firstRoiFeedbackValue=0, secondRoiFeedbackValue=0;
    // the first roi feedback value goes directly through the normal channel, but the second roi need another route
    char secondRoiString[100];
-   char timestamp[100];
+   char timestamp[100], buffer[100];
    time_t time_now;
 
    time(&time_now);
@@ -183,8 +203,10 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 	  vdb.logObject->writeLog(1, "Feedback value = %f\n", feedbackValue);
 	  vdb.logObject->writeLog(1, "Feedback value = %s\n", secondRoiString);
    }
+   int millisecs = GetUTime();
+   strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", timeinfo);
+   sprintf(timestamp, "%s.%d", buffer, millisecs);
 
-   strftime(timestamp, 100, "%Y-%m-%d %H:%M:%S", timeinfo);
    dumpFile << index << ";" << timestamp << ";" << std::setprecision(10) << firstBaselineValue << "; " << secondBaselineValue << "; " << firstRoiMean << "; " << secondRoiMean << "; " << firstRoiFeedbackValue << "; " << secondRoiFeedbackValue << endl;
    dumpFile.flush();
    return 0;
