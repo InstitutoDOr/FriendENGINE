@@ -69,33 +69,36 @@ void Session::processFeedback(int index, float returnedClass, float returnedPerc
     {
        feedbacksList[i].classNumber = 0;
        feedbacksList[i].percentage = 0;
-       feedbacksList[i].additionalResponse[0] = 0;
+       if (hasAdditionalResponse)
+          strcpy(feedbacksList[i].additionalResponse, "0\n");
+       else feedbacksList[i].additionalResponse[0] = 0;
     }
     feedbacksList[index-1].classNumber = (int) returnedClass;
     feedbacksList[index-1].percentage = returnedPercentage;
-
-    if (newItem)
-       feedbacksList[index-1].additionalResponse[0] = 0;
 }
 
 void Session::processAdditionalGraphInfo(int index, const char *info)
 {
-	if (strlen(info) > 0)
-	{
-		graphParamsList.resize(index);
-		strcpy(graphParamsList[index - 1].additionalParams, info);
-		strcat(graphParamsList[index - 1].additionalParams, "\n");
-	}
+   if (strlen(info) > 0)
+   {
+      if (graphParamsList.size() < index)
+         graphParamsList.resize(index);
+
+      strcpy(graphParamsList[index - 1].additionalParams, info);
+      strcat(graphParamsList[index - 1].additionalParams, "\n");
+   }
 }
 
 void Session::processAdditionalFeedBackInfo(int index, const char *info)
 {
-	if (strlen(info) > 0)
-	{
-		feedbacksList.resize(index);
-		strcpy(feedbacksList[index - 1].additionalResponse, info);
-		strcat(feedbacksList[index - 1].additionalResponse, "\n");
-	}
+   if (strlen(info) > 0)
+   {
+      if (feedbacksList.size() < index)
+         feedbacksList.resize(index);
+
+      strcpy(feedbacksList[index - 1].additionalResponse, info);
+      strcat(feedbacksList[index - 1].additionalResponse, "\n");
+   }
 }
 
 void Session::getGraphResponse(int index, char *msg)
