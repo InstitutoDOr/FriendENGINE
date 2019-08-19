@@ -60,15 +60,22 @@ int Session::getTerminateState()
 
 void Session::processFeedback(int index, float returnedClass, float returnedPercentage)
 {
-	int newItem = 0;
+    int newItem = 0;
+    int oldSize = feedbacksList.size();
 
-	if (index > feedbacksList.size()) newItem = 1;
+    if (index > oldSize) newItem = 1;
     feedbacksList.resize(index);
+    for (int i = oldSize; i < index; i++)
+    {
+       feedbacksList[i].classNumber = 0;
+       feedbacksList[i].percentage = 0;
+       feedbacksList[i].additionalResponse[0] = 0;
+    }
     feedbacksList[index-1].classNumber = (int) returnedClass;
     feedbacksList[index-1].percentage = returnedPercentage;
 
-	if (newItem)
-		feedbacksList[index - 1].additionalResponse[0] = 0;
+    if (newItem)
+       feedbacksList[index-1].additionalResponse[0] = 0;
 }
 
 void Session::processAdditionalGraphInfo(int index, const char *info)
@@ -93,16 +100,27 @@ void Session::processAdditionalFeedBackInfo(int index, const char *info)
 
 void Session::getGraphResponse(int index, char *msg)
 {
-   if (graphParamsList.size() < index) sprintf(msg, "GRAPHPARS\n");
+   if (graphParamsList.size() < index) 
+      sprintf(msg, "GRAPHPARS\n");
    else
    {
 	   sprintf(msg, "GRAPHPARS;%d;%f;%f;%f;%f;%f;%f;%f\n%s", index, graphParamsList[index - 1].rotX, graphParamsList[index - 1].rotY, graphParamsList[index - 1].rotZ, graphParamsList[index - 1].transX, graphParamsList[index - 1].transY, graphParamsList[index - 1].transZ, graphParamsList[index - 1].rmsValue, graphParamsList[index - 1].additionalParams);
    }
 }
 
+void Session::enableAdditionalReponse()
+{
+   hasAdditionalResponse = 1;
+}
+
 void Session::getFeedbackResponse(int index, char *msg)
 {
-   if (feedbacksList.size() < index) sprintf(msg, "0\n0\n");
+   if (feedbacksList.size() < index) 
+   {
+      sprintf(msg, "0\n0\n");
+      if (hasAdditionalResponse)
+         sprintf(msg, "0\n0\n0\n");
+   }
    else sprintf(msg, "%d\n%f\n%s", feedbacksList[index - 1].classNumber, feedbacksList[index - 1].percentage, feedbacksList[index - 1].additionalResponse);
 }
 

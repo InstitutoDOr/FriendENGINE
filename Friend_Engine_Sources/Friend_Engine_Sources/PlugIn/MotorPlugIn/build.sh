@@ -1,4 +1,4 @@
-sudo g++ -fPIC -g -c \
+g++ -fPIC -g -c \
 MotorPlugIn.cpp ../vardb.cpp ../masks.cpp ../../FRIEND_Engine/utils.cpp ../../Friend_Engine/filefuncs.cpp ../../Friend_Engine/parser.cpp ../../Friend_Engine/intervals.cpp ../../Friend_Engine/session.cpp ../../Friend_Engine/fslfuncs.cpp ../../Friend_Engine/socket.cxx ../../Friend_Engine/socket2.cpp ../../Friend_Engine/defs.cpp \
 ../../alglib/statistics.cpp ../../alglib/alglibinternal.cpp ../../alglib/ap.cpp ../../alglib/specialfunctions.cpp ../../alglib/linalg.cpp ../../alglib/alglibmisc.cpp \
 -DUNIX -DDARWIN -DEXPOSE_TREACHEROUS -DHAVE_LIBPNG -DHAVE_ZLIB \

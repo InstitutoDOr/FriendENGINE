@@ -38,9 +38,7 @@ int GetUTime()
 		//  Handle error
 		return 0;
 	}
-	int usecs = (int) (time.tv_usec * .001);
-        if (usecs > 999)
-           usecs = 999;
+	int usecs = (int) (time.tv_usec);
         return usecs;
         
 #endif
@@ -112,13 +110,13 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
    {
 	   if (!fileExists(vdb.mniMask))
 	   {
-		   vdb.logObject->writeLog(1, "!!!!!!!   File not found %s.\n", vdb.mniMask);
+		   vdb.logObject->writeLog(1, "!!!!!!!   MNI Mask file not found %s.\n", vdb.mniMask);
 		   exit(-1);
 	   }
 
 	   if (!fileExists(vdb.mniTemplate))
 	   {
-		   vdb.logObject->writeLog(1, "!!!!!!!   File not found %s.\n", vdb.mniTemplate);
+		   vdb.logObject->writeLog(1, "!!!!!!!   MNI Template file not found %s.\n", vdb.mniTemplate);
 		   exit(-1);
 	   }
    };
@@ -129,9 +127,12 @@ int MotorRoiProcessing::initialization(studyParams &vdb)
    dumpFile.open(dumpFileName, fstream::in | fstream::out | fstream::trunc);
    if (!dumpFile.is_open())
    {
-      vdb.logObject->writeLog(1, "!!!!!!!   File not opened %s.\n", dumpFileName);
+      vdb.logObject->writeLog(1, "!!!!!!!   Dump file not opened %s.\n", dumpFileName);
       exit(-1);
    }      
+   Session *session = (Session *)vdb.sessionPointer;
+   if (session != NULL) 
+      session->enableAdditionalReponse();
    return 0;
 }
 
@@ -162,7 +163,7 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 
    if (!meanCalculation.checkDimensions(v))
    {
-	   vdb.logObject->writeLog(1, "Feedback calculation: Mask dimension differs from funxtional volume");
+	   vdb.logObject->writeLog(1, "Feedback calculation: Mask dimension differs from functional volume");
    }
    // if in baseline condition, calculates the mean volume
    if (vdb.interval.isBaselineCondition(index))
@@ -203,9 +204,9 @@ int MotorRoiProcessing::processVolume(studyParams &vdb, int index, float &classn
 	  vdb.logObject->writeLog(1, "Feedback value = %f\n", feedbackValue);
 	  vdb.logObject->writeLog(1, "Feedback value = %s\n", secondRoiString);
    }
-   int millisecs = GetUTime();
+   int microsecs = GetUTime();
    strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", timeinfo);
-   sprintf(timestamp, "%s.%d", buffer, millisecs);
+   sprintf(timestamp, "%s.%.6d", buffer, microsecs);
 
    dumpFile << index << ";" << timestamp << ";" << std::setprecision(10) << firstBaselineValue << "; " << secondBaselineValue << "; " << firstRoiMean << "; " << secondRoiMean << "; " << firstRoiFeedbackValue << "; " << secondRoiFeedbackValue << endl;
    dumpFile.flush();
